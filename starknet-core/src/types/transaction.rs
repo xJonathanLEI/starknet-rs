@@ -46,6 +46,3 @@ pub struct InvokeFunctionTransaction {
     #[serde(deserialize_with = "deserialize_vec_u256_from_dec")]
     signature: Vec<U256>,
 }
-
-#[derive(Debug, Deserialize)]
-pub struct TransactionReceipt {}
