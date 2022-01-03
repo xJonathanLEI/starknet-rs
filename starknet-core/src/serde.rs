@@ -1,10 +1,10 @@
-use ethereum_types::H256;
+use ethereum_types::{H256, U256};
 use serde::{
     de::{Error as DeError, Unexpected},
     Deserialize, Deserializer,
 };
 
-pub fn deserialize_h256<'de, D>(d: D) -> Result<H256, D::Error>
+pub fn deserialize_h256_from_hex<'de, D>(d: D) -> Result<H256, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -28,4 +28,17 @@ where
     };
 
     Ok(H256::from_slice(&parsed_bytes))
+}
+
+pub fn deserialize_vec_u256_from_dec<'de, D>(d: D) -> Result<Vec<U256>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let values: Vec<String> = Vec::deserialize(d)?;
+
+    values
+        .iter()
+        .map(|value| U256::from_dec_str(value))
+        .collect::<Result<Vec<U256>, _>>()
+        .map_err(|err| DeError::custom(format!("Invalid integer: {}", err)))
 }
