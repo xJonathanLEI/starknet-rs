@@ -1,0 +1,14 @@
+[package]
+name = "starknet-providers"
+version = "0.1.0"
+authors = ["Jonathan LEI <me@xjonathan.dev>"]
+license = "MIT"
+edition = "2021"
+readme = "README.md"
+repository = "https://github.com/xJonathanLEI/starknet-rs"
+homepage = "https://starknet.rs/"
+description = """
+Provider implementations for the starknet crate
+"""
+
+[dependencies]

@@ -1,0 +1,19 @@
+[package]
+name = "starknet"
+version = "0.1.0"
+authors = ["Jonathan LEI <me@xjonathan.dev>"]
+license = "MIT"
+edition = "2021"
+readme = "README.md"
+documentation = "https://docs.rs/starknet"
+repository = "https://github.com/xJonathanLEI/starknet-rs"
+homepage = "https://starknet.rs/"
+description = """
+Complete StarkNet library in Rust
+"""
+
+[workspace]
+members = [
+    "starknet-core",
+    "starknet-providers",
+]
