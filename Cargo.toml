@@ -17,3 +17,7 @@ members = [
     "starknet-core",
     "starknet-providers",
 ]
+
+[dependencies]
+starknet-core = { version = "0.1.0", path = "./starknet-core" }
+starknet-providers = { version = "0.1.0", path = "./starknet-providers" }
