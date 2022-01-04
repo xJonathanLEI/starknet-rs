@@ -3,6 +3,11 @@ use super::{super::serde::deserialize_h256_from_hex, Transaction, TransactionRec
 use ethereum_types::H256;
 use serde::Deserialize;
 
+pub enum BlockId {
+    Hash(H256),
+    Number(u64),
+}
+
 #[allow(unused)]
 #[derive(Debug, Deserialize)]
 pub struct Block {

@@ -1,5 +1,8 @@
+// Re-export commonly used upstream types
+pub use ethereum_types::{Address, H256, U256};
+
 mod block;
-pub use block::Block;
+pub use block::{Block, BlockId};
 
 mod transaction;
 pub use transaction::{DeployTransaction, EntryPointType, InvokeFunctionTransaction, Transaction};
