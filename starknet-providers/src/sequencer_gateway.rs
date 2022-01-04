@@ -2,8 +2,9 @@ use crate::provider::Provider;
 
 use async_trait::async_trait;
 use reqwest::{Client, Error as ReqwestError};
+use serde::Deserialize;
 use serde_json::Error as SerdeJsonError;
-use starknet_core::types::{Block, BlockId};
+use starknet_core::types::{Block, BlockId, StarknetError};
 use thiserror::Error;
 use url::Url;
 
@@ -20,6 +21,8 @@ pub enum ProviderError {
     ReqwestError(#[from] ReqwestError),
     #[error("Deserialization error: {err}, Response: {text}")]
     SerdeJson { err: SerdeJsonError, text: String },
+    #[error(transparent)]
+    StarknetError(StarknetError),
 }
 
 impl SequencerGatewayProvider {
@@ -44,6 +47,13 @@ impl SequencerGatewayProvider {
             Url::parse("https://alpha4.starknet.io/feeder_gateway").unwrap(),
         )
     }
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum GetBlockResponse {
+    Block(Block),
+    StarknetError(StarknetError),
 }
 
 #[async_trait]
@@ -73,6 +83,14 @@ impl Provider for SequencerGatewayProvider {
 
         let res = self.client.get(request_url).send().await?;
         let body = res.text().await?;
-        serde_json::from_str(&body).map_err(|err| ProviderError::SerdeJson { err, text: body })
+        let res: GetBlockResponse = serde_json::from_str(&body)
+            .map_err(|err| ProviderError::SerdeJson { err, text: body })?;
+
+        match res {
+            GetBlockResponse::Block(block) => Ok(block),
+            GetBlockResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
     }
 }

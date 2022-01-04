@@ -12,3 +12,6 @@ pub use transaction_receipt::{
     BuiltinInstanceCounter, ExecutionResources, L2ToL1Message, TransactionReceipt,
     TransactionStatus,
 };
+
+mod starknet_error;
+pub use starknet_error::{Error as StarknetError, ErrorCode as StarknetErrorCode};
