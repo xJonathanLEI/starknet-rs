@@ -1,0 +1,21 @@
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+name: Linting
+
+jobs:
+  lint:
+    name: Lints
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+      - name: Check code format
+        run: |
+          cargo fmt --all -- --check
+      - name: Run Clippy lints
+        run: |
+          cargo clippy
