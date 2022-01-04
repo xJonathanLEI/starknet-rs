@@ -3,18 +3,17 @@ use super::super::serde::{deserialize_h256_from_hex, deserialize_vec_u256_from_d
 use ethereum_types::{Address as L1Address, H256, U256};
 use serde::Deserialize;
 
-#[allow(unused)]
 #[derive(Debug, Deserialize)]
 pub struct TransactionReceipt {
     #[serde(deserialize_with = "deserialize_h256_from_hex")]
-    transaction_hash: H256,
-    status: TransactionStatus,
+    pub transaction_hash: H256,
+    pub status: TransactionStatus,
     #[serde(deserialize_with = "deserialize_h256_from_hex")]
-    block_hash: H256,
-    block_number: u64,
-    transaction_index: u64,
-    execution_resources: ExecutionResources,
-    l2_to_l1_messages: Vec<L2ToL1Message>,
+    pub block_hash: H256,
+    pub block_number: u64,
+    pub transaction_index: u64,
+    pub execution_resources: ExecutionResources,
+    pub l2_to_l1_messages: Vec<L2ToL1Message>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -33,31 +32,28 @@ pub enum TransactionStatus {
     AcceptedOnL1,
 }
 
-#[allow(unused)]
 #[derive(Debug, Deserialize)]
 pub struct ExecutionResources {
-    n_steps: u64,
-    n_memory_holes: u64,
-    builtin_instance_counter: BuiltinInstanceCounter,
+    pub n_steps: u64,
+    pub n_memory_holes: u64,
+    pub builtin_instance_counter: BuiltinInstanceCounter,
 }
 
-#[allow(unused)]
 #[derive(Debug, Deserialize)]
 pub struct BuiltinInstanceCounter {
-    pedersen_builtin: u64,
-    range_check_builtin: u64,
-    bitwise_builtin: u64,
-    output_builtin: u64,
-    ecdsa_builtin: u64,
-    ec_op_builtin: u64,
+    pub pedersen_builtin: u64,
+    pub range_check_builtin: u64,
+    pub bitwise_builtin: u64,
+    pub output_builtin: u64,
+    pub ecdsa_builtin: u64,
+    pub ec_op_builtin: u64,
 }
 
-#[allow(unused)]
 #[derive(Debug, Deserialize)]
 pub struct L2ToL1Message {
     #[serde(deserialize_with = "deserialize_h256_from_hex")]
-    from_address: H256,
-    to_address: L1Address,
+    pub from_address: H256,
+    pub to_address: L1Address,
     #[serde(deserialize_with = "deserialize_vec_u256_from_dec")]
-    payload: Vec<U256>,
+    pub payload: Vec<U256>,
 }

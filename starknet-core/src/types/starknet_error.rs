@@ -1,10 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-#[allow(unused)]
 #[derive(Debug, Deserialize)]
 pub struct Error {
-    code: ErrorCode,
-    message: String,
+    pub code: ErrorCode,
+    pub message: String,
 }
 
 impl std::error::Error for Error {}
