@@ -5,6 +5,8 @@
 
 **Complete StarketNet library in Rust**
 
+[![linting-badge](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml/badge.svg?branch=master)](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml)
+
 ## Features
 
 - [ ] Sequencer gateway / feeder gateway client
