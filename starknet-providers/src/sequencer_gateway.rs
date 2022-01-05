@@ -4,7 +4,9 @@ use async_trait::async_trait;
 use reqwest::{Client, Error as ReqwestError};
 use serde::{de::DeserializeOwned, Deserialize};
 use serde_json::Error as SerdeJsonError;
-use starknet_core::types::{Block, BlockId, ContractCode, StarknetError, H256, U256};
+use starknet_core::types::{
+    Block, BlockId, ContractCode, StarknetError, TransactionId, TransactionStatus, H256, U256,
+};
 use thiserror::Error;
 use url::Url;
 
@@ -68,6 +70,13 @@ enum GetCodeResponse {
 #[serde(untagged)]
 enum GetStorageAtResponse {
     Data(U256),
+    StarknetError(StarknetError),
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum GetTransactionStatusResponse {
+    Status(TransactionStatus),
     StarknetError(StarknetError),
 }
 
@@ -163,6 +172,24 @@ impl Provider for SequencerGatewayProvider {
             }
         }
     }
+
+    async fn get_transaction_status(
+        &self,
+        transaction_hash_or_number: TransactionId,
+    ) -> Result<TransactionStatus, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("get_transaction_status");
+        append_transaction_id(&mut request_url, transaction_hash_or_number);
+
+        match self
+            .send_request::<GetTransactionStatusResponse>(request_url)
+            .await?
+        {
+            GetTransactionStatusResponse::Status(tx_status) => Ok(tx_status),
+            GetTransactionStatusResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
 }
 
 fn append_block_id(url: &mut Url, block_hash_or_number: Option<BlockId>) {
@@ -176,5 +203,18 @@ fn append_block_id(url: &mut Url, block_hash_or_number: Option<BlockId>) {
                 .append_pair("blockNumber", &block_number.to_string());
         }
         _ => (),
+    };
+}
+
+fn append_transaction_id(url: &mut Url, block_hash_or_number: TransactionId) {
+    match block_hash_or_number {
+        TransactionId::Hash(tx_hash) => {
+            url.query_pairs_mut()
+                .append_pair("transactionHash", &format!("{:#x}", tx_hash));
+        }
+        TransactionId::Number(tx_number) => {
+            url.query_pairs_mut()
+                .append_pair("transactionId", &tx_number.to_string());
+        }
     };
 }

@@ -5,12 +5,14 @@ mod block;
 pub use block::{Block, BlockId};
 
 mod transaction;
-pub use transaction::{DeployTransaction, EntryPointType, InvokeFunctionTransaction, Transaction};
+pub use transaction::{
+    DeployTransaction, EntryPointType, InvokeFunctionTransaction, Transaction, TransactionId,
+};
 
 mod transaction_receipt;
 pub use transaction_receipt::{
     BuiltinInstanceCounter, ExecutionResources, L2ToL1Message, TransactionReceipt,
-    TransactionStatus,
+    TransactionStatus, TransactionStatusType,
 };
 
 mod starknet_error;

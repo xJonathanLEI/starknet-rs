@@ -3,6 +3,11 @@ use super::super::serde::{deserialize_h256_from_hex, deserialize_vec_u256_from_d
 use ethereum_types::{H256, U256};
 use serde::Deserialize;
 
+pub enum TransactionId {
+    Hash(H256),
+    Number(u64),
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type")]
 pub enum Transaction {

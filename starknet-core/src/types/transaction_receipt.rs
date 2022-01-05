@@ -7,7 +7,7 @@ use serde::Deserialize;
 pub struct TransactionReceipt {
     #[serde(deserialize_with = "deserialize_h256_from_hex")]
     pub transaction_hash: H256,
-    pub status: TransactionStatus,
+    pub status: TransactionStatusType,
     #[serde(deserialize_with = "deserialize_h256_from_hex")]
     pub block_hash: H256,
     pub block_number: u64,
@@ -17,7 +17,24 @@ pub struct TransactionReceipt {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(tag = "tx_status")]
 pub enum TransactionStatus {
+    #[serde(rename = "NOT_RECEIVED")]
+    NotReceived,
+    #[serde(rename = "RECEIVED")]
+    Received,
+    #[serde(rename = "PENDING")]
+    Pending,
+    #[serde(rename = "REJECTED")]
+    Rejected,
+    #[serde(rename = "ACCEPTED_ON_L2")]
+    AcceptedOnL2(TransactionBlockHash),
+    #[serde(rename = "ACCEPTED_ON_L1")]
+    AcceptedOnL1(TransactionBlockHash),
+}
+
+#[derive(Debug, Deserialize)]
+pub enum TransactionStatusType {
     #[serde(rename = "NOT_RECEIVED")]
     NotReceived,
     #[serde(rename = "RECEIVED")]
@@ -30,6 +47,12 @@ pub enum TransactionStatus {
     AcceptedOnL2,
     #[serde(rename = "ACCEPTED_ON_L1")]
     AcceptedOnL1,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TransactionBlockHash {
+    #[serde(deserialize_with = "deserialize_h256_from_hex")]
+    pub block_hash: H256,
 }
 
 #[derive(Debug, Deserialize)]
