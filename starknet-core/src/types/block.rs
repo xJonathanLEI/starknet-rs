@@ -1,4 +1,4 @@
-use super::{super::serde::deserialize_h256_from_hex, Transaction, TransactionReceipt};
+use super::{super::serde::deserialize_h256_from_hex, ConfirmedTransactionReceipt, Transaction};
 
 use ethereum_types::H256;
 use serde::Deserialize;
@@ -19,5 +19,5 @@ pub struct Block {
     #[serde(deserialize_with = "deserialize_h256_from_hex")]
     pub state_root: H256,
     pub transactions: Vec<Transaction>,
-    pub transaction_receipts: Vec<TransactionReceipt>,
+    pub transaction_receipts: Vec<ConfirmedTransactionReceipt>,
 }

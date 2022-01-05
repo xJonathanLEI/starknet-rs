@@ -1,10 +1,26 @@
-use super::super::serde::{deserialize_h256_from_hex, deserialize_vec_u256_from_dec};
+use super::super::serde::{
+    deserialize_h256_from_hex, deserialize_pending_block_hash, deserialize_vec_u256_from_dec,
+};
 
 use ethereum_types::{Address as L1Address, H256, U256};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
-pub struct TransactionReceipt {
+pub struct Receipt {
+    #[serde(deserialize_with = "deserialize_h256_from_hex")]
+    pub transaction_hash: H256,
+    pub status: TransactionStatusType,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_pending_block_hash")]
+    pub block_hash: Option<H256>,
+    pub block_number: Option<u64>,
+    pub transaction_index: Option<u64>,
+    pub execution_resources: Option<ExecutionResources>,
+    pub l2_to_l1_messages: Vec<L2ToL1Message>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ConfirmedReceipt {
     #[serde(deserialize_with = "deserialize_h256_from_hex")]
     pub transaction_hash: H256,
     pub status: TransactionStatusType,
