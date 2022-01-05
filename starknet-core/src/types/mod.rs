@@ -24,3 +24,6 @@ pub use contract_code::{AbiEntry, ContractCode};
 
 mod contract_addresses;
 pub use contract_addresses::ContractAddresses;
+
+mod call_contract;
+pub use call_contract::{CallContractResult, InvokeFunction};

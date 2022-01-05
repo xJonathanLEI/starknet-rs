@@ -7,8 +7,9 @@ use serde_json::Error as SerdeJsonError;
 use starknet_core::{
     serde::deserialize_h256_from_hex,
     types::{
-        Block, BlockId, ContractAddresses, ContractCode, StarknetError, TransactionId,
-        TransactionReceipt, TransactionStatus, TransactionWithStatus, H256, U256,
+        Block, BlockId, CallContractResult, ContractAddresses, ContractCode, InvokeFunction,
+        StarknetError, TransactionId, TransactionReceipt, TransactionStatus, TransactionWithStatus,
+        H256, U256,
     },
 };
 use thiserror::Error;
@@ -25,8 +26,10 @@ pub struct SequencerGatewayProvider {
 pub enum ProviderError {
     #[error(transparent)]
     ReqwestError(#[from] ReqwestError),
+    #[error(transparent)]
+    Serialization(SerdeJsonError),
     #[error("Deserialization error: {err}, Response: {text}")]
-    SerdeJson { err: SerdeJsonError, text: String },
+    Deserialization { err: SerdeJsonError, text: String },
     #[error(transparent)]
     StarknetError(StarknetError),
 }
@@ -106,7 +109,8 @@ impl SequencerGatewayProvider {
     {
         let res = self.client.get(url).send().await?;
         let body = res.text().await?;
-        serde_json::from_str(&body).map_err(|err| ProviderError::SerdeJson { err, text: body })
+        serde_json::from_str(&body)
+            .map_err(|err| ProviderError::Deserialization { err, text: body })
     }
 }
 
@@ -122,6 +126,33 @@ impl Provider for SequencerGatewayProvider {
             .await?
         {
             GatewayResponse::Data(addrs) => Ok(addrs),
+            GatewayResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+
+    async fn call_contract(
+        &self,
+        invoke_tx: InvokeFunction,
+        block_hash_or_number: Option<BlockId>,
+    ) -> Result<CallContractResult, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("call_contract");
+        append_block_id(&mut request_url, block_hash_or_number);
+
+        let res = self
+            .client
+            .post(request_url)
+            .header("Content-Type", "application/json")
+            .body(serde_json::to_string(&invoke_tx).map_err(ProviderError::Serialization)?)
+            .send()
+            .await?;
+        let body = res.text().await?;
+        let res = serde_json::from_str(&body)
+            .map_err(|err| ProviderError::Deserialization { err, text: body })?;
+
+        match res {
+            GatewayResponse::Data(data) => Ok(data),
             GatewayResponse::StarknetError(starknet_err) => {
                 Err(ProviderError::StarknetError(starknet_err))
             }

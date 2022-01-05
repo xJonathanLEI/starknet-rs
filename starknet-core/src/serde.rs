@@ -1,8 +1,16 @@
 use ethereum_types::{H256, U256};
 use serde::{
     de::{Error as DeError, Unexpected},
-    Deserialize, Deserializer,
+    Deserialize, Deserializer, Serializer,
 };
+
+pub fn serialize_vec_u256_into_dec<S, T>(x: T, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+    T: AsRef<Vec<U256>>,
+{
+    s.collect_seq(x.as_ref().iter().map(|item| item.to_string()))
+}
 
 pub fn deserialize_h256_from_hex<'de, D>(d: D) -> Result<H256, D::Error>
 where
