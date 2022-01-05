@@ -3,7 +3,7 @@
   <h1 align="center">starknet-rs</h1>
 </p>
 
-**Complete StarketNet library in Rust**
+**Complete StarkNet library in Rust**
 
 [![linting-badge](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml/badge.svg?branch=master)](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml)
 
