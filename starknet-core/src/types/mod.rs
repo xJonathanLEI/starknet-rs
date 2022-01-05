@@ -15,3 +15,6 @@ pub use transaction_receipt::{
 
 mod starknet_error;
 pub use starknet_error::{Error as StarknetError, ErrorCode as StarknetErrorCode};
+
+mod contract_code;
+pub use contract_code::{AbiEntry, ContractCode};

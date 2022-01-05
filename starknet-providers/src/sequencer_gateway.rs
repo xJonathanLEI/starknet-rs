@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use reqwest::{Client, Error as ReqwestError};
 use serde::Deserialize;
 use serde_json::Error as SerdeJsonError;
-use starknet_core::types::{Block, BlockId, StarknetError};
+use starknet_core::types::{Block, BlockId, ContractCode, StarknetError, H256};
 use thiserror::Error;
 use url::Url;
 
@@ -56,30 +56,42 @@ enum GetBlockResponse {
     StarknetError(StarknetError),
 }
 
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum GetCodeResponse {
+    ContractCode(ContractCode),
+    EmptyContractCode(EmptyContractCode),
+    StarknetError(StarknetError),
+}
+
+// Work around gateway sending `abi` as `{}` instead of `[]` when the code doesn't exist
+#[allow(unused)]
+#[derive(Deserialize)]
+struct EmptyContractCode {
+    pub bytecode: Vec<EmptyObject>,
+    pub abi: EmptyObject,
+}
+
+#[derive(Deserialize)]
+struct EmptyObject {}
+
+impl SequencerGatewayProvider {
+    fn extend_feeder_gateway_url(&self, segment: &str) -> Url {
+        let mut url = self.feeder_gateway_url.clone();
+        url.path_segments_mut()
+            .expect("Invalid base URL")
+            .extend(&[segment]);
+        url
+    }
+}
+
 #[async_trait]
 impl Provider for SequencerGatewayProvider {
     type Error = ProviderError;
 
     async fn get_block(&self, block_hash_or_number: Option<BlockId>) -> Result<Block, Self::Error> {
-        let mut request_url = self.feeder_gateway_url.clone();
-        request_url
-            .path_segments_mut()
-            .expect("Invalid base URL")
-            .extend(&["get_block"]);
-
-        match block_hash_or_number {
-            Some(BlockId::Hash(block_hash)) => {
-                request_url
-                    .query_pairs_mut()
-                    .append_pair("blockHash", &format!("{:#x}", block_hash));
-            }
-            Some(BlockId::Number(block_number)) => {
-                request_url
-                    .query_pairs_mut()
-                    .append_pair("blockNumber", &block_number.to_string());
-            }
-            _ => (),
-        };
+        let mut request_url = self.extend_feeder_gateway_url("get_block");
+        append_block_id(&mut request_url, block_hash_or_number);
 
         let res = self.client.get(request_url).send().await?;
         let body = res.text().await?;
@@ -93,4 +105,46 @@ impl Provider for SequencerGatewayProvider {
             }
         }
     }
+
+    async fn get_code(
+        &self,
+        contract_address: H256,
+        block_hash_or_number: Option<BlockId>,
+    ) -> Result<ContractCode, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("get_code");
+        request_url
+            .query_pairs_mut()
+            .append_pair("contractAddress", &format!("{:#x}", contract_address));
+        append_block_id(&mut request_url, block_hash_or_number);
+
+        let res = self.client.get(request_url).send().await?;
+        let body = res.text().await?;
+        let res: GetCodeResponse = serde_json::from_str(&body)
+            .map_err(|err| ProviderError::SerdeJson { err, text: body })?;
+
+        match res {
+            GetCodeResponse::ContractCode(code) => Ok(code),
+            GetCodeResponse::EmptyContractCode(_) => Ok(ContractCode {
+                bytecode: vec![],
+                abi: vec![],
+            }),
+            GetCodeResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+}
+
+fn append_block_id(url: &mut Url, block_hash_or_number: Option<BlockId>) {
+    match block_hash_or_number {
+        Some(BlockId::Hash(block_hash)) => {
+            url.query_pairs_mut()
+                .append_pair("blockHash", &format!("{:#x}", block_hash));
+        }
+        Some(BlockId::Number(block_number)) => {
+            url.query_pairs_mut()
+                .append_pair("blockNumber", &block_number.to_string());
+        }
+        _ => (),
+    };
 }
