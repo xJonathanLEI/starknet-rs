@@ -2,9 +2,9 @@ use crate::provider::Provider;
 
 use async_trait::async_trait;
 use reqwest::{Client, Error as ReqwestError};
-use serde::Deserialize;
+use serde::{de::DeserializeOwned, Deserialize};
 use serde_json::Error as SerdeJsonError;
-use starknet_core::types::{Block, BlockId, ContractCode, StarknetError, H256};
+use starknet_core::types::{Block, BlockId, ContractCode, StarknetError, H256, U256};
 use thiserror::Error;
 use url::Url;
 
@@ -64,6 +64,13 @@ enum GetCodeResponse {
     StarknetError(StarknetError),
 }
 
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum GetStorageAtResponse {
+    Data(U256),
+    StarknetError(StarknetError),
+}
+
 // Work around gateway sending `abi` as `{}` instead of `[]` when the code doesn't exist
 #[allow(unused)]
 #[derive(Deserialize)]
@@ -83,6 +90,15 @@ impl SequencerGatewayProvider {
             .extend(&[segment]);
         url
     }
+
+    async fn send_request<T>(&self, url: Url) -> Result<T, ProviderError>
+    where
+        T: DeserializeOwned,
+    {
+        let res = self.client.get(url).send().await?;
+        let body = res.text().await?;
+        serde_json::from_str(&body).map_err(|err| ProviderError::SerdeJson { err, text: body })
+    }
 }
 
 #[async_trait]
@@ -93,12 +109,7 @@ impl Provider for SequencerGatewayProvider {
         let mut request_url = self.extend_feeder_gateway_url("get_block");
         append_block_id(&mut request_url, block_hash_or_number);
 
-        let res = self.client.get(request_url).send().await?;
-        let body = res.text().await?;
-        let res: GetBlockResponse = serde_json::from_str(&body)
-            .map_err(|err| ProviderError::SerdeJson { err, text: body })?;
-
-        match res {
+        match self.send_request::<GetBlockResponse>(request_url).await? {
             GetBlockResponse::Block(block) => Ok(block),
             GetBlockResponse::StarknetError(starknet_err) => {
                 Err(ProviderError::StarknetError(starknet_err))
@@ -117,18 +128,37 @@ impl Provider for SequencerGatewayProvider {
             .append_pair("contractAddress", &format!("{:#x}", contract_address));
         append_block_id(&mut request_url, block_hash_or_number);
 
-        let res = self.client.get(request_url).send().await?;
-        let body = res.text().await?;
-        let res: GetCodeResponse = serde_json::from_str(&body)
-            .map_err(|err| ProviderError::SerdeJson { err, text: body })?;
-
-        match res {
+        match self.send_request::<GetCodeResponse>(request_url).await? {
             GetCodeResponse::ContractCode(code) => Ok(code),
             GetCodeResponse::EmptyContractCode(_) => Ok(ContractCode {
                 bytecode: vec![],
                 abi: vec![],
             }),
             GetCodeResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+
+    async fn get_storage_at(
+        &self,
+        contract_address: H256,
+        key: U256,
+        block_hash_or_number: Option<BlockId>,
+    ) -> Result<U256, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("get_storage_at");
+        request_url
+            .query_pairs_mut()
+            .append_pair("contractAddress", &format!("{:#x}", contract_address))
+            .append_pair("key", &key.to_string());
+        append_block_id(&mut request_url, block_hash_or_number);
+
+        match self
+            .send_request::<GetStorageAtResponse>(request_url)
+            .await?
+        {
+            GetStorageAtResponse::Data(data) => Ok(data),
+            GetStorageAtResponse::StarknetError(starknet_err) => {
                 Err(ProviderError::StarknetError(starknet_err))
             }
         }
