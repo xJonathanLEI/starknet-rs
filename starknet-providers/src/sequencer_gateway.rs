@@ -7,8 +7,8 @@ use serde_json::Error as SerdeJsonError;
 use starknet_core::{
     serde::deserialize_h256_from_hex,
     types::{
-        Block, BlockId, ContractCode, StarknetError, TransactionId, TransactionReceipt,
-        TransactionStatus, TransactionWithStatus, H256, U256,
+        Block, BlockId, ContractAddresses, ContractCode, StarknetError, TransactionId,
+        TransactionReceipt, TransactionStatus, TransactionWithStatus, H256, U256,
     },
 };
 use thiserror::Error;
@@ -113,6 +113,20 @@ impl SequencerGatewayProvider {
 #[async_trait]
 impl Provider for SequencerGatewayProvider {
     type Error = ProviderError;
+
+    async fn get_contract_addresses(&self) -> Result<ContractAddresses, Self::Error> {
+        let request_url = self.extend_feeder_gateway_url("get_contract_addresses");
+
+        match self
+            .send_request::<GatewayResponse<ContractAddresses>>(request_url)
+            .await?
+        {
+            GatewayResponse::Data(addrs) => Ok(addrs),
+            GatewayResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
 
     async fn get_block(&self, block_hash_or_number: Option<BlockId>) -> Result<Block, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_block");

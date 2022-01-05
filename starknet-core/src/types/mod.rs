@@ -21,3 +21,6 @@ pub use starknet_error::{Error as StarknetError, ErrorCode as StarknetErrorCode}
 
 mod contract_code;
 pub use contract_code::{AbiEntry, ContractCode};
+
+mod contract_addresses;
+pub use contract_addresses::ContractAddresses;
