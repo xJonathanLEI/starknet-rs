@@ -38,4 +38,15 @@ pub trait Provider {
         &self,
         transaction_hash_or_number: TransactionId,
     ) -> Result<TransactionReceipt, Self::Error>;
+
+    async fn get_block_hash_by_id(&self, block_number: u64) -> Result<H256, Self::Error>;
+
+    async fn get_block_id_by_hash(&self, block_hash: H256) -> Result<u64, Self::Error>;
+
+    async fn get_transaction_hash_by_id(
+        &self,
+        transaction_number: u64,
+    ) -> Result<H256, Self::Error>;
+
+    async fn get_transaction_id_by_hash(&self, transaction_hash: H256) -> Result<u64, Self::Error>;
 }

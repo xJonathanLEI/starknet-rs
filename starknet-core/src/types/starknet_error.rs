@@ -18,4 +18,8 @@ impl std::fmt::Display for Error {
 pub enum ErrorCode {
     #[serde(rename = "StarknetErrorCode.BLOCK_NOT_FOUND")]
     BlockNotFound,
+    #[serde(rename = "StarknetErrorCode.TRANSACTION_NOT_FOUND")]
+    TransactionNotFound,
+    #[serde(rename = "StarkErrorCode.MALFORMED_REQUEST")]
+    MalformedRequest,
 }
