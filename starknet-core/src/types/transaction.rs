@@ -1,4 +1,9 @@
-use super::super::serde::{deserialize_h256_from_hex, deserialize_vec_u256_from_dec};
+use super::{
+    super::serde::{
+        deserialize_h256_from_hex, deserialize_pending_block_hash, deserialize_vec_u256_from_dec,
+    },
+    TransactionStatusType,
+};
 
 use ethereum_types::{H256, U256};
 use serde::Deserialize;
@@ -15,6 +20,16 @@ pub enum Transaction {
     Deploy(DeployTransaction),
     #[serde(rename = "INVOKE_FUNCTION")]
     InvokeFunction(InvokeFunctionTransaction),
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TransactionWithStatus {
+    pub transaction: Option<Transaction>,
+    pub status: TransactionStatusType,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_pending_block_hash")]
+    pub block_hash: Option<H256>,
+    pub transaction_index: Option<u64>,
 }
 
 #[derive(Debug, Deserialize)]

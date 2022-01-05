@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use starknet_core::types::{
-    Block, BlockId, ContractCode, TransactionId, TransactionStatus, H256, U256,
+    Block, BlockId, ContractCode, TransactionId, TransactionStatus, TransactionWithStatus, H256,
+    U256,
 };
 use std::error::Error;
 
@@ -27,4 +28,9 @@ pub trait Provider {
         &self,
         transaction_hash_or_number: TransactionId,
     ) -> Result<TransactionStatus, Self::Error>;
+
+    async fn get_transaction(
+        &self,
+        transaction_hash_or_number: TransactionId,
+    ) -> Result<TransactionWithStatus, Self::Error>;
 }

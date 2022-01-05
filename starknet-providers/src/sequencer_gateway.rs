@@ -5,7 +5,8 @@ use reqwest::{Client, Error as ReqwestError};
 use serde::{de::DeserializeOwned, Deserialize};
 use serde_json::Error as SerdeJsonError;
 use starknet_core::types::{
-    Block, BlockId, ContractCode, StarknetError, TransactionId, TransactionStatus, H256, U256,
+    Block, BlockId, ContractCode, StarknetError, TransactionId, TransactionStatus,
+    TransactionWithStatus, H256, U256,
 };
 use thiserror::Error;
 use url::Url;
@@ -77,6 +78,13 @@ enum GetStorageAtResponse {
 #[serde(untagged)]
 enum GetTransactionStatusResponse {
     Status(TransactionStatus),
+    StarknetError(StarknetError),
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum GetTransactionResponse {
+    Transaction(TransactionWithStatus),
     StarknetError(StarknetError),
 }
 
@@ -186,6 +194,24 @@ impl Provider for SequencerGatewayProvider {
         {
             GetTransactionStatusResponse::Status(tx_status) => Ok(tx_status),
             GetTransactionStatusResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+
+    async fn get_transaction(
+        &self,
+        transaction_hash_or_number: TransactionId,
+    ) -> Result<TransactionWithStatus, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("get_transaction");
+        append_transaction_id(&mut request_url, transaction_hash_or_number);
+
+        match self
+            .send_request::<GetTransactionResponse>(request_url)
+            .await?
+        {
+            GetTransactionResponse::Transaction(tx) => Ok(tx),
+            GetTransactionResponse::StarknetError(starknet_err) => {
                 Err(ProviderError::StarknetError(starknet_err))
             }
         }

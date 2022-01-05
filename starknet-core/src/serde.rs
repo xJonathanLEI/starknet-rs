@@ -9,7 +9,39 @@ where
     D: Deserializer<'de>,
 {
     let value = String::deserialize(d)?;
-    let value = value.trim_start_matches("0x");
+    parse_hex_into_h256::<D>(&value)
+}
+
+pub fn deserialize_vec_u256_from_dec<'de, D>(d: D) -> Result<Vec<U256>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let values: Vec<String> = Vec::deserialize(d)?;
+
+    values
+        .iter()
+        .map(|value| U256::from_dec_str(value))
+        .collect::<Result<Vec<U256>, _>>()
+        .map_err(|err| DeError::custom(format!("Invalid integer: {}", err)))
+}
+
+pub fn deserialize_pending_block_hash<'de, D>(d: D) -> Result<Option<H256>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = String::deserialize(d)?;
+    if value == "pending" {
+        Ok(None)
+    } else {
+        Ok(Some(parse_hex_into_h256::<D>(&value)?))
+    }
+}
+
+fn parse_hex_into_h256<'de, D>(hex_string: &str) -> Result<H256, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = hex_string.trim_start_matches("0x");
 
     let hex_chars_len = value.len();
     let expected_hex_length = H256::len_bytes() * 2;
@@ -28,17 +60,4 @@ where
     };
 
     Ok(H256::from_slice(&parsed_bytes))
-}
-
-pub fn deserialize_vec_u256_from_dec<'de, D>(d: D) -> Result<Vec<U256>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let values: Vec<String> = Vec::deserialize(d)?;
-
-    values
-        .iter()
-        .map(|value| U256::from_dec_str(value))
-        .collect::<Result<Vec<U256>, _>>()
-        .map_err(|err| DeError::custom(format!("Invalid integer: {}", err)))
 }
