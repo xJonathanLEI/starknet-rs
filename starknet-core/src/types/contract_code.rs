@@ -8,13 +8,10 @@ pub struct ContractCode {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(tag = "type")]
+#[serde(tag = "type", rename_all = "lowercase")]
 pub enum AbiEntry {
-    #[serde(rename = "constructor")]
     Constructor(Constructor),
-    #[serde(rename = "function")]
     Function(Function),
-    #[serde(rename = "struct")]
     Struct(Struct),
     #[serde(rename = "l1_handler")]
     L1Handler(L1Handler),
