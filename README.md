@@ -7,6 +7,8 @@
 
 [![linting-badge](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml/badge.svg?branch=master)](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml)
 
+> _Note that `starknet-rs` is still experimental. Breaking changes will be made before the first stable release. Use at your own risk._
+
 ## Adding starknet-rs to your project
 
 This crate hasn't been published to [crates.io](https://crates.io/) yet, so you'll need to add the following to your `Cargo.toml` to use it:
