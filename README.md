@@ -7,12 +7,36 @@
 
 [![linting-badge](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml/badge.svg?branch=master)](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml)
 
+## Adding starknet-rs to your project
+
+This crate hasn't been published to [crates.io](https://crates.io/) yet, so you'll need to add the following to your `Cargo.toml` to use it:
+
+```toml
+[dependencies]
+starknet = { git = "https://github.com/xJonathanLEI/starknet-rs" }
+```
+
 ## Features
 
 - [x] Sequencer gateway / feeder gateway client
 - [ ] Smart contract deployment
 - [ ] Signer for using [IAccount](https://github.com/OpenZeppelin/cairo-contracts/blob/main/contracts/IAccount.cairo) account contracts
 - [ ] Strongly-typed smart contract binding code generation from ABI
+
+## Example
+
+Using `SequencerGatewayProvider` to get the latest block from the `alpha-goerli` testnet:
+
+```rust
+use starknet::providers::{Provider, SequencerGatewayProvider};
+
+#[tokio::main]
+async fn main() {
+    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
+    let latest_block = provider.get_block(None).await;
+    println!("{:#?}", latest_block);
+}
+```
 
 ## License
 
