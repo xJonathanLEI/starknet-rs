@@ -4,7 +4,7 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize)]
 pub struct ContractCode {
     pub bytecode: Vec<U256>,
-    pub abi: Vec<AbiEntry>,
+    pub abi: Option<Vec<AbiEntry>>,
 }
 
 #[derive(Debug, Deserialize)]

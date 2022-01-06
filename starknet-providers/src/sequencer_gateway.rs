@@ -189,7 +189,7 @@ impl Provider for SequencerGatewayProvider {
             GetCodeResponse::ContractCode(code) => Ok(code),
             GetCodeResponse::EmptyContractCode(_) => Ok(ContractCode {
                 bytecode: vec![],
-                abi: vec![],
+                abi: Some(vec![]),
             }),
             GetCodeResponse::StarknetError(starknet_err) => {
                 Err(ProviderError::StarknetError(starknet_err))
