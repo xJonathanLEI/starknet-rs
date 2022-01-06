@@ -173,10 +173,10 @@ impl Provider for SequencerGatewayProvider {
     async fn call_contract(
         &self,
         invoke_tx: InvokeFunction,
-        block_hash_or_number: Option<BlockId>,
+        block_id: Option<BlockId>,
     ) -> Result<CallContractResult, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("call_contract");
-        append_block_id(&mut request_url, block_hash_or_number);
+        append_block_id(&mut request_url, block_id);
 
         match self.send_post_request(request_url, &invoke_tx).await? {
             GatewayResponse::Data(data) => Ok(data),
@@ -186,9 +186,9 @@ impl Provider for SequencerGatewayProvider {
         }
     }
 
-    async fn get_block(&self, block_hash_or_number: Option<BlockId>) -> Result<Block, Self::Error> {
+    async fn get_block(&self, block_id: Option<BlockId>) -> Result<Block, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_block");
-        append_block_id(&mut request_url, block_hash_or_number);
+        append_block_id(&mut request_url, block_id);
 
         match self
             .send_get_request::<GatewayResponse<Block>>(request_url)
@@ -204,13 +204,13 @@ impl Provider for SequencerGatewayProvider {
     async fn get_code(
         &self,
         contract_address: H256,
-        block_hash_or_number: Option<BlockId>,
+        block_id: Option<BlockId>,
     ) -> Result<ContractCode, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_code");
         request_url
             .query_pairs_mut()
             .append_pair("contractAddress", &format!("{:#x}", contract_address));
-        append_block_id(&mut request_url, block_hash_or_number);
+        append_block_id(&mut request_url, block_id);
 
         match self
             .send_get_request::<GetCodeResponse>(request_url)
@@ -231,14 +231,14 @@ impl Provider for SequencerGatewayProvider {
         &self,
         contract_address: H256,
         key: U256,
-        block_hash_or_number: Option<BlockId>,
+        block_id: Option<BlockId>,
     ) -> Result<U256, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_storage_at");
         request_url
             .query_pairs_mut()
             .append_pair("contractAddress", &format!("{:#x}", contract_address))
             .append_pair("key", &key.to_string());
-        append_block_id(&mut request_url, block_hash_or_number);
+        append_block_id(&mut request_url, block_id);
 
         match self
             .send_get_request::<GatewayResponse<U256>>(request_url)
@@ -383,8 +383,8 @@ fn extend_url(url: &mut Url, segment: &str) {
         .extend(&[segment]);
 }
 
-fn append_block_id(url: &mut Url, block_hash_or_number: Option<BlockId>) {
-    match block_hash_or_number {
+fn append_block_id(url: &mut Url, block_id: Option<BlockId>) {
+    match block_id {
         Some(BlockId::Hash(block_hash)) => {
             url.query_pairs_mut()
                 .append_pair("blockHash", &format!("{:#x}", block_hash));
@@ -393,12 +393,18 @@ fn append_block_id(url: &mut Url, block_hash_or_number: Option<BlockId>) {
             url.query_pairs_mut()
                 .append_pair("blockNumber", &block_number.to_string());
         }
+        Some(BlockId::Latest) => {
+            url.query_pairs_mut().append_pair("blockId", "latest");
+        }
+        Some(BlockId::Pending) => {
+            url.query_pairs_mut().append_pair("blockId", "pending");
+        }
         _ => (),
     };
 }
 
-fn append_transaction_id(url: &mut Url, block_hash_or_number: TransactionId) {
-    match block_hash_or_number {
+fn append_transaction_id(url: &mut Url, tx_id: TransactionId) {
+    match tx_id {
         TransactionId::Hash(tx_hash) => {
             url.query_pairs_mut()
                 .append_pair("transactionHash", &format!("{:#x}", tx_hash));

@@ -6,6 +6,8 @@ use serde::Deserialize;
 pub enum BlockId {
     Hash(H256),
     Number(u64),
+    Latest,
+    Pending,
 }
 
 #[derive(Debug, Deserialize)]
