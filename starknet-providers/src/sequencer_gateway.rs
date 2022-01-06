@@ -2,14 +2,14 @@ use crate::provider::Provider;
 
 use async_trait::async_trait;
 use reqwest::{Client, Error as ReqwestError};
-use serde::{de::DeserializeOwned, Deserialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Error as SerdeJsonError;
 use starknet_core::{
     serde::deserialize_h256_from_hex,
     types::{
-        Block, BlockId, CallContractResult, ContractAddresses, ContractCode, InvokeFunction,
-        StarknetError, TransactionId, TransactionReceipt, TransactionStatus, TransactionWithStatus,
-        H256, U256,
+        AddTransactionResult, Block, BlockId, CallContractResult, ContractAddresses, ContractCode,
+        InvokeFunction, StarknetError, TransactionId, TransactionReceipt, TransactionRequest,
+        TransactionStatus, TransactionWithStatus, H256, U256,
     },
 };
 use thiserror::Error;
@@ -17,7 +17,6 @@ use url::Url;
 
 pub struct SequencerGatewayProvider {
     client: Client,
-    #[allow(unused)]
     gateway_url: Url,
     feeder_gateway_url: Url,
 }
@@ -95,19 +94,40 @@ struct EmptyContractCode {
 struct EmptyObject {}
 
 impl SequencerGatewayProvider {
-    fn extend_feeder_gateway_url(&self, segment: &str) -> Url {
-        let mut url = self.feeder_gateway_url.clone();
-        url.path_segments_mut()
-            .expect("Invalid base URL")
-            .extend(&[segment]);
+    fn extend_gateway_url(&self, segment: &str) -> Url {
+        let mut url = self.gateway_url.clone();
+        extend_url(&mut url, segment);
         url
     }
 
-    async fn send_request<T>(&self, url: Url) -> Result<T, ProviderError>
+    fn extend_feeder_gateway_url(&self, segment: &str) -> Url {
+        let mut url = self.feeder_gateway_url.clone();
+        extend_url(&mut url, segment);
+        url
+    }
+
+    async fn send_get_request<T>(&self, url: Url) -> Result<T, ProviderError>
     where
         T: DeserializeOwned,
     {
         let res = self.client.get(url).send().await?;
+        let body = res.text().await?;
+        serde_json::from_str(&body)
+            .map_err(|err| ProviderError::Deserialization { err, text: body })
+    }
+
+    async fn send_post_request<Q, S>(&self, url: Url, body: &Q) -> Result<S, ProviderError>
+    where
+        Q: Serialize,
+        S: DeserializeOwned,
+    {
+        let res = self
+            .client
+            .post(url)
+            .header("Content-Type", "application/json")
+            .body(serde_json::to_string(body).map_err(ProviderError::Serialization)?)
+            .send()
+            .await?;
         let body = res.text().await?;
         serde_json::from_str(&body)
             .map_err(|err| ProviderError::Deserialization { err, text: body })
@@ -118,11 +138,29 @@ impl SequencerGatewayProvider {
 impl Provider for SequencerGatewayProvider {
     type Error = ProviderError;
 
+    async fn add_transaction(
+        &self,
+        tx: TransactionRequest,
+        token: Option<String>,
+    ) -> Result<AddTransactionResult, Self::Error> {
+        let mut request_url = self.extend_gateway_url("add_transaction");
+        if let Some(token) = token {
+            request_url.query_pairs_mut().append_pair("token", &token);
+        }
+
+        match self.send_post_request(request_url, &tx).await? {
+            GatewayResponse::Data(data) => Ok(data),
+            GatewayResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+
     async fn get_contract_addresses(&self) -> Result<ContractAddresses, Self::Error> {
         let request_url = self.extend_feeder_gateway_url("get_contract_addresses");
 
         match self
-            .send_request::<GatewayResponse<ContractAddresses>>(request_url)
+            .send_get_request::<GatewayResponse<ContractAddresses>>(request_url)
             .await?
         {
             GatewayResponse::Data(addrs) => Ok(addrs),
@@ -140,18 +178,7 @@ impl Provider for SequencerGatewayProvider {
         let mut request_url = self.extend_feeder_gateway_url("call_contract");
         append_block_id(&mut request_url, block_hash_or_number);
 
-        let res = self
-            .client
-            .post(request_url)
-            .header("Content-Type", "application/json")
-            .body(serde_json::to_string(&invoke_tx).map_err(ProviderError::Serialization)?)
-            .send()
-            .await?;
-        let body = res.text().await?;
-        let res = serde_json::from_str(&body)
-            .map_err(|err| ProviderError::Deserialization { err, text: body })?;
-
-        match res {
+        match self.send_post_request(request_url, &invoke_tx).await? {
             GatewayResponse::Data(data) => Ok(data),
             GatewayResponse::StarknetError(starknet_err) => {
                 Err(ProviderError::StarknetError(starknet_err))
@@ -164,7 +191,7 @@ impl Provider for SequencerGatewayProvider {
         append_block_id(&mut request_url, block_hash_or_number);
 
         match self
-            .send_request::<GatewayResponse<Block>>(request_url)
+            .send_get_request::<GatewayResponse<Block>>(request_url)
             .await?
         {
             GatewayResponse::Data(block) => Ok(block),
@@ -185,7 +212,10 @@ impl Provider for SequencerGatewayProvider {
             .append_pair("contractAddress", &format!("{:#x}", contract_address));
         append_block_id(&mut request_url, block_hash_or_number);
 
-        match self.send_request::<GetCodeResponse>(request_url).await? {
+        match self
+            .send_get_request::<GetCodeResponse>(request_url)
+            .await?
+        {
             GetCodeResponse::ContractCode(code) => Ok(code),
             GetCodeResponse::EmptyContractCode(_) => Ok(ContractCode {
                 bytecode: vec![],
@@ -211,7 +241,7 @@ impl Provider for SequencerGatewayProvider {
         append_block_id(&mut request_url, block_hash_or_number);
 
         match self
-            .send_request::<GatewayResponse<U256>>(request_url)
+            .send_get_request::<GatewayResponse<U256>>(request_url)
             .await?
         {
             GatewayResponse::Data(data) => Ok(data),
@@ -229,7 +259,7 @@ impl Provider for SequencerGatewayProvider {
         append_transaction_id(&mut request_url, transaction_hash_or_number);
 
         match self
-            .send_request::<GatewayResponse<TransactionStatus>>(request_url)
+            .send_get_request::<GatewayResponse<TransactionStatus>>(request_url)
             .await?
         {
             GatewayResponse::Data(tx_status) => Ok(tx_status),
@@ -247,7 +277,7 @@ impl Provider for SequencerGatewayProvider {
         append_transaction_id(&mut request_url, transaction_hash_or_number);
 
         match self
-            .send_request::<GatewayResponse<TransactionWithStatus>>(request_url)
+            .send_get_request::<GatewayResponse<TransactionWithStatus>>(request_url)
             .await?
         {
             GatewayResponse::Data(tx) => Ok(tx),
@@ -265,7 +295,7 @@ impl Provider for SequencerGatewayProvider {
         append_transaction_id(&mut request_url, transaction_hash_or_number);
 
         match self
-            .send_request::<GatewayResponse<TransactionReceipt>>(request_url)
+            .send_get_request::<GatewayResponse<TransactionReceipt>>(request_url)
             .await?
         {
             GatewayResponse::Data(receipt) => Ok(receipt),
@@ -281,7 +311,10 @@ impl Provider for SequencerGatewayProvider {
             .query_pairs_mut()
             .append_pair("blockId", &block_number.to_string());
 
-        match self.send_request::<RawH256Response>(request_url).await? {
+        match self
+            .send_get_request::<RawH256Response>(request_url)
+            .await?
+        {
             RawH256Response::Data(hash) => Ok(hash),
             RawH256Response::StarknetError(starknet_err) => {
                 Err(ProviderError::StarknetError(starknet_err))
@@ -296,7 +329,7 @@ impl Provider for SequencerGatewayProvider {
             .append_pair("blockHash", &format!("{:#x}", block_hash));
 
         match self
-            .send_request::<GatewayResponse<u64>>(request_url)
+            .send_get_request::<GatewayResponse<u64>>(request_url)
             .await?
         {
             GatewayResponse::Data(number) => Ok(number),
@@ -315,7 +348,10 @@ impl Provider for SequencerGatewayProvider {
             .query_pairs_mut()
             .append_pair("transactionId", &transaction_number.to_string());
 
-        match self.send_request::<RawH256Response>(request_url).await? {
+        match self
+            .send_get_request::<RawH256Response>(request_url)
+            .await?
+        {
             RawH256Response::Data(hash) => Ok(hash),
             RawH256Response::StarknetError(starknet_err) => {
                 Err(ProviderError::StarknetError(starknet_err))
@@ -330,7 +366,7 @@ impl Provider for SequencerGatewayProvider {
             .append_pair("transactionHash", &format!("{:#x}", transaction_hash));
 
         match self
-            .send_request::<GatewayResponse<u64>>(request_url)
+            .send_get_request::<GatewayResponse<u64>>(request_url)
             .await?
         {
             GatewayResponse::Data(number) => Ok(number),
@@ -339,6 +375,12 @@ impl Provider for SequencerGatewayProvider {
             }
         }
     }
+}
+
+fn extend_url(url: &mut Url, segment: &str) {
+    url.path_segments_mut()
+        .expect("Invalid base URL")
+        .extend(&[segment]);
 }
 
 fn append_block_id(url: &mut Url, block_hash_or_number: Option<BlockId>) {

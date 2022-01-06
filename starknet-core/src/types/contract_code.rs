@@ -1,5 +1,5 @@
 use ethereum_types::U256;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 pub struct ContractCode {
@@ -7,7 +7,7 @@ pub struct ContractCode {
     pub abi: Option<Vec<AbiEntry>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum AbiEntry {
     #[serde(rename = "constructor")]
@@ -20,47 +20,47 @@ pub enum AbiEntry {
     L1Handler(L1Handler),
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Constructor {
     pub name: String,
     pub inputs: Vec<Input>,
     pub outputs: Vec<Output>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Function {
     pub name: String,
     pub inputs: Vec<Input>,
     pub outputs: Vec<Output>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Struct {
     pub name: String,
     pub size: u64,
     pub members: Vec<Member>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct L1Handler {
     pub name: String,
     pub inputs: Vec<Input>,
     pub outputs: Vec<Output>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Input {
     pub name: String,
     pub r#type: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Output {
     pub name: String,
     pub r#type: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Member {
     pub name: String,
     pub offset: u64,

@@ -12,12 +12,28 @@ where
     s.collect_seq(x.as_ref().iter().map(|item| item.to_string()))
 }
 
+pub fn serialize_vec_u8_into_base64<T, S>(x: T, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+    T: AsRef<Vec<u8>>,
+{
+    s.serialize_str(&base64::encode(x.as_ref()))
+}
+
 pub fn deserialize_h256_from_hex<'de, D>(d: D) -> Result<H256, D::Error>
 where
     D: Deserializer<'de>,
 {
     let value = String::deserialize(d)?;
     parse_hex_into_h256::<D>(&value)
+}
+
+pub fn deserialize_option_h256_from_hex<'de, D>(d: D) -> Result<Option<H256>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = String::deserialize(d)?;
+    Ok(Some(parse_hex_into_h256::<D>(&value)?))
 }
 
 pub fn deserialize_vec_u256_from_dec<'de, D>(d: D) -> Result<Vec<U256>, D::Error>
