@@ -6,12 +6,20 @@
 **Complete StarkNet library in Rust**
 
 [![linting-badge](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml/badge.svg?branch=master)](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml)
+[![crates-badge](https://img.shields.io/crates/v/starknet.svg)](https://crates.io/crates/starknet)
 
 > _Note that `starknet-rs` is still experimental. Breaking changes will be made before the first stable release. Use at your own risk._
 
 ## Adding starknet-rs to your project
 
-This crate hasn't been published to [crates.io](https://crates.io/) yet, so you'll need to add the following to your `Cargo.toml` to use it:
+To use the crate from [crates.io](https://crates.io/crates/starknet), add the following to your `Cargo.toml` file:
+
+```toml
+[dependencies]
+starknet = "0.1.0"
+```
+
+To use from GitHub directly, use this line instead:
 
 ```toml
 [dependencies]
