@@ -2,7 +2,7 @@
 name = "starknet-core"
 version = "0.1.0"
 authors = ["Jonathan LEI <me@xjonathan.dev>"]
-license = "MIT"
+license = "MIT OR Apache-2.0"
 edition = "2021"
 readme = "README.md"
 repository = "https://github.com/xJonathanLEI/starknet-rs"
@@ -10,6 +10,7 @@ homepage = "https://starknet.rs/"
 description = """
 Core structures for the starknet crate
 """
+keywords = ["ethereum", "starknet", "web3"]
 
 [dependencies]
 base64 = "0.13.0"

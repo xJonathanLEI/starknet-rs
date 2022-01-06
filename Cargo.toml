@@ -2,7 +2,7 @@
 name = "starknet"
 version = "0.1.0"
 authors = ["Jonathan LEI <me@xjonathan.dev>"]
-license = "MIT"
+license = "MIT OR Apache-2.0"
 edition = "2021"
 readme = "README.md"
 documentation = "https://docs.rs/starknet"
@@ -11,6 +11,7 @@ homepage = "https://starknet.rs/"
 description = """
 Complete StarkNet library in Rust
 """
+keywords = ["ethereum", "starknet", "web3"]
 
 [workspace]
 members = [
