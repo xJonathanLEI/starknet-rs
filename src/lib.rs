@@ -23,12 +23,12 @@
 //! The [`Provider`](providers::Provider) trait provides abstraction over StarkNet data providers.
 //! Currently the only implementation is [`SequencerGatewayProvider`](providers::SequencerGatewayProvider).
 
-#[doc = include_str!("../starknet-core/README.md")]
+#[doc = include_str!("../assets/CORE_README.md")]
 pub mod core {
     pub use starknet_core::*;
 }
 
-#[doc = include_str!("../starknet-providers/README.md")]
+#[doc = include_str!("../assets/PROVIDERS_README.md")]
 pub mod providers {
     pub use starknet_providers::*;
 }

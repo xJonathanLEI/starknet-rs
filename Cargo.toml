@@ -12,6 +12,7 @@ description = """
 Complete StarkNet library in Rust
 """
 keywords = ["ethereum", "starknet", "web3"]
+exclude = [".github/**", "images/**"]
 
 [workspace]
 members = [

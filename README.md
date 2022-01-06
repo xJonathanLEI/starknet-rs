@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/xJonathanLEI/starknet-rs/blob/master/assets/starknet-rs-logo.png?raw=true" alt="Logo"/>
+  <img src="https://github.com/xJonathanLEI/starknet-rs/blob/master/images/starknet-rs-logo.png?raw=true" alt="Logo"/>
   <h1 align="center">starknet-rs</h1>
 </p>
 
