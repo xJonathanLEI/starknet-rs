@@ -22,6 +22,7 @@ pub enum Transaction {
 
 #[derive(Debug, Deserialize)]
 pub struct TransactionWithStatus {
+    pub block_number: Option<u64>,
     pub transaction: Option<Transaction>,
     pub status: TransactionStatusType,
     #[serde(default)]
@@ -61,4 +62,42 @@ pub struct InvokeFunctionTransaction {
     pub calldata: Vec<U256>,
     #[serde(deserialize_with = "deserialize_vec_u256_from_dec")]
     pub signature: Vec<U256>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_transaction_with_status_deser() {
+        let raw =
+            include_str!("../../test-data/raw_gateway_responses/get_transaction_1_invoke.txt");
+        let tx: TransactionWithStatus = serde_json::from_str(raw).unwrap();
+
+        assert_eq!(tx.block_number, Some(39099));
+        if let Transaction::InvokeFunction(invoke) = tx.transaction.unwrap() {
+            assert_eq!(invoke.signature.len(), 2);
+        } else {
+            panic!("Did not deserialize Transaction::InvokeFunction properly")
+        }
+
+        let raw =
+            include_str!("../../test-data/raw_gateway_responses/get_transaction_2_deploy.txt");
+        let tx: TransactionWithStatus = serde_json::from_str(raw).unwrap();
+
+        assert_eq!(tx.block_number, Some(39181));
+        if let Transaction::Deploy(deploy) = tx.transaction.unwrap() {
+            assert_eq!(deploy.constructor_calldata.len(), 2)
+        } else {
+            panic!("Did not deserialize Transaction::Deploy properly");
+        }
+
+        let raw = include_str!(
+            "../../test-data/raw_gateway_responses/get_transaction_3_not_received.txt"
+        );
+        let tx: TransactionWithStatus = serde_json::from_str(raw).unwrap();
+
+        assert_eq!(tx.block_number, None);
+        assert_eq!(tx.status, TransactionStatusType::NotReceived);
+    }
 }
