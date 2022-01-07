@@ -1,3 +1,1 @@
-# StarkNet data types
-
-// TODO: add `starknet-core` documentation
+../starknet-core/README.md
