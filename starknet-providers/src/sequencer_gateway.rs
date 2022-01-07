@@ -375,6 +375,20 @@ impl Provider for SequencerGatewayProvider {
             }
         }
     }
+
+    async fn get_last_batch_id(&self) -> Result<u64, Self::Error> {
+        let request_url = self.extend_feeder_gateway_url("get_last_batch_id");
+
+        match self
+            .send_get_request::<GatewayResponse<u64>>(request_url)
+            .await?
+        {
+            GatewayResponse::Data(batch_id) => Ok(batch_id),
+            GatewayResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
 }
 
 fn extend_url(url: &mut Url, segment: &str) {

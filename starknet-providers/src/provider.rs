@@ -64,4 +64,6 @@ pub trait Provider {
     ) -> Result<H256, Self::Error>;
 
     async fn get_transaction_id_by_hash(&self, transaction_hash: H256) -> Result<u64, Self::Error>;
+
+    async fn get_last_batch_id(&self) -> Result<u64, Self::Error>;
 }
