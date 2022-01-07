@@ -31,7 +31,7 @@ pub struct TransactionWithStatus {
     pub transaction_index: Option<u64>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub enum EntryPointType {
     #[serde(rename = "EXTERNAL")]
     External,
