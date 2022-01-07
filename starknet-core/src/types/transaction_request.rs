@@ -10,11 +10,9 @@ use ethereum_types::{H256, U256};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize)]
-#[serde(tag = "type")]
+#[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TransactionRequest {
-    #[serde(rename = "DEPLOY")]
     Deploy(DeployTransaction),
-    #[serde(rename = "INVOKE_FUNCTION")]
     InvokeFunction(InvokeFunctionTransaction),
 }
 
@@ -62,12 +60,10 @@ pub struct ContractDefinition {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub struct EntryPointsByType {
-    #[serde(rename = "CONSTRUCTOR")]
     pub constructor: Vec<EntryPoint>,
-    #[serde(rename = "EXTERNAL")]
     pub external: Vec<EntryPoint>,
-    #[serde(rename = "L1_HANDLER")]
     pub l1_handler: Vec<EntryPoint>,
 }
 

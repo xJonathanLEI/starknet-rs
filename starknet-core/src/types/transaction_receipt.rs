@@ -33,35 +33,24 @@ pub struct ConfirmedReceipt {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(tag = "tx_status")]
+#[serde(tag = "tx_status", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TransactionStatus {
-    #[serde(rename = "NOT_RECEIVED")]
     NotReceived,
-    #[serde(rename = "RECEIVED")]
     Received,
-    #[serde(rename = "PENDING")]
     Pending,
-    #[serde(rename = "REJECTED")]
     Rejected,
-    #[serde(rename = "ACCEPTED_ON_L2")]
     AcceptedOnL2(TransactionBlockHash),
-    #[serde(rename = "ACCEPTED_ON_L1")]
     AcceptedOnL1(TransactionBlockHash),
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TransactionStatusType {
-    #[serde(rename = "NOT_RECEIVED")]
     NotReceived,
-    #[serde(rename = "RECEIVED")]
     Received,
-    #[serde(rename = "PENDING")]
     Pending,
-    #[serde(rename = "REJECTED")]
     Rejected,
-    #[serde(rename = "ACCEPTED_ON_L2")]
     AcceptedOnL2,
-    #[serde(rename = "ACCEPTED_ON_L1")]
     AcceptedOnL1,
 }
 

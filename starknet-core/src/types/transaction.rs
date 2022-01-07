@@ -14,11 +14,9 @@ pub enum TransactionId {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(tag = "type")]
+#[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Transaction {
-    #[serde(rename = "DEPLOY")]
     Deploy(DeployTransaction),
-    #[serde(rename = "INVOKE_FUNCTION")]
     InvokeFunction(InvokeFunctionTransaction),
 }
 
