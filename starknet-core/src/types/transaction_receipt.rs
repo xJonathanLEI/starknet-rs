@@ -92,6 +92,32 @@ mod tests {
     use core::str::FromStr;
 
     #[test]
+    fn test_receipt_deser() {
+        let raw = include_str!(
+            "../../test-data/raw_gateway_responses/get_transaction_receipt/1_accepted.txt"
+        );
+
+        let receipt: Receipt = serde_json::from_str(raw).unwrap();
+
+        assert_eq!(receipt.status, TransactionStatusType::AcceptedOnL1);
+        assert_eq!(receipt.block_number, Some(39207));
+        assert_eq!(receipt.execution_resources.unwrap().n_steps, 489);
+
+        let raw = include_str!(
+            "../../test-data/raw_gateway_responses/get_transaction_receipt/2_not_received.txt"
+        );
+        let receipt: Receipt = serde_json::from_str(raw).unwrap();
+
+        assert_eq!(receipt.status, TransactionStatusType::NotReceived);
+        assert_eq!(
+            receipt.transaction_hash,
+            H256::from_str("0x007cb73f737a8ea0c5c94d7799c2d01a47c81f4cb34287408741264d3f09655d")
+                .unwrap()
+        );
+        assert_eq!(receipt.block_hash, None);
+    }
+
+    #[test]
     fn test_transaction_status_deser() {
         // note that the hashes coming from the API can be shorter
         // by a byte or two than the H256 into which we serialize into,
