@@ -71,7 +71,7 @@ mod tests {
     #[test]
     fn test_transaction_with_status_deser() {
         let raw =
-            include_str!("../../test-data/raw_gateway_responses/get_transaction_1_invoke.txt");
+            include_str!("../../test-data/raw_gateway_responses/get_transaction/1_invoke.txt");
         let tx: TransactionWithStatus = serde_json::from_str(raw).unwrap();
 
         assert_eq!(tx.block_number, Some(39099));
@@ -82,7 +82,7 @@ mod tests {
         }
 
         let raw =
-            include_str!("../../test-data/raw_gateway_responses/get_transaction_2_deploy.txt");
+            include_str!("../../test-data/raw_gateway_responses/get_transaction/2_deploy.txt");
         let tx: TransactionWithStatus = serde_json::from_str(raw).unwrap();
 
         assert_eq!(tx.block_number, Some(39181));
@@ -93,7 +93,7 @@ mod tests {
         }
 
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_transaction_3_not_received.txt"
+            "../../test-data/raw_gateway_responses/get_transaction/3_not_received.txt"
         );
         let tx: TransactionWithStatus = serde_json::from_str(raw).unwrap();
 
