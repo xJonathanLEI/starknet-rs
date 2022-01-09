@@ -90,7 +90,10 @@ mod tests {
             panic!("Did not deserialize AbiEntry::Function properly");
         }
         // TODO: use abi[9] to test "stateMutability" param
+    }
 
+    #[test]
+    fn test_contract_code_deser_all_abi_types() {
         // $ curl "https://alpha4.starknet.io/feeder_gateway/get_code?contractAddress=0x06ef97a90be1c0458f6e7bd1faf05021f2d81211f658155df0c5c97a39eb2d12"
         // Contract built from: https://github.com/starkware-libs/cairo-lang/blob/3d33c4e829a87bc3d88cf04ed6a489e788918b8b/src/starkware/starknet/compiler/starknet_preprocessor_test.py#L143
         let raw =

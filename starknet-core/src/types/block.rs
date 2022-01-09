@@ -29,8 +29,7 @@ mod tests {
     use core::str::FromStr;
 
     #[test]
-    fn test_block_deser() {
-        // has a deploy TX
+    fn test_block_deser_with_deploy_tx() {
         let raw = include_str!("../../test-data/raw_gateway_responses/get_block/1_latest.txt");
 
         let block: Block = serde_json::from_str(raw).unwrap();
@@ -57,7 +56,10 @@ mod tests {
         let receipt = &block.transaction_receipts[0];
         assert_eq!(receipt.block_number, 39232);
         assert_eq!(receipt.execution_resources.n_steps, 68);
+    }
 
+    #[test]
+    fn test_block_deser_with_messages() {
         // has an L2 to L1 message
         let raw =
             include_str!("../../test-data/raw_gateway_responses/get_block/2_with_messages.txt");

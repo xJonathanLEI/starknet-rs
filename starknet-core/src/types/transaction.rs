@@ -69,7 +69,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_transaction_with_status_deser() {
+    fn test_transaction_with_status_deser_invoke() {
         let raw =
             include_str!("../../test-data/raw_gateway_responses/get_transaction/1_invoke.txt");
         let tx: TransactionWithStatus = serde_json::from_str(raw).unwrap();
@@ -80,7 +80,10 @@ mod tests {
         } else {
             panic!("Did not deserialize Transaction::InvokeFunction properly")
         }
+    }
 
+    #[test]
+    fn test_transaction_with_status_deser_deploy() {
         let raw =
             include_str!("../../test-data/raw_gateway_responses/get_transaction/2_deploy.txt");
         let tx: TransactionWithStatus = serde_json::from_str(raw).unwrap();
@@ -91,7 +94,10 @@ mod tests {
         } else {
             panic!("Did not deserialize Transaction::Deploy properly");
         }
+    }
 
+    #[test]
+    fn test_transaction_with_status_deser_not_received() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction/3_not_received.txt"
         );
