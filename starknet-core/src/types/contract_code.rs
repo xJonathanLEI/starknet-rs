@@ -25,10 +25,12 @@ pub struct Constructor {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Function {
     pub name: String,
     pub inputs: Vec<Input>,
     pub outputs: Vec<Output>,
+    pub state_mutability: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -86,10 +88,18 @@ mod tests {
         if let AbiEntry::Function(f) = &abi[1] {
             assert_eq!(f.name, "execute");
             assert_eq!(f.inputs.len(), 5);
+            assert_eq!(f.state_mutability, None);
         } else {
             panic!("Did not deserialize AbiEntry::Function properly");
         }
-        // TODO: use abi[9] to test "stateMutability" param
+
+        if let AbiEntry::Function(f) = &abi[9] {
+            assert_eq!(f.name, "is_valid_signature");
+            assert_eq!(f.inputs.len(), 3);
+            assert_eq!(f.state_mutability, Some(String::from("view")));
+        } else {
+            panic!("Did not deserialize AbiEntry::Function properly");
+        }
     }
 
     #[test]
@@ -115,9 +125,9 @@ mod tests {
         }
 
         if let AbiEntry::Function(f) = &abi[5] {
-            // TODO: stateMutability
             assert_eq!(f.name, "g");
             assert_eq!(f.outputs.len(), 1);
+            assert_eq!(f.state_mutability, Some(String::from("view")));
         } else {
             panic!("Did not deserialize AbiEntry::Function properly");
         }
