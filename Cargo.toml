@@ -18,8 +18,10 @@ exclude = [".github/**", "images/**"]
 members = [
     "starknet-core",
     "starknet-providers",
+    "starknet-contract",
 ]
 
 [dependencies]
 starknet-core = { version = "0.1.0", path = "./starknet-core" }
 starknet-providers = { version = "0.1.0", path = "./starknet-providers" }
+starknet-contract = { version = "0.1.0", path = "./starknet-contract" }

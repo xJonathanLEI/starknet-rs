@@ -871,8 +871,18 @@ dependencies = [
 name = "starknet"
 version = "0.1.0"
 dependencies = [
+ "starknet-contract",
  "starknet-core",
  "starknet-providers",
+]
+
+[[package]]
+name = "starknet-contract"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "starknet-core",
 ]
 
 [[package]]
