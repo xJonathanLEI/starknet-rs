@@ -17,4 +17,6 @@ base64 = "0.13.0"
 ethereum-types = "0.12.1"
 hex = "0.4.3"
 serde = { version = "1.0.133", features = ["derive"] }
+
+[dev-dependencies]
 serde_json = "1.0.74"
