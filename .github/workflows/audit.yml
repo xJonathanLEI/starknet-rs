@@ -1,0 +1,19 @@
+on:
+  schedule:
+    # 2:20 past midnight UTC
+    - cron: "20 2 * * *"
+
+name: Security audit
+jobs:
+  audit:
+    name: Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Run audit check
+        uses: actions-rs/audit-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

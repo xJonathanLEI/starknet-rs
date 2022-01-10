@@ -19,7 +19,7 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v2
 
-      - name: Use stable toolchain
+      - name: Setup toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
