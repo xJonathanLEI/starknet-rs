@@ -59,7 +59,7 @@ pub struct ContractDefinition {
     pub abi: Option<Vec<AbiEntry>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub struct EntryPointsByType {
     pub constructor: Vec<EntryPoint>,
@@ -67,7 +67,7 @@ pub struct EntryPointsByType {
     pub l1_handler: Vec<EntryPoint>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EntryPoint {
     #[serde(deserialize_with = "deserialize_h256_from_hex")]
     pub selector: H256,
