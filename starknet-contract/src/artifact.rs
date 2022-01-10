@@ -105,7 +105,7 @@ mod tests {
 
     #[test]
     fn test_artifact_deser() {
-        serde_json::from_str::<Artifact>(include_str!("../test-data/oz_account_artifact.json"))
+        serde_json::from_str::<Artifact>(include_str!("../test-data/oz_account_artifact.txt"))
             .unwrap();
     }
 }
