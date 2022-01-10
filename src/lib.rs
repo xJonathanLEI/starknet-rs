@@ -22,6 +22,10 @@
 //!
 //! The [`Provider`](providers::Provider) trait provides abstraction over StarkNet data providers.
 //! Currently the only implementation is [`SequencerGatewayProvider`](providers::SequencerGatewayProvider).
+//!
+//! ## `contract`
+//!
+//! Contains all the types for deploying and interacting with StarkNet smart contracts.
 
 #[doc = include_str!("../assets/CORE_README.md")]
 pub mod core {
@@ -31,4 +35,9 @@ pub mod core {
 #[doc = include_str!("../assets/PROVIDERS_README.md")]
 pub mod providers {
     pub use starknet_providers::*;
+}
+
+#[doc = include_str!("../assets/CONTRACT_README.md")]
+pub mod contract {
+    pub use starknet_contract::*;
 }

@@ -20,6 +20,20 @@ where
     s.serialize_str(&base64::encode(x.as_ref()))
 }
 
+pub fn serialize_u8_slice_into_hex_without_leading_zeros<S, T>(
+    x: T,
+    s: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+    T: AsRef<[u8]>,
+{
+    let mut buffer: String = String::from("0x");
+    buffer.push_str(hex::encode(x.as_ref()).trim_start_matches('0'));
+
+    s.serialize_str(&buffer)
+}
+
 pub fn deserialize_h256_from_hex<'de, D>(d: D) -> Result<H256, D::Error>
 where
     D: Deserializer<'de>,
