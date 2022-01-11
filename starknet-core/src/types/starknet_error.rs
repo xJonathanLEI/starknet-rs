@@ -20,6 +20,8 @@ pub enum ErrorCode {
     BlockNotFound,
     #[serde(rename = "StarknetErrorCode.ENTRY_POINT_NOT_FOUND_IN_CONTRACT")]
     EntryPointNotFoundInContract,
+    #[serde(rename = "StarknetErrorCode.INVALID_PROGRAM")]
+    InvalidProgram,
     #[serde(rename = "StarknetErrorCode.TRANSACTION_FAILED")]
     TransactionFailed,
     #[serde(rename = "StarknetErrorCode.TRANSACTION_NOT_FOUND")]
