@@ -29,13 +29,13 @@ starknet = { git = "https://github.com/xJonathanLEI/starknet-rs" }
 ## Features
 
 - [x] Sequencer gateway / feeder gateway client
-- [ ] Smart contract deployment
+- [x] Smart contract deployment
 - [ ] Signer for using [IAccount](https://github.com/OpenZeppelin/cairo-contracts/blob/main/contracts/IAccount.cairo) account contracts
 - [ ] Strongly-typed smart contract binding code generation from ABI
 
 ## Example
 
-Using `SequencerGatewayProvider` to get the latest block from the `alpha-goerli` testnet:
+### Get the latest block from `alpha-goerli` testnet
 
 ```rust
 use starknet::providers::{Provider, SequencerGatewayProvider};
@@ -45,6 +45,30 @@ async fn main() {
     let provider = SequencerGatewayProvider::starknet_alpha_goerli();
     let latest_block = provider.get_block(None).await;
     println!("{:#?}", latest_block);
+}
+```
+
+### Deploy contract to `alpha-goerli` testnet
+
+```rust
+use starknet::{
+    contract::{ContractArtifact, ContractFactory},
+    core::types::U256,
+    providers::SequencerGatewayProvider,
+};
+
+#[tokio::main]
+async fn main() {
+    let contract_artifact: ContractArtifact =
+        serde_json::from_reader(std::fs::File::open("/path/to/contract/artifact.json").unwrap())
+            .unwrap();
+    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
+
+    let contract_factory = ContractFactory::new(contract_artifact, provider).unwrap();
+    contract_factory
+        .deploy(vec![U256::from_dec_str("123456").unwrap()], None)
+        .await
+        .expect("Unable to deploy contract");
 }
 ```
 
