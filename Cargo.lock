@@ -1080,9 +1080,9 @@ dependencies = [
 
 [[package]]
 name = "starkware-crypto-sys"
-version = "0.1.2"
+version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b95a63c90ca26e1d6753590a3336e69b7813dced87d2a628d83e051672c76f83"
+checksum = "4a9d0aa4a5a4be345a5d2f62eeae358fc178c8db215b0e4e3198ae5adb19b703"
 dependencies = [
  "cc",
  "num-bigint",
