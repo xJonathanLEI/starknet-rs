@@ -6,14 +6,13 @@ on:
 
 name: Tests
 jobs:
-  test:
-    name: Rust tests
-    runs-on: ubuntu-latest
+  unix-test:
+    name: Unix tests
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rust:
-          - stable
-          - nightly
+        os: [ubuntu-latest, macos-11]
+        toolchain: [stable, nightly]
 
     steps:
       - name: Checkout source code
@@ -22,7 +21,37 @@ jobs:
       - name: Setup toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ matrix.rust }}
+          toolchain: ${{ matrix.toolchain }}
+          profile: minimal
+          override: true
+
+      - uses: Swatinem/rust-cache@v1
+        with:
+          cache-on-failure: true
+
+      - name: Run cargo tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all
+
+  win-test:
+    name: Windows tests
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        toolchain: [stable, nightly]
+        target: [x86_64-pc-windows-gnu, x86_64-pc-windows-msvc]
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Setup toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          target: ${{ matrix.target }}
           profile: minimal
           override: true
 
