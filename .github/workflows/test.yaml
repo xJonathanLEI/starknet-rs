@@ -58,9 +58,10 @@ jobs:
       - uses: Swatinem/rust-cache@v1
         with:
           cache-on-failure: true
+          key: ${{ matrix.target }}
 
       - name: Run cargo tests
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all
+          args: --all --target ${{ matrix.target }}
