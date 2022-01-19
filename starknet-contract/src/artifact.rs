@@ -17,9 +17,11 @@ pub struct Artifact {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Program {
+    #[serde(skip_serializing)]
+    pub attributes: serde::de::IgnoredAny, // Skipped since it's not used in deployment
     pub builtins: Vec<String>,
     pub data: Vec<U256>,
-    #[serde(default, skip_serializing)]
+    #[serde(skip_serializing)]
     pub debug_info: serde::de::IgnoredAny, // Skipped since it's not used in deployment
     pub hints: BTreeMap<u64, Vec<Hint>>,
     pub identifiers: BTreeMap<String, Identifier>,
@@ -104,8 +106,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_artifact_deser() {
-        serde_json::from_str::<Artifact>(include_str!("../test-data/oz_account_artifact.txt"))
+    fn test_artifact_deser_oz_account() {
+        serde_json::from_str::<Artifact>(include_str!("../test-data/artifacts/oz_account.txt"))
+            .unwrap();
+    }
+
+    #[test]
+    fn test_artifact_deser_event_example() {
+        serde_json::from_str::<Artifact>(include_str!("../test-data/artifacts/event_example.txt"))
             .unwrap();
     }
 }
