@@ -17,11 +17,11 @@ pub struct Artifact {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Program {
-    #[serde(default, skip_serializing)]
+    #[serde(skip_serializing)]
     pub attributes: serde::de::IgnoredAny, // Skipped since it's not used in deployment
     pub builtins: Vec<String>,
     pub data: Vec<U256>,
-    #[serde(default, skip_serializing)]
+    #[serde(skip_serializing)]
     pub debug_info: serde::de::IgnoredAny, // Skipped since it's not used in deployment
     pub hints: BTreeMap<u64, Vec<Hint>>,
     pub identifiers: BTreeMap<String, Identifier>,
