@@ -23,10 +23,6 @@ pub struct Receipt {
 pub struct ConfirmedReceipt {
     #[serde(deserialize_with = "deserialize_h256_from_hex")]
     pub transaction_hash: H256,
-    pub status: TransactionStatusType,
-    #[serde(deserialize_with = "deserialize_h256_from_hex")]
-    pub block_hash: H256,
-    pub block_number: u64,
     pub transaction_index: u64,
     pub execution_resources: ExecutionResources,
     pub l2_to_l1_messages: Vec<L2ToL1Message>,
@@ -105,7 +101,7 @@ mod tests {
     }
 
     #[test]
-    fn test_receipt_deser_received() {
+    fn test_receipt_deser_not_received() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction_receipt/2_not_received.txt"
         );
@@ -114,7 +110,7 @@ mod tests {
         assert_eq!(receipt.status, TransactionStatusType::NotReceived);
         assert_eq!(
             receipt.transaction_hash,
-            H256::from_str("0x007cb73f737a8ea0c5c94d7799c2d01a47c81f4cb34287408741264d3f09655d")
+            H256::from_str("0x0000000000000000000000000000000000000000000000000000000000000000")
                 .unwrap()
         );
         assert_eq!(receipt.block_hash, None);
