@@ -6,6 +6,9 @@ curl -o ./get_block/1_with_deploy_tx.txt "https://alpha4.starknet.io/feeder_gate
 # ./get_block/2_with_messages.txt
 curl -o ./get_block/2_with_messages.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=39227"
 
+# ./get_block/3_with_events.txt
+curl -o ./get_block/3_with_events.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=47543"
+
 # ./get_code/1_code.txt
 curl -o ./get_code/1_code.txt "https://alpha4.starknet.io/feeder_gateway/get_code?contractAddress=0x05ffd28b3ff2eecd6da0fa64c90e928a9f46f1563976a4fe1770ab48ee43506a"
 
@@ -26,3 +29,6 @@ curl -o ./get_transaction_receipt/1_accepted.txt "https://alpha4.starknet.io/fee
 
 # ./get_transaction_receipt/2_not_received.txt
 curl -o ./get_transaction_receipt/2_not_received.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_receipt?transactionHash=0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+
+# ./get_transaction_receipt/3_with_events.txt
+curl -o ./get_transaction_receipt/3_with_events.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_receipt?transactionHash=0x688e434a1636c30d0c161f766b99b4bfb143208d859149859941905e94cb022"

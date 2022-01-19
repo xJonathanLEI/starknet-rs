@@ -17,6 +17,7 @@ pub struct Receipt {
     pub transaction_index: Option<u64>,
     pub execution_resources: Option<ExecutionResources>,
     pub l2_to_l1_messages: Vec<L2ToL1Message>,
+    pub events: Vec<Event>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -26,6 +27,7 @@ pub struct ConfirmedReceipt {
     pub transaction_index: u64,
     pub execution_resources: ExecutionResources,
     pub l2_to_l1_messages: Vec<L2ToL1Message>,
+    pub events: Vec<Event>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -82,6 +84,16 @@ pub struct L2ToL1Message {
     pub payload: Vec<U256>,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct Event {
+    #[serde(deserialize_with = "deserialize_h256_from_hex")]
+    pub from_address: H256,
+    #[serde(deserialize_with = "deserialize_vec_u256_from_dec")]
+    pub keys: Vec<U256>,
+    #[serde(deserialize_with = "deserialize_vec_u256_from_dec")]
+    pub data: Vec<U256>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -114,6 +126,16 @@ mod tests {
                 .unwrap()
         );
         assert_eq!(receipt.block_hash, None);
+    }
+
+    #[test]
+    fn test_receipt_deser_with_events() {
+        let raw = include_str!(
+            "../../test-data/raw_gateway_responses/get_transaction_receipt/3_with_events.txt"
+        );
+        let receipt: Receipt = serde_json::from_str(raw).unwrap();
+
+        assert_eq!(receipt.events[0].data.len(), 2);
     }
 
     #[test]

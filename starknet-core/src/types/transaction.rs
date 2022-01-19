@@ -35,6 +35,8 @@ pub struct TransactionWithStatus {
 pub enum EntryPointType {
     #[serde(rename = "EXTERNAL")]
     External,
+    #[serde(rename = "L1_HANDLER")]
+    L1Handler,
 }
 
 #[derive(Debug, Deserialize)]
