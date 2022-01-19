@@ -15,6 +15,7 @@ pub enum AbiEntry {
     Struct(Struct),
     #[serde(rename = "l1_handler")]
     L1Handler(L1Handler),
+    Event(Event),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -48,6 +49,13 @@ pub struct L1Handler {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Event {
+    pub name: String,
+    pub keys: Vec<()>, // Can't figure out what's in `keys`
+    pub data: Vec<EventData>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Input {
     pub name: String,
     pub r#type: String,
@@ -55,6 +63,12 @@ pub struct Input {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Output {
+    pub name: String,
+    pub r#type: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventData {
     pub name: String,
     pub r#type: String,
 }
