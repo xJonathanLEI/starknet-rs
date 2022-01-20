@@ -72,4 +72,18 @@ mod tests {
         assert_eq!(receipt.l2_to_l1_messages.len(), 1);
         assert_eq!(receipt.l2_to_l1_messages[0].payload.len(), 5);
     }
+
+    #[test]
+    fn test_block_deser_with_events() {
+        // has an L2 to L1 message
+        let raw = include_str!("../../test-data/raw_gateway_responses/get_block/3_with_events.txt");
+
+        let block: Block = serde_json::from_str(raw).unwrap();
+
+        assert_eq!(block.block_number, 47543);
+        assert_eq!(block.transaction_receipts.len(), 4);
+        let receipt = &block.transaction_receipts[3];
+        assert_eq!(receipt.events.len(), 1);
+        assert_eq!(receipt.events[0].data.len(), 2);
+    }
 }
