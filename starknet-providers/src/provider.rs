@@ -21,22 +21,22 @@ pub trait Provider {
     async fn call_contract(
         &self,
         invoke_tx: InvokeFunction,
-        block_hash_or_number: Option<BlockId>,
+        block_identifier: Option<BlockId>,
     ) -> Result<CallContractResult, Self::Error>;
 
-    async fn get_block(&self, block_hash_or_number: Option<BlockId>) -> Result<Block, Self::Error>;
+    async fn get_block(&self, block_identifier: Option<BlockId>) -> Result<Block, Self::Error>;
 
     async fn get_code(
         &self,
         contract_address: H256,
-        block_hash_or_number: Option<BlockId>,
+        block_identifier: Option<BlockId>,
     ) -> Result<ContractCode, Self::Error>;
 
     async fn get_storage_at(
         &self,
         contract_address: H256,
         key: U256,
-        block_hash_or_number: Option<BlockId>,
+        block_identifier: Option<BlockId>,
     ) -> Result<U256, Self::Error>;
 
     async fn get_transaction_status(
