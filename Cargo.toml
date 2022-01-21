@@ -19,6 +19,7 @@ members = [
     "starknet-core",
     "starknet-providers",
     "starknet-contract",
+    "starknet-crypto",
 ]
 
 [dependencies]

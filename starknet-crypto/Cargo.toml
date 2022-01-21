@@ -1,0 +1,47 @@
+[package]
+name = "starknet-crypto"
+version = "0.1.0"
+authors = ["Jonathan LEI <me@xjonathan.dev>"]
+license = "MIT OR Apache-2.0"
+edition = "2021"
+readme = "README.md"
+repository = "https://github.com/xJonathanLEI/starknet-rs"
+homepage = "https://starknet.rs/"
+description = """
+Low-level cryptography utilities for StarkNet
+"""
+keywords = ["ethereum", "starknet", "web3"]
+
+[dependencies]
+# Parity's scale codec locks us here
+bitvec = "0.20.4"
+# Use eqlabs's fork of ff to work around the bitvec-funty clash:
+# https://github.com/eqlabs/pathfinder/blob/8f9155a8fba60fd4f0b51d57209889a622fad6a9/crates/pedersen/Cargo.toml#L19
+ff = { git = "https://github.com/eqlabs/ff", branch = "derive_bitvec", default-features = false, features = [
+    "derive",
+]}
+num-bigint = "0.4.3"
+num-integer = "0.1.44"
+num-traits = "0.2.14"
+thiserror = "1.0.30"
+
+[dev-dependencies]
+hex = "0.4.3"
+criterion = "0.3.5"
+hex-literal = "0.3.4"
+
+[[bench]]
+name = "pedersen_hash"
+harness = false
+
+[[bench]]
+name = "ecdsa_get_public_key"
+harness = false
+
+[[bench]]
+name = "ecdsa_sign"
+harness = false
+
+[[bench]]
+name = "ecdsa_verify"
+harness = false

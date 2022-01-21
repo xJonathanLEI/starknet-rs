@@ -8,7 +8,9 @@
 [![linting-badge](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml/badge.svg?branch=master)](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml)
 [![crates-badge](https://img.shields.io/crates/v/starknet.svg)](https://crates.io/crates/starknet)
 
-> _Note that `starknet-rs` is still experimental. Breaking changes will be made before the first stable release. Use at your own risk._
+> _Note that `starknet-rs` is still experimental. Breaking changes will be made before the first stable release. The library is also NOT audited or reviewed for security at the moment. Use at your own risk._
+
+> _The underlying cryptography library [`starknet-crypto`](./starknet-crypto) does NOT provide constant-time guarantees._
 
 ## Adding starknet-rs to your project
 
@@ -32,6 +34,16 @@ starknet = { git = "https://github.com/xJonathanLEI/starknet-rs" }
 - [x] Smart contract deployment
 - [ ] Signer for using [IAccount](https://github.com/OpenZeppelin/cairo-contracts/blob/main/contracts/IAccount.cairo) account contracts
 - [ ] Strongly-typed smart contract binding code generation from ABI
+
+## Crates
+
+This workspace contains the following crates:
+
+- `starknet`: Re-export of other sub-crates (recommended)
+- `starknet-core`: Core data structures for interacting with StarkNet
+- `starknet-providers`: Abstraction and implementation of clients for interacting with StarkNet nodes and sequencers
+- `starknet-contract`: Types for deploying and interacting with StarkNet smart contracts
+- `starknet-crypto`: **Low-level** cryptography utilities for StarkNet
 
 ## Example
 
