@@ -93,7 +93,7 @@ mod tests {
 
     #[test]
     fn test_block_deser_pending() {
-        // has an L2 to L1 message
+        // pending blocks don't have `block_hash`, `block_number`, or `state_root`
         let raw = include_str!("../../test-data/raw_gateway_responses/get_block/4_pending.txt");
 
         let block: Block = serde_json::from_str(raw).unwrap();
