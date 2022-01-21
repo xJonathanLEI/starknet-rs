@@ -14,15 +14,13 @@ pub enum BlockId {
 
 #[derive(Debug, Deserialize)]
 pub struct Block {
-    #[serde(default)]
-    #[serde(deserialize_with = "deserialize_option_h256_from_hex")]
+    #[serde(default, deserialize_with = "deserialize_option_h256_from_hex")]
     pub block_hash: Option<H256>,
     pub block_number: Option<u64>,
     #[serde(deserialize_with = "deserialize_h256_from_hex")]
     pub parent_block_hash: H256,
     pub timestamp: u64,
-    #[serde(default)]
-    #[serde(deserialize_with = "deserialize_option_h256_from_hex")]
+    #[serde(default, deserialize_with = "deserialize_option_h256_from_hex")]
     pub state_root: Option<H256>,
     pub transactions: Vec<Transaction>,
     pub transaction_receipts: Vec<ConfirmedTransactionReceipt>,

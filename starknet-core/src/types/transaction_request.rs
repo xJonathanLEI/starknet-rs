@@ -21,8 +21,7 @@ pub struct AddTransactionResult {
     pub code: AddTransactionResultCode,
     #[serde(deserialize_with = "deserialize_h256_from_hex")]
     pub transaction_hash: H256,
-    #[serde(default)]
-    #[serde(deserialize_with = "deserialize_option_h256_from_hex")]
+    #[serde(default, deserialize_with = "deserialize_option_h256_from_hex")]
     pub address: Option<H256>,
 }
 
