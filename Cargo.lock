@@ -1406,6 +1406,7 @@ dependencies = [
  "num-bigint 0.4.3",
  "num-integer",
  "num-traits",
+ "thiserror",
 ]
 
 [[package]]

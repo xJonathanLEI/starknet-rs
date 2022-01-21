@@ -16,7 +16,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("ecdsa_verify", |b| {
         b.iter(|| {
-            black_box(verify(&stark_key, &msg_hash, &r_bytes, &s_bytes));
+            black_box(verify(&stark_key, &msg_hash, &r_bytes, &s_bytes).unwrap());
         });
     });
 }

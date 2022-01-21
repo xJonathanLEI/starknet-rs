@@ -14,7 +14,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("ecdsa_sign", |b| {
         b.iter(|| {
-            black_box(sign(&private_key, &message, &k));
+            black_box(sign(&private_key, &message, &k).unwrap());
         });
     });
 }

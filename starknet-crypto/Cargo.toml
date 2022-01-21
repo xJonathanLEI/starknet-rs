@@ -23,6 +23,7 @@ ff = { git = "https://github.com/eqlabs/ff", branch = "derive_bitvec", default-f
 num-bigint = "0.4.3"
 num-integer = "0.1.44"
 num-traits = "0.2.14"
+thiserror = "1.0.30"
 
 [dev-dependencies]
 hex = "0.4.3"
