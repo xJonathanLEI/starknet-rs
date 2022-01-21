@@ -10,6 +10,8 @@
 
 > _Note that `starknet-rs` is still experimental. Breaking changes will be made before the first stable release. The library is also NOT audited or reviewed for security at the moment. Use at your own risk._
 
+> _The underlying cryptography library [`starknet-crypto`](./starknet-crypto) does NOT provide constant-time guarantees._
+
 ## Adding starknet-rs to your project
 
 To use the crate from [crates.io](https://crates.io/crates/starknet), add the following to your `Cargo.toml` file:
