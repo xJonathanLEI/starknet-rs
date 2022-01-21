@@ -25,4 +25,4 @@ num-integer = "0.1.44"
 num-traits = "0.2.14"
 
 [dev-dependencies]
-hex-literal = "0.3.4"
+hex = "0.4.3"

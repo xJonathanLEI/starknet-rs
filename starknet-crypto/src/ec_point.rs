@@ -1,4 +1,7 @@
-use crate::field_element::FieldElement;
+use crate::{
+    field_element::FieldElement,
+    pedersen_params::{ALPHA, BETA},
+};
 
 use bitvec::{order::Lsb0, slice::BitSlice};
 use ff::Field;
@@ -12,6 +15,15 @@ pub struct EcPoint {
 }
 
 impl EcPoint {
+    pub fn from_x(x: FieldElement) -> Self {
+        let y_squared = x * x * x + ALPHA * x + BETA;
+        Self {
+            x,
+            y: y_squared.sqrt().unwrap(), // TODO: check if calling `unwrap()` here is safe
+            infinity: false,
+        }
+    }
+
     fn identity() -> EcPoint {
         Self {
             x: FieldElement::zero(),
@@ -67,6 +79,14 @@ impl EcPoint {
             y: result_y,
             infinity: false,
         }
+    }
+
+    pub fn subtract(&self, other: &EcPoint) -> EcPoint {
+        self.add(&EcPoint {
+            x: other.x,
+            y: -other.y,
+            infinity: other.infinity,
+        })
     }
 
     pub fn multiply(&self, bits: &BitSlice<Lsb0, u64>) -> EcPoint {

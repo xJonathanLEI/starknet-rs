@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use crate::{ec_point::EcPoint, field_element::FieldElement};
 
 pub const EC_ORDER: FieldElement = FieldElement::new([
