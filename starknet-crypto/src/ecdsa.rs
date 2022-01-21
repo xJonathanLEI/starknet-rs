@@ -12,15 +12,30 @@ const ELEMENT_UPPER_BOUND: FieldElement = FieldElement::new([
     576459263475450960,
 ]);
 
+/// Stark ECDSA signature
 pub struct Signature {
+    /// The `r` value of a signature
     pub r: FieldElement,
+    /// The `s` value of a signature
     pub s: FieldElement,
 }
 
+/// Computes the public key given a Stark private key.
+///
+/// ### Arguments
+///
+/// * `private_key`: The private key
 pub fn get_public_key(private_key: &FieldElement) -> FieldElement {
     (&CONSTANT_POINTS[1]).multiply(&private_key.into_bits()).x
 }
 
+/// Computes ECDSA signature given a Stark private key and message hash.
+///
+/// ### Arguments
+///
+/// * `private_key`: The private key
+/// * `message`: The message hash
+/// * `k`: A random `k` value. You **MUST NOT** use the same `k` on different signatures
 pub fn sign(
     private_key: &FieldElement,
     message: &FieldElement,
@@ -52,6 +67,14 @@ pub fn sign(
     Ok(Signature { r, s })
 }
 
+/// Verifies if a signature is valid over a message hash given a Stark public key.
+///
+/// ### Arguments
+///
+/// * `stark_key`: The public key
+/// * `msg_hash`: The message hash
+/// * `r_bytes`: The `r` value of the signature
+/// * `s_bytes`: The `s` value of the signature
 pub fn verify(
     public_key: &FieldElement,
     message: &FieldElement,

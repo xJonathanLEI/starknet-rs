@@ -6,9 +6,12 @@ const PEDERSEN_P1: EcPoint = CONSTANT_POINTS[250];
 const PEDERSEN_P2: EcPoint = CONSTANT_POINTS[254];
 const PEDERSEN_P3: EcPoint = CONSTANT_POINTS[502];
 
-/// Computes the [Starknet Pedersen hash] on `x` and `y`.
+/// Computes the Starkware version of the Pedersen hash of x and y. All inputs are little-endian.
 ///
-/// [Starknet Pedersen hash]: https://docs.starkware.co/starkex-v3/crypto/pedersen-hash-function
+/// ### Arguments
+///
+/// * `x`: The x coordinate
+/// * `y`: The y coordinate
 pub fn pedersen_hash(x: &FieldElement, y: &FieldElement) -> FieldElement {
     let mut result = SHIFT_POINT;
     let x = x.into_bits();
