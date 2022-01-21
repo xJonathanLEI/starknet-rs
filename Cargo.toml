@@ -26,4 +26,3 @@ members = [
 starknet-core = { version = "0.1.0", path = "./starknet-core" }
 starknet-providers = { version = "0.1.0", path = "./starknet-providers" }
 starknet-contract = { version = "0.1.0", path = "./starknet-contract" }
-starknet-crypto = { version = "0.1.0", path = "./starknet-crypto" }

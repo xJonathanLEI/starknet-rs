@@ -1,1 +1,0 @@
-../starknet-crypto/README.md

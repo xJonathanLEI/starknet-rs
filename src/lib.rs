@@ -26,10 +26,6 @@
 //! ## `contract`
 //!
 //! Contains all the types for deploying and interacting with StarkNet smart contracts.
-//!
-//! ## `crypto`
-//!
-//! Contains cryptography utilities like Pedersen hash and ECDSA.
 
 #[doc = include_str!("../assets/CORE_README.md")]
 pub mod core {
@@ -44,9 +40,4 @@ pub mod providers {
 #[doc = include_str!("../assets/CONTRACT_README.md")]
 pub mod contract {
     pub use starknet_contract::*;
-}
-
-#[doc = include_str!("../assets/CRYPTO_README.md")]
-pub mod crypto {
-    pub use starknet_crypto::*;
 }
