@@ -8,4 +8,4 @@ pub use field_element::{FieldElement, FieldElementRepr};
 
 pub use pedersen_hash::pedersen_hash;
 
-pub use ecdsa::get_public_key;
+pub use ecdsa::{get_public_key, sign};

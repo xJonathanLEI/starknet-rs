@@ -1,4 +1,27 @@
+#![allow(unused)]
+
 use crate::{ec_point::EcPoint, field_element::FieldElement};
+
+pub const EC_ORDER: FieldElement = FieldElement::new([
+    8939893405601011193,
+    1143265896874747514,
+    9,
+    369010039416812937,
+]);
+
+pub const ALPHA: FieldElement = FieldElement::new([
+    18446744073709551585,
+    18446744073709551615,
+    18446744073709551615,
+    576460752303422960,
+]);
+
+pub const BETA: FieldElement = FieldElement::new([
+    3863487492851900874,
+    7432612994240712710,
+    12360725113329547591,
+    88155977965380735,
+]);
 
 pub const CONSTANT_POINTS: [EcPoint; 506] = [
     EcPoint {
