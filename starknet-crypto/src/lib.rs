@@ -7,6 +7,8 @@ mod pedersen_params;
 #[cfg(test)]
 mod test_utils;
 
+pub use ff::PrimeField;
+
 pub use field_element::{FieldElement, FieldElementRepr};
 
 pub use pedersen_hash::pedersen_hash;
