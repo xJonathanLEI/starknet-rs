@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 mod ec_point;
 mod ecdsa;
 mod error;
@@ -7,8 +9,6 @@ mod pedersen_params;
 
 #[cfg(test)]
 mod test_utils;
-
-pub use ff::PrimeField;
 
 pub use field_element::{FieldElement, FieldElementRepr};
 

@@ -7,6 +7,7 @@ use num_integer::Integer;
 use num_traits::{One, Zero};
 use std::ops::{Add, Mul};
 
+/// Field element for the Stark curve with big-endian encoding.
 #[derive(PrimeField)]
 #[PrimeFieldModulus = "3618502788666131213697322783095070105623107215331596699973092056135872020481"]
 #[PrimeFieldGenerator = "3"]
@@ -14,12 +15,30 @@ use std::ops::{Add, Mul};
 pub struct FieldElement([u64; 4]);
 
 impl FieldElement {
-    pub const fn new(data: [u64; 4]) -> Self {
+    /// Attempts to convert a big-endian byte representation of a field element into an element of
+    /// this prime field. Returns None if the input is not canonical (is not smaller than the
+    /// field's modulus).
+    ///
+    /// ### Arguments
+    ///
+    /// * `bytes`: The byte array in **big endian** format
+    pub fn from_bytes_be(bytes: [u8; 32]) -> Option<Self> {
+        let result = FieldElement::from_repr(FieldElementRepr(bytes));
+        if result.is_some().into() {
+            Some(result.unwrap())
+        } else {
+            None
+        }
+    }
+}
+
+impl FieldElement {
+    pub(crate) const fn new(data: [u64; 4]) -> Self {
         Self(data)
     }
 
     /// Transforms [FieldElement] into little endian bit representation.
-    pub fn into_bits(mut self) -> BitArray<Lsb0, [u64; 4]> {
+    pub(crate) fn into_bits(mut self) -> BitArray<Lsb0, [u64; 4]> {
         #[cfg(not(target_endian = "little"))]
         {
             todo!("untested and probably unimplemented: big-endian targets")
@@ -49,19 +68,23 @@ impl FieldElement {
 // Contributions are welcome. Please help us get rid of this junk :)
 impl FieldElement {
     // Hard-coded to use big-endian because `FieldElement` uses it
-    pub fn add_unbounded(&self, addend: &FieldElement) -> BigInt {
+    pub(crate) fn add_unbounded(&self, addend: &FieldElement) -> BigInt {
         let augend = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.to_repr().0);
         let addend = BigInt::from_bytes_be(num_bigint::Sign::Plus, &addend.to_repr().0);
         augend.add(addend)
     }
 
     // Hard-coded to use big-endian because `FieldElement` uses it
-    pub fn mul_mod_floor(&self, multiplier: &FieldElement, modulus: &FieldElement) -> FieldElement {
+    pub(crate) fn mul_mod_floor(
+        &self,
+        multiplier: &FieldElement,
+        modulus: &FieldElement,
+    ) -> FieldElement {
         let multiplicand = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.to_repr().0);
         Self::bigint_mul_mod_floor(multiplicand, multiplier, modulus)
     }
 
-    pub fn bigint_mul_mod_floor(
+    pub(crate) fn bigint_mul_mod_floor(
         multiplicand: BigInt,
         multiplier: &FieldElement,
         modulus: &FieldElement,
@@ -79,7 +102,7 @@ impl FieldElement {
     }
 
     // Hard-coded to use big-endian because `FieldElement` uses it
-    pub fn mod_inverse(&self, modulus: &FieldElement) -> FieldElement {
+    pub(crate) fn mod_inverse(&self, modulus: &FieldElement) -> FieldElement {
         let operand = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.to_repr().0);
         let modulus = BigInt::from_bytes_be(num_bigint::Sign::Plus, &modulus.to_repr().0);
 

@@ -1,8 +1,6 @@
 #![cfg(test)]
 
-use crate::field_element::{FieldElement, FieldElementRepr};
-
-use ff::PrimeField;
+use crate::field_element::FieldElement;
 
 pub fn field_element_from_be_hex(hex: &str) -> FieldElement {
     let decoded = hex::decode(hex.trim_start_matches("0x")).unwrap();
@@ -14,5 +12,5 @@ pub fn field_element_from_be_hex(hex: &str) -> FieldElement {
     let mut buffer = [0u8; 32];
     buffer[(32 - decoded.len())..].copy_from_slice(&decoded[..]);
 
-    FieldElement::from_repr(FieldElementRepr(buffer)).unwrap()
+    FieldElement::from_bytes_be(buffer).unwrap()
 }
