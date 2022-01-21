@@ -21,8 +21,8 @@ pub fn sign(private_key: &FieldElement, message: &FieldElement, k: &FieldElement
     let k_inv = k.mod_inverse(&EC_ORDER);
 
     let s = r.mul_mod_floor(private_key, &EC_ORDER);
-    let s = s + message;
-    let s = s.mul_mod_floor(&k_inv, &EC_ORDER);
+    let s = s.add_unbounded(message);
+    let s = FieldElement::bigint_mul_mod_floor(s, &k_inv, &EC_ORDER);
 
     Signature { r, s }
 }

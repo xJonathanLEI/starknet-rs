@@ -5,7 +5,7 @@ use ff::PrimeField;
 use num_bigint::BigInt;
 use num_integer::Integer;
 use num_traits::{One, Zero};
-use std::ops::Mul;
+use std::ops::{Add, Mul};
 
 #[derive(PrimeField)]
 #[PrimeFieldModulus = "3618502788666131213697322783095070105623107215331596699973092056135872020481"]
@@ -49,8 +49,23 @@ impl FieldElement {
 // Contributions are welcome. Please help us get rid of this junk :)
 impl FieldElement {
     // Hard-coded to use big-endian because `FieldElement` uses it
+    pub fn add_unbounded(&self, addend: &FieldElement) -> BigInt {
+        let augend = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.to_repr().0);
+        let addend = BigInt::from_bytes_be(num_bigint::Sign::Plus, &addend.to_repr().0);
+        augend.add(addend)
+    }
+
+    // Hard-coded to use big-endian because `FieldElement` uses it
     pub fn mul_mod_floor(&self, multiplier: &FieldElement, modulus: &FieldElement) -> FieldElement {
         let multiplicand = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.to_repr().0);
+        Self::bigint_mul_mod_floor(multiplicand, multiplier, modulus)
+    }
+
+    pub fn bigint_mul_mod_floor(
+        multiplicand: BigInt,
+        multiplier: &FieldElement,
+        modulus: &FieldElement,
+    ) -> FieldElement {
         let multiplier = BigInt::from_bytes_be(num_bigint::Sign::Plus, &multiplier.to_repr().0);
         let modulus = BigInt::from_bytes_be(num_bigint::Sign::Plus, &modulus.to_repr().0);
 
