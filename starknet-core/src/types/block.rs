@@ -81,7 +81,7 @@ mod tests {
 
     #[test]
     fn test_block_deser_with_events() {
-        // has an L2 to L1 message
+        // has events introduced with StarkNet v0.7.0
         let raw = include_str!("../../test-data/raw_gateway_responses/get_block/3_with_events.txt");
 
         let block: Block = serde_json::from_str(raw).unwrap();
