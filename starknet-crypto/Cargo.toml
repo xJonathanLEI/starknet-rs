@@ -26,3 +26,21 @@ num-traits = "0.2.14"
 
 [dev-dependencies]
 hex = "0.4.3"
+criterion = "0.3.5"
+hex-literal = "0.3.4"
+
+[[bench]]
+name = "pedersen_hash"
+harness = false
+
+[[bench]]
+name = "ecdsa_get_public_key"
+harness = false
+
+[[bench]]
+name = "ecdsa_sign"
+harness = false
+
+[[bench]]
+name = "ecdsa_verify"
+harness = false
