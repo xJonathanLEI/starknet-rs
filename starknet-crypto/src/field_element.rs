@@ -58,7 +58,7 @@ impl FieldElement {
 
         let (_, buffer) = result.to_bytes_be();
         let mut result = [0u8; 32];
-        result[0..buffer.len()].copy_from_slice(&buffer[..]);
+        result[(32 - buffer.len())..].copy_from_slice(&buffer[..]);
 
         FieldElement::from_repr(FieldElementRepr(result)).unwrap()
     }
@@ -82,7 +82,7 @@ impl FieldElement {
 
         let (_, buffer) = result.to_bytes_be();
         let mut result = [0u8; 32];
-        result[0..buffer.len()].copy_from_slice(&buffer[..]);
+        result[(32 - buffer.len())..].copy_from_slice(&buffer[..]);
 
         FieldElement::from_repr(FieldElementRepr(result)).unwrap()
     }
