@@ -14,7 +14,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("rfc6979_generate_k", |b| {
         b.iter(|| {
-            black_box(rfc6979_generate_k(&message_hash, &private_key, &seed));
+            black_box(rfc6979_generate_k(&message_hash, &private_key, Some(&seed)));
         });
     });
 }
