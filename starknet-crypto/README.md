@@ -21,6 +21,7 @@ ecdsa_get_public_key    time:   [1.6202 ms 1.6309 ms 1.6425 ms]
 ecdsa_sign              time:   [1.6612 ms 1.6754 ms 1.6912 ms]
 ecdsa_verify            time:   [5.4950 ms 5.5259 ms 5.5599 ms]
 pedersen_hash           time:   [3.1183 ms 3.1354 ms 3.1560 ms]
+rfc6979_generate_k      time:   [10.625 us 10.691 us 10.770 us]
 ```
 
 ## Credits
