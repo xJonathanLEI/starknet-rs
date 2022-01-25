@@ -24,7 +24,7 @@ pub fn generate_k(
     // padded in `cairo-lang` only to make sure the lowest 4 bits won't get truncated, but here it's
     // never getting truncated anyways.
     let message_hash = U256::from_be_slice(&message_hash.to_repr().0).to_be_byte_array();
-    let private_key = crypto_bigint::U256::from_be_slice(&private_key.to_repr().0);
+    let private_key = U256::from_be_slice(&private_key.to_repr().0);
 
     let seed_bytes = match seed {
         Some(seed) => seed.to_repr().0,
