@@ -30,6 +30,11 @@ impl FieldElement {
             None
         }
     }
+
+    /// Convert the field element into a big-endian byte representation
+    pub fn to_bytes_le(&self) -> [u8; 32] {
+        self.to_repr().0
+    }
 }
 
 impl FieldElement {

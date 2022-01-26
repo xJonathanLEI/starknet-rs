@@ -4,3 +4,5 @@
 pub mod serde;
 
 pub mod types;
+
+pub mod crypto;
