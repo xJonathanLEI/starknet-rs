@@ -4,7 +4,6 @@ use crate::{
     FieldElement, SignError, VerifyError,
 };
 
-const FIELD_ELEMENT_ZERO: FieldElement = FieldElement::new([0, 0, 0, 0]);
 const ELEMENT_UPPER_BOUND: FieldElement = FieldElement::new([
     18446743986131435553,
     160989183,
@@ -44,14 +43,14 @@ pub fn sign(
     if message >= &ELEMENT_UPPER_BOUND {
         return Err(SignError::InvalidMessageHash);
     }
-    if k == &FIELD_ELEMENT_ZERO {
+    if k == &FieldElement::ZERO {
         return Err(SignError::InvalidK);
     }
 
     let generator = &CONSTANT_POINTS[1];
 
     let r = generator.multiply(&k.into_bits()).x;
-    if r == FIELD_ELEMENT_ZERO || r >= ELEMENT_UPPER_BOUND {
+    if r == FieldElement::ZERO || r >= ELEMENT_UPPER_BOUND {
         return Err(SignError::InvalidK);
     }
 
@@ -60,7 +59,7 @@ pub fn sign(
     let s = r.mul_mod_floor(private_key, &EC_ORDER);
     let s = s.add_unbounded(message);
     let s = FieldElement::bigint_mul_mod_floor(s, &k_inv, &EC_ORDER);
-    if s == FIELD_ELEMENT_ZERO || s >= EC_ORDER {
+    if s == FieldElement::ZERO || s >= EC_ORDER {
         return Err(SignError::InvalidK);
     }
 
@@ -84,10 +83,10 @@ pub fn verify(
     if message >= &ELEMENT_UPPER_BOUND {
         return Err(VerifyError::InvalidMessageHash);
     }
-    if r == &FIELD_ELEMENT_ZERO || r >= &ELEMENT_UPPER_BOUND {
+    if r == &FieldElement::ZERO || r >= &ELEMENT_UPPER_BOUND {
         return Err(VerifyError::InvalidR);
     }
-    if s == &FIELD_ELEMENT_ZERO || s >= &EC_ORDER {
+    if s == &FieldElement::ZERO || s >= &EC_ORDER {
         return Err(VerifyError::InvalidS);
     }
 
@@ -96,7 +95,7 @@ pub fn verify(
     let generator = &CONSTANT_POINTS[1];
 
     let w = s.mod_inverse(&EC_ORDER);
-    if w == FIELD_ELEMENT_ZERO || w >= ELEMENT_UPPER_BOUND {
+    if w == FieldElement::ZERO || w >= ELEMENT_UPPER_BOUND {
         return Err(VerifyError::InvalidS);
     }
 

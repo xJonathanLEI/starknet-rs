@@ -1,6 +1,12 @@
 use ethereum_types::{H256, U256};
-use starknet_crypto::{pedersen_hash, FieldElement};
+use starknet_crypto::{pedersen_hash, rfc6979_generate_k, sign, FieldElement};
 use thiserror::Error;
+
+#[derive(Debug)]
+pub struct Signature {
+    pub r: U256,
+    pub s: U256,
+}
 
 #[derive(Debug, Error)]
 pub enum PedersenHashError {
@@ -8,6 +14,14 @@ pub enum PedersenHashError {
     EmptyData,
     #[error("element out of range: {0}")]
     ElementOutOfRange(U256),
+}
+
+#[derive(Debug, Error)]
+pub enum EcdsaSignError {
+    #[error("private key out of range: {0}")]
+    PrivateKeyOutOfRange(U256),
+    #[error("message hash out of range: {0}")]
+    MessageHashOutOfRange(H256),
 }
 
 pub fn compute_hash_on_elements(data: &[U256]) -> Result<H256, PedersenHashError> {
@@ -31,7 +45,33 @@ pub fn compute_hash_on_elements(data: &[U256]) -> Result<H256, PedersenHashError
         &u256_to_field_element(&data_len).ok_or(PedersenHashError::ElementOutOfRange(data_len))?,
     );
 
-    Ok(H256::from_slice(&current_hash.to_bytes_le()[..]))
+    Ok(H256::from_slice(&current_hash.to_bytes_be()))
+}
+
+pub fn ecdsa_sign(private_key: &U256, message_hash: H256) -> Result<Signature, EcdsaSignError> {
+    let private_key = u256_to_field_element(private_key)
+        .ok_or(EcdsaSignError::PrivateKeyOutOfRange(*private_key))?;
+    let message_hash = FieldElement::from_bytes_be(message_hash.0)
+        .ok_or(EcdsaSignError::MessageHashOutOfRange(message_hash))?;
+
+    // Seed-retry logic ported from `cairo-lang`
+    let mut seed = None;
+    loop {
+        let k = rfc6979_generate_k(&message_hash, &private_key, seed.as_ref());
+
+        // The only possible error is invalid K, in which case we simply retry
+        if let Ok(sig) = sign(&private_key, &message_hash, &k) {
+            return Ok(Signature {
+                r: U256::from_big_endian(&sig.r.to_bytes_be()),
+                s: U256::from_big_endian(&sig.s.to_bytes_be()),
+            });
+        }
+
+        seed = match seed {
+            Some(prev_seed) => Some(prev_seed + FieldElement::ONE),
+            None => Some(FieldElement::ONE),
+        };
+    }
 }
 
 fn u256_to_field_element(num: &U256) -> Option<FieldElement> {
@@ -78,6 +118,59 @@ mod tests {
         ]) {
             Err(PedersenHashError::ElementOutOfRange(_)) => {}
             _ => panic!("Should throw error on out of range data"),
+        };
+    }
+
+    #[test]
+    fn test_ecdsa_sign() {
+        // Generated with `cairo-lang`
+        let signature = ecdsa_sign(
+            &"0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79"
+                .parse::<U256>()
+                .unwrap(),
+            "06fea80189363a786037ed3e7ba546dad0ef7de49fccae0e31eb658b7dd4ea76"
+                .parse::<H256>()
+                .unwrap(),
+        )
+        .unwrap();
+        let expected_r = "061ec782f76a66f6984efc3a1b6d152a124c701c00abdd2bf76641b4135c770f"
+            .parse::<U256>()
+            .unwrap();
+        let expected_s = "04e44e759cea02c23568bb4d8a09929bbca8768ab68270d50c18d214166ccd9a"
+            .parse::<U256>()
+            .unwrap();
+
+        assert_eq!(signature.r, expected_r);
+        assert_eq!(signature.s, expected_s);
+    }
+
+    #[test]
+    fn test_ecdsa_sign_private_key_out_of_range() {
+        match ecdsa_sign(
+            &"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+                .parse::<U256>()
+                .unwrap(),
+            "06fea80189363a786037ed3e7ba546dad0ef7de49fccae0e31eb658b7dd4ea76"
+                .parse::<H256>()
+                .unwrap(),
+        ) {
+            Err(EcdsaSignError::PrivateKeyOutOfRange(_)) => {}
+            _ => panic!("Should throw error on out of range private key"),
+        };
+    }
+
+    #[test]
+    fn test_ecdsa_sign_message_hash_out_of_range() {
+        match ecdsa_sign(
+            &"0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79"
+                .parse::<U256>()
+                .unwrap(),
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+                .parse::<H256>()
+                .unwrap(),
+        ) {
+            Err(EcdsaSignError::MessageHashOutOfRange(_)) => {}
+            _ => panic!("Should throw error on out of range message hash"),
         };
     }
 }

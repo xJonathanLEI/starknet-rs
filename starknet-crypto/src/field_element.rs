@@ -15,6 +15,14 @@ use std::ops::{Add, Mul};
 pub struct FieldElement([u64; 4]);
 
 impl FieldElement {
+    pub const ZERO: FieldElement = FieldElement([0, 0, 0, 0]);
+    pub const ONE: FieldElement = FieldElement([
+        18446744073709551585,
+        18446744073709551615,
+        18446744073709551615,
+        576460752303422960,
+    ]);
+
     /// Attempts to convert a big-endian byte representation of a field element into an element of
     /// this prime field. Returns None if the input is not canonical (is not smaller than the
     /// field's modulus).
@@ -32,7 +40,7 @@ impl FieldElement {
     }
 
     /// Convert the field element into a big-endian byte representation
-    pub fn to_bytes_le(&self) -> [u8; 32] {
+    pub fn to_bytes_be(&self) -> [u8; 32] {
         self.to_repr().0
     }
 }
