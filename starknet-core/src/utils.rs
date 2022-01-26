@@ -25,7 +25,7 @@ pub fn starknet_keccak(data: &[u8]) -> H256 {
 
 pub fn get_selector_from_name(func_name: &str) -> Result<H256, NonAsciiNameError> {
     if func_name == DEFAULT_ENTRY_POINT_NAME || func_name == DEFAULT_L1_ENTRY_POINT_NAME {
-        Ok(H256::from_slice(&[0u8; 32]))
+        Ok(H256::zero())
     } else {
         let name_bytes = func_name.as_bytes();
         if name_bytes.is_ascii() {
