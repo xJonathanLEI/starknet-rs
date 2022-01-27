@@ -1,5 +1,5 @@
 use starknet_core::{
-    crypto::{ecdsa_sign, EcdsaSignError, Signature},
+    crypto::{ecdsa_sign, EcdsaError, Signature},
     types::{H256, U256},
 };
 use starknet_crypto::{get_public_key, FieldElement};
@@ -44,7 +44,7 @@ impl KeyPair {
         //   https://github.com/xJonathanLEI/starknet-rs/issues/13
         match ecdsa_sign(&self.private_key_u256, hash) {
             Ok(sig) => Ok(sig),
-            Err(EcdsaSignError::MessageHashOutOfRange(hash)) => Err(Error::HashOutOfRange(hash)),
+            Err(EcdsaError::MessageHashOutOfRange(hash)) => Err(Error::HashOutOfRange(hash)),
             _ => panic!("unexpected error type"), // impossible
         }
     }
