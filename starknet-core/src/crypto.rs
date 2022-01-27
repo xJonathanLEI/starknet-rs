@@ -225,7 +225,7 @@ mod tests {
     }
 
     #[test]
-    fn test_ecdsa_verify_invvalid_signature() {
+    fn test_ecdsa_verify_invalid_signature() {
         // Generated with `cairo-lang`
         let public_key = "02c5dbad71c92a45cc4b40573ae661f8147869a91d57b8d9b8f48c8af7f83159"
             .parse::<U256>()
