@@ -1,4 +1,5 @@
 use ethereum_types::{FromDecStrErr as UintFromDecStrErr, U256};
+use serde::{Deserialize, Serialize};
 use starknet_crypto::FieldElement;
 use std::{
     fmt::{Display, LowerHex, UpperHex},
@@ -154,6 +155,26 @@ impl FromStr for UnsignedFieldElement {
             Err(UintFromDecStrErr::InvalidCharacter) => Err(FromStrError::InvalidCharacter),
             Err(UintFromDecStrErr::InvalidLength) => Err(FromStrError::InvalidLength),
         }
+    }
+}
+
+impl Serialize for UnsignedFieldElement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&format!("{}", self))
+    }
+}
+
+impl<'de> Deserialize<'de> for UnsignedFieldElement {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let value = String::deserialize(deserializer)?;
+        UnsignedFieldElement::from_str(&value)
+            .map_err(|err| serde::de::Error::custom(format!("invalid decimal string: {}", err)))
     }
 }
 
