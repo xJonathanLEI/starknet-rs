@@ -1,6 +1,11 @@
-use ethereum_types::U256;
+use ethereum_types::{FromDecStrErr as UintFromDecStrErr, U256};
 use starknet_crypto::FieldElement;
-use std::fmt::{Display, LowerHex, UpperHex};
+use std::{
+    fmt::{Display, LowerHex, UpperHex},
+    str::FromStr,
+};
+
+const U256_BYTE_COUNT: usize = 32;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct UnsignedFieldElement {
@@ -8,9 +13,19 @@ pub struct UnsignedFieldElement {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum FromUintError<U> {
-    #[error("number out of range: {0}")]
-    OutOfRange(U),
+pub enum FromStrError {
+    #[error("invalid character")]
+    InvalidCharacter,
+    #[error("invalid length")]
+    InvalidLength,
+    #[error("number out of range")]
+    OutOfRange,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum FromUintError {
+    #[error("number out of range")]
+    OutOfRange,
 }
 
 impl UnsignedFieldElement {
@@ -28,6 +43,30 @@ impl UnsignedFieldElement {
     pub const MAX: Self = Self {
         inner: U256([0, 0, 0, 576460752303423505]),
     };
+
+    pub fn from_hex_str(value: &str) -> Result<Self, FromStrError> {
+        let value = value.trim_start_matches("0x");
+
+        let hex_chars_len = value.len();
+        let expected_hex_length = U256_BYTE_COUNT * 2;
+
+        let parsed_bytes: Vec<u8> = if hex_chars_len == expected_hex_length {
+            hex::decode(value).map_err(|_| FromStrError::InvalidCharacter)?
+        } else if hex_chars_len < expected_hex_length {
+            let mut padded_hex = str::repeat("0", expected_hex_length - hex_chars_len);
+            padded_hex.push_str(value);
+            hex::decode(&padded_hex).map_err(|_| FromStrError::InvalidCharacter)?
+        } else {
+            return Err(FromStrError::InvalidLength);
+        };
+
+        let parsed_u256 = U256::from_big_endian(&parsed_bytes);
+
+        match Self::try_from(parsed_u256) {
+            Ok(value) => Ok(value),
+            Err(FromUintError::OutOfRange) => Err(FromStrError::OutOfRange),
+        }
+    }
 }
 
 impl Display for UnsignedFieldElement {
@@ -100,12 +139,30 @@ impl UpperHex for UnsignedFieldElement {
     }
 }
 
+impl FromStr for UnsignedFieldElement {
+    type Err = FromStrError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // Unlike the underlying `U256` type, we're treating the decimal representation as the
+        // canonical form.
+
+        match U256::from_dec_str(s) {
+            Ok(value) => match Self::try_from(value) {
+                Ok(value) => Ok(value),
+                Err(FromUintError::OutOfRange) => Err(FromStrError::OutOfRange),
+            },
+            Err(UintFromDecStrErr::InvalidCharacter) => Err(FromStrError::InvalidCharacter),
+            Err(UintFromDecStrErr::InvalidLength) => Err(FromStrError::InvalidLength),
+        }
+    }
+}
+
 impl TryFrom<U256> for UnsignedFieldElement {
-    type Error = FromUintError<U256>;
+    type Error = FromUintError;
 
     fn try_from(value: U256) -> Result<Self, Self::Error> {
         if value > Self::MAX.inner {
-            Err(FromUintError::OutOfRange(value))
+            Err(FromUintError::OutOfRange)
         } else {
             Ok(Self { inner: value })
         }

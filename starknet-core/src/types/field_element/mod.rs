@@ -1,2 +1,2 @@
 mod unsigned;
-pub use unsigned::{FromUintError, UnsignedFieldElement};
+pub use unsigned::{FromStrError, FromUintError, UnsignedFieldElement};
