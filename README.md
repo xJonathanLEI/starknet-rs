@@ -44,6 +44,7 @@ This workspace contains the following crates:
 - `starknet-providers`: Abstraction and implementation of clients for interacting with StarkNet nodes and sequencers
 - `starknet-contract`: Types for deploying and interacting with StarkNet smart contracts
 - `starknet-crypto`: **Low-level** cryptography utilities for StarkNet
+- `starknet-signers`: StarkNet signer implementations
 
 ## Example
 

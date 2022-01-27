@@ -1510,6 +1510,7 @@ dependencies = [
  "starknet-contract",
  "starknet-core",
  "starknet-providers",
+ "starknet-signers",
 ]
 
 [[package]]
@@ -1573,6 +1574,13 @@ dependencies = [
  "starknet-core",
  "thiserror",
  "url",
+]
+
+[[package]]
+name = "starknet-signers"
+version = "0.1.0"
+dependencies = [
+ "starknet-core",
 ]
 
 [[package]]

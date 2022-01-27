@@ -29,6 +29,10 @@
 //! ## `contract`
 //!
 //! Contains all the types for deploying and interacting with StarkNet smart contracts.
+//!
+//! ## `signers`
+//!
+//! Contains signer implementations.
 
 #[doc = include_str!("../assets/CORE_README.md")]
 pub mod core {
@@ -43,4 +47,9 @@ pub mod providers {
 #[doc = include_str!("../assets/CONTRACT_README.md")]
 pub mod contract {
     pub use starknet_contract::*;
+}
+
+#[doc = include_str!("../assets/SIGNERS_README.md")]
+pub mod signers {
+    pub use starknet_signers::*;
 }
