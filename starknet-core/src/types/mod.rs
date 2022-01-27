@@ -40,4 +40,4 @@ pub use transaction_request::{
 };
 
 mod field_element;
-pub use field_element::UnsignedFieldElement;
+pub use field_element::{FromStrError, FromUintError, UnsignedFieldElement};
