@@ -20,9 +20,11 @@ members = [
     "starknet-providers",
     "starknet-contract",
     "starknet-crypto",
+    "starknet-signers",
 ]
 
 [dependencies]
 starknet-core = { version = "0.1.0", path = "./starknet-core" }
 starknet-providers = { version = "0.1.0", path = "./starknet-providers" }
 starknet-contract = { version = "0.1.0", path = "./starknet-contract" }
+starknet-signers = { version = "0.1.0", path = "./starknet-signers" }

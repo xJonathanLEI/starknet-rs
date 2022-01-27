@@ -1,5 +1,5 @@
 use ethereum_types::{H256, U256};
-use starknet_crypto::{pedersen_hash, rfc6979_generate_k, sign, FieldElement};
+use starknet_crypto::{pedersen_hash, rfc6979_generate_k, sign, verify, FieldElement, VerifyError};
 use thiserror::Error;
 
 #[derive(Debug)]
@@ -17,11 +17,15 @@ pub enum PedersenHashError {
 }
 
 #[derive(Debug, Error)]
-pub enum EcdsaSignError {
+pub enum EcdsaError {
     #[error("private key out of range: {0}")]
     PrivateKeyOutOfRange(U256),
+    #[error("public key out of range: {0}")]
+    PublicKeyOutOfRange(U256),
     #[error("message hash out of range: {0}")]
     MessageHashOutOfRange(H256),
+    #[error("signature out of range: {0}")]
+    SignatureOutOfRange(U256),
 }
 
 pub fn compute_hash_on_elements(data: &[U256]) -> Result<H256, PedersenHashError> {
@@ -48,11 +52,11 @@ pub fn compute_hash_on_elements(data: &[U256]) -> Result<H256, PedersenHashError
     Ok(H256::from_slice(&current_hash.to_bytes_be()))
 }
 
-pub fn ecdsa_sign(private_key: &U256, message_hash: H256) -> Result<Signature, EcdsaSignError> {
-    let private_key = u256_to_field_element(private_key)
-        .ok_or(EcdsaSignError::PrivateKeyOutOfRange(*private_key))?;
+pub fn ecdsa_sign(private_key: &U256, message_hash: H256) -> Result<Signature, EcdsaError> {
+    let private_key =
+        u256_to_field_element(private_key).ok_or(EcdsaError::PrivateKeyOutOfRange(*private_key))?;
     let message_hash = FieldElement::from_bytes_be(message_hash.0)
-        .ok_or(EcdsaSignError::MessageHashOutOfRange(message_hash))?;
+        .ok_or(EcdsaError::MessageHashOutOfRange(message_hash))?;
 
     // Seed-retry logic ported from `cairo-lang`
     let mut seed = None;
@@ -71,6 +75,30 @@ pub fn ecdsa_sign(private_key: &U256, message_hash: H256) -> Result<Signature, E
             Some(prev_seed) => Some(prev_seed + FieldElement::ONE),
             None => Some(FieldElement::ONE),
         };
+    }
+}
+
+pub fn ecdsa_verify(
+    public_key: &U256,
+    message_hash: H256,
+    signature: &Signature,
+) -> Result<bool, EcdsaError> {
+    let public_key =
+        u256_to_field_element(public_key).ok_or(EcdsaError::PublicKeyOutOfRange(*public_key))?;
+    let hash = FieldElement::from_bytes_be(message_hash.0)
+        .ok_or(EcdsaError::MessageHashOutOfRange(message_hash))?;
+    let signature_r =
+        u256_to_field_element(&signature.r).ok_or(EcdsaError::SignatureOutOfRange(signature.r))?;
+    let signature_s =
+        u256_to_field_element(&signature.s).ok_or(EcdsaError::SignatureOutOfRange(signature.s))?;
+
+    match verify(&public_key, &hash, &signature_r, &signature_s) {
+        Ok(result) => Ok(result),
+        Err(VerifyError::InvalidMessageHash) => {
+            Err(EcdsaError::MessageHashOutOfRange(message_hash))
+        }
+        Err(VerifyError::InvalidR) => Err(EcdsaError::SignatureOutOfRange(signature.r)),
+        Err(VerifyError::InvalidS) => Err(EcdsaError::SignatureOutOfRange(signature.s)),
     }
 }
 
@@ -154,7 +182,7 @@ mod tests {
                 .parse::<H256>()
                 .unwrap(),
         ) {
-            Err(EcdsaSignError::PrivateKeyOutOfRange(_)) => {}
+            Err(EcdsaError::PrivateKeyOutOfRange(_)) => {}
             _ => panic!("Should throw error on out of range private key"),
         };
     }
@@ -169,8 +197,52 @@ mod tests {
                 .parse::<H256>()
                 .unwrap(),
         ) {
-            Err(EcdsaSignError::MessageHashOutOfRange(_)) => {}
+            Err(EcdsaError::MessageHashOutOfRange(_)) => {}
             _ => panic!("Should throw error on out of range message hash"),
         };
+    }
+
+    #[test]
+    fn test_ecdsa_verify_valid_signature() {
+        // Generated with `cairo-lang`
+        let public_key = "02c5dbad71c92a45cc4b40573ae661f8147869a91d57b8d9b8f48c8af7f83159"
+            .parse::<U256>()
+            .unwrap();
+        let message_hash = "06fea80189363a786037ed3e7ba546dad0ef7de49fccae0e31eb658b7dd4ea76"
+            .parse::<H256>()
+            .unwrap();
+        let r = "061ec782f76a66f6984efc3a1b6d152a124c701c00abdd2bf76641b4135c770f"
+            .parse::<U256>()
+            .unwrap();
+        let s = "04e44e759cea02c23568bb4d8a09929bbca8768ab68270d50c18d214166ccd9a"
+            .parse::<U256>()
+            .unwrap();
+
+        assert_eq!(
+            ecdsa_verify(&public_key, message_hash, &Signature { r, s }).unwrap(),
+            true
+        );
+    }
+
+    #[test]
+    fn test_ecdsa_verify_invalid_signature() {
+        // Generated with `cairo-lang`
+        let public_key = "02c5dbad71c92a45cc4b40573ae661f8147869a91d57b8d9b8f48c8af7f83159"
+            .parse::<U256>()
+            .unwrap();
+        let message_hash = "06fea80189363a786037ed3e7ba546dad0ef7de49fccae0e31eb658b7dd4ea76"
+            .parse::<H256>()
+            .unwrap();
+        let r = "061ec782f76a66f6984efc3a1b6d152a124c701c00abdd2bf76641b4135c770f"
+            .parse::<U256>()
+            .unwrap();
+        let s = "04e44e759cea02c23568bb4d8a09929bbca8768ab68270d50c18d214166ccd9b"
+            .parse::<U256>()
+            .unwrap();
+
+        assert_eq!(
+            ecdsa_verify(&public_key, message_hash, &Signature { r, s }).unwrap(),
+            false
+        );
     }
 }
