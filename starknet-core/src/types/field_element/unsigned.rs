@@ -31,6 +31,8 @@ pub enum FromUintError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum FromByteArrayError {
+    #[error("invalid length")]
+    InvalidLength,
     #[error("number out of range")]
     OutOfRange,
 }
@@ -72,6 +74,19 @@ impl UnsignedFieldElement {
         match Self::try_from(parsed_u256) {
             Ok(value) => Ok(value),
             Err(FromUintError::OutOfRange) => Err(FromStrError::OutOfRange),
+        }
+    }
+
+    pub fn try_from_bytes_be(value: &[u8]) -> Result<Self, FromByteArrayError> {
+        if value.len() != 32 {
+            Err(FromByteArrayError::InvalidLength)
+        } else {
+            let value = U256::from_big_endian(value);
+            if value > Self::MAX.inner {
+                Err(FromByteArrayError::OutOfRange)
+            } else {
+                Ok(Self { inner: value })
+            }
         }
     }
 }
