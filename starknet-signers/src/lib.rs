@@ -1,2 +1,2 @@
 mod key_pair;
-pub use key_pair::{KeyError, SigningKey, VerifyingKey};
+pub use key_pair::{SigningKey, VerifyingKey};

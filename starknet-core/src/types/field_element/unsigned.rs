@@ -248,6 +248,14 @@ impl TryFrom<&[u8; 32]> for UnsignedFieldElement {
     }
 }
 
+impl From<usize> for UnsignedFieldElement {
+    fn from(value: usize) -> Self {
+        Self {
+            inner: U256::from(value),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
