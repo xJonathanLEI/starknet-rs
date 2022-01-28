@@ -64,9 +64,11 @@ async fn main() {
 ### Deploy contract to `alpha-goerli` testnet
 
 ```rust
+use std::str::FromStr;
+
 use starknet::{
     contract::{ContractArtifact, ContractFactory},
-    core::types::U256,
+    core::types::UnsignedFieldElement,
     providers::SequencerGatewayProvider,
 };
 
@@ -79,7 +81,10 @@ async fn main() {
 
     let contract_factory = ContractFactory::new(contract_artifact, provider).unwrap();
     contract_factory
-        .deploy(vec![U256::from_dec_str("123456").unwrap()], None)
+        .deploy(
+            vec![UnsignedFieldElement::from_str("123456").unwrap()],
+            None,
+        )
         .await
         .expect("Unable to deploy contract");
 }
