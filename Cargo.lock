@@ -1580,6 +1580,7 @@ dependencies = [
 name = "starknet-signers"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "starknet-core",
  "starknet-crypto",
  "thiserror",
