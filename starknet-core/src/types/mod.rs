@@ -38,3 +38,6 @@ pub use transaction_request::{
     DeployTransaction as DeployTransactionRequest, EntryPoint, EntryPointsByType,
     InvokeFunctionTransaction as InvokeFunctionTransactionRequest, TransactionRequest,
 };
+
+mod field_element;
+pub use field_element::{FromStrError, FromUintError, UnsignedFieldElement};
