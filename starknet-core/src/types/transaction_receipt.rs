@@ -1,18 +1,20 @@
-use super::super::serde::{
-    deserialize_h256_from_hex, deserialize_pending_block_hash, deserialize_vec_u256_from_dec,
+use super::{
+    super::serde::unsigned_field_element::{
+        hex, pending_block_hash::deserialize as pending_block_hash_de,
+    },
+    UnsignedFieldElement,
 };
 
-use ethereum_types::{Address as L1Address, H256, U256};
+use ethereum_types::Address as L1Address;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct Receipt {
-    #[serde(deserialize_with = "deserialize_h256_from_hex")]
-    pub transaction_hash: H256,
+    #[serde(with = "hex")]
+    pub transaction_hash: UnsignedFieldElement,
     pub status: TransactionStatusType,
-    #[serde(default)]
-    #[serde(deserialize_with = "deserialize_pending_block_hash")]
-    pub block_hash: Option<H256>,
+    #[serde(default, deserialize_with = "pending_block_hash_de")]
+    pub block_hash: Option<UnsignedFieldElement>,
     pub block_number: Option<u64>,
     pub transaction_index: Option<u64>,
     pub execution_resources: Option<ExecutionResources>,
@@ -22,8 +24,8 @@ pub struct Receipt {
 
 #[derive(Debug, Deserialize)]
 pub struct ConfirmedReceipt {
-    #[serde(deserialize_with = "deserialize_h256_from_hex")]
-    pub transaction_hash: H256,
+    #[serde(with = "hex")]
+    pub transaction_hash: UnsignedFieldElement,
     pub transaction_index: u64,
     pub execution_resources: ExecutionResources,
     pub l2_to_l1_messages: Vec<L2ToL1Message>,
@@ -54,8 +56,8 @@ pub enum TransactionStatusType {
 
 #[derive(Debug, Deserialize)]
 pub struct TransactionBlockHash {
-    #[serde(deserialize_with = "deserialize_h256_from_hex")]
-    pub block_hash: H256,
+    #[serde(with = "hex")]
+    pub block_hash: UnsignedFieldElement,
 }
 
 #[derive(Debug, Deserialize)]
@@ -77,27 +79,23 @@ pub struct BuiltinInstanceCounter {
 
 #[derive(Debug, Deserialize)]
 pub struct L2ToL1Message {
-    #[serde(deserialize_with = "deserialize_h256_from_hex")]
-    pub from_address: H256,
+    #[serde(with = "hex")]
+    pub from_address: UnsignedFieldElement,
     pub to_address: L1Address,
-    #[serde(deserialize_with = "deserialize_vec_u256_from_dec")]
-    pub payload: Vec<U256>,
+    pub payload: Vec<UnsignedFieldElement>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Event {
-    #[serde(deserialize_with = "deserialize_h256_from_hex")]
-    pub from_address: H256,
-    #[serde(deserialize_with = "deserialize_vec_u256_from_dec")]
-    pub keys: Vec<U256>,
-    #[serde(deserialize_with = "deserialize_vec_u256_from_dec")]
-    pub data: Vec<U256>,
+    #[serde(with = "hex")]
+    pub from_address: UnsignedFieldElement,
+    pub keys: Vec<UnsignedFieldElement>,
+    pub data: Vec<UnsignedFieldElement>,
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use core::str::FromStr;
 
     #[test]
     fn test_receipt_deser_accepted() {
@@ -122,8 +120,10 @@ mod tests {
         assert_eq!(receipt.status, TransactionStatusType::NotReceived);
         assert_eq!(
             receipt.transaction_hash,
-            H256::from_str("0x0000000000000000000000000000000000000000000000000000000000000000")
-                .unwrap()
+            UnsignedFieldElement::from_hex_str(
+                "0x0000000000000000000000000000000000000000000000000000000000000000"
+            )
+            .unwrap()
         );
         assert_eq!(receipt.block_hash, None);
     }
@@ -141,8 +141,8 @@ mod tests {
     #[test]
     fn test_transaction_status_deser_accepted_on_l2() {
         // note that the hashes coming from the API can be shorter
-        // by a byte or two than the H256 into which we serialize into,
-        // that's why there's extra 0 in the H256::from_str values
+        // by a byte or two than the UnsignedFieldElement into which we serialize into,
+        // that's why there's extra 0 in the UnsignedFieldElement::from_str values
 
         // curl -X GET https://alpha4.starknet.io/feeder_gateway/get_transaction_status\?transactionHash\=0x5d76420c7e7002c20d54c93fc8dbd056638f1a35a654748fc0647fda1a3f088
         let raw = r#"{
@@ -154,7 +154,7 @@ mod tests {
         if let TransactionStatus::AcceptedOnL2(b) = tx {
             assert_eq!(
                 b.block_hash,
-                H256::from_str(
+                UnsignedFieldElement::from_hex_str(
                     "0x07b44bda3371fa91541e719493b1638b71c7ccf2304dc67bbadb028dbfa16dec",
                 )
                 .unwrap()
@@ -176,7 +176,7 @@ mod tests {
         if let TransactionStatus::AcceptedOnL1(b) = tx {
             assert_eq!(
                 b.block_hash,
-                H256::from_str(
+                UnsignedFieldElement::from_hex_str(
                     "0x005da543f8121c912cd2a80ae386f1aa6d4df626695742cf870c85690bb1ab60"
                 )
                 .unwrap()

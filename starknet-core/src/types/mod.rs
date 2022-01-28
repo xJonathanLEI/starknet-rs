@@ -39,5 +39,5 @@ pub use transaction_request::{
     InvokeFunctionTransaction as InvokeFunctionTransactionRequest, TransactionRequest,
 };
 
-mod field_element;
-pub use field_element::{FromStrError, FromUintError, UnsignedFieldElement};
+pub mod field_element;
+pub use field_element::UnsignedFieldElement;

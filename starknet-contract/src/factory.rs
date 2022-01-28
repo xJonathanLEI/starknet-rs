@@ -4,7 +4,7 @@ use flate2::{write::GzEncoder, Compression};
 use rand::{thread_rng, RngCore};
 use starknet_core::types::{
     AbiEntry, AddTransactionResult, ContractDefinition, DeployTransactionRequest,
-    EntryPointsByType, TransactionRequest, H256, U256,
+    EntryPointsByType, TransactionRequest, UnsignedFieldElement,
 };
 use starknet_providers::Provider;
 use std::io::Write;
@@ -52,7 +52,7 @@ impl<P: Provider> Factory<P> {
 
     pub async fn deploy(
         &self,
-        constructor_calldata: Vec<U256>,
+        constructor_calldata: Vec<UnsignedFieldElement>,
         token: Option<String>,
     ) -> Result<AddTransactionResult, P::Error> {
         let mut salt_buffer = [0u8; 32];
@@ -65,7 +65,7 @@ impl<P: Provider> Factory<P> {
         self.provider
             .add_transaction(
                 TransactionRequest::Deploy(DeployTransactionRequest {
-                    contract_address_salt: H256::from(salt_buffer),
+                    contract_address_salt: UnsignedFieldElement::try_from(&salt_buffer).unwrap(),
                     contract_definition: ContractDefinition {
                         program: self.compressed_program.clone(),
                         entry_points_by_type: self.entry_points_by_type.clone(),

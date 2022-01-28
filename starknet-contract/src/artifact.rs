@@ -2,8 +2,8 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 use starknet_core::{
-    serde::{deserialize_h256_from_hex, serialize_u8_slice_into_hex_without_leading_zeros},
-    types::{AbiEntry, EntryPointsByType, H256, U256},
+    serde::unsigned_field_element::hex_slice,
+    types::{AbiEntry, EntryPointsByType, UnsignedFieldElement},
 };
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -20,17 +20,16 @@ pub struct Program {
     #[serde(skip_serializing)]
     pub attributes: serde::de::IgnoredAny, // Skipped since it's not used in deployment
     pub builtins: Vec<String>,
-    pub data: Vec<U256>,
+    #[serde(with = "hex_slice")]
+    pub data: Vec<UnsignedFieldElement>,
     #[serde(skip_serializing)]
     pub debug_info: serde::de::IgnoredAny, // Skipped since it's not used in deployment
     pub hints: BTreeMap<u64, Vec<Hint>>,
     pub identifiers: BTreeMap<String, Identifier>,
     pub main_scope: String,
-    #[serde(
-        serialize_with = "serialize_u8_slice_into_hex_without_leading_zeros",
-        deserialize_with = "deserialize_h256_from_hex"
-    )]
-    pub prime: H256,
+    // Impossible to use [UnsignedFieldElement] here as by definition field elements are smaller
+    // than prime
+    pub prime: String,
     pub reference_manager: ReferenceManager,
 }
 

@@ -1,5 +1,6 @@
 use starknet_contract::{ContractArtifact, ContractFactory};
-use starknet_core::types::U256;
+use starknet_core::types::UnsignedFieldElement;
+use std::str::FromStr;
 
 #[tokio::test]
 async fn can_deploy_contract_to_alpha_goerli() {
@@ -12,7 +13,7 @@ async fn can_deploy_contract_to_alpha_goerli() {
     let factory = ContractFactory::new(artifact, provider).unwrap();
 
     let result = factory
-        .deploy(vec![U256::from_dec_str("1").unwrap()], None)
+        .deploy(vec![UnsignedFieldElement::from_str("1").unwrap()], None)
         .await;
 
     match result {

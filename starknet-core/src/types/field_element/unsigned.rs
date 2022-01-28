@@ -29,6 +29,12 @@ pub enum FromUintError {
     OutOfRange,
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum FromByteArrayError {
+    #[error("number out of range")]
+    OutOfRange,
+}
+
 impl UnsignedFieldElement {
     /// [UnsignedFieldElement] constant that's equal to 0
     pub const ZERO: Self = Self {
@@ -211,6 +217,19 @@ impl From<UnsignedFieldElement> for FieldElement {
 
         // This can never fail as `inner` is always smaller than field modulus
         Self::from_bytes_be(buffer).unwrap()
+    }
+}
+
+impl TryFrom<&[u8; 32]> for UnsignedFieldElement {
+    type Error = FromByteArrayError;
+
+    fn try_from(value: &[u8; 32]) -> Result<Self, Self::Error> {
+        let value = U256::from_big_endian(value);
+        if value > Self::MAX.inner {
+            Err(FromByteArrayError::OutOfRange)
+        } else {
+            Ok(Self { inner: value })
+        }
     }
 }
 
