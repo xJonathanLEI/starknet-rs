@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use starknet_core::types::{
     AddTransactionResult, Block, BlockId, CallContractResult, ContractAddresses, ContractCode,
     InvokeFunction, TransactionId, TransactionReceipt, TransactionRequest, TransactionStatus,
-    TransactionWithStatus, H256, U256,
+    TransactionWithStatus, UnsignedFieldElement,
 };
 use std::error::Error;
 
@@ -28,16 +28,16 @@ pub trait Provider {
 
     async fn get_code(
         &self,
-        contract_address: H256,
+        contract_address: UnsignedFieldElement,
         block_identifier: Option<BlockId>,
     ) -> Result<ContractCode, Self::Error>;
 
     async fn get_storage_at(
         &self,
-        contract_address: H256,
-        key: U256,
+        contract_address: UnsignedFieldElement,
+        key: UnsignedFieldElement,
         block_identifier: Option<BlockId>,
-    ) -> Result<U256, Self::Error>;
+    ) -> Result<UnsignedFieldElement, Self::Error>;
 
     async fn get_transaction_status(
         &self,
@@ -54,16 +54,25 @@ pub trait Provider {
         transaction_hash_or_number: TransactionId,
     ) -> Result<TransactionReceipt, Self::Error>;
 
-    async fn get_block_hash_by_id(&self, block_number: u64) -> Result<H256, Self::Error>;
+    async fn get_block_hash_by_id(
+        &self,
+        block_number: u64,
+    ) -> Result<UnsignedFieldElement, Self::Error>;
 
-    async fn get_block_id_by_hash(&self, block_hash: H256) -> Result<u64, Self::Error>;
+    async fn get_block_id_by_hash(
+        &self,
+        block_hash: UnsignedFieldElement,
+    ) -> Result<u64, Self::Error>;
 
     async fn get_transaction_hash_by_id(
         &self,
         transaction_number: u64,
-    ) -> Result<H256, Self::Error>;
+    ) -> Result<UnsignedFieldElement, Self::Error>;
 
-    async fn get_transaction_id_by_hash(&self, transaction_hash: H256) -> Result<u64, Self::Error>;
+    async fn get_transaction_id_by_hash(
+        &self,
+        transaction_hash: UnsignedFieldElement,
+    ) -> Result<u64, Self::Error>;
 
     async fn get_last_batch_id(&self) -> Result<u64, Self::Error>;
 }

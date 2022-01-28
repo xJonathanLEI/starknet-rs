@@ -1,12 +1,11 @@
 use super::{
     super::serde::{
-        deserialize_h256_from_hex, deserialize_option_h256_from_hex, serialize_vec_u256_into_dec,
-        serialize_vec_u8_into_base64,
+        byte_array::base64::serialize as base64_ser,
+        unsigned_field_element::{hex, hex_option},
     },
-    AbiEntry,
+    AbiEntry, UnsignedFieldElement,
 };
 
-use ethereum_types::{H256, U256};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize)]
@@ -19,10 +18,10 @@ pub enum TransactionRequest {
 #[derive(Debug, Deserialize)]
 pub struct AddTransactionResult {
     pub code: AddTransactionResultCode,
-    #[serde(deserialize_with = "deserialize_h256_from_hex")]
-    pub transaction_hash: H256,
-    #[serde(default, deserialize_with = "deserialize_option_h256_from_hex")]
-    pub address: Option<H256>,
+    #[serde(with = "hex")]
+    pub transaction_hash: UnsignedFieldElement,
+    #[serde(default, with = "hex_option")]
+    pub address: Option<UnsignedFieldElement>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -33,25 +32,25 @@ pub enum AddTransactionResultCode {
 
 #[derive(Debug, Serialize)]
 pub struct DeployTransaction {
-    pub contract_address_salt: H256,
+    #[serde(with = "hex")]
+    pub contract_address_salt: UnsignedFieldElement,
     pub contract_definition: ContractDefinition,
-    #[serde(serialize_with = "serialize_vec_u256_into_dec")]
-    pub constructor_calldata: Vec<U256>,
+    pub constructor_calldata: Vec<UnsignedFieldElement>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct InvokeFunctionTransaction {
-    pub contract_address: H256,
-    pub entry_point_selector: H256,
-    #[serde(serialize_with = "serialize_vec_u256_into_dec")]
-    pub calldata: Vec<U256>,
-    #[serde(serialize_with = "serialize_vec_u256_into_dec")]
-    pub signature: Vec<U256>,
+    #[serde(with = "hex")]
+    pub contract_address: UnsignedFieldElement,
+    #[serde(with = "hex")]
+    pub entry_point_selector: UnsignedFieldElement,
+    pub calldata: Vec<UnsignedFieldElement>,
+    pub signature: Vec<UnsignedFieldElement>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct ContractDefinition {
-    #[serde(serialize_with = "serialize_vec_u8_into_base64")]
+    #[serde(serialize_with = "base64_ser")]
     pub program: Vec<u8>,
     pub entry_points_by_type: EntryPointsByType,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -68,7 +67,8 @@ pub struct EntryPointsByType {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EntryPoint {
-    #[serde(deserialize_with = "deserialize_h256_from_hex")]
-    pub selector: H256,
-    pub offset: U256,
+    #[serde(with = "hex")]
+    pub selector: UnsignedFieldElement,
+    #[serde(with = "hex")]
+    pub offset: UnsignedFieldElement,
 }

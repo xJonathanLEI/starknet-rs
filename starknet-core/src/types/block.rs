@@ -1,27 +1,26 @@
 use super::{
-    super::serde::{deserialize_h256_from_hex, deserialize_option_h256_from_hex},
-    ConfirmedTransactionReceipt, Transaction,
+    super::serde::unsigned_field_element::{hex, hex_option},
+    ConfirmedTransactionReceipt, Transaction, UnsignedFieldElement,
 };
 
-use ethereum_types::H256;
 use serde::Deserialize;
 
 pub enum BlockId {
-    Hash(H256),
+    Hash(UnsignedFieldElement),
     Number(u64),
     Pending,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Block {
-    #[serde(default, deserialize_with = "deserialize_option_h256_from_hex")]
-    pub block_hash: Option<H256>,
+    #[serde(default, with = "hex_option")]
+    pub block_hash: Option<UnsignedFieldElement>,
     pub block_number: Option<u64>,
-    #[serde(deserialize_with = "deserialize_h256_from_hex")]
-    pub parent_block_hash: H256,
+    #[serde(with = "hex")]
+    pub parent_block_hash: UnsignedFieldElement,
     pub timestamp: u64,
-    #[serde(default, deserialize_with = "deserialize_option_h256_from_hex")]
-    pub state_root: Option<H256>,
+    #[serde(default, with = "hex_option")]
+    pub state_root: Option<UnsignedFieldElement>,
     pub transactions: Vec<Transaction>,
     pub transaction_receipts: Vec<ConfirmedTransactionReceipt>,
 }
@@ -30,7 +29,6 @@ pub struct Block {
 mod tests {
     use super::super::transaction::EntryPointType;
     use super::*;
-    use core::str::FromStr;
 
     #[test]
     fn test_block_deser_with_deploy_tx() {
@@ -42,8 +40,10 @@ mod tests {
         assert_eq!(block.block_number.unwrap(), 39232);
         assert_eq!(
             block.state_root.unwrap(),
-            H256::from_str("06cb132715b8687f1c1d79a7282975986fb0a9c166d64b384cfad965a602fe02")
-                .unwrap()
+            UnsignedFieldElement::from_hex_str(
+                "06cb132715b8687f1c1d79a7282975986fb0a9c166d64b384cfad965a602fe02"
+            )
+            .unwrap()
         );
         assert_eq!(block.transactions.len(), 3);
         assert_eq!(block.transaction_receipts.len(), 3);

@@ -1,9 +1,11 @@
-use ethereum_types::U256;
+use super::{super::serde::unsigned_field_element::hex_slice, UnsignedFieldElement};
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 pub struct ContractCode {
-    pub bytecode: Vec<U256>,
+    #[serde(with = "hex_slice")]
+    pub bytecode: Vec<UnsignedFieldElement>,
     pub abi: Option<Vec<AbiEntry>>,
 }
 
