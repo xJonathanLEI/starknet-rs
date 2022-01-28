@@ -27,8 +27,7 @@ pub struct TransactionWithStatus {
     pub block_number: Option<u64>,
     pub transaction: Option<Transaction>,
     pub status: TransactionStatusType,
-    #[serde(default)]
-    #[serde(deserialize_with = "pending_block_hash_de")]
+    #[serde(default, deserialize_with = "pending_block_hash_de")]
     pub block_hash: Option<UnsignedFieldElement>,
     pub transaction_index: Option<u64>,
 }

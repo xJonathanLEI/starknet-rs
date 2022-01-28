@@ -13,8 +13,7 @@ pub struct Receipt {
     #[serde(with = "hex")]
     pub transaction_hash: UnsignedFieldElement,
     pub status: TransactionStatusType,
-    #[serde(default)]
-    #[serde(deserialize_with = "pending_block_hash_de")]
+    #[serde(default, deserialize_with = "pending_block_hash_de")]
     pub block_hash: Option<UnsignedFieldElement>,
     pub block_number: Option<u64>,
     pub transaction_index: Option<u64>,
