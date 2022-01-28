@@ -1,5 +1,5 @@
 // Re-export commonly used upstream types
-pub use ethereum_types::{Address, H256, U256};
+pub use ethereum_types::Address as L1Address;
 
 mod block;
 pub use block::{Block, BlockId};
