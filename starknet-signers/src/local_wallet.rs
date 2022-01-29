@@ -1,4 +1,4 @@
-use crate::{Infallible, Signer, SigningKey};
+use crate::{Infallible, Signer, SigningKey, VerifyingKey};
 
 use async_trait::async_trait;
 use starknet_core::{
@@ -24,11 +24,11 @@ impl LocalWallet {
 
 #[async_trait]
 impl Signer for LocalWallet {
-    type GetAddressError = Infallible;
+    type GetPublicKeyError = Infallible;
     type SignError = SignError;
 
-    async fn get_address(&self) -> Result<UnsignedFieldElement, Self::GetAddressError> {
-        Ok(self.private_key.verifying_key().scalar())
+    async fn get_public_key(&self) -> Result<VerifyingKey, Self::GetPublicKeyError> {
+        Ok(self.private_key.verifying_key())
     }
 
     async fn sign_hash(&self, hash: &UnsignedFieldElement) -> Result<Signature, Self::SignError> {
