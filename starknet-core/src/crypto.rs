@@ -12,12 +12,6 @@ pub struct Signature {
 }
 
 #[derive(Debug, Error)]
-pub enum PedersenHashError {
-    #[error("data must not be empty")]
-    EmptyData,
-}
-
-#[derive(Debug, Error)]
 pub enum EcdsaSignError {
     #[error("message hash out of range")]
     MessageHashOutOfRange,
@@ -33,13 +27,7 @@ pub enum EcdsaVerifyError {
     SignatureSOutOfRange,
 }
 
-pub fn compute_hash_on_elements(
-    data: &[UnsignedFieldElement],
-) -> Result<UnsignedFieldElement, PedersenHashError> {
-    if data.is_empty() {
-        return Err(PedersenHashError::EmptyData);
-    }
-
+pub fn compute_hash_on_elements(data: &[UnsignedFieldElement]) -> UnsignedFieldElement {
     let mut current_hash = FieldElement::ZERO;
 
     for item in data.iter() {
@@ -49,7 +37,7 @@ pub fn compute_hash_on_elements(
     let data_len = UnsignedFieldElement::from(data.len());
     current_hash = pedersen_hash(&current_hash, &data_len.into());
 
-    Ok(current_hash.into())
+    current_hash.into()
 }
 
 pub fn ecdsa_sign(
@@ -115,8 +103,7 @@ mod tests {
             UnsignedFieldElement::from_hex_str("0xbb").unwrap(),
             UnsignedFieldElement::from_hex_str("0xcc").unwrap(),
             UnsignedFieldElement::from_hex_str("0xdd").unwrap(),
-        ])
-        .unwrap();
+        ]);
         let expected_hash = UnsignedFieldElement::from_hex_str(
             "025cde77210b1c223b2c6e69db6e9021aa1599177ab177474d5326cd2a62cb69",
         )
@@ -127,10 +114,14 @@ mod tests {
 
     #[test]
     fn test_compute_hash_on_elements_empty_data() {
-        match compute_hash_on_elements(&[]) {
-            Err(PedersenHashError::EmptyData) => {}
-            _ => panic!("Should throw error on empty data"),
-        };
+        // Generated with `cairo-lang`
+        let hash = compute_hash_on_elements(&[]);
+        let expected_hash = UnsignedFieldElement::from_hex_str(
+            "049ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804",
+        )
+        .unwrap();
+
+        assert_eq!(expected_hash, hash);
     }
 
     #[test]
