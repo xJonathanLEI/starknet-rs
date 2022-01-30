@@ -33,6 +33,10 @@
 //! ## `signers`
 //!
 //! Contains signer implementations.
+//!
+//! ## `accounts`
+//!
+//! Contains types for using account abstraction on StarkNet.
 
 #[doc = include_str!("../assets/CORE_README.md")]
 pub mod core {
@@ -52,4 +56,9 @@ pub mod contract {
 #[doc = include_str!("../assets/SIGNERS_README.md")]
 pub mod signers {
     pub use starknet_signers::*;
+}
+
+#[doc = include_str!("../assets/ACCOUNTS_README.md")]
+pub mod accounts {
+    pub use starknet_accounts::*;
 }

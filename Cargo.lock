@@ -1507,11 +1507,16 @@ dependencies = [
 name = "starknet"
 version = "0.1.0"
 dependencies = [
+ "starknet-accounts",
  "starknet-contract",
  "starknet-core",
  "starknet-providers",
  "starknet-signers",
 ]
+
+[[package]]
+name = "starknet-accounts"
+version = "0.1.0"
 
 [[package]]
 name = "starknet-contract"
