@@ -1,4 +1,7 @@
-use super::{super::serde::unsigned_field_element::hex, UnsignedFieldElement};
+use super::{
+    super::serde::unsigned_field_element::{hex, hex_slice},
+    UnsignedFieldElement,
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -14,5 +17,6 @@ pub struct InvokeFunction {
 
 #[derive(Debug, Deserialize)]
 pub struct CallContractResult {
+    #[serde(with = "hex_slice")]
     pub result: Vec<UnsignedFieldElement>,
 }
