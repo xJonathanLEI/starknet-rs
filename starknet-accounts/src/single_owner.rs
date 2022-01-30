@@ -2,7 +2,11 @@ use crate::Account;
 
 use async_trait::async_trait;
 use starknet_core::{
-    types::{BlockId, InvokeFunction, UnsignedFieldElement},
+    crypto::compute_hash_on_elements,
+    types::{
+        AddTransactionResult, BlockId, InvokeFunction, InvokeFunctionTransactionRequest,
+        TransactionRequest, UnsignedFieldElement,
+    },
     utils::get_selector_from_name,
 };
 use starknet_providers::Provider;
@@ -20,7 +24,7 @@ where
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum Error<P>
+pub enum GetNonceError<P>
 where
     P: std::error::Error + Send,
 {
@@ -28,6 +32,18 @@ where
     ProviderError(P),
     #[error("invalid response length. expected {expected} but got {actual}")]
     InvalidResponseLength { expected: usize, actual: usize },
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ExecuteError<P, S>
+where
+    P: std::error::Error + Send,
+    S: std::error::Error + Send,
+{
+    #[error(transparent)]
+    ProviderError(P),
+    #[error(transparent)]
+    SignerError(S),
 }
 
 impl<P, S> SingleOwnerAccount<P, S>
@@ -50,12 +66,13 @@ where
     P: Provider + Sync + Send,
     S: Signer + Sync + Send,
 {
-    type Error = Error<P::Error>;
+    type GetNonceError = GetNonceError<P::Error>;
+    type ExecuteError = ExecuteError<P::Error, S::SignError>;
 
     async fn get_nonce(
         &self,
         block_identifier: Option<BlockId>,
-    ) -> Result<UnsignedFieldElement, Self::Error> {
+    ) -> Result<UnsignedFieldElement, Self::GetNonceError> {
         let call_result = self
             .provider
             .call_contract(
@@ -68,15 +85,55 @@ where
                 block_identifier,
             )
             .await
-            .map_err(Error::ProviderError)?;
+            .map_err(GetNonceError::ProviderError)?;
 
         if call_result.result.len() == 1 {
             Ok(call_result.result[0])
         } else {
-            Err(Error::InvalidResponseLength {
+            Err(GetNonceError::InvalidResponseLength {
                 expected: 1,
                 actual: call_result.result.len(),
             })
         }
+    }
+
+    async fn execute(
+        &self,
+        to: UnsignedFieldElement,
+        selector: UnsignedFieldElement,
+        calldata: &[UnsignedFieldElement],
+        nonce: UnsignedFieldElement,
+    ) -> Result<AddTransactionResult, Self::ExecuteError> {
+        let message_hash = compute_hash_on_elements(&[
+            self.address,
+            to,
+            selector,
+            compute_hash_on_elements(calldata),
+            nonce,
+        ]);
+        let signature = self
+            .signer
+            .sign_hash(&message_hash)
+            .await
+            .map_err(ExecuteError::SignerError)?;
+
+        let mut execute_calldata = vec![to, selector, calldata.len().into()];
+        for item in calldata.iter() {
+            execute_calldata.push(*item);
+        }
+        execute_calldata.push(nonce);
+
+        self.provider
+            .add_transaction(
+                TransactionRequest::InvokeFunction(InvokeFunctionTransactionRequest {
+                    contract_address: self.address,
+                    entry_point_selector: get_selector_from_name("execute").unwrap(),
+                    calldata: execute_calldata,
+                    signature: vec![signature.r, signature.s],
+                }),
+                None,
+            )
+            .await
+            .map_err(ExecuteError::ProviderError)
     }
 }
