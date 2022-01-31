@@ -8,7 +8,7 @@ use std::error::Error;
 
 #[async_trait]
 pub trait Provider {
-    type Error: Error;
+    type Error: Error + Send;
 
     async fn add_transaction(
         &self,

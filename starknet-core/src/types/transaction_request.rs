@@ -24,7 +24,7 @@ pub struct AddTransactionResult {
     pub address: Option<UnsignedFieldElement>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub enum AddTransactionResultCode {
     #[serde(rename = "TRANSACTION_RECEIVED")]
     TransactionReceived,

@@ -45,6 +45,7 @@ This workspace contains the following crates:
 - `starknet-contract`: Types for deploying and interacting with StarkNet smart contracts
 - `starknet-crypto`: **Low-level** cryptography utilities for StarkNet
 - `starknet-signers`: StarkNet signer implementations
+- `starknet-accounts`: Types for handling StarkNet account abstraction
 
 ## Example
 
