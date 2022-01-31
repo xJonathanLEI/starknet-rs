@@ -32,7 +32,7 @@ starknet = { git = "https://github.com/xJonathanLEI/starknet-rs" }
 
 - [x] Sequencer gateway / feeder gateway client
 - [x] Smart contract deployment
-- [ ] Signer for using [IAccount](https://github.com/OpenZeppelin/cairo-contracts/blob/main/contracts/IAccount.cairo) account contracts
+- [x] Signer for using [IAccount](https://github.com/OpenZeppelin/cairo-contracts/blob/main/contracts/IAccount.cairo) account contracts
 - [ ] Strongly-typed smart contract binding code generation from ABI
 
 ## Crates
@@ -88,6 +88,51 @@ async fn main() {
         )
         .await
         .expect("Unable to deploy contract");
+}
+```
+
+### Mint yourself 1,000 TST tokens on `alpha-goerli`
+
+```rust
+use starknet::{
+    accounts::{Account, SingleOwnerAccount},
+    core::{types::UnsignedFieldElement, utils::get_selector_from_name},
+    providers::SequencerGatewayProvider,
+    signers::{LocalWallet, SigningKey},
+};
+use std::str::FromStr;
+
+#[tokio::main]
+async fn main() {
+    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
+    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
+        UnsignedFieldElement::from_hex_str("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
+    ));
+    let address =
+        UnsignedFieldElement::from_hex_str("YOUR_ACCOUNT_CONTRACT_ADDRESS_IN_HEX_HERE").unwrap();
+    let tst_token_address = UnsignedFieldElement::from_hex_str(
+        "07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
+    )
+    .unwrap();
+
+    let account = SingleOwnerAccount::new(provider, signer, address);
+    let nonce = account.get_nonce(None).await.unwrap();
+
+    let result = account
+        .execute(
+            tst_token_address,
+            get_selector_from_name("mint").unwrap(),
+            &[
+                address,
+                UnsignedFieldElement::from_str("1000000000000000000000").unwrap(),
+                UnsignedFieldElement::ZERO,
+            ],
+            nonce,
+        )
+        .await
+        .unwrap();
+
+    dbg!(result);
 }
 ```
 
