@@ -121,6 +121,20 @@ impl std::ops::Sub<UnsignedFieldElement> for UnsignedFieldElement {
     }
 }
 
+impl std::ops::Mul<UnsignedFieldElement> for UnsignedFieldElement {
+    type Output = Self;
+
+    fn mul(self, rhs: UnsignedFieldElement) -> Self::Output {
+        // Allow overflow to align with Cairo behavior
+        Self {
+            inner: U256::try_from(
+                (U512::from(self.inner) * U512::from(rhs.inner)) % U512_FIELD_MODULUS,
+            )
+            .unwrap(),
+        }
+    }
+}
+
 impl Display for UnsignedFieldElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.inner)
@@ -349,6 +363,31 @@ mod tests {
             assert_eq!(
                 UnsignedFieldElement::from_str(item[0]).unwrap()
                     - UnsignedFieldElement::from_str(item[1]).unwrap(),
+                UnsignedFieldElement::from_str(item[2]).unwrap()
+            );
+        }
+    }
+
+    #[test]
+    fn test_multiplication() {
+        let multiplications = vec![
+            ["2", "3", "6"],
+            [
+                "3618502788666131213697322783095070105623107215331596699973092056135872020480",
+                "3618502788666131213697322783095070105623107215331596699973092056135872020480",
+                "1",
+            ],
+            [
+                "3141592653589793238462643383279502884197169399375105820974944592307",
+                "8164062862089986280348253421170679821480865132823066470938446095505",
+                "514834056922159274131066670130609582664841480950767778400381816737396274242",
+            ],
+        ];
+
+        for item in multiplications.iter() {
+            assert_eq!(
+                UnsignedFieldElement::from_str(item[0]).unwrap()
+                    * UnsignedFieldElement::from_str(item[1]).unwrap(),
                 UnsignedFieldElement::from_str(item[2]).unwrap()
             );
         }
