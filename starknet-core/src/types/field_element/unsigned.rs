@@ -1,4 +1,4 @@
-use ethereum_types::{FromDecStrErr as UintFromDecStrErr, U256};
+use ethereum_types::{FromDecStrErr as UintFromDecStrErr, U256, U512};
 use serde::{Deserialize, Serialize};
 use starknet_crypto::FieldElement;
 use std::{
@@ -7,6 +7,7 @@ use std::{
 };
 
 const U256_BYTE_COUNT: usize = 32;
+const U512_FIELD_MODULUS: U512 = U512([1, 0, 0, 576460752303423505, 0, 0, 0, 0]);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct UnsignedFieldElement {
@@ -87,6 +88,20 @@ impl UnsignedFieldElement {
             } else {
                 Ok(Self { inner: value })
             }
+        }
+    }
+}
+
+impl std::ops::Add<UnsignedFieldElement> for UnsignedFieldElement {
+    type Output = Self;
+
+    fn add(self, rhs: UnsignedFieldElement) -> Self::Output {
+        // Allow overflow to align with Cairo behavior
+        Self {
+            inner: U256::try_from(
+                (U512::from(self.inner) + U512::from(rhs.inner)) % U512_FIELD_MODULUS,
+            )
+            .unwrap(),
         }
     }
 }
@@ -282,5 +297,25 @@ mod tests {
             format!("{:#0100x}", fe),
             "0x000000000000000000000000000000000000000000000000000000001234abcd"
         );
+    }
+
+    #[test]
+    fn test_addition() {
+        let additions = vec![
+            ["1", "1", "2"],
+            [
+                "3618502788666131213697322783095070105623107215331596699973092056135872020480",
+                "1",
+                "0",
+            ],
+        ];
+
+        for item in additions.iter() {
+            assert_eq!(
+                UnsignedFieldElement::from_str(item[0]).unwrap()
+                    + UnsignedFieldElement::from_str(item[1]).unwrap(),
+                UnsignedFieldElement::from_str(item[2]).unwrap()
+            );
+        }
     }
 }
