@@ -1,4 +1,4 @@
-mod artifact;
+pub mod artifact;
 pub use artifact::Artifact as ContractArtifact;
 
 mod factory;
