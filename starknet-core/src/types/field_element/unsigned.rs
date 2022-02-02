@@ -7,6 +7,7 @@ use std::{
 };
 
 const U256_BYTE_COUNT: usize = 32;
+const U256_FIELD_MODULUS: U256 = U256([1, 0, 0, 576460752303423505]);
 const U512_FIELD_MODULUS: U512 = U512([1, 0, 0, 576460752303423505, 0, 0, 0, 0]);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -103,6 +104,20 @@ impl std::ops::Add<UnsignedFieldElement> for UnsignedFieldElement {
             )
             .unwrap(),
         }
+    }
+}
+
+impl std::ops::Sub<UnsignedFieldElement> for UnsignedFieldElement {
+    type Output = Self;
+
+    fn sub(self, rhs: UnsignedFieldElement) -> Self::Output {
+        // Allow underflow to align with Cairo behavior
+        let (mut diff, underflow) = self.inner.overflowing_sub(rhs.inner);
+        if underflow {
+            let (sum, _) = diff.overflowing_add(U256_FIELD_MODULUS);
+            diff = sum;
+        }
+        Self { inner: diff }
     }
 }
 
@@ -314,6 +329,26 @@ mod tests {
             assert_eq!(
                 UnsignedFieldElement::from_str(item[0]).unwrap()
                     + UnsignedFieldElement::from_str(item[1]).unwrap(),
+                UnsignedFieldElement::from_str(item[2]).unwrap()
+            );
+        }
+    }
+
+    #[test]
+    fn test_subtraction() {
+        let subtractions = vec![
+            ["10", "7", "3"],
+            [
+                "0",
+                "3618502788666131213697322783095070105623107215331596699973092056135872020480",
+                "1",
+            ],
+        ];
+
+        for item in subtractions.iter() {
+            assert_eq!(
+                UnsignedFieldElement::from_str(item[0]).unwrap()
+                    - UnsignedFieldElement::from_str(item[1]).unwrap(),
                 UnsignedFieldElement::from_str(item[2]).unwrap()
             );
         }
