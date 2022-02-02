@@ -330,7 +330,7 @@ mod tests {
 
     #[test]
     fn test_addition() {
-        let additions = vec![
+        let additions = [
             ["1", "1", "2"],
             [
                 "3618502788666131213697322783095070105623107215331596699973092056135872020480",
@@ -350,7 +350,7 @@ mod tests {
 
     #[test]
     fn test_subtraction() {
-        let subtractions = vec![
+        let subtractions = [
             ["10", "7", "3"],
             [
                 "0",
@@ -370,7 +370,7 @@ mod tests {
 
     #[test]
     fn test_multiplication() {
-        let multiplications = vec![
+        let multiplications = [
             ["2", "3", "6"],
             [
                 "3618502788666131213697322783095070105623107215331596699973092056135872020480",
