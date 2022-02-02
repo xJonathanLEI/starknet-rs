@@ -99,10 +99,7 @@ impl std::ops::Add<UnsignedFieldElement> for UnsignedFieldElement {
     fn add(self, rhs: UnsignedFieldElement) -> Self::Output {
         // Allow overflow to align with Cairo behavior
         Self {
-            inner: U256::try_from(
-                (U512::from(self.inner) + U512::from(rhs.inner)) % U512_FIELD_MODULUS,
-            )
-            .unwrap(),
+            inner: (self.inner + rhs.inner) % U256_FIELD_MODULUS,
         }
     }
 }
