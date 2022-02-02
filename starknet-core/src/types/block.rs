@@ -9,6 +9,7 @@ pub enum BlockId {
     Hash(UnsignedFieldElement),
     Number(u64),
     Pending,
+    Latest,
 }
 
 #[derive(Debug, Deserialize)]

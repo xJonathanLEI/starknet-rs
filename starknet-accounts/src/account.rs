@@ -9,7 +9,7 @@ pub trait Account {
 
     async fn get_nonce(
         &self,
-        block_identifier: Option<BlockId>,
+        block_identifier: BlockId,
     ) -> Result<UnsignedFieldElement, Self::GetNonceError>;
 
     async fn execute(

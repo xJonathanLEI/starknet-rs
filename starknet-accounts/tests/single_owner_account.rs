@@ -24,7 +24,7 @@ async fn can_get_nonce() {
     let account = SingleOwnerAccount::new(provider, signer, address);
 
     assert_ne!(
-        account.get_nonce(None).await.unwrap(),
+        account.get_nonce(BlockId::Latest).await.unwrap(),
         UnsignedFieldElement::ZERO
     );
 }
@@ -55,7 +55,7 @@ async fn can_execute_tst_mint() {
     .unwrap();
 
     let account = SingleOwnerAccount::new(provider, signer, address);
-    let nonce = account.get_nonce(Some(BlockId::Pending)).await.unwrap();
+    let nonce = account.get_nonce(BlockId::Pending).await.unwrap();
 
     let result = account
         .execute(

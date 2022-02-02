@@ -57,7 +57,7 @@ use starknet::providers::{Provider, SequencerGatewayProvider};
 #[tokio::main]
 async fn main() {
     let provider = SequencerGatewayProvider::starknet_alpha_goerli();
-    let latest_block = provider.get_block(None).await;
+    let latest_block = provider.get_block(BlockId::Latest).await;
     println!("{:#?}", latest_block);
 }
 ```
@@ -116,7 +116,7 @@ async fn main() {
     .unwrap();
 
     let account = SingleOwnerAccount::new(provider, signer, address);
-    let nonce = account.get_nonce(None).await.unwrap();
+    let nonce = account.get_nonce(BlockId::Latest).await.unwrap();
 
     let result = account
         .execute(
@@ -140,7 +140,7 @@ async fn main() {
 
 Licensed under either of
 
-- Apache License, Version 2.0 ([LICENSE-APACHE](./LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
-- MIT license ([LICENSE-MIT](./LICENSE-MIT) or http://opensource.org/licenses/MIT)
+- Apache License, Version 2.0 ([LICENSE-APACHE](./LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
+- MIT license ([LICENSE-MIT](./LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
 
 at your option.
