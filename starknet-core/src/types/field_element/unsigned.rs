@@ -1,4 +1,4 @@
-use ethereum_types::{FromDecStrErr as UintFromDecStrErr, U256};
+use ethereum_types::{FromDecStrErr as UintFromDecStrErr, U256, U512};
 use serde::{Deserialize, Serialize};
 use starknet_crypto::FieldElement;
 use std::{
@@ -7,6 +7,8 @@ use std::{
 };
 
 const U256_BYTE_COUNT: usize = 32;
+const U256_FIELD_MODULUS: U256 = U256([1, 0, 0, 576460752303423505]);
+const U512_FIELD_MODULUS: U512 = U512([1, 0, 0, 576460752303423505, 0, 0, 0, 0]);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct UnsignedFieldElement {
@@ -87,6 +89,45 @@ impl UnsignedFieldElement {
             } else {
                 Ok(Self { inner: value })
             }
+        }
+    }
+}
+
+impl std::ops::Add<UnsignedFieldElement> for UnsignedFieldElement {
+    type Output = Self;
+
+    fn add(self, rhs: UnsignedFieldElement) -> Self::Output {
+        // Allow overflow to align with Cairo behavior
+        Self {
+            inner: (self.inner + rhs.inner) % U256_FIELD_MODULUS,
+        }
+    }
+}
+
+impl std::ops::Sub<UnsignedFieldElement> for UnsignedFieldElement {
+    type Output = Self;
+
+    fn sub(self, rhs: UnsignedFieldElement) -> Self::Output {
+        // Allow underflow to align with Cairo behavior
+        let (mut diff, underflow) = self.inner.overflowing_sub(rhs.inner);
+        if underflow {
+            let (sum, _) = diff.overflowing_add(U256_FIELD_MODULUS);
+            diff = sum;
+        }
+        Self { inner: diff }
+    }
+}
+
+impl std::ops::Mul<UnsignedFieldElement> for UnsignedFieldElement {
+    type Output = Self;
+
+    fn mul(self, rhs: UnsignedFieldElement) -> Self::Output {
+        // Allow overflow to align with Cairo behavior
+        Self {
+            inner: U256::try_from(
+                (U512::from(self.inner) * U512::from(rhs.inner)) % U512_FIELD_MODULUS,
+            )
+            .unwrap(),
         }
     }
 }
@@ -282,5 +323,70 @@ mod tests {
             format!("{:#0100x}", fe),
             "0x000000000000000000000000000000000000000000000000000000001234abcd"
         );
+    }
+
+    #[test]
+    fn test_addition() {
+        let additions = [
+            ["1", "1", "2"],
+            [
+                "3618502788666131213697322783095070105623107215331596699973092056135872020480",
+                "1",
+                "0",
+            ],
+        ];
+
+        for item in additions.iter() {
+            assert_eq!(
+                UnsignedFieldElement::from_str(item[0]).unwrap()
+                    + UnsignedFieldElement::from_str(item[1]).unwrap(),
+                UnsignedFieldElement::from_str(item[2]).unwrap()
+            );
+        }
+    }
+
+    #[test]
+    fn test_subtraction() {
+        let subtractions = [
+            ["10", "7", "3"],
+            [
+                "0",
+                "3618502788666131213697322783095070105623107215331596699973092056135872020480",
+                "1",
+            ],
+        ];
+
+        for item in subtractions.iter() {
+            assert_eq!(
+                UnsignedFieldElement::from_str(item[0]).unwrap()
+                    - UnsignedFieldElement::from_str(item[1]).unwrap(),
+                UnsignedFieldElement::from_str(item[2]).unwrap()
+            );
+        }
+    }
+
+    #[test]
+    fn test_multiplication() {
+        let multiplications = [
+            ["2", "3", "6"],
+            [
+                "3618502788666131213697322783095070105623107215331596699973092056135872020480",
+                "3618502788666131213697322783095070105623107215331596699973092056135872020480",
+                "1",
+            ],
+            [
+                "3141592653589793238462643383279502884197169399375105820974944592307",
+                "8164062862089986280348253421170679821480865132823066470938446095505",
+                "514834056922159274131066670130609582664841480950767778400381816737396274242",
+            ],
+        ];
+
+        for item in multiplications.iter() {
+            assert_eq!(
+                UnsignedFieldElement::from_str(item[0]).unwrap()
+                    * UnsignedFieldElement::from_str(item[1]).unwrap(),
+                UnsignedFieldElement::from_str(item[2]).unwrap()
+            );
+        }
     }
 }
