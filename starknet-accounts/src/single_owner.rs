@@ -71,7 +71,7 @@ where
 
     async fn get_nonce(
         &self,
-        block_identifier: Option<BlockId>,
+        block_identifier: BlockId,
     ) -> Result<UnsignedFieldElement, Self::GetNonceError> {
         let call_result = self
             .provider

@@ -173,7 +173,7 @@ impl Provider for SequencerGatewayProvider {
     async fn call_contract(
         &self,
         invoke_tx: InvokeFunction,
-        block_identifier: Option<BlockId>,
+        block_identifier: BlockId,
     ) -> Result<CallContractResult, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("call_contract");
         append_block_id(&mut request_url, block_identifier);
@@ -186,7 +186,7 @@ impl Provider for SequencerGatewayProvider {
         }
     }
 
-    async fn get_block(&self, block_identifier: Option<BlockId>) -> Result<Block, Self::Error> {
+    async fn get_block(&self, block_identifier: BlockId) -> Result<Block, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_block");
         append_block_id(&mut request_url, block_identifier);
 
@@ -204,7 +204,7 @@ impl Provider for SequencerGatewayProvider {
     async fn get_code(
         &self,
         contract_address: UnsignedFieldElement,
-        block_identifier: Option<BlockId>,
+        block_identifier: BlockId,
     ) -> Result<ContractCode, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_code");
         request_url
@@ -231,7 +231,7 @@ impl Provider for SequencerGatewayProvider {
         &self,
         contract_address: UnsignedFieldElement,
         key: UnsignedFieldElement,
-        block_identifier: Option<BlockId>,
+        block_identifier: BlockId,
     ) -> Result<UnsignedFieldElement, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_storage_at");
         request_url
@@ -406,20 +406,20 @@ fn extend_url(url: &mut Url, segment: &str) {
         .extend(&[segment]);
 }
 
-fn append_block_id(url: &mut Url, block_identifier: Option<BlockId>) {
+fn append_block_id(url: &mut Url, block_identifier: BlockId) {
     match block_identifier {
-        Some(BlockId::Hash(block_hash)) => {
+        BlockId::Hash(block_hash) => {
             url.query_pairs_mut()
                 .append_pair("blockHash", &format!("{:#x}", block_hash));
         }
-        Some(BlockId::Number(block_number)) => {
+        BlockId::Number(block_number) => {
             url.query_pairs_mut()
                 .append_pair("blockNumber", &block_number.to_string());
         }
-        Some(BlockId::Pending) => {
+        BlockId::Pending => {
             url.query_pairs_mut().append_pair("blockNumber", "pending");
         }
-        None => (),
+        BlockId::Latest => (), // latest block is implicit
     };
 }
 

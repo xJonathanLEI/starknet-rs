@@ -52,12 +52,15 @@ This workspace contains the following crates:
 ### Get the latest block from `alpha-goerli` testnet
 
 ```rust
-use starknet::providers::{Provider, SequencerGatewayProvider};
+use starknet::{
+    core::types::BlockId,
+    providers::{Provider, SequencerGatewayProvider},
+};
 
 #[tokio::main]
 async fn main() {
     let provider = SequencerGatewayProvider::starknet_alpha_goerli();
-    let latest_block = provider.get_block(None).await;
+    let latest_block = provider.get_block(BlockId::Latest).await;
     println!("{:#?}", latest_block);
 }
 ```
@@ -96,7 +99,10 @@ async fn main() {
 ```rust
 use starknet::{
     accounts::{Account, SingleOwnerAccount},
-    core::{types::UnsignedFieldElement, utils::get_selector_from_name},
+    core::{
+        types::{BlockId, UnsignedFieldElement},
+        utils::get_selector_from_name,
+    },
     providers::SequencerGatewayProvider,
     signers::{LocalWallet, SigningKey},
 };
@@ -116,7 +122,7 @@ async fn main() {
     .unwrap();
 
     let account = SingleOwnerAccount::new(provider, signer, address);
-    let nonce = account.get_nonce(None).await.unwrap();
+    let nonce = account.get_nonce(BlockId::Latest).await.unwrap();
 
     let result = account
         .execute(
@@ -140,7 +146,7 @@ async fn main() {
 
 Licensed under either of
 
-- Apache License, Version 2.0 ([LICENSE-APACHE](./LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
-- MIT license ([LICENSE-MIT](./LICENSE-MIT) or http://opensource.org/licenses/MIT)
+- Apache License, Version 2.0 ([LICENSE-APACHE](./LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
+- MIT license ([LICENSE-MIT](./LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
 
 at your option.
