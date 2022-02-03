@@ -23,7 +23,7 @@ pub mod hex {
 }
 
 pub mod hex_option {
-    use serde::{Deserializer, Serializer};
+    use serde::{de::Error as DeError, Deserialize, Deserializer, Serializer};
 
     use crate::types::UnsignedFieldElement;
 
@@ -44,7 +44,14 @@ pub mod hex_option {
     where
         D: Deserializer<'de>,
     {
-        Ok(Some(super::hex::deserialize(deserializer)?))
+        let value = String::deserialize(deserializer)?;
+        match value.as_str() {
+            "" => Ok(None),
+            _ => match UnsignedFieldElement::from_hex_str(&value) {
+                Ok(value) => Ok(Some(value)),
+                Err(err) => Err(DeError::custom(format!("invalid hex string: {}", err))),
+            },
+        }
     }
 }
 
@@ -92,5 +99,21 @@ pub mod pending_block_hash {
                 Err(err) => Err(DeError::custom(format!("invalid hex string: {}", err))),
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::hex_option;
+    use serde::de::{
+        value::{Error, StrDeserializer},
+        IntoDeserializer,
+    };
+
+    #[test]
+    fn empty_string_deser() {
+        let deser: StrDeserializer<Error> = "".into_deserializer();
+        let r = hex_option::deserialize(deser).unwrap();
+        assert_eq!(r, None);
     }
 }
