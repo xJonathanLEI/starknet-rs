@@ -52,7 +52,10 @@ This workspace contains the following crates:
 ### Get the latest block from `alpha-goerli` testnet
 
 ```rust
-use starknet::{core::types::BlockId, providers::{Provider, SequencerGatewayProvider}};
+use starknet::{
+    core::types::BlockId,
+    providers::{Provider, SequencerGatewayProvider},
+};
 
 #[tokio::main]
 async fn main() {
@@ -96,7 +99,10 @@ async fn main() {
 ```rust
 use starknet::{
     accounts::{Account, SingleOwnerAccount},
-    core::{types::{BlockId, UnsignedFieldElement}, utils::get_selector_from_name}},
+    core::{
+        types::{BlockId, UnsignedFieldElement},
+        utils::get_selector_from_name,
+    },
     providers::SequencerGatewayProvider,
     signers::{LocalWallet, SigningKey},
 };
