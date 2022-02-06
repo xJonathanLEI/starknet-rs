@@ -1,6 +1,6 @@
 use super::{
     super::serde::unsigned_field_element::{hex, hex_option},
-    ConfirmedTransactionReceipt, Transaction, UnsignedFieldElement,
+    ConfirmedTransactionReceipt, TransactionType, UnsignedFieldElement,
 };
 
 use serde::Deserialize;
@@ -22,7 +22,7 @@ pub struct Block {
     pub timestamp: u64,
     #[serde(default, with = "hex_option")]
     pub state_root: Option<UnsignedFieldElement>,
-    pub transactions: Vec<Transaction>,
+    pub transactions: Vec<TransactionType>,
     pub transaction_receipts: Vec<ConfirmedTransactionReceipt>,
 }
 
@@ -32,9 +32,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_block_deser_with_deploy_tx() {
+    fn test_block_deser_with_transactions() {
         let raw =
-            include_str!("../../test-data/raw_gateway_responses/get_block/1_with_deploy_tx.txt");
+            include_str!("../../test-data/raw_gateway_responses/get_block/1_with_transactions.txt");
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
@@ -48,12 +48,13 @@ mod tests {
         );
         assert_eq!(block.transactions.len(), 3);
         assert_eq!(block.transaction_receipts.len(), 3);
-        if let Transaction::Deploy(tx) = &block.transactions[0] {
+
+        if let TransactionType::Deploy(tx) = &block.transactions[0] {
             assert_eq!(tx.constructor_calldata.len(), 2)
         } else {
             panic!("Did not deserialize Transaction::Deploy properly");
         }
-        if let Transaction::InvokeFunction(tx) = &block.transactions[1] {
+        if let TransactionType::InvokeFunction(tx) = &block.transactions[1] {
             assert_eq!(tx.entry_point_type, EntryPointType::External);
             assert_eq!(tx.calldata.len(), 7);
         } else {

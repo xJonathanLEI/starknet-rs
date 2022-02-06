@@ -1,0 +1,1 @@
+{"tx_status": "ACCEPTED_ON_L1", "block_hash": "0xca6e3e44d58747b398a0b4e882245c6bc9f5cd666674824e14929708fb8d09"}

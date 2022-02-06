@@ -8,13 +8,6 @@ use super::{
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize)]
-#[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum TransactionRequest {
-    Deploy(DeployTransaction),
-    InvokeFunction(InvokeFunctionTransaction),
-}
-
 #[derive(Debug, Deserialize)]
 pub struct AddTransactionResult {
     pub code: AddTransactionResultCode,
@@ -31,11 +24,18 @@ pub enum AddTransactionResultCode {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum TransactionRequest {
+    Deploy(DeployTransaction),
+    InvokeFunction(InvokeFunctionTransaction),
+}
+
+#[derive(Debug, Serialize)]
 pub struct DeployTransaction {
+    pub constructor_calldata: Vec<UnsignedFieldElement>,
     #[serde(with = "hex")]
     pub contract_address_salt: UnsignedFieldElement,
     pub contract_definition: ContractDefinition,
-    pub constructor_calldata: Vec<UnsignedFieldElement>,
 }
 
 #[derive(Debug, Serialize)]

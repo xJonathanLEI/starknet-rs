@@ -7,9 +7,9 @@ use serde_json::Error as SerdeJsonError;
 use starknet_core::{
     serde::unsigned_field_element::hex,
     types::{
-        AddTransactionResult, Block, BlockId, CallContractResult, ContractAddresses, ContractCode,
-        InvokeFunction, StarknetError, TransactionId, TransactionReceipt, TransactionRequest,
-        TransactionStatus, TransactionWithStatus, UnsignedFieldElement,
+        AddTransactionResult, Block, BlockId, BriefTransaction, CallContractResult,
+        ContractAddresses, ContractCode, FullTransaction, InvokeFunction, StarknetError,
+        TransactionId, TransactionReceipt, TransactionRequest, UnsignedFieldElement,
     },
 };
 use thiserror::Error;
@@ -254,12 +254,12 @@ impl Provider for SequencerGatewayProvider {
     async fn get_transaction_status(
         &self,
         transaction_hash_or_number: TransactionId,
-    ) -> Result<TransactionStatus, Self::Error> {
+    ) -> Result<BriefTransaction, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_status");
         append_transaction_id(&mut request_url, transaction_hash_or_number);
 
         match self
-            .send_get_request::<GatewayResponse<TransactionStatus>>(request_url)
+            .send_get_request::<GatewayResponse<BriefTransaction>>(request_url)
             .await?
         {
             GatewayResponse::Data(tx_status) => Ok(tx_status),
@@ -272,12 +272,12 @@ impl Provider for SequencerGatewayProvider {
     async fn get_transaction(
         &self,
         transaction_hash_or_number: TransactionId,
-    ) -> Result<TransactionWithStatus, Self::Error> {
+    ) -> Result<FullTransaction, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction");
         append_transaction_id(&mut request_url, transaction_hash_or_number);
 
         match self
-            .send_get_request::<GatewayResponse<TransactionWithStatus>>(request_url)
+            .send_get_request::<GatewayResponse<FullTransaction>>(request_url)
             .await?
         {
             GatewayResponse::Data(tx) => Ok(tx),

@@ -12,7 +12,7 @@ use serde::Deserialize;
 pub struct Receipt {
     #[serde(with = "hex")]
     pub transaction_hash: UnsignedFieldElement,
-    pub status: TransactionStatusType,
+    pub status: TransactionStatus,
     #[serde(default, deserialize_with = "pending_block_hash_de")]
     pub block_hash: Option<UnsignedFieldElement>,
     pub block_number: Option<u64>,
@@ -32,32 +32,15 @@ pub struct ConfirmedReceipt {
     pub events: Vec<Event>,
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(tag = "tx_status", rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum TransactionStatus {
-    NotReceived,
-    Received,
-    Pending,
-    Rejected,
-    AcceptedOnL2(TransactionBlockHash),
-    AcceptedOnL1(TransactionBlockHash),
-}
-
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum TransactionStatusType {
+pub enum TransactionStatus {
     NotReceived,
     Received,
     Pending,
     Rejected,
     AcceptedOnL2,
     AcceptedOnL1,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct TransactionBlockHash {
-    #[serde(with = "hex")]
-    pub block_hash: UnsignedFieldElement,
 }
 
 #[derive(Debug, Deserialize)]
@@ -95,6 +78,8 @@ pub struct Event {
 
 #[cfg(test)]
 mod tests {
+    use crate::types::BriefTransaction;
+
     use super::*;
 
     #[test]
@@ -105,7 +90,7 @@ mod tests {
 
         let receipt: Receipt = serde_json::from_str(raw).unwrap();
 
-        assert_eq!(receipt.status, TransactionStatusType::AcceptedOnL1);
+        assert_eq!(receipt.status, TransactionStatus::AcceptedOnL1);
         assert_eq!(receipt.block_number, Some(39207));
         assert_eq!(receipt.execution_resources.unwrap().n_steps, 489);
     }
@@ -117,7 +102,7 @@ mod tests {
         );
         let receipt: Receipt = serde_json::from_str(raw).unwrap();
 
-        assert_eq!(receipt.status, TransactionStatusType::NotReceived);
+        assert_eq!(receipt.status, TransactionStatus::NotReceived);
         assert_eq!(
             receipt.transaction_hash,
             UnsignedFieldElement::from_hex_str(
@@ -150,18 +135,15 @@ mod tests {
             "block_hash": "0x7b44bda3371fa91541e719493b1638b71c7ccf2304dc67bbadb028dbfa16dec"
         }"#;
 
-        let tx: TransactionStatus = serde_json::from_str(raw).unwrap();
-        if let TransactionStatus::AcceptedOnL2(b) = tx {
-            assert_eq!(
-                b.block_hash,
-                UnsignedFieldElement::from_hex_str(
-                    "0x07b44bda3371fa91541e719493b1638b71c7ccf2304dc67bbadb028dbfa16dec",
-                )
-                .unwrap()
-            );
-        } else {
-            panic!("Did not deserialize TransactionStatus::AcceptedOnL2 properly");
-        }
+        let tx: BriefTransaction = serde_json::from_str(raw).unwrap();
+        assert_eq!(tx.status, TransactionStatus::AcceptedOnL2);
+        assert_eq!(
+            tx.block_hash.unwrap(),
+            UnsignedFieldElement::from_hex_str(
+                "0x07b44bda3371fa91541e719493b1638b71c7ccf2304dc67bbadb028dbfa16dec",
+            )
+            .unwrap()
+        );
     }
 
     #[test]
@@ -172,17 +154,26 @@ mod tests {
             "block_hash": "0x5da543f8121c912cd2a80ae386f1aa6d4df626695742cf870c85690bb1ab60"
         }"#;
 
-        let tx: TransactionStatus = serde_json::from_str(raw).unwrap();
-        if let TransactionStatus::AcceptedOnL1(b) = tx {
-            assert_eq!(
-                b.block_hash,
-                UnsignedFieldElement::from_hex_str(
-                    "0x005da543f8121c912cd2a80ae386f1aa6d4df626695742cf870c85690bb1ab60"
-                )
-                .unwrap()
+        let tx: BriefTransaction = serde_json::from_str(raw).unwrap();
+        assert_eq!(tx.status, TransactionStatus::AcceptedOnL1);
+        assert_eq!(
+            tx.block_hash.unwrap(),
+            UnsignedFieldElement::from_hex_str(
+                "0x005da543f8121c912cd2a80ae386f1aa6d4df626695742cf870c85690bb1ab60"
             )
-        } else {
-            panic!("Did not deserialize TransactionStatus::AcceptedOnL1 properly");
-        }
+            .unwrap()
+        );
+    }
+
+    #[test]
+    fn test_transaction_status_deser_rejected() {
+        let raw = r#"{
+            "tx_status": "REJECTED",
+            "block_hash": ""
+        }"#;
+
+        let tx: BriefTransaction = serde_json::from_str(raw).unwrap();
+        assert_eq!(tx.status, TransactionStatus::Rejected);
+        assert!(tx.block_hash.is_none());
     }
 }

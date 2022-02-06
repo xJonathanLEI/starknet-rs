@@ -35,3 +35,9 @@ curl -o ./get_transaction_receipt/2_not_received.txt "https://alpha4.starknet.io
 
 # ./get_transaction_receipt/3_with_events.txt
 curl -o ./get_transaction_receipt/3_with_events.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_receipt?transactionHash=0x688e434a1636c30d0c161f766b99b4bfb143208d859149859941905e94cb022"
+
+# ./get_transaction_status/1_accepted.txt
+curl -o ./get_transaction_status/1_accepted.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_status?transactionHash=0x7cb73f737a8ea0c5c94d7799c2d01a47c81f4cb34287408741264d3f09655da"
+
+# ./get_transaction_status/2_not_received.txt
+curl -o ./get_transaction_status/2_not_received.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_status?transactionHash=0x7cb73f737a8ea0c5c94d7799c2d01a47c81f4cb34287408741264d3f09655d"
