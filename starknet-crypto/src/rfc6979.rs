@@ -48,7 +48,7 @@ pub fn generate_k(
     let mut buffer = [0u8; 32];
     buffer[..].copy_from_slice(&k.to_be_byte_array()[..]);
 
-    FieldElement::from_bytes_be(buffer).unwrap()
+    FieldElement::from_bytes_be(&buffer).unwrap()
 }
 
 // Modified from upstream `rfc6979::generate_k` with a hard-coded right bit shift. The more
