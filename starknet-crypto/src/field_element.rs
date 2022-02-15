@@ -82,8 +82,8 @@ impl FieldElement {
 impl FieldElement {
     // Hard-coded to use big-endian because `FieldElement` uses it
     pub(crate) fn add_unbounded(&self, addend: &FieldElement) -> BigInt {
-        let augend = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.to_repr().0);
-        let addend = BigInt::from_bytes_be(num_bigint::Sign::Plus, &addend.to_repr().0);
+        let augend = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.to_bytes_be());
+        let addend = BigInt::from_bytes_be(num_bigint::Sign::Plus, &addend.to_bytes_be());
         augend.add(addend)
     }
 
@@ -93,7 +93,7 @@ impl FieldElement {
         multiplier: &FieldElement,
         modulus: &FieldElement,
     ) -> FieldElement {
-        let multiplicand = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.to_repr().0);
+        let multiplicand = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.to_bytes_be());
         Self::bigint_mul_mod_floor(multiplicand, multiplier, modulus)
     }
 
@@ -102,8 +102,8 @@ impl FieldElement {
         multiplier: &FieldElement,
         modulus: &FieldElement,
     ) -> FieldElement {
-        let multiplier = BigInt::from_bytes_be(num_bigint::Sign::Plus, &multiplier.to_repr().0);
-        let modulus = BigInt::from_bytes_be(num_bigint::Sign::Plus, &modulus.to_repr().0);
+        let multiplier = BigInt::from_bytes_be(num_bigint::Sign::Plus, &multiplier.to_bytes_be());
+        let modulus = BigInt::from_bytes_be(num_bigint::Sign::Plus, &modulus.to_bytes_be());
 
         let result = multiplicand.mul(multiplier).mod_floor(&modulus);
 
@@ -116,8 +116,8 @@ impl FieldElement {
 
     // Hard-coded to use big-endian because `FieldElement` uses it
     pub(crate) fn mod_inverse(&self, modulus: &FieldElement) -> FieldElement {
-        let operand = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.to_repr().0);
-        let modulus = BigInt::from_bytes_be(num_bigint::Sign::Plus, &modulus.to_repr().0);
+        let operand = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.to_bytes_be());
+        let modulus = BigInt::from_bytes_be(num_bigint::Sign::Plus, &modulus.to_bytes_be());
 
         // Ported from:
         //   https://github.com/dignifiedquire/num-bigint/blob/56576b592fea6341b7e1711a1629e4cc1bfc419c/src/algorithms/mod_inverse.rs#L11
