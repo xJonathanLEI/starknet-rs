@@ -41,3 +41,6 @@ curl -o ./get_transaction_status/1_accepted.txt "https://alpha4.starknet.io/feed
 
 # ./get_transaction_status/2_not_received.txt
 curl -o ./get_transaction_status/2_not_received.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_status?transactionHash=0x7cb73f737a8ea0c5c94d7799c2d01a47c81f4cb34287408741264d3f09655d"
+
+# ./get_state_update/1_success.txt
+curl -o ./get_state_update/1_success.txt "https://alpha4.starknet.io/feeder_gateway/get_state_update?blockNumber=70004"

@@ -10,7 +10,7 @@ use starknet_core::{
     types::{
         AddTransactionResult, Block, BlockId, BriefTransaction, CallContractResult,
         ContractAddresses, ContractCode, FullTransaction, InvokeFunction, StarknetError,
-        TransactionId, TransactionReceipt, TransactionRequest, UnsignedFieldElement,
+        StateUpdate, TransactionId, TransactionReceipt, TransactionRequest, UnsignedFieldElement,
     },
 };
 use thiserror::Error;
@@ -196,6 +196,24 @@ impl Provider for SequencerGatewayProvider {
             .await?
         {
             GatewayResponse::Data(block) => Ok(block),
+            GatewayResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+
+    async fn get_state_update(
+        &self,
+        block_identifier: BlockId,
+    ) -> Result<StateUpdate, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("get_state_update");
+        append_block_id(&mut request_url, block_identifier);
+
+        match self
+            .send_get_request::<GatewayResponse<StateUpdate>>(request_url)
+            .await?
+        {
+            GatewayResponse::Data(update) => Ok(update),
             GatewayResponse::StarknetError(starknet_err) => {
                 Err(ProviderError::StarknetError(starknet_err))
             }

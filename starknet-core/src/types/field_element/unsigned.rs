@@ -10,7 +10,7 @@ const U256_BYTE_COUNT: usize = 32;
 const U256_FIELD_MODULUS: U256 = U256([1, 0, 0, 576460752303423505]);
 const U512_FIELD_MODULUS: U512 = U512([1, 0, 0, 576460752303423505, 0, 0, 0, 0]);
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct UnsignedFieldElement {
     inner: U256,
 }
