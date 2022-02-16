@@ -44,3 +44,9 @@ curl -o ./get_transaction_status/2_not_received.txt "https://alpha4.starknet.io/
 
 # ./get_state_update/1_success.txt
 curl -o ./get_state_update/1_success.txt "https://alpha4.starknet.io/feeder_gateway/get_state_update?blockNumber=70004"
+
+# ./get_full_contract/1_code.txt
+curl -o ./get_full_contract/1_code.txt "https://alpha4.starknet.io/feeder_gateway/get_full_contract?contractAddress=0x05ffd28b3ff2eecd6da0fa64c90e928a9f46f1563976a4fe1770ab48ee43506a"
+
+# ./get_full_contract/2_all_abi_types.txt
+curl -o ./get_full_contract/2_all_abi_types.txt "https://alpha4.starknet.io/feeder_gateway/get_full_contract?contractAddress=0x06ef97a90be1c0458f6e7bd1faf05021f2d81211f658155df0c5c97a39eb2d12"

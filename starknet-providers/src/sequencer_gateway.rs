@@ -9,8 +9,9 @@ use starknet_core::{
     serde::unsigned_field_element::UfeHex,
     types::{
         AddTransactionResult, Block, BlockId, BriefTransaction, CallContractResult,
-        ContractAddresses, ContractCode, FullTransaction, InvokeFunction, StarknetError,
-        StateUpdate, TransactionId, TransactionReceipt, TransactionRequest, UnsignedFieldElement,
+        ContractAddresses, ContractArtifact, ContractCode, FullTransaction, InvokeFunction,
+        StarknetError, StateUpdate, TransactionId, TransactionReceipt, TransactionRequest,
+        UnsignedFieldElement,
     },
 };
 use thiserror::Error;
@@ -241,6 +242,28 @@ impl Provider for SequencerGatewayProvider {
                 abi: Some(vec![]),
             }),
             GetCodeResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+
+    async fn get_full_contract(
+        &self,
+        contract_address: UnsignedFieldElement,
+        block_identifier: BlockId,
+    ) -> Result<ContractArtifact, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("get_full_contract");
+        request_url
+            .query_pairs_mut()
+            .append_pair("contractAddress", &format!("{:#x}", contract_address));
+        append_block_id(&mut request_url, block_identifier);
+
+        match self
+            .send_get_request::<GatewayResponse<ContractArtifact>>(request_url)
+            .await?
+        {
+            GatewayResponse::Data(artifact) => Ok(artifact),
+            GatewayResponse::StarknetError(starknet_err) => {
                 Err(ProviderError::StarknetError(starknet_err))
             }
         }
