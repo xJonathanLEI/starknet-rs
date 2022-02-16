@@ -4,8 +4,9 @@ use async_trait::async_trait;
 use reqwest::{Client, Error as ReqwestError};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Error as SerdeJsonError;
+use serde_with::serde_as;
 use starknet_core::{
-    serde::unsigned_field_element::hex,
+    serde::unsigned_field_element::UfeHex,
     types::{
         AddTransactionResult, Block, BlockId, BriefTransaction, CallContractResult,
         ContractAddresses, ContractCode, FullTransaction, InvokeFunction, StarknetError,
@@ -74,11 +75,11 @@ enum GetCodeResponse {
 }
 
 // Work UnsignedFieldElement deserialization
+#[serde_as]
 #[derive(Deserialize)]
 #[serde(untagged)]
 enum RawUnsignedFieldElementResponse {
-    #[serde(with = "hex")]
-    Data(UnsignedFieldElement),
+    Data(#[serde_as(as = "UfeHex")] UnsignedFieldElement),
     StarknetError(StarknetError),
 }
 

@@ -1,8 +1,9 @@
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
 use starknet_core::{
-    serde::unsigned_field_element::hex_slice,
+    serde::unsigned_field_element::UfeHex,
     types::{AbiEntry, EntryPointsByType, UnsignedFieldElement},
 };
 
@@ -14,13 +15,14 @@ pub struct Artifact {
     pub program: Program,
 }
 
+#[serde_as]
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Program {
     #[serde(skip_serializing)]
     pub attributes: serde::de::IgnoredAny, // Skipped since it's not used in deployment
     pub builtins: Vec<String>,
-    #[serde(with = "hex_slice")]
+    #[serde_as(as = "Vec<UfeHex>")]
     pub data: Vec<UnsignedFieldElement>,
     #[serde(skip_serializing)]
     pub debug_info: serde::de::IgnoredAny, // Skipped since it's not used in deployment

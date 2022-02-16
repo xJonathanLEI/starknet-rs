@@ -1,10 +1,12 @@
-use super::{super::serde::unsigned_field_element::hex_slice, UnsignedFieldElement};
+use super::{super::serde::unsigned_field_element::UfeHex, UnsignedFieldElement};
 
 use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
 
+#[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct ContractCode {
-    #[serde(with = "hex_slice")]
+    #[serde_as(as = "Vec<UfeHex>")]
     pub bytecode: Vec<UnsignedFieldElement>,
     pub abi: Option<Vec<AbiEntry>>,
 }

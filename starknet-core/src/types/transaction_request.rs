@@ -1,19 +1,22 @@
 use super::{
     super::serde::{
         byte_array::base64::serialize as base64_ser,
-        unsigned_field_element::{hex, hex_option},
+        unsigned_field_element::{UfeHex, UfeHexOption},
     },
     AbiEntry, UnsignedFieldElement,
 };
 
 use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
 
+#[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct AddTransactionResult {
     pub code: AddTransactionResultCode,
-    #[serde(with = "hex")]
+    #[serde_as(as = "UfeHex")]
     pub transaction_hash: UnsignedFieldElement,
-    #[serde(default, with = "hex_option")]
+    #[serde(default)]
+    #[serde_as(as = "UfeHexOption")]
     pub address: Option<UnsignedFieldElement>,
 }
 
@@ -30,19 +33,21 @@ pub enum TransactionRequest {
     InvokeFunction(InvokeFunctionTransaction),
 }
 
+#[serde_as]
 #[derive(Debug, Serialize)]
 pub struct DeployTransaction {
     pub constructor_calldata: Vec<UnsignedFieldElement>,
-    #[serde(with = "hex")]
+    #[serde_as(as = "UfeHex")]
     pub contract_address_salt: UnsignedFieldElement,
     pub contract_definition: ContractDefinition,
 }
 
+#[serde_as]
 #[derive(Debug, Serialize)]
 pub struct InvokeFunctionTransaction {
-    #[serde(with = "hex")]
+    #[serde_as(as = "UfeHex")]
     pub contract_address: UnsignedFieldElement,
-    #[serde(with = "hex")]
+    #[serde_as(as = "UfeHex")]
     pub entry_point_selector: UnsignedFieldElement,
     pub calldata: Vec<UnsignedFieldElement>,
     pub signature: Vec<UnsignedFieldElement>,
@@ -65,10 +70,11 @@ pub struct EntryPointsByType {
     pub l1_handler: Vec<EntryPoint>,
 }
 
+#[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EntryPoint {
-    #[serde(with = "hex")]
+    #[serde_as(as = "UfeHex")]
     pub selector: UnsignedFieldElement,
-    #[serde(with = "hex")]
+    #[serde_as(as = "UfeHex")]
     pub offset: UnsignedFieldElement,
 }
