@@ -11,7 +11,7 @@ mod rfc6979;
 #[cfg(test)]
 mod test_utils;
 
-pub use field_element::{FieldElement, FieldElementRepr};
+pub use field_element::FieldElement;
 
 pub use pedersen_hash::pedersen_hash;
 

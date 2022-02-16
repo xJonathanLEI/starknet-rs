@@ -14,8 +14,8 @@ const PEDERSEN_P3: EcPoint = CONSTANT_POINTS[502];
 /// * `y`: The y coordinate
 pub fn pedersen_hash(x: &FieldElement, y: &FieldElement) -> FieldElement {
     let mut result = SHIFT_POINT;
-    let x = x.into_bits();
-    let y = y.into_bits();
+    let x = x.to_bits_le();
+    let y = y.to_bits_le();
 
     // Add a_low * P1
     let tmp = PEDERSEN_P0.multiply(&x[..248]);

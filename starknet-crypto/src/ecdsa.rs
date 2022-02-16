@@ -25,7 +25,7 @@ pub struct Signature {
 ///
 /// * `private_key`: The private key
 pub fn get_public_key(private_key: &FieldElement) -> FieldElement {
-    (&CONSTANT_POINTS[1]).multiply(&private_key.into_bits()).x
+    (&CONSTANT_POINTS[1]).multiply(&private_key.to_bits_le()).x
 }
 
 /// Computes ECDSA signature given a Stark private key and message hash.
@@ -49,7 +49,7 @@ pub fn sign(
 
     let generator = &CONSTANT_POINTS[1];
 
-    let r = generator.multiply(&k.into_bits()).x;
+    let r = generator.multiply(&k.to_bits_le()).x;
     if r == FieldElement::ZERO || r >= ELEMENT_UPPER_BOUND {
         return Err(SignError::InvalidK);
     }
@@ -100,10 +100,10 @@ pub fn verify(
     }
 
     let zw = message.mul_mod_floor(&w, &EC_ORDER);
-    let zw_g = generator.multiply(&zw.into_bits());
+    let zw_g = generator.multiply(&zw.to_bits_le());
 
     let rw = r.mul_mod_floor(&w, &EC_ORDER);
-    let rw_q = full_public_key.multiply(&rw.into_bits());
+    let rw_q = full_public_key.multiply(&rw.to_bits_le());
 
     Ok(zw_g.add(&rw_q).x == *r || zw_g.subtract(&rw_q).x == *r)
 }

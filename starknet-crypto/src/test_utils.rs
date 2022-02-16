@@ -12,5 +12,5 @@ pub fn field_element_from_be_hex(hex: &str) -> FieldElement {
     let mut buffer = [0u8; 32];
     buffer[(32 - decoded.len())..].copy_from_slice(&decoded[..]);
 
-    FieldElement::from_bytes_be(buffer).unwrap()
+    FieldElement::from_bytes_be(&buffer).unwrap()
 }

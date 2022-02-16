@@ -1,7 +1,6 @@
 use crate::FieldElement;
 
 use crypto_bigint::{ArrayEncoding, ByteArray, Integer, U256};
-use ff::PrimeField;
 use hmac::digest::{BlockInput, FixedOutput, Reset, Update};
 use zeroize::{Zeroize, Zeroizing};
 
@@ -23,11 +22,11 @@ pub fn generate_k(
     // The message hash padding as implemented in `cairo-lang` is not needed here. The hash is
     // padded in `cairo-lang` only to make sure the lowest 4 bits won't get truncated, but here it's
     // never getting truncated anyways.
-    let message_hash = U256::from_be_slice(&message_hash.to_repr().0).to_be_byte_array();
-    let private_key = U256::from_be_slice(&private_key.to_repr().0);
+    let message_hash = U256::from_be_slice(&message_hash.to_bytes_be()).to_be_byte_array();
+    let private_key = U256::from_be_slice(&private_key.to_bytes_be());
 
     let seed_bytes = match seed {
-        Some(seed) => seed.to_repr().0,
+        Some(seed) => seed.to_bytes_be(),
         None => [0u8; 32],
     };
 
@@ -49,7 +48,7 @@ pub fn generate_k(
     let mut buffer = [0u8; 32];
     buffer[..].copy_from_slice(&k.to_be_byte_array()[..]);
 
-    FieldElement::from_bytes_be(buffer).unwrap()
+    FieldElement::from_bytes_be(&buffer).unwrap()
 }
 
 // Modified from upstream `rfc6979::generate_k` with a hard-coded right bit shift. The more

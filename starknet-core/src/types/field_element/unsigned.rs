@@ -272,7 +272,7 @@ impl From<UnsignedFieldElement> for FieldElement {
         value.inner.to_big_endian(&mut buffer);
 
         // This can never fail as `inner` is always smaller than field modulus
-        Self::from_bytes_be(buffer).unwrap()
+        Self::from_bytes_be(&buffer).unwrap()
     }
 }
 

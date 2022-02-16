@@ -4,7 +4,6 @@ use crate::{
 };
 
 use bitvec::{order::Lsb0, slice::BitSlice};
-use ff::Field;
 
 /// A point on an elliptic curve over [FieldElement].
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -26,8 +25,8 @@ impl EcPoint {
 
     fn identity() -> EcPoint {
         Self {
-            x: FieldElement::zero(),
-            y: FieldElement::zero(),
+            x: FieldElement::ZERO,
+            y: FieldElement::ZERO,
             infinity: true,
         }
     }
@@ -39,9 +38,9 @@ impl EcPoint {
 
         // l = (3x^2+a)/2y with a=1 from stark curve
         let lambda = {
-            let two = FieldElement::one() + FieldElement::one();
-            let three = two + FieldElement::one();
-            let dividend = three * (self.x * self.x) + FieldElement::one();
+            let two = FieldElement::ONE + FieldElement::ONE;
+            let three = two + FieldElement::ONE;
+            let dividend = three * (self.x * self.x) + FieldElement::ONE;
             let divisor_inv = (two * self.y).invert().unwrap();
             dividend * divisor_inv
         };

@@ -13,14 +13,10 @@ Low-level cryptography utilities for StarkNet
 keywords = ["ethereum", "starknet", "web3"]
 
 [dependencies]
+ark-ff = "0.3.0"
 # Parity's scale codec locks us here
 bitvec = "0.20.4"
 crypto-bigint = "0.3.2"
-# Use eqlabs's fork of ff to work around the bitvec-funty clash:
-# https://github.com/eqlabs/pathfinder/blob/8f9155a8fba60fd4f0b51d57209889a622fad6a9/crates/pedersen/Cargo.toml#L19
-ff = { git = "https://github.com/eqlabs/ff", branch = "derive_bitvec", default-features = false, features = [
-    "derive",
-]}
 hmac = "0.11.0"
 num-bigint = "0.4.3"
 num-integer = "0.1.44"
