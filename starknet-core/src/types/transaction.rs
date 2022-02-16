@@ -1,14 +1,13 @@
 use super::{
     UnsignedFieldElement,
     {
-        super::serde::unsigned_field_element::{
-            hex, hex_option, pending_block_hash::deserialize as pending_block_hash_de,
-        },
+        super::serde::unsigned_field_element::{UfeHex, UfeHexOption, UfePendingBlockHash},
         TransactionStatus,
     },
 };
 
 use serde::Deserialize;
+use serde_with::serde_as;
 
 pub enum TransactionId {
     Hash(UnsignedFieldElement),
@@ -28,20 +27,24 @@ pub enum Transaction {
     Full(FullTransaction),
 }
 
+#[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct BriefTransaction {
-    #[serde(default, with = "hex_option")]
+    #[serde(default)]
+    #[serde_as(as = "UfeHexOption")]
     pub block_hash: Option<UnsignedFieldElement>,
     #[serde(alias = "tx_status")]
     pub status: TransactionStatus,
 }
 
+#[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct FullTransaction {
     pub block_number: Option<u64>,
     pub transaction: Option<TransactionType>,
     pub status: TransactionStatus,
-    #[serde(default, deserialize_with = "pending_block_hash_de")]
+    #[serde(default)]
+    #[serde_as(as = "UfePendingBlockHash")]
     pub block_hash: Option<UnsignedFieldElement>,
     pub transaction_index: Option<u64>,
 }
@@ -54,27 +57,29 @@ pub enum EntryPointType {
     L1Handler,
 }
 
+#[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct DeployTransaction {
     pub constructor_calldata: Vec<UnsignedFieldElement>,
-    #[serde(with = "hex")]
+    #[serde_as(as = "UfeHex")]
     pub contract_address: UnsignedFieldElement,
-    #[serde(with = "hex")]
+    #[serde_as(as = "UfeHex")]
     pub contract_address_salt: UnsignedFieldElement,
-    #[serde(with = "hex")]
+    #[serde_as(as = "UfeHex")]
     pub transaction_hash: UnsignedFieldElement,
 }
 
+#[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct InvokeFunctionTransaction {
-    #[serde(with = "hex")]
+    #[serde_as(as = "UfeHex")]
     pub contract_address: UnsignedFieldElement,
     pub entry_point_type: EntryPointType,
-    #[serde(with = "hex")]
+    #[serde_as(as = "UfeHex")]
     pub entry_point_selector: UnsignedFieldElement,
     pub calldata: Vec<UnsignedFieldElement>,
     pub signature: Vec<UnsignedFieldElement>,
-    #[serde(with = "hex")]
+    #[serde_as(as = "UfeHex")]
     pub transaction_hash: UnsignedFieldElement,
 }
 

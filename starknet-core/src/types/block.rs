@@ -1,9 +1,10 @@
 use super::{
-    super::serde::unsigned_field_element::{hex, hex_option},
+    super::serde::unsigned_field_element::{UfeHex, UfeHexOption},
     ConfirmedTransactionReceipt, TransactionType, UnsignedFieldElement,
 };
 
 use serde::Deserialize;
+use serde_with::serde_as;
 
 pub enum BlockId {
     Hash(UnsignedFieldElement),
@@ -12,15 +13,18 @@ pub enum BlockId {
     Latest,
 }
 
+#[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct Block {
-    #[serde(default, with = "hex_option")]
+    #[serde(default)]
+    #[serde_as(as = "UfeHexOption")]
     pub block_hash: Option<UnsignedFieldElement>,
     pub block_number: Option<u64>,
-    #[serde(with = "hex")]
+    #[serde_as(as = "UfeHex")]
     pub parent_block_hash: UnsignedFieldElement,
     pub timestamp: u64,
-    #[serde(default, with = "hex_option")]
+    #[serde(default)]
+    #[serde_as(as = "UfeHexOption")]
     pub state_root: Option<UnsignedFieldElement>,
     pub transactions: Vec<TransactionType>,
     pub transaction_receipts: Vec<ConfirmedTransactionReceipt>,

@@ -1,19 +1,20 @@
 use super::{
-    super::serde::unsigned_field_element::{
-        hex, pending_block_hash::deserialize as pending_block_hash_de,
-    },
+    super::serde::unsigned_field_element::{UfeHex, UfePendingBlockHash},
     UnsignedFieldElement,
 };
 
 use ethereum_types::Address as L1Address;
 use serde::Deserialize;
+use serde_with::serde_as;
 
+#[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct Receipt {
-    #[serde(with = "hex")]
+    #[serde_as(as = "UfeHex")]
     pub transaction_hash: UnsignedFieldElement,
     pub status: TransactionStatus,
-    #[serde(default, deserialize_with = "pending_block_hash_de")]
+    #[serde(default)]
+    #[serde_as(as = "UfePendingBlockHash")]
     pub block_hash: Option<UnsignedFieldElement>,
     pub block_number: Option<u64>,
     pub transaction_index: Option<u64>,
@@ -22,9 +23,10 @@ pub struct Receipt {
     pub events: Vec<Event>,
 }
 
+#[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct ConfirmedReceipt {
-    #[serde(with = "hex")]
+    #[serde_as(as = "UfeHex")]
     pub transaction_hash: UnsignedFieldElement,
     pub transaction_index: u64,
     pub execution_resources: ExecutionResources,
@@ -60,17 +62,19 @@ pub struct BuiltinInstanceCounter {
     pub ec_op_builtin: u64,
 }
 
+#[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct L2ToL1Message {
-    #[serde(with = "hex")]
+    #[serde_as(as = "UfeHex")]
     pub from_address: UnsignedFieldElement,
     pub to_address: L1Address,
     pub payload: Vec<UnsignedFieldElement>,
 }
 
+#[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct Event {
-    #[serde(with = "hex")]
+    #[serde_as(as = "UfeHex")]
     pub from_address: UnsignedFieldElement,
     pub keys: Vec<UnsignedFieldElement>,
     pub data: Vec<UnsignedFieldElement>,
