@@ -1,5 +1,5 @@
-use starknet_contract::{ContractArtifact, ContractFactory};
-use starknet_core::types::UnsignedFieldElement;
+use starknet_contract::ContractFactory;
+use starknet_core::types::{ContractArtifact, UnsignedFieldElement};
 use std::str::FromStr;
 
 #[tokio::test]

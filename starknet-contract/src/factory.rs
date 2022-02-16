@@ -1,9 +1,7 @@
-use crate::ContractArtifact;
-
 use flate2::{write::GzEncoder, Compression};
 use rand::{thread_rng, RngCore};
 use starknet_core::types::{
-    AbiEntry, AddTransactionResult, ContractDefinition, DeployTransactionRequest,
+    AbiEntry, AddTransactionResult, ContractArtifact, ContractDefinition, DeployTransactionRequest,
     EntryPointsByType, TransactionRequest, UnsignedFieldElement,
 };
 use starknet_providers::Provider;

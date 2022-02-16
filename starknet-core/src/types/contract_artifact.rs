@@ -1,15 +1,14 @@
-use std::collections::BTreeMap;
+use super::{
+    super::serde::unsigned_field_element::UfeHex, AbiEntry, EntryPointsByType, UnsignedFieldElement,
+};
 
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use starknet_core::{
-    serde::unsigned_field_element::UfeHex,
-    types::{AbiEntry, EntryPointsByType, UnsignedFieldElement},
-};
+use std::collections::BTreeMap;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct Artifact {
+pub struct ContractArtifact {
     pub abi: Vec<AbiEntry>,
     pub entry_points_by_type: EntryPointsByType,
     pub program: Program,
@@ -108,13 +107,17 @@ mod tests {
 
     #[test]
     fn test_artifact_deser_oz_account() {
-        serde_json::from_str::<Artifact>(include_str!("../test-data/artifacts/oz_account.txt"))
-            .unwrap();
+        serde_json::from_str::<ContractArtifact>(include_str!(
+            "../../test-data/contracts/artifacts/oz_account.txt"
+        ))
+        .unwrap();
     }
 
     #[test]
     fn test_artifact_deser_event_example() {
-        serde_json::from_str::<Artifact>(include_str!("../test-data/artifacts/event_example.txt"))
-            .unwrap();
+        serde_json::from_str::<ContractArtifact>(include_str!(
+            "../../test-data/contracts/artifacts/event_example.txt"
+        ))
+        .unwrap();
     }
 }
