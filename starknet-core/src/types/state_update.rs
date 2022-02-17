@@ -7,6 +7,7 @@ use std::collections::HashMap;
 #[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct StateUpdate {
+    #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
     pub block_hash: Option<UnsignedFieldElement>,
     #[serde_as(as = "UfeHex")]
