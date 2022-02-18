@@ -5,7 +5,7 @@ use crate::{
     FieldElement, SignError, VerifyError,
 };
 
-const ELEMENT_UPPER_BOUND: FieldElement = FieldElement::new([
+const ELEMENT_UPPER_BOUND: FieldElement = FieldElement::from_mont([
     18446743986131435553,
     160989183,
     18446744073709255680,

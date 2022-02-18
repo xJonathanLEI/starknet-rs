@@ -13,8 +13,8 @@ pub struct FieldElement {
 }
 
 impl FieldElement {
-    pub const ZERO: FieldElement = FieldElement::new([0, 0, 0, 0]);
-    pub const ONE: FieldElement = FieldElement::new([
+    pub const ZERO: FieldElement = FieldElement::from_mont([0, 0, 0, 0]);
+    pub const ONE: FieldElement = FieldElement::from_mont([
         18446744073709551585,
         18446744073709551615,
         18446744073709551615,
@@ -22,7 +22,7 @@ impl FieldElement {
     ]);
 
     /// Create a new [FieldElement] from its Montgomery representation
-    pub const fn new(data: [u64; 4]) -> Self {
+    pub const fn from_mont(data: [u64; 4]) -> Self {
         Self {
             inner: Fp256::new(BigInteger256::new(data)),
         }
