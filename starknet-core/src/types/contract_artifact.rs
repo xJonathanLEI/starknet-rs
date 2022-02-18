@@ -1,15 +1,14 @@
-use std::collections::BTreeMap;
+use super::{
+    super::serde::unsigned_field_element::UfeHex, AbiEntry, EntryPointsByType, UnsignedFieldElement,
+};
 
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use starknet_core::{
-    serde::unsigned_field_element::UfeHex,
-    types::{AbiEntry, EntryPointsByType, UnsignedFieldElement},
-};
+use std::collections::BTreeMap;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct Artifact {
+pub struct ContractArtifact {
     pub abi: Vec<AbiEntry>,
     pub entry_points_by_type: EntryPointsByType,
     pub program: Program,
@@ -20,12 +19,12 @@ pub struct Artifact {
 #[serde(deny_unknown_fields)]
 pub struct Program {
     #[serde(skip_serializing)]
-    pub attributes: serde::de::IgnoredAny, // Skipped since it's not used in deployment
+    pub attributes: Option<serde::de::IgnoredAny>, // Skipped since it's not used in deployment
     pub builtins: Vec<String>,
     #[serde_as(as = "Vec<UfeHex>")]
     pub data: Vec<UnsignedFieldElement>,
     #[serde(skip_serializing)]
-    pub debug_info: serde::de::IgnoredAny, // Skipped since it's not used in deployment
+    pub debug_info: Option<serde::de::IgnoredAny>, // Skipped since it's not used in deployment
     pub hints: BTreeMap<u64, Vec<Hint>>,
     pub identifiers: BTreeMap<String, Identifier>,
     pub main_scope: String,
@@ -108,13 +107,33 @@ mod tests {
 
     #[test]
     fn test_artifact_deser_oz_account() {
-        serde_json::from_str::<Artifact>(include_str!("../test-data/artifacts/oz_account.txt"))
-            .unwrap();
+        serde_json::from_str::<ContractArtifact>(include_str!(
+            "../../test-data/contracts/artifacts/oz_account.txt"
+        ))
+        .unwrap();
     }
 
     #[test]
     fn test_artifact_deser_event_example() {
-        serde_json::from_str::<Artifact>(include_str!("../test-data/artifacts/event_example.txt"))
-            .unwrap();
+        serde_json::from_str::<ContractArtifact>(include_str!(
+            "../../test-data/contracts/artifacts/event_example.txt"
+        ))
+        .unwrap();
+    }
+
+    #[test]
+    fn test_get_full_contract_deser_code() {
+        serde_json::from_str::<ContractArtifact>(include_str!(
+            "../../test-data/raw_gateway_responses/get_full_contract/1_code.txt"
+        ))
+        .unwrap();
+    }
+
+    #[test]
+    fn test_get_full_contract_deser_all_abi_types() {
+        serde_json::from_str::<ContractArtifact>(include_str!(
+            "../../test-data/raw_gateway_responses/get_full_contract/2_all_abi_types.txt"
+        ))
+        .unwrap();
     }
 }

@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use starknet_core::types::{
     AddTransactionResult, Block, BlockId, BriefTransaction, CallContractResult, ContractAddresses,
-    ContractCode, FullTransaction, InvokeFunction, TransactionId, TransactionReceipt,
-    TransactionRequest, UnsignedFieldElement,
+    ContractArtifact, ContractCode, FullTransaction, InvokeFunction, StateUpdate, TransactionId,
+    TransactionReceipt, TransactionRequest, UnsignedFieldElement,
 };
 use std::error::Error;
 
@@ -26,11 +26,20 @@ pub trait Provider {
 
     async fn get_block(&self, block_identifier: BlockId) -> Result<Block, Self::Error>;
 
+    async fn get_state_update(&self, block_identifier: BlockId)
+        -> Result<StateUpdate, Self::Error>;
+
     async fn get_code(
         &self,
         contract_address: UnsignedFieldElement,
         block_identifier: BlockId,
     ) -> Result<ContractCode, Self::Error>;
+
+    async fn get_full_contract(
+        &self,
+        contract_address: UnsignedFieldElement,
+        block_identifier: BlockId,
+    ) -> Result<ContractArtifact, Self::Error>;
 
     async fn get_storage_at(
         &self,

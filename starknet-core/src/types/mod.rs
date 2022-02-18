@@ -40,3 +40,9 @@ pub use transaction_request::{
 
 pub mod field_element;
 pub use field_element::UnsignedFieldElement;
+
+pub mod state_update;
+pub use state_update::StateUpdate;
+
+pub mod contract_artifact;
+pub use contract_artifact::ContractArtifact;
