@@ -1,8 +1,8 @@
-use crate::FieldElement;
-
 use crypto_bigint::{ArrayEncoding, ByteArray, Integer, U256};
 use hmac::digest::{BlockInput, FixedOutput, Reset, Update};
 use zeroize::{Zeroize, Zeroizing};
+
+use crate::FieldElement;
 
 const EC_ORDER: U256 =
     U256::from_be_hex("0800000000000010ffffffffffffffffb781126dcae7b2321e66a241adc64d2f");

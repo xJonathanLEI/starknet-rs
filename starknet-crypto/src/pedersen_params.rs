@@ -1,4 +1,4 @@
-use crate::{ec_point::EcPoint, field_element::FieldElement};
+use crate::{ec_point::EcPoint, FieldElement};
 
 pub const EC_ORDER: FieldElement = FieldElement::new([
     8939893405601011193,

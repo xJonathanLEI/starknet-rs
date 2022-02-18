@@ -1,9 +1,9 @@
-use crate::{
-    field_element::FieldElement,
-    pedersen_params::{ALPHA, BETA},
-};
-
 use bitvec::{order::Lsb0, slice::BitSlice};
+
+use crate::{
+    pedersen_params::{ALPHA, BETA},
+    FieldElement,
+};
 
 /// A point on an elliptic curve over [FieldElement].
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]

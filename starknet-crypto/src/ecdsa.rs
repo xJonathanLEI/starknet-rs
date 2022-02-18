@@ -1,5 +1,6 @@
 use crate::{
     ec_point::EcPoint,
+    fe_utils::{add_unbounded, bigint_mul_mod_floor, mod_inverse, mul_mod_floor},
     pedersen_params::{CONSTANT_POINTS, EC_ORDER},
     FieldElement, SignError, VerifyError,
 };
@@ -54,11 +55,11 @@ pub fn sign(
         return Err(SignError::InvalidK);
     }
 
-    let k_inv = k.mod_inverse(&EC_ORDER);
+    let k_inv = mod_inverse(k, &EC_ORDER);
 
-    let s = r.mul_mod_floor(private_key, &EC_ORDER);
-    let s = s.add_unbounded(message);
-    let s = FieldElement::bigint_mul_mod_floor(s, &k_inv, &EC_ORDER);
+    let s = mul_mod_floor(&r, private_key, &EC_ORDER);
+    let s = add_unbounded(&s, message);
+    let s = bigint_mul_mod_floor(s, &k_inv, &EC_ORDER);
     if s == FieldElement::ZERO || s >= EC_ORDER {
         return Err(SignError::InvalidK);
     }
@@ -94,15 +95,15 @@ pub fn verify(
 
     let generator = &CONSTANT_POINTS[1];
 
-    let w = s.mod_inverse(&EC_ORDER);
+    let w = mod_inverse(s, &EC_ORDER);
     if w == FieldElement::ZERO || w >= ELEMENT_UPPER_BOUND {
         return Err(VerifyError::InvalidS);
     }
 
-    let zw = message.mul_mod_floor(&w, &EC_ORDER);
+    let zw = mul_mod_floor(message, &w, &EC_ORDER);
     let zw_g = generator.multiply(&zw.to_bits_le());
 
-    let rw = r.mul_mod_floor(&w, &EC_ORDER);
+    let rw = mul_mod_floor(r, &w, &EC_ORDER);
     let rw_q = full_public_key.multiply(&rw.to_bits_le());
 
     Ok(zw_g.add(&rw_q).x == *r || zw_g.subtract(&rw_q).x == *r)

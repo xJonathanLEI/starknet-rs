@@ -3,7 +3,7 @@
 mod ec_point;
 mod ecdsa;
 mod error;
-mod field_element;
+mod fe_utils;
 mod pedersen_hash;
 mod pedersen_params;
 mod rfc6979;
@@ -11,7 +11,7 @@ mod rfc6979;
 #[cfg(test)]
 mod test_utils;
 
-pub use field_element::FieldElement;
+pub use starknet_ff::FieldElement;
 
 pub use pedersen_hash::pedersen_hash;
 
