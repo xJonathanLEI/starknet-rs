@@ -1720,6 +1720,10 @@ version = "0.1.0"
 dependencies = [
  "ark-ff",
  "bitvec",
+ "crypto-bigint",
+ "hex",
+ "serde",
+ "thiserror",
 ]
 
 [[package]]
