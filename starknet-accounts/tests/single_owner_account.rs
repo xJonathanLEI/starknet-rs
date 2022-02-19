@@ -1,23 +1,22 @@
 use starknet_accounts::{Account, SingleOwnerAccount};
 use starknet_core::{
-    types::{AddTransactionResultCode, BlockId, UnsignedFieldElement},
+    types::{AddTransactionResultCode, BlockId, FieldElement},
     utils::get_selector_from_name,
 };
 use starknet_providers::SequencerGatewayProvider;
 use starknet_signers::{LocalWallet, SigningKey};
-use std::str::FromStr;
 
 #[tokio::test]
 #[ignore = "temporarily skipping test until Starkware improves network stability"]
 async fn can_get_nonce() {
     let provider = SequencerGatewayProvider::starknet_alpha_goerli();
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        UnsignedFieldElement::from_hex_str(
+        FieldElement::from_hex_be(
             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
         )
         .unwrap(),
     ));
-    let address = UnsignedFieldElement::from_hex_str(
+    let address = FieldElement::from_hex_be(
         "05882e52432ed597982a4d2246148e5e470b6eb8d19978a3c15a479962bca059",
     )
     .unwrap();
@@ -26,7 +25,7 @@ async fn can_get_nonce() {
 
     assert_ne!(
         account.get_nonce(BlockId::Latest).await.unwrap(),
-        UnsignedFieldElement::ZERO
+        FieldElement::ZERO
     );
 }
 
@@ -42,16 +41,16 @@ async fn can_execute_tst_mint() {
 
     let provider = SequencerGatewayProvider::starknet_alpha_goerli();
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        UnsignedFieldElement::from_hex_str(
+        FieldElement::from_hex_be(
             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
         )
         .unwrap(),
     ));
-    let address = UnsignedFieldElement::from_hex_str(
+    let address = FieldElement::from_hex_be(
         "05882e52432ed597982a4d2246148e5e470b6eb8d19978a3c15a479962bca059",
     )
     .unwrap();
-    let tst_token_address = UnsignedFieldElement::from_hex_str(
+    let tst_token_address = FieldElement::from_hex_be(
         "07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
     )
     .unwrap();
@@ -65,8 +64,8 @@ async fn can_execute_tst_mint() {
             get_selector_from_name("mint").unwrap(),
             &[
                 address,
-                UnsignedFieldElement::from_str("1000000000000000000000").unwrap(),
-                UnsignedFieldElement::ZERO,
+                FieldElement::from_dec_str("1000000000000000000000").unwrap(),
+                FieldElement::ZERO,
             ],
             nonce,
         )

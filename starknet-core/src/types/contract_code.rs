@@ -1,4 +1,4 @@
-use super::{super::serde::unsigned_field_element::UfeHex, UnsignedFieldElement};
+use super::{super::serde::unsigned_field_element::UfeHex, FieldElement};
 
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
@@ -7,7 +7,7 @@ use serde_with::serde_as;
 #[derive(Debug, Deserialize)]
 pub struct ContractCode {
     #[serde_as(as = "Vec<UfeHex>")]
-    pub bytecode: Vec<UnsignedFieldElement>,
+    pub bytecode: Vec<FieldElement>,
     pub abi: Option<Vec<AbiEntry>>,
 }
 

@@ -1,6 +1,6 @@
 use super::{
     super::serde::unsigned_field_element::{UfeHex, UfePendingBlockHash},
-    UnsignedFieldElement,
+    FieldElement,
 };
 
 use ethereum_types::Address as L1Address;
@@ -11,11 +11,11 @@ use serde_with::serde_as;
 #[derive(Debug, Deserialize)]
 pub struct Receipt {
     #[serde_as(as = "UfeHex")]
-    pub transaction_hash: UnsignedFieldElement,
+    pub transaction_hash: FieldElement,
     pub status: TransactionStatus,
     #[serde(default)]
     #[serde_as(as = "UfePendingBlockHash")]
-    pub block_hash: Option<UnsignedFieldElement>,
+    pub block_hash: Option<FieldElement>,
     pub block_number: Option<u64>,
     pub transaction_index: Option<u64>,
     pub execution_resources: Option<ExecutionResources>,
@@ -27,7 +27,7 @@ pub struct Receipt {
 #[derive(Debug, Deserialize)]
 pub struct ConfirmedReceipt {
     #[serde_as(as = "UfeHex")]
-    pub transaction_hash: UnsignedFieldElement,
+    pub transaction_hash: FieldElement,
     pub transaction_index: u64,
     pub execution_resources: ExecutionResources,
     pub l2_to_l1_messages: Vec<L2ToL1Message>,
@@ -66,18 +66,18 @@ pub struct BuiltinInstanceCounter {
 #[derive(Debug, Deserialize)]
 pub struct L2ToL1Message {
     #[serde_as(as = "UfeHex")]
-    pub from_address: UnsignedFieldElement,
+    pub from_address: FieldElement,
     pub to_address: L1Address,
-    pub payload: Vec<UnsignedFieldElement>,
+    pub payload: Vec<FieldElement>,
 }
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct Event {
     #[serde_as(as = "UfeHex")]
-    pub from_address: UnsignedFieldElement,
-    pub keys: Vec<UnsignedFieldElement>,
-    pub data: Vec<UnsignedFieldElement>,
+    pub from_address: FieldElement,
+    pub keys: Vec<FieldElement>,
+    pub data: Vec<FieldElement>,
 }
 
 #[cfg(test)]
@@ -109,7 +109,7 @@ mod tests {
         assert_eq!(receipt.status, TransactionStatus::NotReceived);
         assert_eq!(
             receipt.transaction_hash,
-            UnsignedFieldElement::from_hex_str(
+            FieldElement::from_hex_be(
                 "0x0000000000000000000000000000000000000000000000000000000000000000"
             )
             .unwrap()
@@ -130,8 +130,8 @@ mod tests {
     #[test]
     fn test_transaction_status_deser_accepted_on_l2() {
         // note that the hashes coming from the API can be shorter
-        // by a byte or two than the UnsignedFieldElement into which we serialize into,
-        // that's why there's extra 0 in the UnsignedFieldElement::from_str values
+        // by a byte or two than the FieldElement into which we serialize into,
+        // that's why there's extra 0 in the FieldElement::from_str values
 
         // curl -X GET https://alpha4.starknet.io/feeder_gateway/get_transaction_status\?transactionHash\=0x5d76420c7e7002c20d54c93fc8dbd056638f1a35a654748fc0647fda1a3f088
         let raw = r#"{
@@ -143,7 +143,7 @@ mod tests {
         assert_eq!(tx.status, TransactionStatus::AcceptedOnL2);
         assert_eq!(
             tx.block_hash.unwrap(),
-            UnsignedFieldElement::from_hex_str(
+            FieldElement::from_hex_be(
                 "0x07b44bda3371fa91541e719493b1638b71c7ccf2304dc67bbadb028dbfa16dec",
             )
             .unwrap()
@@ -162,7 +162,7 @@ mod tests {
         assert_eq!(tx.status, TransactionStatus::AcceptedOnL1);
         assert_eq!(
             tx.block_hash.unwrap(),
-            UnsignedFieldElement::from_hex_str(
+            FieldElement::from_hex_be(
                 "0x005da543f8121c912cd2a80ae386f1aa6d4df626695742cf870c85690bb1ab60"
             )
             .unwrap()

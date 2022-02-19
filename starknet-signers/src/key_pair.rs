@@ -1,49 +1,49 @@
 use starknet_core::{
     crypto::{ecdsa_sign, ecdsa_verify, EcdsaSignError, EcdsaVerifyError, Signature},
-    types::UnsignedFieldElement,
+    types::FieldElement,
 };
 use starknet_crypto::get_public_key;
 
 #[derive(Debug)]
 pub struct SigningKey {
-    secret_scalar: UnsignedFieldElement,
+    secret_scalar: FieldElement,
 }
 
 #[derive(Debug)]
 pub struct VerifyingKey {
-    scalar: UnsignedFieldElement,
+    scalar: FieldElement,
 }
 
 impl SigningKey {
-    pub fn from_secret_scalar(secret_scalar: UnsignedFieldElement) -> Self {
+    pub fn from_secret_scalar(secret_scalar: FieldElement) -> Self {
         Self { secret_scalar }
     }
 
-    pub fn secret_scalar(&self) -> UnsignedFieldElement {
+    pub fn secret_scalar(&self) -> FieldElement {
         self.secret_scalar
     }
 
     pub fn verifying_key(&self) -> VerifyingKey {
-        VerifyingKey::from_scalar(get_public_key(&self.secret_scalar.into()).into())
+        VerifyingKey::from_scalar(get_public_key(&self.secret_scalar))
     }
 
-    pub fn sign(&self, hash: &UnsignedFieldElement) -> Result<Signature, EcdsaSignError> {
+    pub fn sign(&self, hash: &FieldElement) -> Result<Signature, EcdsaSignError> {
         ecdsa_sign(&self.secret_scalar, hash)
     }
 }
 
 impl VerifyingKey {
-    pub fn from_scalar(scalar: UnsignedFieldElement) -> Self {
+    pub fn from_scalar(scalar: FieldElement) -> Self {
         Self { scalar }
     }
 
-    pub fn scalar(&self) -> UnsignedFieldElement {
+    pub fn scalar(&self) -> FieldElement {
         self.scalar
     }
 
     pub fn verify(
         &self,
-        hash: &UnsignedFieldElement,
+        hash: &FieldElement,
         signature: &Signature,
     ) -> Result<bool, EcdsaVerifyError> {
         ecdsa_verify(&self.scalar, hash, signature)
@@ -57,7 +57,7 @@ mod tests {
     #[test]
     fn test_get_secret_scalar() {
         // Generated with `cairo-lang`
-        let private_key = UnsignedFieldElement::from_hex_str(
+        let private_key = FieldElement::from_hex_be(
             "0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79",
         )
         .unwrap();
@@ -70,11 +70,11 @@ mod tests {
     #[test]
     fn test_get_verifying_key() {
         // Generated with `cairo-lang`
-        let private_key = UnsignedFieldElement::from_hex_str(
+        let private_key = FieldElement::from_hex_be(
             "0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79",
         )
         .unwrap();
-        let expected_public_key = UnsignedFieldElement::from_hex_str(
+        let expected_public_key = FieldElement::from_hex_be(
             "02c5dbad71c92a45cc4b40573ae661f8147869a91d57b8d9b8f48c8af7f83159",
         )
         .unwrap();
@@ -88,19 +88,19 @@ mod tests {
     #[test]
     fn test_sign() {
         // Generated with `cairo-lang`
-        let private_key = UnsignedFieldElement::from_hex_str(
+        let private_key = FieldElement::from_hex_be(
             "0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79",
         )
         .unwrap();
-        let hash = UnsignedFieldElement::from_hex_str(
+        let hash = FieldElement::from_hex_be(
             "06fea80189363a786037ed3e7ba546dad0ef7de49fccae0e31eb658b7dd4ea76",
         )
         .unwrap();
-        let expected_r = UnsignedFieldElement::from_hex_str(
+        let expected_r = FieldElement::from_hex_be(
             "061ec782f76a66f6984efc3a1b6d152a124c701c00abdd2bf76641b4135c770f",
         )
         .unwrap();
-        let expected_s = UnsignedFieldElement::from_hex_str(
+        let expected_s = FieldElement::from_hex_be(
             "04e44e759cea02c23568bb4d8a09929bbca8768ab68270d50c18d214166ccd9a",
         )
         .unwrap();
@@ -114,11 +114,11 @@ mod tests {
 
     #[test]
     fn test_hash_out_of_range() {
-        let private_key = UnsignedFieldElement::from_hex_str(
+        let private_key = FieldElement::from_hex_be(
             "0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79",
         )
         .unwrap();
-        let hash = UnsignedFieldElement::from_hex_str(
+        let hash = FieldElement::from_hex_be(
             "0800000000000000000000000000000000000000000000000000000000000000",
         )
         .unwrap();
@@ -134,19 +134,19 @@ mod tests {
     #[test]
     fn test_verify_valid_signature() {
         // Generated with `cairo-lang`
-        let public_key = UnsignedFieldElement::from_hex_str(
+        let public_key = FieldElement::from_hex_be(
             "02c5dbad71c92a45cc4b40573ae661f8147869a91d57b8d9b8f48c8af7f83159",
         )
         .unwrap();
-        let hash = UnsignedFieldElement::from_hex_str(
+        let hash = FieldElement::from_hex_be(
             "06fea80189363a786037ed3e7ba546dad0ef7de49fccae0e31eb658b7dd4ea76",
         )
         .unwrap();
-        let r = UnsignedFieldElement::from_hex_str(
+        let r = FieldElement::from_hex_be(
             "061ec782f76a66f6984efc3a1b6d152a124c701c00abdd2bf76641b4135c770f",
         )
         .unwrap();
-        let s = UnsignedFieldElement::from_hex_str(
+        let s = FieldElement::from_hex_be(
             "04e44e759cea02c23568bb4d8a09929bbca8768ab68270d50c18d214166ccd9a",
         )
         .unwrap();
@@ -162,19 +162,19 @@ mod tests {
     #[test]
     fn test_verify_invalid_signature() {
         // Generated with `cairo-lang`
-        let public_key = UnsignedFieldElement::from_hex_str(
+        let public_key = FieldElement::from_hex_be(
             "02c5dbad71c92a45cc4b40573ae661f8147869a91d57b8d9b8f48c8af7f83159",
         )
         .unwrap();
-        let hash = UnsignedFieldElement::from_hex_str(
+        let hash = FieldElement::from_hex_be(
             "06fea80189363a786037ed3e7ba546dad0ef7de49fccae0e31eb658b7dd4ea76",
         )
         .unwrap();
-        let r = UnsignedFieldElement::from_hex_str(
+        let r = FieldElement::from_hex_be(
             "061ec782f76a66f6984efc3a1b6d152a124c701c00abdd2bf76641b4135c770f",
         )
         .unwrap();
-        let s = UnsignedFieldElement::from_hex_str(
+        let s = FieldElement::from_hex_be(
             "04e44e759cea02c23568bb4d8a09929bbca8768ab68270d50c18d214166ccd9b",
         )
         .unwrap();

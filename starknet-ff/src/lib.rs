@@ -12,7 +12,7 @@ mod fr;
 
 const U256_BYTE_COUNT: usize = 32;
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Hash)]
 pub struct FieldElement {
     inner: Fp256<FrParameters>,
 }

@@ -1,14 +1,12 @@
-use crate::types::UnsignedFieldElement;
+use crate::types::FieldElement;
 
-use starknet_crypto::{
-    pedersen_hash, rfc6979_generate_k, sign, verify, FieldElement, SignError, VerifyError,
-};
+use starknet_crypto::{pedersen_hash, rfc6979_generate_k, sign, verify, SignError, VerifyError};
 use thiserror::Error;
 
 #[derive(Debug)]
 pub struct Signature {
-    pub r: UnsignedFieldElement,
-    pub s: UnsignedFieldElement,
+    pub r: FieldElement,
+    pub s: FieldElement,
 }
 
 #[derive(Debug, Error)]
@@ -27,37 +25,29 @@ pub enum EcdsaVerifyError {
     SignatureSOutOfRange,
 }
 
-pub fn compute_hash_on_elements(data: &[UnsignedFieldElement]) -> UnsignedFieldElement {
+pub fn compute_hash_on_elements(data: &[FieldElement]) -> FieldElement {
     let mut current_hash = FieldElement::ZERO;
 
     for item in data.iter() {
-        current_hash = pedersen_hash(&current_hash, &(*item).into());
+        current_hash = pedersen_hash(&current_hash, &(*item));
     }
 
-    let data_len = UnsignedFieldElement::from(data.len());
-    current_hash = pedersen_hash(&current_hash, &data_len.into());
-
-    current_hash.into()
+    let data_len = FieldElement::from(data.len());
+    pedersen_hash(&current_hash, &data_len)
 }
 
 pub fn ecdsa_sign(
-    private_key: &UnsignedFieldElement,
-    message_hash: &UnsignedFieldElement,
+    private_key: &FieldElement,
+    message_hash: &FieldElement,
 ) -> Result<Signature, EcdsaSignError> {
-    let private_key_fe = (*private_key).into();
-    let message_hash_fe = (*message_hash).into();
-
     // Seed-retry logic ported from `cairo-lang`
     let mut seed = None;
     loop {
-        let k = rfc6979_generate_k(&message_hash_fe, &private_key_fe, seed.as_ref());
+        let k = rfc6979_generate_k(message_hash, private_key, seed.as_ref());
 
-        match sign(&private_key_fe, &message_hash_fe, &k) {
+        match sign(private_key, message_hash, &k) {
             Ok(sig) => {
-                return Ok(Signature {
-                    r: sig.r.into(),
-                    s: sig.s.into(),
-                });
+                return Ok(Signature { r: sig.r, s: sig.s });
             }
             Err(SignError::InvalidMessageHash) => {
                 return Err(EcdsaSignError::MessageHashOutOfRange)
@@ -74,16 +64,11 @@ pub fn ecdsa_sign(
 }
 
 pub fn ecdsa_verify(
-    public_key: &UnsignedFieldElement,
-    message_hash: &UnsignedFieldElement,
+    public_key: &FieldElement,
+    message_hash: &FieldElement,
     signature: &Signature,
 ) -> Result<bool, EcdsaVerifyError> {
-    match verify(
-        &(*public_key).into(),
-        &(*message_hash).into(),
-        &signature.r.into(),
-        &signature.s.into(),
-    ) {
+    match verify(public_key, message_hash, &signature.r, &signature.s) {
         Ok(result) => Ok(result),
         Err(VerifyError::InvalidMessageHash) => Err(EcdsaVerifyError::MessageHashOutOfRange),
         Err(VerifyError::InvalidR) => Err(EcdsaVerifyError::SignatureROutOfRange),
@@ -99,12 +84,12 @@ mod tests {
     fn test_compute_hash_on_elements() {
         // Generated with `cairo-lang`
         let hash = compute_hash_on_elements(&[
-            UnsignedFieldElement::from_hex_str("0xaa").unwrap(),
-            UnsignedFieldElement::from_hex_str("0xbb").unwrap(),
-            UnsignedFieldElement::from_hex_str("0xcc").unwrap(),
-            UnsignedFieldElement::from_hex_str("0xdd").unwrap(),
+            FieldElement::from_hex_be("0xaa").unwrap(),
+            FieldElement::from_hex_be("0xbb").unwrap(),
+            FieldElement::from_hex_be("0xcc").unwrap(),
+            FieldElement::from_hex_be("0xdd").unwrap(),
         ]);
-        let expected_hash = UnsignedFieldElement::from_hex_str(
+        let expected_hash = FieldElement::from_hex_be(
             "025cde77210b1c223b2c6e69db6e9021aa1599177ab177474d5326cd2a62cb69",
         )
         .unwrap();
@@ -116,7 +101,7 @@ mod tests {
     fn test_compute_hash_on_elements_empty_data() {
         // Generated with `cairo-lang`
         let hash = compute_hash_on_elements(&[]);
-        let expected_hash = UnsignedFieldElement::from_hex_str(
+        let expected_hash = FieldElement::from_hex_be(
             "049ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804",
         )
         .unwrap();
@@ -128,21 +113,21 @@ mod tests {
     fn test_ecdsa_sign() {
         // Generated with `cairo-lang`
         let signature = ecdsa_sign(
-            &UnsignedFieldElement::from_hex_str(
+            &FieldElement::from_hex_be(
                 "0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79",
             )
             .unwrap(),
-            &UnsignedFieldElement::from_hex_str(
+            &FieldElement::from_hex_be(
                 "06fea80189363a786037ed3e7ba546dad0ef7de49fccae0e31eb658b7dd4ea76",
             )
             .unwrap(),
         )
         .unwrap();
-        let expected_r = UnsignedFieldElement::from_hex_str(
+        let expected_r = FieldElement::from_hex_be(
             "061ec782f76a66f6984efc3a1b6d152a124c701c00abdd2bf76641b4135c770f",
         )
         .unwrap();
-        let expected_s = UnsignedFieldElement::from_hex_str(
+        let expected_s = FieldElement::from_hex_be(
             "04e44e759cea02c23568bb4d8a09929bbca8768ab68270d50c18d214166ccd9a",
         )
         .unwrap();
@@ -154,11 +139,11 @@ mod tests {
     #[test]
     fn test_ecdsa_sign_message_hash_out_of_range() {
         match ecdsa_sign(
-            &UnsignedFieldElement::from_hex_str(
+            &FieldElement::from_hex_be(
                 "0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79",
             )
             .unwrap(),
-            &UnsignedFieldElement::from_hex_str(
+            &FieldElement::from_hex_be(
                 "0800000000000000000000000000000000000000000000000000000000000000",
             )
             .unwrap(),
@@ -171,19 +156,19 @@ mod tests {
     #[test]
     fn test_ecdsa_verify_valid_signature() {
         // Generated with `cairo-lang`
-        let public_key = UnsignedFieldElement::from_hex_str(
+        let public_key = FieldElement::from_hex_be(
             "02c5dbad71c92a45cc4b40573ae661f8147869a91d57b8d9b8f48c8af7f83159",
         )
         .unwrap();
-        let message_hash = UnsignedFieldElement::from_hex_str(
+        let message_hash = FieldElement::from_hex_be(
             "06fea80189363a786037ed3e7ba546dad0ef7de49fccae0e31eb658b7dd4ea76",
         )
         .unwrap();
-        let r = UnsignedFieldElement::from_hex_str(
+        let r = FieldElement::from_hex_be(
             "061ec782f76a66f6984efc3a1b6d152a124c701c00abdd2bf76641b4135c770f",
         )
         .unwrap();
-        let s = UnsignedFieldElement::from_hex_str(
+        let s = FieldElement::from_hex_be(
             "04e44e759cea02c23568bb4d8a09929bbca8768ab68270d50c18d214166ccd9a",
         )
         .unwrap();
@@ -197,19 +182,19 @@ mod tests {
     #[test]
     fn test_ecdsa_verify_invalid_signature() {
         // Generated with `cairo-lang`
-        let public_key = UnsignedFieldElement::from_hex_str(
+        let public_key = FieldElement::from_hex_be(
             "02c5dbad71c92a45cc4b40573ae661f8147869a91d57b8d9b8f48c8af7f83159",
         )
         .unwrap();
-        let message_hash = UnsignedFieldElement::from_hex_str(
+        let message_hash = FieldElement::from_hex_be(
             "06fea80189363a786037ed3e7ba546dad0ef7de49fccae0e31eb658b7dd4ea76",
         )
         .unwrap();
-        let r = UnsignedFieldElement::from_hex_str(
+        let r = FieldElement::from_hex_be(
             "061ec782f76a66f6984efc3a1b6d152a124c701c00abdd2bf76641b4135c770f",
         )
         .unwrap();
-        let s = UnsignedFieldElement::from_hex_str(
+        let s = FieldElement::from_hex_be(
             "04e44e759cea02c23568bb4d8a09929bbca8768ab68270d50c18d214166ccd9b",
         )
         .unwrap();

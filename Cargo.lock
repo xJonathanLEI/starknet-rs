@@ -1689,6 +1689,7 @@ dependencies = [
  "serde_with",
  "sha3",
  "starknet-crypto",
+ "starknet-ff",
  "thiserror",
 ]
 

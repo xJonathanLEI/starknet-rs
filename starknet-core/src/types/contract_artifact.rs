@@ -1,5 +1,5 @@
 use super::{
-    super::serde::unsigned_field_element::UfeHex, AbiEntry, EntryPointsByType, UnsignedFieldElement,
+    super::serde::unsigned_field_element::UfeHex, AbiEntry, EntryPointsByType, FieldElement,
 };
 
 use serde::{Deserialize, Serialize};
@@ -22,13 +22,13 @@ pub struct Program {
     pub attributes: Option<serde::de::IgnoredAny>, // Skipped since it's not used in deployment
     pub builtins: Vec<String>,
     #[serde_as(as = "Vec<UfeHex>")]
-    pub data: Vec<UnsignedFieldElement>,
+    pub data: Vec<FieldElement>,
     #[serde(skip_serializing)]
     pub debug_info: Option<serde::de::IgnoredAny>, // Skipped since it's not used in deployment
     pub hints: BTreeMap<u64, Vec<Hint>>,
     pub identifiers: BTreeMap<String, Identifier>,
     pub main_scope: String,
-    // Impossible to use [UnsignedFieldElement] here as by definition field elements are smaller
+    // Impossible to use [FieldElement] here as by definition field elements are smaller
     // than prime
     pub prime: String,
     pub reference_manager: ReferenceManager,

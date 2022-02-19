@@ -38,8 +38,7 @@ pub use transaction_request::{
     InvokeFunctionTransaction as InvokeFunctionTransactionRequest, TransactionRequest,
 };
 
-pub mod field_element;
-pub use field_element::UnsignedFieldElement;
+pub use starknet_ff::*;
 
 pub mod state_update;
 pub use state_update::StateUpdate;
