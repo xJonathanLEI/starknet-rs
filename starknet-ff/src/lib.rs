@@ -6,13 +6,13 @@ use ark_ff::{fields::Fp256, BigInteger, BigInteger256, Field, PrimeField, Square
 use bitvec::{array::BitArray, order::Lsb0};
 use crypto_bigint::{CheckedAdd, CheckedMul, Zero, U256};
 use serde::{Deserialize, Serialize};
-use std::fmt::{Display, LowerHex, UpperHex};
+use std::fmt::{Debug, Display, LowerHex, UpperHex};
 
 mod fr;
 
 const U256_BYTE_COUNT: usize = 32;
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Hash)]
 pub struct FieldElement {
     inner: Fp256<FrParameters>,
 }
@@ -46,6 +46,8 @@ pub enum FromByteSliceError {
 #[derive(Debug, thiserror::Error)]
 #[error("number out of range")]
 pub struct FromByteArrayError;
+
+struct InnerDebug<'a>(pub &'a FieldElement);
 
 impl FieldElement {
     /// [FieldElement] constant that's equal to 0
@@ -230,6 +232,14 @@ impl std::ops::Neg for FieldElement {
     }
 }
 
+impl Debug for FieldElement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("FieldElement")
+            .field("inner", &InnerDebug(self))
+            .finish()
+    }
+}
+
 impl Display for FieldElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // Ported from:
@@ -348,6 +358,12 @@ impl From<usize> for FieldElement {
             inner: Fp256::<FrParameters>::from_repr(BigInteger256::new([value as u64, 0, 0, 0]))
                 .unwrap(),
         }
+    }
+}
+
+impl<'a> Debug for InnerDebug<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:#064x}", self.0)
     }
 }
 
