@@ -71,8 +71,8 @@ async fn main() {
 use std::str::FromStr;
 
 use starknet::{
-    contract::{ContractArtifact, ContractFactory},
-    core::types::UnsignedFieldElement,
+    contract::ContractFactory,
+    core::types::{ContractArtifact, UnsignedFieldElement},
     providers::SequencerGatewayProvider,
 };
 
