@@ -1,20 +1,20 @@
-use crate::{ec_point::EcPoint, field_element::FieldElement};
+use crate::{ec_point::EcPoint, FieldElement};
 
-pub const EC_ORDER: FieldElement = FieldElement::new([
+pub const EC_ORDER: FieldElement = FieldElement::from_mont([
     8939893405601011193,
     1143265896874747514,
     9,
     369010039416812937,
 ]);
 
-pub const ALPHA: FieldElement = FieldElement::new([
+pub const ALPHA: FieldElement = FieldElement::from_mont([
     18446744073709551585,
     18446744073709551615,
     18446744073709551615,
     576460752303422960,
 ]);
 
-pub const BETA: FieldElement = FieldElement::new([
+pub const BETA: FieldElement = FieldElement::from_mont([
     3863487492851900874,
     7432612994240712710,
     12360725113329547591,
@@ -23,13 +23,13 @@ pub const BETA: FieldElement = FieldElement::new([
 
 pub const CONSTANT_POINTS: [EcPoint; 506] = [
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1933903796324928314,
             7739989395386261137,
             1641324389046377921,
             316327189671755572,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14252083571674603243,
             12587053260418384210,
             4798858472748676776,
@@ -38,13 +38,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14484022957141291997,
             5884444832209845738,
             299981207024966779,
             232005955912912577,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6241159653446987914,
             664812301889158119,
             18147424675297964973,
@@ -53,13 +53,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3602345268353203007,
             13758484295849329960,
             518715844721862878,
             241691544791834578,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13441546676070136227,
             13001553326386915570,
             433857700841878496,
@@ -68,13 +68,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16390798442227108542,
             4459397208487568853,
             6299111438052962557,
             275749452099435948,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1280036789011951735,
             2792097536409196339,
             3069182914186845479,
@@ -83,13 +83,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1852679819546688474,
             11720024525106607284,
             18226840214477480010,
             224249572646532941,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14528472358788883832,
             12527404634214091799,
             13962287978638919074,
@@ -98,13 +98,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11906898082339326253,
             14005401007936979841,
             13677815028167526775,
             177482561045637325,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7065046784534526604,
             3506666571320247296,
             9271671314531910510,
@@ -113,13 +113,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7879889331196042675,
             8000735345716179736,
             11134029773577570755,
             503285931539484467,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14876474552510719042,
             15598122510424452671,
             5018335632706699354,
@@ -128,13 +128,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             653276751355607085,
             11259700290765893389,
             13830639676898841818,
             204522125873064042,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9626716605176161895,
             16626139821296225206,
             4579439747184432007,
@@ -143,13 +143,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17163721246494031414,
             307925883507963363,
             10272768818414436805,
             482751593414405607,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1024802959735579860,
             3046971371285477088,
             10877521220947970745,
@@ -158,13 +158,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12730042055084817937,
             12476999969825171350,
             12355484085776270052,
             487566253557281299,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11547336601790713784,
             9973037301616234078,
             14222534170599023155,
@@ -173,13 +173,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7200790303955253061,
             15209533175674975866,
             4381798968221265549,
             31675635315559417,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9420091276869746871,
             10274463214433000784,
             16775012250691393906,
@@ -188,13 +188,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7869312440415945038,
             7356016458822800971,
             6329271451033404927,
             508914159409384251,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8501653249920261961,
             4080959950196165769,
             17960053602043590125,
@@ -203,13 +203,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             18427926721256346350,
             3567143268310080114,
             12525317430438125368,
             7784072475426566,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5801246551762253451,
             8619453051075142426,
             8313902311863875549,
@@ -218,13 +218,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16682506297868074312,
             1837229207514263972,
             994663108085692373,
             434154725049279505,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2283834683149236436,
             14904205134878077080,
             18181549957384076174,
@@ -233,13 +233,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14458180765091909135,
             17451155129104877172,
             3742734177224041592,
             137213313135484019,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17256371805640170240,
             10058659326592183485,
             6996861471191699793,
@@ -248,13 +248,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9076552185096894072,
             16541014821168959001,
             1037329421855342321,
             413045073197596438,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12082811518378424088,
             9258299774773102359,
             2279728337945128666,
@@ -263,13 +263,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             18233287364623409716,
             6804217814828077591,
             15801199887910276905,
             130443767372573034,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9201353037335203391,
             8141401633290272594,
             5332263747479939355,
@@ -278,13 +278,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13799264192008471703,
             1187520579288929996,
             12702779378300893097,
             217079714445177370,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2212578741384904734,
             4806706565746900290,
             2704628919463158494,
@@ -293,13 +293,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13569759248702400487,
             2219552815915070740,
             2636166335352343354,
             213050779561936545,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9073947389847755861,
             559357678535476130,
             18099944371932180273,
@@ -308,13 +308,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9166168240307809179,
             7267626630440466821,
             15022720599423388079,
             536102861170205948,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10099787400322536555,
             11276077462458361480,
             9634798254100573497,
@@ -323,13 +323,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7158238976582520500,
             17466084711122018011,
             18060375523204348512,
             358348714844911249,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8701747240537723073,
             16953879228633010936,
             7057426244380936039,
@@ -338,13 +338,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9217391733185198099,
             7148386638145606627,
             17015291173345553941,
             397857137442521601,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11476005373020982955,
             17627504251231419175,
             3998789151281029048,
@@ -353,13 +353,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15272905515130758396,
             7740754165781175316,
             15470496122609710705,
             534007628833544654,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             710225575955586974,
             13407343815744315291,
             3254436521040483667,
@@ -368,13 +368,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17079541752746566530,
             13730452703559725824,
             17931434868352436716,
             383514479022666140,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9471628783225343082,
             6272822550145160680,
             6859234081031584521,
@@ -383,13 +383,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1813671267290589542,
             12588905877195042878,
             5174488200993815280,
             72930295283924155,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3067056268266272642,
             14833002999999732525,
             14096999927433355402,
@@ -398,13 +398,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12671228573221303968,
             3494283571362176810,
             15585474110873877231,
             218880947954351707,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17898294007534907461,
             4773402326540918158,
             8577778116697972430,
@@ -413,13 +413,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17921018486802185000,
             10275967818454321187,
             6360999267560649145,
             59264255986447108,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15349607240485667589,
             12596791154569934910,
             16983909124382038436,
@@ -428,13 +428,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14656240340652604805,
             10731029630487021311,
             54847742754962833,
             98185677124292390,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7940387477249587438,
             14359186495577803846,
             18237511232545007725,
@@ -443,13 +443,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10799811216760477868,
             11046605544841105187,
             5852468610628505773,
             48110907016750771,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4653058373231656286,
             7517982747425905193,
             5297946035701942196,
@@ -458,13 +458,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10247406360036252715,
             11965212112825588083,
             6099679692325535471,
             323677023013733627,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8333619703929593581,
             8207992107231956404,
             3530441989962429380,
@@ -473,13 +473,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3896398529683574377,
             543012859046617575,
             11476112527032425197,
             140967205199186677,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5425850598289979450,
             12211525764575191919,
             8296253755316238556,
@@ -488,13 +488,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7288473212619386100,
             14962866603698149592,
             9372723512555966679,
             536101499886137495,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1147358802397217279,
             10330937526810921942,
             7091883305167706050,
@@ -503,13 +503,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11957874130445520696,
             10289982057970345434,
             8380836065924262500,
             135592431801785330,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1471537469710252672,
             3453284586479349747,
             13386357964884612210,
@@ -518,13 +518,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15910526439729959780,
             13874544930631926961,
             5917908358698128987,
             103039962672229059,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11370249872274582093,
             5561058890300023453,
             12480158063391185747,
@@ -533,13 +533,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13799513050911057536,
             2590461638578316014,
             2573376572269647066,
             452206322665487360,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4508436034176327072,
             1008471363573869062,
             13299994836133739894,
@@ -548,13 +548,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6832649820950921050,
             3845329417976282843,
             2087265403479195490,
             501053833642518431,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6459621523945686825,
             446496192313891417,
             1614780136269823264,
@@ -563,13 +563,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2896970725654075560,
             2285627418290468350,
             9027264029241134938,
             206302728219480560,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5510260442138664896,
             18025825627762704350,
             2430206568310609586,
@@ -578,13 +578,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10544622534701546458,
             646011323718272588,
             18089435352177355886,
             79526626245867688,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10450970989559943468,
             17072536393588987109,
             49166172402521561,
@@ -593,13 +593,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1054090983649635360,
             6004253059590525804,
             2302829353319702604,
             320509615373624280,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14648240380002564070,
             484291375586655955,
             1994112388829928839,
@@ -608,13 +608,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15782968248884197313,
             4609012873316991629,
             2462152325477134116,
             84106938519964878,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13271806123330742684,
             17958526290807196937,
             5075341967615373348,
@@ -623,13 +623,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6543813269245120105,
             14561760611881389881,
             7837494635680727646,
             413769022697702487,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12088399683109640096,
             4106774314920530676,
             3562830684587061932,
@@ -638,13 +638,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11882930742831947147,
             2213839430776654055,
             13327019724138311116,
             516681140542515321,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5965659035671138086,
             6287714994863192111,
             17181116718404094060,
@@ -653,13 +653,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7322028907819632210,
             7161255128298438498,
             7120076457254366165,
             448130405614126254,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             271656601376895222,
             9119004566807573867,
             6404368715254509889,
@@ -668,13 +668,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11715730728876465889,
             16218355608055007684,
             13743311805152321149,
             365267327391268003,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7534977821016117787,
             8494530260183690881,
             116251399733521489,
@@ -683,13 +683,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4702474481306201537,
             9122467655642606453,
             12124866968565114794,
             571613406245503016,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14747128198648099174,
             15064844111245440778,
             1830881278598814544,
@@ -698,13 +698,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1886337949885197020,
             7016602582562894302,
             18414803792406312627,
             166063419248330156,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3583479262715210845,
             9482038000324759275,
             12364377785373064427,
@@ -713,13 +713,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3400883644215877870,
             438073050201204844,
             2598804240949688361,
             347142865581529916,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10480735680020753267,
             15388346495819576972,
             10648668583798333778,
@@ -728,13 +728,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1210268042755441864,
             7419302776314326295,
             15253920230305207381,
             128374678267994362,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7215610759578900948,
             18263365918160079652,
             5294662902052230190,
@@ -743,13 +743,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14061065521891010000,
             1691402205321715114,
             11022998248114253814,
             320750783981591575,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11576749888991901334,
             3065262215201501852,
             2155626467997346784,
@@ -758,13 +758,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14181197660082525198,
             11451630337216023699,
             17447499578112715485,
             48450585911187848,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7032657413002962530,
             1313676039183782072,
             4402721190648767289,
@@ -773,13 +773,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11883231574900606121,
             16223549695635614257,
             447958398919072520,
             321189065519287307,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2004270137514057696,
             5331561290597267412,
             11310833820772996477,
@@ -788,13 +788,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3362080833133643325,
             16133774404000462478,
             9496091996058837871,
             470618418148336817,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8679118905789611662,
             3880823876137801707,
             14496338141970514027,
@@ -803,13 +803,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16169193868986078958,
             15000798996576289975,
             1361386290427294538,
             249253837169774056,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4551364382968481725,
             535500790612828601,
             2667625530766304088,
@@ -818,13 +818,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12279580901711110572,
             2792774237375615203,
             5260032083983335945,
             488778531554923937,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8259824629472910723,
             3361224972619721967,
             16132590763255747488,
@@ -833,13 +833,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8560047375414405155,
             16022580704369903734,
             5448037743102349300,
             524368077596924996,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13449550207333999331,
             3144275334487652983,
             13786101926110235807,
@@ -848,13 +848,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15192640977218456683,
             7642830312317606619,
             15497366919002118929,
             499733053510738730,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5454785631366687934,
             8178147644786657163,
             10900568974354213235,
@@ -863,13 +863,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7693974263721678629,
             33579516692986597,
             17599822775049162749,
             17075818186494760,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7218684602289109853,
             13625679128197645979,
             11367334528124202222,
@@ -878,13 +878,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3099026458133313775,
             424581470853922619,
             15952295062938682260,
             304297957625763670,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8879238221844920221,
             8972687194310210698,
             16937266460226410503,
@@ -893,13 +893,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17516859832988759066,
             6238034585368941619,
             6588434719544249897,
             469627567803424542,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9598725994029629750,
             1979045562949683681,
             8338798724027460554,
@@ -908,13 +908,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16743026603249202090,
             17837588755517845739,
             12439831911057999975,
             85973201853148044,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16163833704074865011,
             7209731268798336169,
             6958074705137452833,
@@ -923,13 +923,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8903525461006129974,
             10700825485841907034,
             4850838800683690291,
             555898555351515227,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11732571318979429518,
             17248797879810637498,
             1310982071081128858,
@@ -938,13 +938,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8852988789146884907,
             17141669279513341774,
             8354465433411050453,
             6780555028457037,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3356787538837995884,
             9726772538279380663,
             15513070064991610091,
@@ -953,13 +953,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10775011944647074859,
             7176623126845579881,
             1631354793754077874,
             312893274476288444,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9519008589719918764,
             1511026744223622587,
             10998936462083593265,
@@ -968,13 +968,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             700181679368528816,
             1756698401865861304,
             2822811639568753494,
             148691439043986168,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9381786898783059186,
             7929272233967252941,
             10937408741249787935,
@@ -983,13 +983,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1933801535469622521,
             3712380893878257966,
             12425082442529672157,
             331062443199657687,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16747969358087982133,
             8509566951526415754,
             18208819781495656840,
@@ -998,13 +998,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14972014998466054540,
             3589789253194742926,
             18150210762642607793,
             543921334353196588,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7857095322523310287,
             15788232889368777924,
             9247150144248226242,
@@ -1013,13 +1013,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4592817347608487007,
             14742329847762694342,
             15170650491078806162,
             193875288668540329,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             18250700015699792540,
             449615038283984863,
             12928343420146784537,
@@ -1028,13 +1028,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2449667921754092398,
             7430448426418535434,
             8889100052400200074,
             70999054235248090,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15465834881143636401,
             1068240842072932261,
             5921489543585279995,
@@ -1043,13 +1043,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8902884160856772127,
             4424571130823441212,
             12381176845462668753,
             317705438485502925,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7629981971989240847,
             7599929965411195109,
             5283724663227839607,
@@ -1058,13 +1058,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13119040227704065872,
             10283296353837464260,
             14363684659976267214,
             499979166720530848,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16951964807540994336,
             17753642707540836407,
             13662921661781501837,
@@ -1073,13 +1073,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2330644698460047022,
             1830510293903313505,
             17877305671018396902,
             16195386937125093,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             18159289292975818913,
             7441120343547617276,
             18343586738739149244,
@@ -1088,13 +1088,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13172788340609719151,
             1289891628020538798,
             12762181985307371009,
             529209329644583473,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8389496564379993821,
             11140433081507496282,
             9380951155602491721,
@@ -1103,13 +1103,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13509779570389574930,
             7753622119491471523,
             6694865129924265764,
             267412576436445610,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14116580225365636619,
             4038322236551546133,
             14863238782715306097,
@@ -1118,13 +1118,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8076391972439179468,
             4357745794691188852,
             17053898628138057414,
             399895273542924220,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17442982684457476557,
             3892735810442876540,
             17130774802490019614,
@@ -1133,13 +1133,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2390104098425371137,
             9945308228606926081,
             1395867215002504847,
             489647687861586856,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12459532955446872825,
             12293588985156667683,
             1669349282542356604,
@@ -1148,13 +1148,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4505878729237813674,
             11308354624271000004,
             8071140592441449412,
             132330371007849282,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14638335848418816456,
             10159912428009088438,
             1309992775604269677,
@@ -1163,13 +1163,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11614242505459576253,
             9472374006962441620,
             14723855232257010900,
             520895631921259865,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16704829518855134347,
             7154349547776324306,
             8147447318436438885,
@@ -1178,13 +1178,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1494103255496409199,
             1833103195045654228,
             1035858880403276751,
             530400299808819972,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7298043057810195885,
             14246255964843745779,
             17139453508280255864,
@@ -1193,13 +1193,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13038559325097185469,
             11351095728630010,
             240802986846089113,
             213908569028525759,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8509191973541416372,
             3910657279966792056,
             6093832316634416151,
@@ -1208,13 +1208,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             967218525833742881,
             1136316969114429212,
             13128268772737294023,
             426815242763361236,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9360244320066251843,
             13011030080610242722,
             12873789004603274616,
@@ -1223,13 +1223,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9752170768778345500,
             11180044155633572216,
             11872786344253847789,
             299080937492323965,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17254355361905261904,
             18203631627400306173,
             1398538151822892843,
@@ -1238,13 +1238,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             145789625051514116,
             15782134208422813407,
             9071555193436007934,
             507326532528965581,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11530096351702965666,
             12120575009656285941,
             4133205172504107270,
@@ -1253,13 +1253,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17919061668989773686,
             13853400680836806791,
             7854263792235764840,
             531782439867869095,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8520214047303206198,
             11131868616357434243,
             10416889588935473209,
@@ -1268,13 +1268,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1334966233672052404,
             763075755257353384,
             858047609947322495,
             456010617206580992,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15029168489695912970,
             16061000862077962287,
             12153818666505441495,
@@ -1283,13 +1283,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4886582634726344081,
             15181396214845717169,
             10724385652388673003,
             572987508707849248,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7334783459842195829,
             15430442587294048823,
             13126837005697000529,
@@ -1298,13 +1298,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5376947007269021547,
             13493838916795384424,
             9336402165137425410,
             36872673599820590,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2476134706282283258,
             12489094348400102778,
             13306608086187957291,
@@ -1313,13 +1313,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16432322289735054978,
             18296385176598609743,
             9297997617944796979,
             326234133386458269,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11897673851106252857,
             751096831053490661,
             12827735826681475752,
@@ -1328,13 +1328,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10170641401404508761,
             17251647014520625770,
             2643983109571370005,
             376194831781826943,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5606010442685547214,
             7631644504934561046,
             3842587197901473212,
@@ -1343,13 +1343,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             134155876155516448,
             14575831303031746204,
             8504233501803794766,
             215629862781527478,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11129816728130743269,
             396415422762080200,
             9934583962199416195,
@@ -1358,13 +1358,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1335881449167631373,
             8710322815721430650,
             6726802862353884244,
             489485674574068075,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             105616352865536158,
             3962771408512779596,
             14214319687463426729,
@@ -1373,13 +1373,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8134523757326269567,
             255526369733009320,
             12267202951657834367,
             554849430280130605,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8102334165802025247,
             7429322867866944346,
             3465250103573596013,
@@ -1388,13 +1388,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5492625370727322536,
             3044218968107244210,
             1188001632903757431,
             25221852176162532,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12222341538640439889,
             8628111399284251846,
             11952394791631126764,
@@ -1403,13 +1403,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14606832075259989213,
             16294199378437151709,
             8265978101596113958,
             163807491695819456,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6995212312285730558,
             7921882884667617599,
             15844091655329880542,
@@ -1418,13 +1418,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2337751993962490504,
             6040535464251733688,
             763646832736087053,
             472349104877501374,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5596495012769861640,
             2212677261683476870,
             7051358955600887902,
@@ -1433,13 +1433,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             244619060966139928,
             6401726426533477060,
             5968352505330421714,
             420184572650523090,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11426262605485642624,
             15391592949836763688,
             10817141973652761747,
@@ -1448,13 +1448,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17356096619281294545,
             16523465360670256312,
             8866001777138695073,
             459758345396446502,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17004485719530804042,
             3981633652020794432,
             14144443077399734295,
@@ -1463,13 +1463,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9425582818516945220,
             13731072446765678892,
             2324869055281691620,
             502504131342798245,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8778750868932492419,
             16804357535936135897,
             15515065042948091732,
@@ -1478,13 +1478,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16994385524496918929,
             1328905471200221429,
             12423539549555354617,
             527929049798784004,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15199183883927334678,
             15634993139935310126,
             14479065401679620789,
@@ -1493,13 +1493,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11365661652186370507,
             9994401749068072126,
             16224176484344262509,
             263177691213175430,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10611804742895505820,
             6644555376850244134,
             17105546798029537591,
@@ -1508,13 +1508,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2484481554015266223,
             3663595951226664960,
             17984339978864891726,
             333539390301460872,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12776241091320747019,
             669473748787706401,
             8618088917443140856,
@@ -1523,13 +1523,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17661075986696061434,
             17854256601651174284,
             5722938464375939861,
             138620941784445325,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14132267469484754481,
             13966332644392180393,
             2664650878308297088,
@@ -1538,13 +1538,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17712484864251020702,
             1587162055552445255,
             6166722578773756460,
             313895873722621558,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13830739940146531531,
             10788705257831400942,
             6304978859718149797,
@@ -1553,13 +1553,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             18399565408825599651,
             16518074045410860203,
             1893765454510512039,
             271111389849242798,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10053633847952730422,
             7714447575603653467,
             2756349928458999372,
@@ -1568,13 +1568,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16038626309837663374,
             7012530695332564432,
             9589781214450957218,
             572617296474043202,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9127146432760815629,
             14086134191359107205,
             2463507588422798924,
@@ -1583,13 +1583,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13985630428809375675,
             16487742374437159709,
             4542062440145060061,
             210512807913540837,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             18273454285301447149,
             15216751216643835665,
             4322347883528474316,
@@ -1598,13 +1598,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2535637427905739826,
             1571513156827155573,
             4407286054919505936,
             457963007291964222,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4074392579498500601,
             13456627644321958639,
             10662147884793965648,
@@ -1613,13 +1613,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12469774989881252017,
             866097597963545530,
             10732479511320836682,
             462643199167550013,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7627712991033596914,
             16330440016985382086,
             12074951984339934478,
@@ -1628,13 +1628,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10128158549849454172,
             11010387839536264039,
             7613123186699564510,
             415054113000771586,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11643248213644457672,
             4689092476059774497,
             15818616880052031545,
@@ -1643,13 +1643,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             538990576728195536,
             14102923768786963683,
             3055233878241230906,
             69997352423662507,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7841948534137543462,
             15407746549128073000,
             1082114685193124976,
@@ -1658,13 +1658,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13530751588527169008,
             10542759246992781880,
             7357038664125905031,
             144826003128799065,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8928733852601831157,
             14145257517615518806,
             60729517505011370,
@@ -1673,13 +1673,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             18115051000921170996,
             3527925097048878406,
             9266115721712107641,
             234750317397617756,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7631285761276878361,
             14900159627544918026,
             13308325384068056761,
@@ -1688,13 +1688,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7435279372874967985,
             18226890801233452010,
             18406291562550309318,
             151022888285273361,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3124187200430113854,
             8644054424843224014,
             18284369440676258056,
@@ -1703,13 +1703,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13603321821984318279,
             2750070338154541100,
             990235234491700239,
             303314030096025937,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8790374109741602060,
             15187371092671659598,
             11084309726693655515,
@@ -1718,13 +1718,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5830384142561664243,
             12770134929230740651,
             2345663200045122422,
             504758467548277786,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4411525612878979931,
             15543082942669492244,
             2179816696928912726,
@@ -1733,13 +1733,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17334543668032931058,
             16911054702318348791,
             13532561619646325101,
             553491181071872350,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9462010092576310620,
             4553411141191639771,
             10759674381090180892,
@@ -1748,13 +1748,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10511043541834115430,
             10478079506959655127,
             1237021275689355396,
             431057335163084112,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15061337941293490322,
             12472099119037014855,
             145415907028114147,
@@ -1763,13 +1763,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11623744774981271010,
             1357497067044047617,
             11884048844220422456,
             409303809025784608,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1202850075206547479,
             256619431186292072,
             8296841001347083933,
@@ -1778,13 +1778,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14813151783169135977,
             10443301082515561028,
             18123720055423325668,
             510263745088843542,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1236787054572124974,
             16135621355168499579,
             2294672442039976755,
@@ -1793,13 +1793,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             644002279831188687,
             13735331836547151896,
             12479800292920035406,
             573337745634677698,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3227839212644946555,
             6516063515228542442,
             5267858760903773846,
@@ -1808,13 +1808,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2373078539314638601,
             3852557190792210663,
             7617819964230254183,
             403185164921237793,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12740383102263731921,
             14364090994900049580,
             7879967815275667689,
@@ -1823,13 +1823,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13655983463093243119,
             18236648021999646032,
             11514411727091157552,
             536679593940513517,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14754900532905372879,
             15448124078751903227,
             17063159489718049105,
@@ -1838,13 +1838,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12870905268268394906,
             1805898204000558358,
             8556765064549345144,
             374876371059697362,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15358638857795014087,
             15270253832929685859,
             1536318336316218349,
@@ -1853,13 +1853,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5478723962717773018,
             4490812538134409335,
             2567264034984559516,
             194086955378754785,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2897239334845019211,
             10917127349059079800,
             5601898179844417222,
@@ -1868,13 +1868,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16230913515947001106,
             17631437482230222375,
             5785159737172670855,
             553859161035087737,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             18166633604760002077,
             13798048477301234648,
             4375425371852646811,
@@ -1883,13 +1883,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1072359028268289744,
             13138432463654194571,
             5567929968335765618,
             157764338488226411,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1467193499778253509,
             15010382220482997017,
             5016546830729717925,
@@ -1898,13 +1898,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             809323524305395051,
             4704070610733443370,
             10616001601420289813,
             502592729394957789,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17493680503304954231,
             11384350398148860309,
             193949441328840525,
@@ -1913,13 +1913,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8665436316118001416,
             6117501295443337589,
             11534998452234622246,
             273106287877653804,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4175362859048275677,
             17997605516846051341,
             4789721124471043947,
@@ -1928,13 +1928,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3011060968239530068,
             12808819234879166535,
             10289574962044709656,
             394308209892823912,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3499439693518959150,
             2030722215710256412,
             803513232011510314,
@@ -1943,13 +1943,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10542399942827970555,
             590372914652150013,
             14373627630183172001,
             477233110106096912,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2157416490804534204,
             548227982672236241,
             9774406785970013584,
@@ -1958,13 +1958,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8289403597623420010,
             13029343221565205496,
             1801475514233593199,
             537612955392475867,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7353281141657213798,
             13337293696664853734,
             424250686025692703,
@@ -1973,13 +1973,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             136831164515923804,
             16810986275110407785,
             3163660453014028213,
             339936961563555143,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12526844112680709762,
             13235329398990264879,
             10038257275471356838,
@@ -1988,13 +1988,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1910642465716184360,
             14556943149823291370,
             5719028315596668785,
             249881208996684382,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11250533748317242478,
             14005599986075101279,
             8097485251456747199,
@@ -2003,13 +2003,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10608222311809381381,
             14179433633019075125,
             11256310891371979014,
             262677872992317907,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6632078925922428516,
             14679359364920141922,
             953723237741944717,
@@ -2018,13 +2018,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13500111691772391375,
             8512799794009394824,
             14885897624710275801,
             185963613400294651,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             379715276789126110,
             6534487519887391969,
             4157246768915837287,
@@ -2033,13 +2033,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3264908415189251806,
             11422953681466030595,
             14024560267423056588,
             72331871602943357,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16078367816931195631,
             14553111481444685397,
             2152768413580614042,
@@ -2048,13 +2048,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16706641624231704655,
             11664708879297745768,
             8344197858231819307,
             91799935532730435,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9387694040460984930,
             9978521908328014625,
             18126620314925552562,
@@ -2063,13 +2063,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11243754114777387816,
             5838103412275798623,
             8666232391384627543,
             555095665109939594,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1857389687863111345,
             13368733306475672092,
             17175583235835054114,
@@ -2078,13 +2078,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8308402773642324888,
             3409541566090676351,
             16125591727034643130,
             401401638836444851,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1966670471760719295,
             6613447727123585845,
             4813415959631926161,
@@ -2093,13 +2093,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             708896399396278435,
             1257845322872047028,
             9460875284062196607,
             512152541830737988,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11480745051599530291,
             9444920357129943631,
             4401680877429808649,
@@ -2108,13 +2108,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13180795591816971948,
             15857779886151579403,
             2229523854259548924,
             486164765377466142,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             777216931967977958,
             12879538836437814927,
             6158373272121243117,
@@ -2123,13 +2123,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8402157611736153321,
             12335186267036144886,
             17316730951123558377,
             8053615448287280,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2464097699444445709,
             15278422141801232680,
             1264055437976230394,
@@ -2138,13 +2138,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12198605505843418430,
             9756008664939354985,
             5936924970562939714,
             6498497365826016,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5558641056603022813,
             17991767787230375375,
             17906345391172924895,
@@ -2153,13 +2153,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13134707106823702043,
             2843837219609411296,
             17994654589179648951,
             493169306145082553,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11042055168968920200,
             10349048052365087618,
             12614820822989161390,
@@ -2168,13 +2168,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7791804133280658954,
             922078076538637905,
             14731719312686968225,
             396369340745182023,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13797921473021274853,
             2791770430008581056,
             2844146837912131569,
@@ -2183,13 +2183,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6472264319659489411,
             3231213189151302125,
             16587209062023579090,
             312921449783430664,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1002776544285412258,
             8246934484225054403,
             5615883167395766737,
@@ -2198,13 +2198,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6860791923844561081,
             5831092704677644340,
             9746977715349181364,
             27167211911534587,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1854555982018145717,
             15261343543029843852,
             3154401055387652624,
@@ -2213,13 +2213,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             18001610369031558777,
             17091515170629564191,
             2877091952323592572,
             304379368005493536,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15080117622445519104,
             944218815546559792,
             628426811882548163,
@@ -2228,13 +2228,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13088353800358089468,
             1745052294860312042,
             6068180167252425666,
             393531985698082290,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15556075500828778758,
             4263175994807684683,
             11431395934602022778,
@@ -2243,13 +2243,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16029426644127340417,
             10184579717973737816,
             17843762345008793927,
             414554522635220327,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16888356682348000956,
             7482363278252515629,
             17380396166849998795,
@@ -2258,13 +2258,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16013672712243861708,
             13790751235038461360,
             10568076726745988815,
             515262176496879545,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6507201697546135224,
             18134177081234882269,
             13722375632466820687,
@@ -2273,13 +2273,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             758531547533047503,
             459183603099826642,
             14271742281513549074,
             425465980735416238,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12980299993199744540,
             4916556264330731297,
             3445106964200483514,
@@ -2288,13 +2288,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1106194410999596065,
             6317913819282829218,
             11356527832155890312,
             298635218702921741,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2090853079871076161,
             12726859410897068806,
             8161960669074187695,
@@ -2303,13 +2303,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16557023692184351851,
             7865680122713837496,
             13079132544721090183,
             181202208652469430,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1659506928266911655,
             16355170968599813449,
             8941011659121980265,
@@ -2318,13 +2318,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9406931071366291336,
             13175103936484489529,
             18322587499551175929,
             534537357303350681,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4465628233556958367,
             10060438184036970433,
             14490399162870703911,
@@ -2333,13 +2333,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9730027592101619160,
             12215034973040072680,
             2784528108857453981,
             198340614856105913,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7077027699253107711,
             18114895854995819818,
             1824520488724554572,
@@ -2348,13 +2348,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6145674211479154129,
             3098015548950002075,
             13271228464591993772,
             408448348513910072,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             722727602561250029,
             15342867024249394301,
             2807540378779594019,
@@ -2363,13 +2363,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13492250709766747546,
             7400045911623455814,
             8134958691825671606,
             515091327758929861,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10350398634801270121,
             15631861619143203679,
             10736345461478212303,
@@ -2378,13 +2378,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4986082465807994211,
             10353010652298595453,
             11617497720722258700,
             192279945422258506,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17398474295664292529,
             11137104669066257229,
             3733279452612220688,
@@ -2393,13 +2393,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9489223912964735547,
             15104726661184384261,
             17788233693599527264,
             35998351051279211,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5960730528601242113,
             11002676821432343783,
             15348984501708057104,
@@ -2408,13 +2408,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17640957236446203512,
             2210107972092869895,
             7128710576917723543,
             216336057114834304,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6343018666715351730,
             16081330940823314448,
             13576379594602947588,
@@ -2423,13 +2423,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1361370824204395646,
             13483521734955727885,
             8150454932358589975,
             281606196573890998,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6219312218857985288,
             17963676052017338175,
             14010478768091307949,
@@ -2438,13 +2438,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15438446297514460390,
             17032966975211894336,
             3841843279034546541,
             423337252401880885,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7329497251450685884,
             12090379961462146007,
             3336710957094255530,
@@ -2453,13 +2453,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16745882171464841579,
             10658292892824484473,
             3059184099864899556,
             153183194401346972,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5613343074447207716,
             9295684051748634178,
             16277757831229595725,
@@ -2468,13 +2468,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6229567867847666925,
             1807524163326209062,
             4726356763157123700,
             533664522186978360,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15780145896319512050,
             2385308022048617756,
             10936154524366669572,
@@ -2483,13 +2483,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11714852470340901665,
             3147009520299589153,
             9852368598529821726,
             212218677264847658,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4738170221930133460,
             3847026265682816488,
             7440643047645777594,
@@ -2498,13 +2498,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3786288411850223455,
             1746706807658652980,
             17795921954500836387,
             321815082459798442,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12741972633789513602,
             267803094534303914,
             12698034810646660228,
@@ -2513,13 +2513,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16580854510585889834,
             11196234461955923989,
             247971481089233032,
             518665588792808387,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8647638347794175823,
             7551666826937235718,
             4159708779623378719,
@@ -2528,13 +2528,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2611263139759804988,
             3174734521080511442,
             2199051040687827344,
             550406108122284645,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10450416012750774327,
             3146156932228588803,
             4399284191781729365,
@@ -2543,13 +2543,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16458312103783902567,
             5779962888289717401,
             2883491317319571577,
             210979363913019892,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             560567698729560715,
             13081846537406059126,
             11290497454349353239,
@@ -2558,13 +2558,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             18174940165004999168,
             14966248565481959713,
             7378604443218153458,
             307993428744154448,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8465126678475924851,
             10359806679670448976,
             16953656517191420752,
@@ -2573,13 +2573,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7676759006209912020,
             3294725159977817138,
             12281440218235764646,
             269450821540315230,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10193297116292592179,
             14857493344419219241,
             6106683643911059443,
@@ -2588,13 +2588,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17581641449495038418,
             12730349614658523553,
             4843841585370460425,
             121728478032258646,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15747602723528905436,
             344009447128273655,
             3484025125463625005,
@@ -2603,13 +2603,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12274606366406724126,
             15897051182823707203,
             2539862158204248656,
             562185936986224385,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17403623151486016909,
             16051343824230167821,
             17639402735184720612,
@@ -2618,13 +2618,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1480236847444370591,
             12523897909941099590,
             2633247211013389502,
             468054788133905164,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17795674711960172116,
             11650699922306226012,
             16408914621544430119,
@@ -2633,13 +2633,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6368793144266809024,
             761786927526076528,
             3805850703911443173,
             359289313277239654,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12266932720587593550,
             10514882262831143997,
             2837256050446630134,
@@ -2648,13 +2648,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11142599733742018729,
             17201388155953090181,
             2319639297610168666,
             219541310719037068,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12563550622894940893,
             17566492279679949936,
             15938574214067195170,
@@ -2663,13 +2663,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16187072451935530343,
             15048190779630214432,
             257074834876729815,
             230836902507631283,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7333510673902487948,
             3006188685406634356,
             16810531798356823974,
@@ -2678,13 +2678,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13273030398223281084,
             16101035855993042487,
             2788971191874441780,
             553612962680403642,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4469790749812286895,
             14789543976582959262,
             9185235127892411200,
@@ -2693,13 +2693,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14750467008014031114,
             3508534097219244340,
             8626446483785541335,
             318650520754548843,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11952101272201875296,
             8763240670433842850,
             13733361674789614784,
@@ -2708,13 +2708,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9802963960090844167,
             16479141900475593394,
             13593064822682323056,
             135486696133799394,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9931520924878555823,
             4924127156972097670,
             9522042530527738798,
@@ -2723,13 +2723,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6991715099466909826,
             14725428464397014929,
             10740850060083389918,
             416609077927722201,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12354588195886169591,
             17031162387890805201,
             7995504203645933944,
@@ -2738,13 +2738,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10859785726629222592,
             1526398368145170403,
             11042235489459303935,
             37780158557494936,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11431621366692840492,
             17603860459562666680,
             4717098704930563603,
@@ -2753,13 +2753,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4944412574004450784,
             4851430994021934800,
             2099276135391467291,
             349323538955432971,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14866145299589666450,
             4261271311411930614,
             9475576747816015115,
@@ -2768,13 +2768,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15666046498637727731,
             11181074789572514355,
             4767783739153979567,
             89129404051844505,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11344314057597569935,
             7919454436760059576,
             7304483190455579842,
@@ -2783,13 +2783,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16433811279249904959,
             7086984708921448708,
             5167436367061529492,
             73475606789490951,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1571733773272134592,
             12381475135472533610,
             15028960760715224049,
@@ -2798,13 +2798,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5648411079012792777,
             4376010857817046739,
             8706103991222609636,
             281206748491699650,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6052627847062799750,
             13296037268575343088,
             11841252775980332826,
@@ -2813,13 +2813,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12794626968241555664,
             11711491641780648770,
             14633631094054916685,
             447064766421475099,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17426687197344703899,
             16215203824090643298,
             3478396992233592857,
@@ -2828,13 +2828,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17643356679698056295,
             18399428145572557529,
             7647039638189862099,
             101566820621912399,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10107628778968633576,
             17383635559020258324,
             9649706261672271194,
@@ -2843,13 +2843,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11559886251105433454,
             17186606228802779267,
             2431977333365014617,
             109639571278761210,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10855097225347243097,
             11733121288198076284,
             18238760613635130259,
@@ -2858,13 +2858,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11238867163057683299,
             5808077196128614210,
             8364426491777018134,
             221456232709100535,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15025574857405747940,
             16628731178295865702,
             13419436956814138877,
@@ -2873,13 +2873,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17252826193886556840,
             8589832681528040857,
             16970194297404196966,
             34002253200577722,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1035309274313171069,
             2603478352520222827,
             4863120998813269881,
@@ -2888,13 +2888,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10295476321363210491,
             3625145492656539140,
             3513003497831059656,
             467988068807659789,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12357314458705616119,
             13778496724634716822,
             8227130650002066397,
@@ -2903,13 +2903,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3328392306994323119,
             5259999797723798274,
             12049097987999081621,
             220982074382311952,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10698249923976059505,
             4370438099917108940,
             1247165368049755097,
@@ -2918,13 +2918,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8495783952081927737,
             1709836487296406932,
             9172707527258279756,
             408703306467735078,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15811357372413711015,
             13091183759372238065,
             16937779855692048917,
@@ -2933,13 +2933,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15726994596783322683,
             8247866281533054456,
             14192637346600102858,
             284760244673326112,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15183494392712078920,
             17040525274191257121,
             7685058392900688452,
@@ -2948,13 +2948,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4918459491712695251,
             10120940870911272273,
             13120632251561933857,
             276448582486424934,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14499890789862895062,
             7288331104768315147,
             14199925101961878501,
@@ -2963,13 +2963,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9149953810672039699,
             4622756430478875867,
             8068745132905623127,
             510805860011364729,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17670811551804007797,
             1135678465962954420,
             13270885876924453388,
@@ -2978,13 +2978,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7417282378538254270,
             4383636143421165937,
             5566408632592297036,
             45079343803115713,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17232236075366926187,
             8164413096464104608,
             448214952328417696,
@@ -2993,13 +2993,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13963470620381389899,
             9101278341108140297,
             18031144259344201351,
             12429266471677088,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13739711682143482188,
             9707593906826947438,
             10346588841455281514,
@@ -3008,13 +3008,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12526627402056720077,
             588601529408570821,
             11439378291698366929,
             95337787652137668,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6205471781703851746,
             5053143366101574035,
             16249838791516723498,
@@ -3023,13 +3023,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1168189529741924532,
             1018044325913320669,
             1016045262208019044,
             524300600492218536,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14699203080697400340,
             1945052594507894327,
             11770042110123183459,
@@ -3038,13 +3038,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12116033367663076372,
             3470259911810594241,
             14160453000850120099,
             358181449834515934,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11556147533489309254,
             11725489541474395397,
             8485886532941891329,
@@ -3053,13 +3053,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5779751893738974761,
             11512153353161513675,
             13794975767839571723,
             119674857350121935,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2011837134899333989,
             14892884071315447583,
             1358058814466308728,
@@ -3068,13 +3068,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4156397349792154267,
             4603245393324435159,
             16199598564045677554,
             475085788717010252,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5713855811876607098,
             1826138546504624517,
             14917483246990529833,
@@ -3083,13 +3083,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             621488382954208082,
             2646863641801027142,
             10538367733152418199,
             39303425993967869,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8905158940124390632,
             7803936009770958294,
             10972848335467613162,
@@ -3098,13 +3098,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11751015231858051737,
             3170359556645183871,
             3273567676664756043,
             417385285389990177,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14872362272893479241,
             11919460821984518973,
             8014212803191269688,
@@ -3113,13 +3113,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3381784168725619831,
             16360097307464365303,
             11264532860825507394,
             162169292321568445,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11276567789049727735,
             4591360072278675351,
             10240396252905975079,
@@ -3128,13 +3128,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3139213119357725255,
             5797806538769470649,
             2472536069406004400,
             418565518828471666,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10108447492632772607,
             730246137776371394,
             12258739082858956766,
@@ -3143,13 +3143,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14400209750893056464,
             15777990434865703674,
             11309205313776743715,
             557488721348937664,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4862045216342869293,
             16898912275283107178,
             9129127564733789741,
@@ -3158,13 +3158,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13620606671819440054,
             2293461951157862326,
             13876369548903568396,
             73580829890807121,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1689004207492928984,
             11067590234527758407,
             15944335950684725268,
@@ -3173,13 +3173,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17591521296901105893,
             12404686964748341124,
             16918898165939355601,
             144266983152436449,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15586993577781855484,
             15786406818279517416,
             2384876608872714222,
@@ -3188,13 +3188,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6165893318328860846,
             3229347573809196850,
             4891641964783683488,
             314852056850898355,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9452737625110992855,
             17392404311913977631,
             9410316213732600360,
@@ -3203,13 +3203,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6568104028731200737,
             14778661774954642672,
             16691125442072352143,
             246031442145734748,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             18025568220083534801,
             12018258184356668311,
             4074320775417950489,
@@ -3218,13 +3218,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13477531670388832379,
             8489865535122039257,
             14734864397735535355,
             338140013273052208,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1283349149088131578,
             2847056090076939427,
             9765083767768104130,
@@ -3233,13 +3233,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4967036524536971233,
             7213750927117510670,
             17758105526768540374,
             107092096465527455,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13282338155734019322,
             2575645881663771038,
             14607646786182116934,
@@ -3248,13 +3248,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7819729337853175945,
             1435593715037803404,
             8089811598393168144,
             340053405861316572,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13916877862624578360,
             3100978227986113278,
             9676192589687498121,
@@ -3263,13 +3263,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16781080913845109139,
             7676593103937500093,
             9155269117838795917,
             24462395882177241,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10703378207651699954,
             16268959549802434252,
             2791116719827215164,
@@ -3278,13 +3278,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15708717873978064824,
             15510848298007970620,
             13452528395607112638,
             449124958643970246,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6774088475254890960,
             12316821175953168563,
             17884517130824402993,
@@ -3293,13 +3293,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4047326850563393331,
             6177798478851142798,
             1400681922057892086,
             201506254653962973,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             792933640528599406,
             15061655018525231938,
             11708263865111648365,
@@ -3308,13 +3308,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15736602844985500543,
             6723285059332691415,
             4325899300364218184,
             110577467236216818,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2217131729482454714,
             7060138456138434044,
             1655003283006890247,
@@ -3323,13 +3323,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13965462113982013795,
             14915150977981408670,
             12499992547544019930,
             555288739253636442,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2270360718904190365,
             9815350544565011395,
             9992325067695882610,
@@ -3338,13 +3338,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5371716470121092036,
             9314699551728066567,
             14677827299569536765,
             29414761220989933,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15762395648468139579,
             14651703553544274701,
             2353811260073221382,
@@ -3353,13 +3353,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             739971396204429101,
             6448621088734913743,
             1449192989266726711,
             112807682574679249,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8905957916438398312,
             712927843974457387,
             2224471455689899494,
@@ -3368,13 +3368,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10901702809044943843,
             6094885859877862475,
             15333604971016503761,
             501105976024719011,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12346759469560666748,
             13643419175632994887,
             2012369215750170500,
@@ -3383,13 +3383,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2757526926961026714,
             7191459980271489595,
             18128967034013859477,
             183516383410071640,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10144659095025531537,
             10087325094538304882,
             11432547631744575705,
@@ -3398,13 +3398,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10651639001692414851,
             5400692718993021708,
             5782862557637824061,
             25154207474696679,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4065282256443120035,
             15445582423914111411,
             14054835361100901010,
@@ -3413,13 +3413,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17689552409800180999,
             1265010834569091099,
             14200825045741703569,
             256772570433488696,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6810293181747256161,
             214919174201509857,
             10277096960575601591,
@@ -3428,13 +3428,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3496901205178417649,
             425858392712039442,
             14471477808846313668,
             160046101428854686,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2299073917513339559,
             2356704355151087191,
             8736683974166376157,
@@ -3443,13 +3443,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6860255188838407470,
             802214380535420620,
             8002662016999687488,
             344309483786527040,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12219865927685036619,
             17604936858247789984,
             1283124990707657971,
@@ -3458,13 +3458,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14933192035863659860,
             5525349372374584463,
             5742526426877063840,
             240008601825297210,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10300036157557114409,
             7269065963473665273,
             3019121771136495053,
@@ -3473,13 +3473,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7009928818298858389,
             17625415588366038364,
             8637377457114245720,
             13823137547887919,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14613355080229069816,
             14312616303126646339,
             11132740818203011698,
@@ -3488,13 +3488,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7110979356275275608,
             9441718658416534483,
             4776876745138358757,
             523371297192344494,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9519352183019614823,
             1325861907511984150,
             6390473478913151624,
@@ -3503,13 +3503,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16129023590172024790,
             17643423826668730069,
             12121999140105417717,
             539315219417688425,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             18390091812810584103,
             18341619854599938681,
             16798870358456352976,
@@ -3518,13 +3518,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16973574915745230104,
             9706577183604242436,
             10210855763474299624,
             200361784145119292,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4515530402814893747,
             15443827297939366589,
             13026634577948134711,
@@ -3533,13 +3533,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4125942086077854170,
             1604649793631231444,
             11436961635852716096,
             412736028287697493,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2748875764258552579,
             11371547600093232995,
             11221346668337247249,
@@ -3548,13 +3548,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9510136727882449185,
             17863362470608308729,
             7144021917113524760,
             430563862068830890,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13142902354989611860,
             2890670151583143098,
             11666236673409585405,
@@ -3563,13 +3563,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17287139846538294746,
             16686695244766760179,
             10284615777151624177,
             334488397000002222,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13031964000894244577,
             9537093216040758297,
             8895232130077400562,
@@ -3578,13 +3578,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4789354227815325805,
             9206709033499752385,
             4459854662591583593,
             280749794945725559,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10894066390187635337,
             17647096458287523986,
             18237159025991386072,
@@ -3593,13 +3593,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9788434229196749584,
             10489723112571215242,
             460273068713390813,
             533395573513075331,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9802486039403419125,
             2270375425411584259,
             17586555381670512874,
@@ -3608,13 +3608,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             18214632729013051386,
             8997063168444278621,
             1015575293178221365,
             177161231816396412,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             93106128138410501,
             17131249959468074242,
             7993081275592213076,
@@ -3623,13 +3623,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16802858842074144581,
             10342221802107361991,
             12250117468155035705,
             517489011124412342,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1649912860221579378,
             1314862049551661778,
             1978587138406660855,
@@ -3638,13 +3638,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2626467900455692681,
             12297954090690963465,
             9176425970861521134,
             364142640937441011,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10668371955606046552,
             16224930432081093556,
             15101217706388543227,
@@ -3653,13 +3653,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11426340209947729679,
             10988295194895161098,
             11078363991418424245,
             189529276497579703,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2372843215201609613,
             10994661414371606664,
             15424234127047379767,
@@ -3668,13 +3668,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             18082288706437783685,
             2553173234217236118,
             823754585825398983,
             267808412667396273,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8319875148482989612,
             16078615400489464511,
             10496423823228002048,
@@ -3683,13 +3683,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10899143524327592376,
             15992403363206066270,
             6619497642734630154,
             254142841280139630,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15972732590914228907,
             17222329883529041203,
             3005797965811099943,
@@ -3698,13 +3698,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3788958514657322496,
             1720267394626859242,
             10268099430882688532,
             289832053436412517,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15155569815652640375,
             17105973759644686887,
             25840029934239676,
@@ -3713,13 +3713,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8314179267094922057,
             17345653539452352342,
             2707996882135495187,
             459986843507034216,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6751652014689900370,
             15786325194295001178,
             1232411735780654384,
@@ -3728,13 +3728,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             253204653997020391,
             13634849423589072893,
             289646135178180077,
             142228686469517046,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3205003758965163655,
             17940112966543666827,
             13601374019370391866,
@@ -3743,13 +3743,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6946555333959605500,
             17573739714520887829,
             6505681845766920336,
             431336256611928730,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11125165741161468404,
             17297011662888341903,
             8579395432347856658,
@@ -3758,13 +3758,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9916850050137652701,
             14048980784611428891,
             4475658530188988792,
             53535436865516590,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             555998226639081285,
             613365300294049728,
             917172586749574979,
@@ -3773,13 +3773,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16491878934996302286,
             12382025591154462459,
             10043949394709899044,
             253000153565733272,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13950428914333633429,
             2545498000137298346,
             5191292837124484988,
@@ -3788,13 +3788,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6463962446053846451,
             14430568257409928677,
             9187326482496096674,
             208396807325653186,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17860876644931008024,
             3803101314126340344,
             9229715523658973561,
@@ -3803,13 +3803,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15831341733893438986,
             8883505792511323749,
             242482662763259194,
             518955820148905663,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2848161037228033143,
             1520492901145416824,
             2443405453077752063,
@@ -3818,13 +3818,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16698091693130522299,
             12107933722389162588,
             9016461946955294728,
             272303042582027915,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10408200759674877169,
             16030055603026960932,
             1561064571423254615,
@@ -3833,13 +3833,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1203723169299412240,
             18195981508842736832,
             12916675983929588442,
             338510149841406402,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12352616181161700245,
             11743524503750604092,
             11088962269971685343,
@@ -3848,13 +3848,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16206597911164544875,
             8940610334877524311,
             4324324088700867929,
             279325506684784493,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16878149387482290976,
             1949347436593853961,
             5949151032934683222,
@@ -3863,13 +3863,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7022228567775850879,
             10329258034226928552,
             1703052278349618722,
             476102324495024251,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2199108980814885527,
             4931193453068540143,
             13970399783286747847,
@@ -3878,13 +3878,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11243440153023765290,
             1789876198932802503,
             17834332769464155514,
             531058128923271343,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3921232398029854446,
             14012986149159567220,
             6097926305949627162,
@@ -3893,13 +3893,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14838443063773320160,
             16710252711599145335,
             17945306320549534264,
             76811625825759535,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11720675390566820844,
             14918093534596212493,
             17314003876674700972,
@@ -3908,13 +3908,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1322752058299681290,
             7923757124884113552,
             6033513753206410029,
             527792593940076758,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10989002742953490061,
             949749897773842789,
             9733302531175209937,
@@ -3923,13 +3923,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             18026144224540159195,
             6245137875232955419,
             3829147013857086866,
             426348740010882454,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11047360515902103567,
             4702317337830252156,
             17255393190617378035,
@@ -3938,13 +3938,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7174338020030566009,
             14570153911939996782,
             10701711782391361838,
             426575898341538033,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5246636203510122662,
             10215357914370585678,
             18010091894035667462,
@@ -3953,13 +3953,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16672246377086627268,
             6353000081561509174,
             8100658857046171299,
             452725968905692702,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4915279297148803046,
             4403875857317786376,
             1140901361702823038,
@@ -3968,13 +3968,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12362868579703983155,
             15821352995118212048,
             8856211213555252611,
             517258288912438288,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10500158890360687066,
             13080488544732039946,
             9059047779683466369,
@@ -3983,13 +3983,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12720555563177514859,
             17486604138575998684,
             11925833450855511864,
             567445771490975360,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17429860060875375527,
             1351298251518459818,
             18438183459390574999,
@@ -3998,13 +3998,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11616534159956634504,
             16722814574794513320,
             2889076253716488818,
             59754493411286699,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13373425833337493222,
             6366298088280924466,
             5372834431557611827,
@@ -4013,13 +4013,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17404412181423674314,
             7966576523026450310,
             8135733281769410251,
             511498817730517335,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             169299464981970391,
             333181084061654415,
             4687294117808735727,
@@ -4028,13 +4028,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             731886730405166556,
             9896381575888562602,
             7171452274880892718,
             201125484774721657,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1023679711322620073,
             10360731086374274590,
             11305448541803876282,
@@ -4043,13 +4043,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5209961393719129219,
             5284278488239799570,
             2130762765890188682,
             375212848424962071,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             527772649588985418,
             782896302418720129,
             2151042335418576166,
@@ -4058,13 +4058,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17590842741580820831,
             15324767428705036849,
             4209896162849446240,
             341670581222164663,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2885933588078995043,
             10918333094075878794,
             14435915678599530600,
@@ -4073,13 +4073,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12084458700134416126,
             7844111579283711962,
             3332292414630780664,
             18437409126174468,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8258392078718472149,
             11211798505470449209,
             9893617473140085262,
@@ -4088,13 +4088,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3227480538530392332,
             4439292535456864960,
             10310049646897244015,
             265280314952254962,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1718311869394526916,
             5181020718861927266,
             4569170168461110359,
@@ -4103,13 +4103,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11236398728524880686,
             10104841605073712848,
             15607876152202882748,
             551961090742197369,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5852244156499479037,
             4472092360333270710,
             16794685541884394100,
@@ -4118,13 +4118,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4774145490411147762,
             13127903127999769550,
             11277627102803743226,
             235148251443942663,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14156519415049463082,
             9054483809072845524,
             16714213598661724075,
@@ -4133,13 +4133,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5673069023486392075,
             12864332027556200040,
             13916718992017486068,
             466390140541033304,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6573455038650096299,
             6580442945826520776,
             14552446313069595036,
@@ -4148,13 +4148,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5135017788578227063,
             323506796849334345,
             11037947464907239272,
             255781696017314165,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16879667462922161539,
             347389521605954793,
             9940068406568377628,
@@ -4163,13 +4163,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             18224124866030251396,
             453977930038507609,
             13557192346628713618,
             576406756880392577,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3452823965499366217,
             788921136283795853,
             17633092892361324949,
@@ -4178,13 +4178,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16772603845758566192,
             10921450701526971858,
             2198291817450155210,
             343734166089051427,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16077205716922728700,
             2583731099684016212,
             6183985881507314219,
@@ -4193,13 +4193,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7339749078242119467,
             7957137267824257723,
             18088514965247358942,
             331193789354464337,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12207933696055740882,
             7423223746328732132,
             3437367668847046609,
@@ -4208,13 +4208,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2839515777038704446,
             16001961253316166312,
             11220590730574329529,
             409733521798220342,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9333120865577044736,
             6218467434333842391,
             8259131009540080910,
@@ -4223,13 +4223,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4077024628754917778,
             14427355612785039270,
             6563710728848879036,
             506922712814611500,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15623306815561288647,
             10504738673380845172,
             11414831788575352552,
@@ -4238,13 +4238,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17028219446000709338,
             17567158562455857051,
             2758703658821819091,
             213732076351795447,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7251101412042715998,
             16114020711963602115,
             18277422374611945423,
@@ -4253,13 +4253,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9236878685047878759,
             18007037676600022675,
             12376814584931511447,
             271790055913009674,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6285785841193527390,
             16483851880227029826,
             1552847757620835129,
@@ -4268,13 +4268,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7887482583213929561,
             3208427846802767765,
             9009848723754308388,
             355067369987459012,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7942953522008196712,
             5630400415273757789,
             13156762823073962815,
@@ -4283,13 +4283,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12422701497637169255,
             1992196375358266211,
             8661827688838160477,
             458113163731139409,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4386140732463411829,
             14065558494019899424,
             6653158639003281,
@@ -4298,13 +4298,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5607511041427582434,
             1348834769651990107,
             12868539997965496402,
             72772633124473019,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15310020519658267859,
             1159358669589866802,
             1214354492451389128,
@@ -4313,13 +4313,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2756905179141425686,
             3133335710504403357,
             4500613145856368676,
             252474049909353662,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16074985417759112033,
             17128911667084157855,
             6049360868498404861,
@@ -4328,13 +4328,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9307719978454287270,
             17041593009235267904,
             13263424063019013329,
             8045776814983259,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13737040200308644149,
             7651329849377990573,
             17867910536372816111,
@@ -4343,13 +4343,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10307994582074671920,
             4445286378781641328,
             6404078615447150102,
             528871182893749286,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3326311014671384880,
             8367030795812240869,
             17292161759346240176,
@@ -4358,13 +4358,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11078006341477042174,
             6762098204481222304,
             13294722464535747396,
             66658400764561635,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6328278366860566003,
             17798481388582655812,
             3766995566962483382,
@@ -4373,13 +4373,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11786256235238224893,
             11645169027648556650,
             11230711685097837962,
             76659294106286144,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7685854018064471220,
             18048115386403378905,
             17723476362721014664,
@@ -4388,13 +4388,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17366578917858484605,
             1717770967725674280,
             14474914663253375255,
             566539205564187050,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8276569751740898445,
             15816105282308016792,
             7084572236641807057,
@@ -4403,13 +4403,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8520772710025538550,
             10924699020812479322,
             11371218488286307383,
             470243171616285670,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2503327895871834326,
             156168686658738506,
             13360617893910389756,
@@ -4418,13 +4418,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3624827355380207862,
             15921695405753811117,
             11266559104607477283,
             461527973497783386,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12099465311549470147,
             14258238854429517686,
             15668357117839208674,
@@ -4433,13 +4433,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4256184226718774420,
             6852511805210056558,
             17701186314033161420,
             281531113761579495,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2440038242050236835,
             4991228921006769339,
             16513604386869306354,
@@ -4448,13 +4448,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17723322183891255297,
             16410831451288443106,
             1335837529449664262,
             315786722959209631,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7509949925949223271,
             84479538486798215,
             8206768419022732753,
@@ -4463,13 +4463,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1802438404742958368,
             3664285059540291052,
             5725532500122706430,
             294592645989192129,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1141181356376487128,
             15123349460048384397,
             2061043080463964615,
@@ -4478,13 +4478,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8565651758217688881,
             13423481242862215416,
             13705917146848369140,
             433977292504202345,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8700269926680051968,
             9203377436915277423,
             1659610852728880090,
@@ -4493,13 +4493,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6732836224389524156,
             4518006703994927970,
             12054019969160156684,
             122785166855336866,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13967075683165046090,
             4561313760311917776,
             18007116456325534472,
@@ -4508,13 +4508,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             246532098857264882,
             17998261805825378973,
             3476211317241834547,
             428046224595742634,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             649727115778233895,
             16731426157550838354,
             3726878036768350539,
@@ -4523,13 +4523,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9881433614937340882,
             3380725499905132571,
             3131861050505050318,
             206599875182610405,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14259899808703900342,
             6082037330554009563,
             391594675012373014,
@@ -4538,13 +4538,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11373081815259512498,
             13906161232648126915,
             8588621811217588537,
             499016827548097636,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1893356518097047493,
             18369049928644909865,
             7518892908221843829,
@@ -4553,13 +4553,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6851762306891818372,
             9412021843550090283,
             2447398175069565109,
             95860981851075509,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2602377303734826936,
             15958288803996563791,
             13373278944840253873,
@@ -4568,13 +4568,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14976511855781141063,
             4427835946581924526,
             7448557476832191839,
             273992488640954148,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12544506415563449991,
             817277441590717289,
             13558460244721680033,
@@ -4583,13 +4583,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11075768572886603007,
             621316485811508008,
             12102222266913173758,
             76824465812577215,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10524353059766593622,
             810111463984664197,
             16777373361347305284,
@@ -4598,13 +4598,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             582739359213836381,
             11644144213261202213,
             2198922838900445545,
             3387194022637747,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13346111132263665973,
             12607805917584446936,
             13267001229778227620,
@@ -4613,13 +4613,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6171641737699989862,
             6902452568648477918,
             4756785069314406103,
             520799548469401877,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3623316121938399613,
             7061623719358229991,
             11909992090926706314,
@@ -4628,13 +4628,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4795246998181201386,
             54023997139942349,
             8402010728091644553,
             377352481099902475,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4907609926904758100,
             3689277681042788007,
             10226048395345793670,
@@ -4643,13 +4643,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14676651858140718876,
             13122925373941521545,
             1152496919912870536,
             390090166680618189,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6820636359101957899,
             16728643740872694625,
             3956100645716122086,
@@ -4658,13 +4658,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11644070534242586731,
             16322625832910066246,
             82883473557100437,
             134914190807561770,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             18036635693638857172,
             6265027665773050897,
             10569416937273902173,
@@ -4673,13 +4673,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12022995556337256464,
             2344059118455704353,
             2195855902615100148,
             323521908947813224,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13342816939823754123,
             9263811610080513192,
             10744358474196066628,
@@ -4688,13 +4688,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7647288356084509710,
             12463060049845584638,
             8245903081099922622,
             201670405799775405,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10473113807765868190,
             17809672230860068418,
             6443888495972381498,
@@ -4703,13 +4703,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6565496123231237593,
             4963005566598223231,
             5486413358570719549,
             526675958405450820,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1150958825257931249,
             5171700457508790709,
             11104738759003770265,
@@ -4718,13 +4718,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10823870676385615215,
             5471510065195732312,
             5660935716935298417,
             230119002981379303,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2401349690260204784,
             10701303539803752075,
             17642376617613560520,
@@ -4733,13 +4733,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17822248695004747325,
             7475761931252657159,
             12544656043275823447,
             550225123858085155,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8201381396541553620,
             7231203252279238206,
             14826814534775172064,
@@ -4748,13 +4748,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17805343612507515319,
             13938871879194511315,
             7496409983224377339,
             231613778449273826,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6130263343748875264,
             10525653983063560692,
             9062017858386112899,
@@ -4763,13 +4763,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11038388873072048708,
             17731078118464411358,
             2484296110612659931,
             91189458235159369,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17744320341380517913,
             443882574585260343,
             15030910262251641310,
@@ -4778,13 +4778,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12320418356180694622,
             14640626387171276544,
             15444302674147017018,
             156908777344867673,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1601015206550185206,
             12099143037357448776,
             2135284930578267455,
@@ -4793,13 +4793,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9021438618221074345,
             17785103655538609993,
             18268247573201971308,
             497236087135775220,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14303474569721182855,
             13848421539308857611,
             3475532281695354583,
@@ -4808,13 +4808,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5456760287045512662,
             4509341029414279571,
             1788804520052288067,
             361352483302194035,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16316401506538389810,
             5693407011294825580,
             4647318193066779272,
@@ -4823,13 +4823,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3298361759933006316,
             6104830304433525377,
             17349177831857033348,
             470033223207186601,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1551930902325411509,
             12741687413451801060,
             1258067186321670431,
@@ -4838,13 +4838,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1205656894151720335,
             10106125084091068839,
             775526666452095698,
             562446870152572262,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             700348033266211136,
             4352937164361901311,
             10500368940309431405,
@@ -4853,13 +4853,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17783008139017695518,
             11096971405888362203,
             11295722523100695694,
             530208926590155433,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6250823245902572966,
             9364987334418935280,
             10510801984070834595,
@@ -4868,13 +4868,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16586934936214300964,
             2564626492232232266,
             13870501495021318818,
             436031463476838575,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             535796895276217497,
             18211154658038248030,
             6251071747185309546,
@@ -4883,13 +4883,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16628687685975957928,
             9802295565032245629,
             8332150126405849839,
             193584590332140667,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9315858643875011544,
             3667606598458157052,
             12315222360514019899,
@@ -4898,13 +4898,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15778547920966600169,
             11339589343991848282,
             7369811034412371966,
             478031103546862924,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17726296287756391659,
             13707461451001346166,
             17966969747884365962,
@@ -4913,13 +4913,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5434672280224499242,
             18432141254108275269,
             15250574208872477314,
             114927594084852109,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16076661204613385758,
             4613749341115192207,
             3545601273780608457,
@@ -4928,13 +4928,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15032323673524560838,
             11447728440406948191,
             3771740486488437188,
             302272800759118133,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12305458692419204949,
             3205828710141864078,
             2064544481018110471,
@@ -4943,13 +4943,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4912379664905777175,
             10906069331150484321,
             4086194328425738661,
             116891995057611629,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3705132698640473125,
             10852349932620661306,
             17393589209808412547,
@@ -4958,13 +4958,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12724880653151393619,
             13990680356177537723,
             16908872305310689721,
             287138380996125967,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1072029209579751760,
             15385293229174108330,
             4716967368626135553,
@@ -4973,13 +4973,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3731861941306416557,
             17624492170927776915,
             15956892850927746099,
             425276773485436293,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11188532497623385006,
             16296294883079930694,
             9464330098828911605,
@@ -4988,13 +4988,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17731892157012034600,
             6002071936853169678,
             13197386501591348985,
             432592373764698442,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10646596484724745009,
             74166784136941165,
             2494592489308431815,
@@ -5003,13 +5003,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17729702459160037401,
             10994506068399459370,
             2304124147942670230,
             171055966996966401,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17748206762134949475,
             18015145561976693638,
             16172133880327575609,
@@ -5018,13 +5018,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14177808238652911318,
             11274309249612841525,
             3342063615874787230,
             289271937250912569,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6551398310949235322,
             17148960732743480491,
             8402271080303557053,
@@ -5033,13 +5033,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13733296087414963921,
             17278797162061312231,
             16221057106363498940,
             338626756143413724,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6547896372791692730,
             5909353643406106090,
             14057499310825565743,
@@ -5048,13 +5048,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             849644728839957297,
             13700735315594159606,
             2194303567187815613,
             133312305758355783,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             781061615943569701,
             14925871369910003217,
             12413105907321183041,
@@ -5063,13 +5063,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13084785013910048594,
             7196594000996252647,
             16052664519732213276,
             286364712119666871,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2662444251182038550,
             11877051448162508067,
             3195611327174001085,
@@ -5078,13 +5078,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8734715481801540655,
             339040080379589117,
             4303485093181139334,
             291280492379409153,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16298908000356187435,
             13143941211260270809,
             17267651334148577063,
@@ -5093,13 +5093,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9400721159317018595,
             4077070414584804646,
             706515853745837242,
             555060695318262335,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11059509483470714509,
             11566729770833039751,
             4433418423617208693,
@@ -5108,13 +5108,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1775046804002609329,
             2948459924481175894,
             13093970669346509081,
             560096171466616983,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9744980286805192591,
             17013849838059266947,
             5848645956283592711,
@@ -5123,13 +5123,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4465580985391627182,
             4793424103564463020,
             4891854145223714299,
             541326379550668894,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13299893362222862588,
             1535465812800894600,
             5855820476999104169,
@@ -5138,13 +5138,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14432122325493150947,
             16058410332649200089,
             16096527561902758955,
             440446752344733153,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5581103934908177393,
             17108025484262865919,
             13050722346081432537,
@@ -5153,13 +5153,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3987749099002836191,
             17865934125376497687,
             12404075972017281430,
             44934446591502488,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8244866552228525428,
             12664206844437640780,
             3760562397366417949,
@@ -5168,13 +5168,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9655658583435451129,
             13347384847190474959,
             447013173484508868,
             415959664607711369,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13416580453919399187,
             5996376912545743050,
             15305448047656270577,
@@ -5183,13 +5183,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5119966680142736257,
             1703409068592521907,
             11110154969778677880,
             127891635888057910,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14094164203753951686,
             15360303232412793369,
             2656841195701029282,
@@ -5198,13 +5198,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1875970481417459887,
             2793034784560015157,
             3044108791317691054,
             485320461745848805,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14531746536790857125,
             234125666162144045,
             9543181833713040550,
@@ -5213,13 +5213,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3158471564009805246,
             1793123099847760108,
             13322763276541584362,
             554792179108593846,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14266509962501729083,
             8521676774882401387,
             13806316945676114464,
@@ -5228,13 +5228,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17138476595150605441,
             7209773032311799246,
             14205785666254680643,
             308631139399033283,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13686935080609099501,
             10984309095500269756,
             11435878317203328119,
@@ -5243,13 +5243,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10685639500742306044,
             14485776635116333771,
             924703680558009110,
             440495004148151662,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7581782791030863827,
             4786095101319477483,
             14460195222036491263,
@@ -5258,13 +5258,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6431243980832365496,
             4478532805743836424,
             2446048894886291934,
             24575825641315317,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8184408455710612455,
             18364703900399582829,
             12091212605853750617,
@@ -5273,13 +5273,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1089831364442904897,
             14889791584836681870,
             2406540131190227162,
             540462581410917183,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17903458382136402339,
             15693334332794378860,
             2686083396185613439,
@@ -5288,13 +5288,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2517157007851737609,
             10558694907419379688,
             15818452585998685322,
             70228533120376078,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1132675433369409289,
             8058131989721075921,
             15589881888810333553,
@@ -5303,13 +5303,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15876791795417774538,
             7444448127266305819,
             8618350842866090041,
             402062932511360295,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1307578500484379585,
             14687609892951080675,
             2417529131274787169,
@@ -5318,13 +5318,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9172778933809682090,
             1840315808323446401,
             6599346241004845901,
             280046381703917730,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16645096325333531877,
             16833974567698277741,
             12128762441688561255,
@@ -5333,13 +5333,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8426305303737382682,
             18130077054010002837,
             6334814640241489792,
             117225391939605192,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10641206425095158002,
             16057072306970159344,
             11608603756727974377,
@@ -5348,13 +5348,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17657210995732179022,
             9446344136936120727,
             13394765295061502120,
             204244881687263056,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10021303717239125815,
             8833123220408368821,
             14924127634101052778,
@@ -5363,13 +5363,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3298492280922146026,
             6007210937459832607,
             1612043948323700510,
             67242807801086430,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             500071627009791434,
             16517036773184781028,
             14672414878021224510,
@@ -5378,13 +5378,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14304935148967812431,
             14980960725657775481,
             15379001809456985963,
             318319288629456739,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7023589402862818551,
             16366758419879503489,
             7730152574554244223,
@@ -5393,13 +5393,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8501765741421691365,
             503706688947025310,
             14659786907411418670,
             187238697465916290,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2197057060879017315,
             12133312767591795251,
             11988822896113573846,
@@ -5408,13 +5408,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6260024531384898710,
             10100954950382021859,
             17636329448877012823,
             376367150218344340,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13035203577109763866,
             14854312947356244577,
             15811761355077864667,
@@ -5423,13 +5423,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5867383977628735594,
             1776720431392393188,
             12657734449422953106,
             130432865185967477,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9850882568511449021,
             14300875070852711820,
             3539960286933834028,
@@ -5438,13 +5438,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1043140102377452363,
             639378427116434914,
             14152948625845756166,
             187016201822395862,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7103377280294527344,
             3374661943167442691,
             624254033649162138,
@@ -5453,13 +5453,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13175826941427594249,
             8880895657559511844,
             7163608198335762451,
             481018164077151939,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17559948938430655678,
             7961906466640488481,
             5408809725287538729,
@@ -5468,13 +5468,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5218651634505424441,
             4159611364261109291,
             15597470373335692898,
             264504328028346578,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11568688706820218785,
             1292164547033361457,
             11069299744028039225,
@@ -5483,13 +5483,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3657564013567248985,
             7019260972203769853,
             15770258399945732533,
             370361389211001656,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2580486121968534967,
             111232627562498080,
             15664300219273378795,
@@ -5498,13 +5498,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8572351362020366978,
             7930722276802902015,
             8506127096686451777,
             222481287364467761,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10203775226401887353,
             7780035509681815207,
             912779036131669132,
@@ -5513,13 +5513,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             344819309305349969,
             2968414457405683133,
             12926603497605598069,
             221831235585571669,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10987892547488535159,
             5671238896979987153,
             9697939013104138897,
@@ -5528,13 +5528,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6318007045377106819,
             1822062885819396552,
             3893871081455579688,
             500589289267194884,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8387032282476514110,
             8074936776682476355,
             8984946087871534685,
@@ -5543,13 +5543,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13048786572982944352,
             8059256127282015542,
             11604380541618141292,
             110452696588327718,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2270102226051461923,
             5577272961330688914,
             9445826936662017148,
@@ -5558,13 +5558,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11665010446160766531,
             4955445418069469624,
             3157336321535447499,
             129960930346874736,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14585661383427210196,
             8174909810175488268,
             12201953471797500545,
@@ -5573,13 +5573,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11976716929757721004,
             9223082867989329343,
             534717287986156423,
             343754104938516175,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17839802822440028647,
             8566467114473855773,
             4098139870256334152,
@@ -5588,13 +5588,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6520656434365733171,
             3244180940908962275,
             10994168598533767024,
             226630638231353879,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9343856908911323867,
             4062435140761504781,
             1699968548585521613,
@@ -5603,13 +5603,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2361093931112906926,
             6965576966431782233,
             54138342077173314,
             250860870696456443,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14581746869893639227,
             6787815930022556393,
             5481171770720593037,
@@ -5618,13 +5618,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             18015483733537880655,
             889118439400348035,
             2358291389855949485,
             95561500163888073,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7430850267964076746,
             2221494547586478072,
             9934362845047076788,
@@ -5633,13 +5633,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9424694683887606054,
             3097831961310514033,
             975321448982469016,
             401170158055093569,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16324022569589068820,
             14114356466852456064,
             14902678661993802498,
@@ -5648,13 +5648,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7655216619403680101,
             4501396528660459108,
             9735677635605561944,
             190039553920337390,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1035671209874900585,
             14942147933039345916,
             7094146394016399629,
@@ -5663,13 +5663,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15266375863156785795,
             8949703910419710657,
             15533046803185592964,
             315839883962078074,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14675129824438027043,
             2923897158331291875,
             5442232034211780569,
@@ -5678,13 +5678,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3723701767963263224,
             12629222953006573283,
             10720805288151989553,
             555306736955407227,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11337070857775377922,
             6703105556930173765,
             702558586005898557,
@@ -5693,13 +5693,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5478610592844872968,
             13320033584590754934,
             17615821565614659679,
             132461183702960268,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4799084462178766976,
             3541193913147432684,
             10261976149450561868,
@@ -5708,13 +5708,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9910122334161865148,
             5350913141075891689,
             4835775280641195265,
             215907387106182459,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11377295752937180898,
             6920810960240203065,
             4956596693465850698,
@@ -5723,13 +5723,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13320858219802612547,
             14207020933257739477,
             3175396038859554082,
             21291960717261742,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12364031321922584677,
             17501953390597884675,
             262297542921321355,
@@ -5738,13 +5738,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13727702362156122665,
             70961646111312120,
             7865961781218182054,
             330439284734813389,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             18043530963062160194,
             6137352399219553066,
             14745886874893331626,
@@ -5753,13 +5753,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17061025189398091512,
             886113663711705943,
             15443603342763062915,
             232091703316292198,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5303889263984910724,
             17613091898685389095,
             7382743180413114140,
@@ -5768,13 +5768,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10910235695891978737,
             7205498351228331900,
             4679752981420098713,
             38808745983757385,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12553255447634801671,
             9193949174395394080,
             3954074243502563036,
@@ -5783,13 +5783,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1518817506498892633,
             269625989053359877,
             2726807844425056038,
             101012623232029121,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16574070345616950571,
             5434333801757979003,
             6237042918135214550,
@@ -5798,13 +5798,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1920287456720821076,
             13791086407489574349,
             4522435272691686488,
             443428001859426459,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3995560914468968758,
             678598398747825814,
             12091444822279224564,
@@ -5813,13 +5813,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6152554412144059804,
             13145693863509861451,
             1162457178479233894,
             221501977969027375,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2848574631820124545,
             10747556400203935425,
             7559080812448865088,
@@ -5828,13 +5828,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3238325442093757130,
             12215522436588032834,
             7846770475084498466,
             534933974731487918,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2003239678767390891,
             13638729618903946464,
             12380198179623465904,
@@ -5843,13 +5843,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14132007411735974706,
             5224591249512401918,
             11516733743736549806,
             548897223551249253,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11661507805521170953,
             11685753642706251585,
             10190677760895242902,
@@ -5858,13 +5858,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6257073345714734150,
             14582967507676642190,
             4383155215561157707,
             277864475105342133,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5907926049311089992,
             3374201633224902079,
             8876247973152743390,
@@ -5873,13 +5873,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12984836281563856641,
             2428882102286591468,
             7728113201908286195,
             19401500113107235,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6839219126487678208,
             1546339768785082364,
             8405876235314565634,
@@ -5888,13 +5888,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11817122520451988338,
             15745810523446209801,
             10579407147064519667,
             477333504471065811,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11632856045634812534,
             18396725509391870109,
             7416782301070834413,
@@ -5903,13 +5903,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13891623794390714632,
             8845817209352371918,
             2281817030465748067,
             383048364601035084,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12588139107830038047,
             2446473954641412431,
             14376030540248570153,
@@ -5918,13 +5918,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16676586247543241699,
             6686387192985942199,
             14363051028656278458,
             105940040242367003,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17295620835461780206,
             7122730320831643771,
             8214064716383795376,
@@ -5933,13 +5933,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2915020090602733338,
             9957713024428996078,
             7776830330609918046,
             357567935675879208,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13993725596302616580,
             9416911875258985471,
             13922879217618647317,
@@ -5948,13 +5948,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15277177264453420487,
             12828768231000461935,
             5240804593474551536,
             397019784796029616,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9428050715011192280,
             9551846057163945780,
             16649871814009275870,
@@ -5963,13 +5963,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1390500508310211942,
             6306080318041758169,
             9565588941287517797,
             79375670868228660,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12837049299756760184,
             18242790827024798435,
             11508879313902233969,
@@ -5978,13 +5978,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8815851020211401807,
             2478721697004604254,
             3831499314331868823,
             446107412291039541,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13565968628112977581,
             7286864243007834753,
             3555482595628687466,
@@ -5993,13 +5993,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15181377015370884435,
             1508136496340538472,
             9900184356203636979,
             295578792558778668,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4269735265507115794,
             3482842809343010257,
             1983627293255470506,
@@ -6008,13 +6008,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7175040633539505687,
             8580429300992070866,
             15851665168201501113,
             157826570249764197,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11632330650694560144,
             6475332278346276584,
             14167167633211062756,
@@ -6023,13 +6023,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5854298671654981850,
             2603050858391981342,
             16955642161078048956,
             173193831654601401,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3758895612759721855,
             17589366244203528298,
             15375459681785896218,
@@ -6038,13 +6038,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15609204914361644222,
             8348522517925583793,
             7394946334433359136,
             271261460294125201,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15734559541962465970,
             7599594752704098753,
             5024776015391104194,
@@ -6053,13 +6053,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14911086081754423478,
             15135502186392426803,
             16452400237579806743,
             345511442512899250,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15782614899590612607,
             14532649122302115845,
             17054526072415273823,
@@ -6068,13 +6068,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11003392236279749115,
             3465522475331769750,
             2281986075583823438,
             430968508833341028,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17370122605443411793,
             15943221587796156425,
             17046671372916903515,
@@ -6083,13 +6083,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17705783402503246007,
             277577571039887952,
             16402793195125420514,
             259825372168940898,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4444982292063044242,
             5079036889414898453,
             35521945531046005,
@@ -6098,13 +6098,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             18229172836492089006,
             9252302760144191960,
             13994416448905911570,
             225054788044723136,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14077683056616080325,
             8536530013937179464,
             17103569668194492605,
@@ -6113,13 +6113,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4275944215705565304,
             12606562696433932395,
             10487343234032195634,
             502262312917438022,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2586708907573857594,
             1713779116608368475,
             6100212630170505299,
@@ -6128,13 +6128,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14338917801275937038,
             15487410149956537392,
             17146307107671338475,
             154895689362794398,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16263429686275683735,
             4624680514730044587,
             4401142035872137865,
@@ -6143,13 +6143,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2898309675232378528,
             11545032280876770700,
             13828358075043340593,
             207683507143026975,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1159730774127087667,
             2624253871370178952,
             6583409774781102196,
@@ -6158,13 +6158,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1080805853324151795,
             7220702879171694034,
             10951306289861328044,
             102537762651692403,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             479420502856408062,
             15043502221570863225,
             1370256142611672242,
@@ -6173,13 +6173,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13746603949095546892,
             666460957140740539,
             7508887035220309352,
             497564073429118642,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9495177525556096639,
             1927284725375911816,
             132024444528558534,
@@ -6188,13 +6188,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3970579964179834641,
             7190676784543543934,
             16456650687519201347,
             270400996789239658,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12961811188559254923,
             1508009173224952110,
             2847105059336016269,
@@ -6203,13 +6203,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             36887440463561452,
             5342615970722986822,
             5805560158956249562,
             482394272865856296,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15471398243252902688,
             14817277360865054717,
             15835805884864546289,
@@ -6218,13 +6218,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1858560050681586192,
             7931404410831752771,
             17414951126328551106,
             59329801869834522,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             193469233085030086,
             15041596940195816447,
             14624180478715447327,
@@ -6233,13 +6233,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15385291907438445662,
             3882360028725811247,
             8306106077666599042,
             372378687234457400,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8734351852605498320,
             11277571003177728387,
             7104918860738928630,
@@ -6248,13 +6248,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             79717126109356460,
             507209053559872093,
             14899369881549592115,
             20809212881700724,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17667054066422956063,
             14975974887554579666,
             10565432657007823419,
@@ -6263,13 +6263,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1683641258133765407,
             6977319476115888895,
             10906546669766765340,
             225533503733386623,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2299198946570052714,
             13076905236851572945,
             12199716447762363842,
@@ -6278,13 +6278,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1134677397300590381,
             4193515887447484402,
             6003761858783734319,
             150757782587207372,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9550585303225703743,
             2890918335505291629,
             9623859664064061427,
@@ -6293,13 +6293,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15258438116404590173,
             18038506997713490616,
             12732057364319131904,
             462842522522769544,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6901893379945993403,
             939492627251959292,
             17134333384830982400,
@@ -6308,13 +6308,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1258312071003118935,
             14438651943721032142,
             16562716595269289216,
             461747526584110475,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             120207300927897980,
             3182368288693332378,
             13749792996062845752,
@@ -6323,13 +6323,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8968763058375768517,
             16170327167732022696,
             18272208567709613488,
             454286199332092890,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             426911519480961539,
             875033581313429289,
             8628385886977174949,
@@ -6338,13 +6338,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3247626786576125811,
             2400662828492243965,
             961782861299252094,
             201572424784851599,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2613129736506654235,
             17731311222214104272,
             15499375203570144816,
@@ -6353,13 +6353,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5247731466961314226,
             9831644786339250281,
             13456211675601252159,
             557670336443095344,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13414281083715876914,
             17864355679725064909,
             5496239960427611730,
@@ -6368,13 +6368,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5112316221780401497,
             5700258338997971089,
             16766189057480497632,
             413854124355572957,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7513682147932359340,
             16020872473812027390,
             10720418877027763719,
@@ -6383,13 +6383,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             645787320905593903,
             14778238478662711939,
             15645679378233909266,
             391419017115368192,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10441952064874059145,
             14528965008711565347,
             10941812042733761855,
@@ -6398,13 +6398,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3507049242943428735,
             13066578561221990831,
             15194592416318964188,
             15024052613920738,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16591199301208853401,
             2491532553021847727,
             8251456345148475907,
@@ -6413,13 +6413,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15106292802837036795,
             9012922041233019983,
             16819782412188270872,
             79677597441928037,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7209652096458706970,
             4831648716231546225,
             13477963960890839496,
@@ -6428,13 +6428,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4018150707202124406,
             8355229729033988138,
             11006078815400331201,
             482758340569698568,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10894289540187919079,
             5540571978542463316,
             8622557468625648853,
@@ -6443,13 +6443,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14440818837803235285,
             11847614200046646737,
             11411821153640347966,
             425407124373954211,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2859626629192856277,
             349947605792809740,
             11911152937487335485,
@@ -6458,13 +6458,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7080945026909207699,
             7689410790278185128,
             11485220864903983338,
             555597137892707249,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16693506622933875626,
             4770352187802334197,
             15124386868278054854,
@@ -6473,13 +6473,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15848854110303821105,
             4536095595098585980,
             4596573434384222419,
             461224187124259234,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1221646741520227442,
             10543956953676524482,
             9920394792378972864,
@@ -6488,13 +6488,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             11553190330156661934,
             5757315501022944108,
             15056144989354052195,
             416724099885172221,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11723939321748321328,
             17578247873052177077,
             18242871004768522150,
@@ -6503,13 +6503,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6478559569395345536,
             9974908348566476203,
             1398380117473491485,
             431283514769162019,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13018466981311823345,
             2771809877577257735,
             14605325202086642638,
@@ -6518,13 +6518,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14470245552138802686,
             5755488868957240494,
             13252576520196390708,
             82171913340765685,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12395302804366305347,
             12930756102140980741,
             17203736554114359874,
@@ -6533,13 +6533,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8243785709504524403,
             474185816568567380,
             3605643496512114512,
             495670432775211825,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10809528025305308081,
             3568312868994181729,
             14584782412471278198,
@@ -6548,13 +6548,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1235335442306023901,
             11111755556137315851,
             13250014733661256810,
             16425284542109133,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17562183668029479298,
             2606685276129404076,
             12066998374110943790,
@@ -6563,13 +6563,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9666926929075817550,
             18120737219285579138,
             7118553555525567386,
             546447312849504561,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4221685470963748701,
             6818706316399004797,
             846200614860812836,
@@ -6578,13 +6578,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1574162774401534574,
             2708736407639521201,
             10376321105985860117,
             497586069436033203,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10038118487286600407,
             15261341416440927458,
             708772000418965181,
@@ -6593,13 +6593,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12988025649359556111,
             5009026958914357564,
             13574919329609531002,
             513948455669884233,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8747878262514614719,
             12173697654564271229,
             14610530018662911408,
@@ -6608,13 +6608,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12301172003794774599,
             3967119023043419558,
             16713834295775564540,
             524955902891024551,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5878079341557157485,
             16813367762692985604,
             17569992248448694097,
@@ -6623,13 +6623,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             518146898067292296,
             2248074692387169688,
             2657299228659231542,
             568515867000543630,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15351732301905147814,
             16280203938304506736,
             17194642866963844189,
@@ -6638,13 +6638,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14247255255253445150,
             3820836798735960073,
             1950826298434435686,
             2950806273745405,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15019642684217194011,
             12941398413896596663,
             16711085795629152180,
@@ -6653,13 +6653,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14585982445005228090,
             198672071629538099,
             17546951703005208125,
             572574161127237278,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1629886431852893549,
             8973507643332712986,
             15299943430322473098,
@@ -6668,13 +6668,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7817837166794619643,
             9315110057369785406,
             5375906068556293981,
             107474457865281439,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1841453378003823714,
             16724775312148873785,
             13744605350127689486,
@@ -6683,13 +6683,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7758728640422406128,
             796521536524490121,
             16885153808024887046,
             285319445267307747,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14551646828479029357,
             1365757586562440267,
             8380515939304998327,
@@ -6698,13 +6698,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7430622010620235258,
             4970198750964407489,
             13974941411926656420,
             100131763431392666,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             6837441885313515460,
             13816505818515068510,
             373197060581702458,
@@ -6713,13 +6713,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             18437019180653662889,
             13392523598446862518,
             2907206517971915847,
             231728242841152892,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16654104916052672754,
             12306180244197425233,
             5274439948333276197,
@@ -6728,13 +6728,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5510099258841671003,
             17261268512434063429,
             497300181954567668,
             375715449459796143,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9178384089790853266,
             14431512108578340379,
             12854703768576298871,
@@ -6743,13 +6743,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4227748965603254548,
             9693028997523349187,
             16608129201572709800,
             503904383962490185,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10089671221749982677,
             9560595569487996177,
             12066339054973389249,
@@ -6758,13 +6758,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12103307310608976272,
             4150634247107719141,
             11163861903781095441,
             283834286517508294,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13308119177513258620,
             16594753890618283171,
             1655434269833737410,
@@ -6773,13 +6773,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10403441704667581873,
             10574167203947908829,
             2876003293127996913,
             444569062727777696,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16363230043643063475,
             3024656593999190274,
             14315671728187803703,
@@ -6788,13 +6788,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6353887283610988092,
             7056938630138488587,
             11527800414795906391,
             362471119982054035,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1961509923397506517,
             13429760365363621857,
             12150264346852950177,
@@ -6803,13 +6803,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17778342123713763364,
             4255278387813246262,
             17804576640378001077,
             532724678106277451,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             322243735974790940,
             15096146991319939378,
             4797795729725299328,
@@ -6818,13 +6818,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             3641395519200054831,
             1072966581104001068,
             3478953918844988767,
             571511610111545818,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17771728991549552825,
             18353408171746270342,
             11479616706223138932,
@@ -6833,13 +6833,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14075321674933148384,
             2501246698272762168,
             15470114517029783554,
             275167804455619335,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             18257660108863867286,
             2593662368933003880,
             11518156799492681400,
@@ -6848,13 +6848,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17613712260568001466,
             4198129525377111004,
             978383959314494836,
             425664914078458147,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3865695964279949856,
             4324035907964656271,
             3558414694851634505,
@@ -6863,13 +6863,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12258456446514062244,
             14387402866623529465,
             2743078695760563363,
             268710036186084668,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             56994963449520364,
             9626178854779614309,
             17451830536981471584,
@@ -6878,13 +6878,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10769177638537811003,
             16780080528114699220,
             11037487612381920321,
             30047261322693951,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7609197623156579964,
             14482523763921817667,
             17855825302829249979,
@@ -6893,13 +6893,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13351129655076507677,
             4277463485099678805,
             8467367138186667844,
             452259795974748962,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             616130436087951197,
             4193532927902387630,
             5649535538170355400,
@@ -6908,13 +6908,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             279709663008999028,
             12507689957030925382,
             11888561282044005599,
             68154963329255367,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2661730559213819797,
             6522271503202021305,
             3691257636233880297,
@@ -6923,13 +6923,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1897827064850209811,
             9643727680150094447,
             14188535082124095388,
             196276293605083110,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             483070721904426634,
             13103198557817361291,
             14371858343712315217,
@@ -6938,13 +6938,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6065693026642363140,
             3160951849269624578,
             2839729783127978392,
             71521757589485517,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15328347252123374944,
             6925042689129950912,
             15590861805843912508,
@@ -6953,13 +6953,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12964661786638403837,
             9575711964941225100,
             9369692645755283370,
             52361618245645946,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11903250713258171780,
             14092618525189630517,
             6232481594677168576,
@@ -6968,13 +6968,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7766183031462565625,
             9004345570312347839,
             6268468955883801567,
             460848979244728247,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12866386101723757443,
             2174707024593505047,
             9711433516045720646,
@@ -6983,13 +6983,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7930778217763891336,
             18423157633692957772,
             874642802164691656,
             503223430610767585,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5973356817289490809,
             1221651673080531855,
             9753207946376483710,
@@ -6998,13 +6998,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             4141506869309552433,
             6364454242204334599,
             15765985108041501687,
             82412544116844462,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14401613537660224336,
             10335769637674129604,
             11201933276159346613,
@@ -7013,13 +7013,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15660983250402598548,
             10402484439329412130,
             11197391937028195660,
             538873752399512101,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17236033709571761631,
             7265472080927672423,
             1754984069483772519,
@@ -7028,13 +7028,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14710878511359079919,
             8353720723329861388,
             16572230255322543519,
             114363990289084712,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7987047735803137257,
             5906299520000885787,
             18083779518308535850,
@@ -7043,13 +7043,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1900031311401103699,
             13326259718269156386,
             5639651525125240537,
             281971515656772138,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16395209097930809337,
             4042824281061623206,
             7051147007607445601,
@@ -7058,13 +7058,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1670376543524458695,
             11419498626399387314,
             8397650375231849942,
             210398658802446330,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3460709239890511540,
             8822789709388520282,
             11062742972033374142,
@@ -7073,13 +7073,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             934121626408230946,
             7896869399995619568,
             12595243204620007433,
             179301683962657542,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5015239846010255794,
             12083317366839782445,
             6657970985038849695,
@@ -7088,13 +7088,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1416450438709464612,
             67940503068777401,
             15315560750189671062,
             546308955007286724,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11581127087085809420,
             12011122748845641211,
             5621234528463139322,
@@ -7103,13 +7103,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             5636760667714289145,
             1373429219795553308,
             12549175961509238350,
             299605822835265540,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             15138539278535056113,
             478318137282569541,
             17219567614465028574,
@@ -7118,13 +7118,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8409150197086307097,
             16931944160884182664,
             6275883682528868557,
             133538196719669438,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1845120852621539148,
             15348693542521782859,
             11968605373248629100,
@@ -7133,13 +7133,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14185947217949825701,
             5010342401050414791,
             14123069740116646500,
             164969510693113095,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2276921955143805854,
             13246370003501732670,
             643472492051970444,
@@ -7148,13 +7148,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10970160076366329758,
             2916135496588817368,
             16229654711727027574,
             500426818795878316,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2358200834018776478,
             593480757298359652,
             6067042020830469612,
@@ -7163,13 +7163,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9455456404606643879,
             12931288204009585322,
             4787362211952065733,
             308858193052246921,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             4251934237744710751,
             8402608294922603797,
             4377708456450113504,
@@ -7178,13 +7178,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13258844156362517711,
             628385690168985600,
             17263780487228935875,
             226595175138350254,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8042803312398837811,
             2922331045715080944,
             14634354108985410822,
@@ -7193,13 +7193,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13025219255990344851,
             17316223664915053281,
             4452627535709274543,
             275515545871079547,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13027795301275799593,
             420021899533874885,
             8785206538125142209,
@@ -7208,13 +7208,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             12154577045664408983,
             14363405383898262225,
             13352044609422229271,
             482288004119544269,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3721397734679631128,
             12459948098909991458,
             13508594259712699230,
@@ -7223,13 +7223,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16592450971748357861,
             10021360702098368024,
             17474309136804786066,
             85496619644508122,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3800986846025008685,
             9551266843728128833,
             16050299152708176044,
@@ -7238,13 +7238,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16126748563067231745,
             12528732246634104929,
             14920875261462983273,
             418493843493403280,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             2193637998972505618,
             9001198731542420361,
             1395704756039437917,
@@ -7253,13 +7253,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9380857104510392806,
             5302565390090361450,
             17589949722785525542,
             55870219846436949,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             5443635770042569578,
             7687079740380076971,
             16726151958320821769,
@@ -7268,13 +7268,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             8617586357479591341,
             1250374355168217814,
             5507639866197778591,
             300570382544534394,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10823051926415090361,
             13004627554533334989,
             9053281694009687469,
@@ -7283,13 +7283,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9565464517208522714,
             1339384034684243714,
             14162047252707817515,
             458940889823578835,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             16708856869596549065,
             2788189332860027282,
             3072679998871692767,
@@ -7298,13 +7298,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             18180460886918598509,
             3946029057202664081,
             5892830778371198561,
             508888333917298699,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             13143611165137326044,
             16151332792113259267,
             1893393030858147658,
@@ -7313,13 +7313,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             16362775868834879509,
             11901331990923004907,
             12834276146139578306,
             328396816433990862,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17435711050266343102,
             3400830027034864585,
             2308033403262721797,
@@ -7328,13 +7328,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9257879706626510681,
             17453559082046096352,
             2398850445760259751,
             295544891071901240,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12705167853087924899,
             15282656689687214165,
             10124148258786757823,
@@ -7343,13 +7343,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9027991911867520026,
             14714909264331641706,
             11488950716135756368,
             54698836723073439,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8948673254984783813,
             2066404193461706982,
             13438028521195248310,
@@ -7358,13 +7358,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9955623072303337894,
             14028382008395831053,
             17555443170527522854,
             523900000033069680,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12448424009103692961,
             11947414388350725521,
             7622772856415729982,
@@ -7373,13 +7373,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10400472064756933500,
             691824391024966168,
             582991234413051985,
             499374174307001842,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3214101675932254428,
             11212800701979611056,
             12740015340285180828,
@@ -7388,13 +7388,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             17636946168820419227,
             16494412483753172709,
             14850539248777814640,
             284543202082711458,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             12221259682156683251,
             18198622885790044981,
             1838626496418888371,
@@ -7403,13 +7403,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             9155324594709292315,
             6395060803422329026,
             6100367147183249657,
             253619021086009257,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             10535132696728506157,
             2702583007776750755,
             15332972873314629846,
@@ -7418,13 +7418,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             2238515610254432963,
             16739951160545853158,
             12899127005022235116,
             565000233765475754,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             7379244967497858722,
             2412709966698251680,
             2586570065439487385,
@@ -7433,13 +7433,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             10641866985761655145,
             12293552661847462729,
             3175744936059412125,
             397679083606635256,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             14348383227874225009,
             1598151160167265105,
             4671101103980733322,
@@ -7448,13 +7448,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14118903182191052648,
             698544334000708965,
             12311702198802079357,
             17695414050832231,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3811623782123607444,
             8930798556998222922,
             4733961234003485204,
@@ -7463,13 +7463,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15415085803115572098,
             2766850601065928800,
             6148819602543512167,
             67405550348413892,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1886097090431661783,
             6345826096330714901,
             7635346947322175946,
@@ -7478,13 +7478,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             814619082844308353,
             10160861292661440470,
             3786535366304155364,
             464567783930329611,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             1635913908673389844,
             4943522600713389453,
             8900655012801070824,
@@ -7493,13 +7493,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13454376011737206491,
             5064566368613728776,
             11832604952308335355,
             139873594266530443,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17147812321939107233,
             6319868525512174977,
             2759762309828948572,
@@ -7508,13 +7508,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             13000080645585133337,
             9541286594793063870,
             9449699044042301704,
             549681461776504141,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8597416247852816744,
             18371129239015595313,
             2159482658725339963,
@@ -7523,13 +7523,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             15450335754366174545,
             15828637278204507088,
             11070547364744837603,
             19242423372801070,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             17168549325991183173,
             8255546675340056711,
             8361358523274868100,
@@ -7538,13 +7538,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             7091134114958095952,
             8641253707668174298,
             8132597455979939273,
             329333577321739246,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             11095766071089727193,
             16871764254641945857,
             7405720161091649529,
@@ -7553,13 +7553,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             1145636535101238356,
             10664803185694787051,
             299781701614706065,
             425493972656615276,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             8187986478389849302,
             4428713245976508844,
             6033691581221864148,
@@ -7568,13 +7568,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             14807655417810256081,
             263464501051676032,
             16241977131397442068,
             452866674941489585,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             9197973842096023338,
             17580531949438829174,
             6809894974694247587,
@@ -7583,13 +7583,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             6850712713867447272,
             7951893333866029523,
             12858461884921570835,
             64421709466714210,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3251661854802183134,
             16050197233468026580,
             16923030445524869826,
@@ -7598,13 +7598,13 @@ pub const CONSTANT_POINTS: [EcPoint; 506] = [
         infinity: false,
     },
     EcPoint {
-        x: FieldElement::new([
+        x: FieldElement::from_mont([
             18186352353606695923,
             4132509120571385051,
             6326854277291134925,
             129596621152995520,
         ]),
-        y: FieldElement::new([
+        y: FieldElement::from_mont([
             3844428830551561895,
             11807944473604199932,
             1546122216302533604,

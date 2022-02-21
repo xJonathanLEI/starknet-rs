@@ -1,4 +1,4 @@
-use crate::{ec_point::EcPoint, field_element::FieldElement, pedersen_params::CONSTANT_POINTS};
+use crate::{ec_point::EcPoint, pedersen_params::CONSTANT_POINTS, FieldElement};
 
 const SHIFT_POINT: EcPoint = CONSTANT_POINTS[0];
 const PEDERSEN_P0: EcPoint = CONSTANT_POINTS[2];
