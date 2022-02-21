@@ -69,11 +69,9 @@ async fn main() {
 ### Deploy contract to `alpha-goerli` testnet
 
 ```rust
-use std::str::FromStr;
-
 use starknet::{
     contract::ContractFactory,
-    core::types::{ContractArtifact, UnsignedFieldElement},
+    core::types::{ContractArtifact, FieldElement},
     providers::SequencerGatewayProvider,
 };
 
@@ -86,10 +84,7 @@ async fn main() {
 
     let contract_factory = ContractFactory::new(contract_artifact, provider).unwrap();
     contract_factory
-        .deploy(
-            vec![UnsignedFieldElement::from_str("123456").unwrap()],
-            None,
-        )
+        .deploy(vec![FieldElement::from_dec_str("123456").unwrap()], None)
         .await
         .expect("Unable to deploy contract");
 }
@@ -101,23 +96,21 @@ async fn main() {
 use starknet::{
     accounts::{Account, SingleOwnerAccount},
     core::{
-        types::{BlockId, UnsignedFieldElement},
+        types::{BlockId, FieldElement},
         utils::get_selector_from_name,
     },
     providers::SequencerGatewayProvider,
     signers::{LocalWallet, SigningKey},
 };
-use std::str::FromStr;
 
 #[tokio::main]
 async fn main() {
     let provider = SequencerGatewayProvider::starknet_alpha_goerli();
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        UnsignedFieldElement::from_hex_str("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
+        FieldElement::from_hex_be("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
     ));
-    let address =
-        UnsignedFieldElement::from_hex_str("YOUR_ACCOUNT_CONTRACT_ADDRESS_IN_HEX_HERE").unwrap();
-    let tst_token_address = UnsignedFieldElement::from_hex_str(
+    let address = FieldElement::from_hex_be("YOUR_ACCOUNT_CONTRACT_ADDRESS_IN_HEX_HERE").unwrap();
+    let tst_token_address = FieldElement::from_hex_be(
         "07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
     )
     .unwrap();
@@ -131,8 +124,8 @@ async fn main() {
             get_selector_from_name("mint").unwrap(),
             &[
                 address,
-                UnsignedFieldElement::from_str("1000000000000000000000").unwrap(),
-                UnsignedFieldElement::ZERO,
+                FieldElement::from_dec_str("1000000000000000000000").unwrap(),
+                FieldElement::ZERO,
             ],
             nonce,
         )
