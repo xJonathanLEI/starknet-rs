@@ -138,21 +138,6 @@ impl FieldElement {
     ///
     /// ### Arguments
     ///
-    /// * `bytes`: The byte slice in **big endian** format
-    pub fn from_slice_be(bytes: &[u8]) -> Result<Self, FromByteSliceError> {
-        if bytes.len() != U256_BYTE_COUNT {
-            Err(FromByteSliceError::InvalidLength)
-        } else {
-            Self::from_byte_slice(bytes).ok_or(FromByteSliceError::OutOfRange)
-        }
-    }
-
-    /// Attempts to convert a big-endian byte representation of a field element into an element of
-    /// this prime field. Returns error if the input is not canonical (is not smaller than the
-    /// field's modulus).
-    ///
-    /// ### Arguments
-    ///
     /// * `bytes`: The byte array in **big endian** format
     pub fn from_bytes_be(bytes: &[u8; 32]) -> Result<Self, FromByteArrayError> {
         Self::from_byte_slice(bytes).ok_or(FromByteArrayError)

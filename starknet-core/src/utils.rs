@@ -21,7 +21,8 @@ pub fn starknet_keccak(data: &[u8]) -> FieldElement {
     // Remove the first 6 bits
     hash[0] &= 0b00000011;
 
-    FieldElement::from_slice_be(&hash).unwrap()
+    // Because we know hash is always 32 bytes
+    FieldElement::from_bytes_be(unsafe { &*(hash[..].as_ptr() as *const [u8; 32]) }).unwrap()
 }
 
 pub fn get_selector_from_name(func_name: &str) -> Result<FieldElement, NonAsciiNameError> {
