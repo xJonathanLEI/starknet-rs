@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use starknet_core::types::{AddTransactionResult, BlockId, UnsignedFieldElement};
+use starknet_core::types::{AddTransactionResult, BlockId, FieldElement};
 use std::error::Error;
 
 #[async_trait]
@@ -10,13 +10,13 @@ pub trait Account {
     async fn get_nonce(
         &self,
         block_identifier: BlockId,
-    ) -> Result<UnsignedFieldElement, Self::GetNonceError>;
+    ) -> Result<FieldElement, Self::GetNonceError>;
 
     async fn execute(
         &self,
-        to: UnsignedFieldElement,
-        selector: UnsignedFieldElement,
-        calldata: &[UnsignedFieldElement],
-        nonce: UnsignedFieldElement,
+        to: FieldElement,
+        selector: FieldElement,
+        calldata: &[FieldElement],
+        nonce: FieldElement,
     ) -> Result<AddTransactionResult, Self::ExecuteError>;
 }

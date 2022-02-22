@@ -1,4 +1,4 @@
-use crate::types::UnsignedFieldElement;
+use crate::types::FieldElement;
 
 use sha3::{Digest, Keccak256};
 use thiserror::Error;
@@ -13,7 +13,7 @@ pub struct NonAsciiNameError<'a> {
 }
 
 /// A variant of eth-keccak that computes a value that fits in a StarkNet field element.
-pub fn starknet_keccak(data: &[u8]) -> UnsignedFieldElement {
+pub fn starknet_keccak(data: &[u8]) -> FieldElement {
     let mut hasher = Keccak256::new();
     hasher.update(data);
     let mut hash = hasher.finalize();
@@ -21,12 +21,13 @@ pub fn starknet_keccak(data: &[u8]) -> UnsignedFieldElement {
     // Remove the first 6 bits
     hash[0] &= 0b00000011;
 
-    UnsignedFieldElement::try_from_bytes_be(&hash).unwrap()
+    // Because we know hash is always 32 bytes
+    FieldElement::from_bytes_be(unsafe { &*(hash[..].as_ptr() as *const [u8; 32]) }).unwrap()
 }
 
-pub fn get_selector_from_name(func_name: &str) -> Result<UnsignedFieldElement, NonAsciiNameError> {
+pub fn get_selector_from_name(func_name: &str) -> Result<FieldElement, NonAsciiNameError> {
     if func_name == DEFAULT_ENTRY_POINT_NAME || func_name == DEFAULT_L1_ENTRY_POINT_NAME {
-        Ok(UnsignedFieldElement::ZERO)
+        Ok(FieldElement::ZERO)
     } else {
         let name_bytes = func_name.as_bytes();
         if name_bytes.is_ascii() {
@@ -45,7 +46,7 @@ mod tests {
     fn test_starknet_keccak() {
         // Generated from `cairo-lang`
         let data = b"execute";
-        let expected_hash = UnsignedFieldElement::from_hex_str(
+        let expected_hash = FieldElement::from_hex_be(
             "0240060cdb34fcc260f41eac7474ee1d7c80b7e3607daff9ac67c7ea2ebb1c44",
         )
         .unwrap();
@@ -59,7 +60,7 @@ mod tests {
     fn test_get_selector_from_name() {
         // Generated from `cairo-lang`
         let func_name = "execute";
-        let expected_selector = UnsignedFieldElement::from_hex_str(
+        let expected_selector = FieldElement::from_hex_be(
             "0240060cdb34fcc260f41eac7474ee1d7c80b7e3607daff9ac67c7ea2ebb1c44",
         )
         .unwrap();
@@ -71,7 +72,7 @@ mod tests {
 
     #[test]
     fn test_get_default_selector() {
-        let default_selector = UnsignedFieldElement::from_hex_str(
+        let default_selector = FieldElement::from_hex_be(
             "0000000000000000000000000000000000000000000000000000000000000000",
         )
         .unwrap();

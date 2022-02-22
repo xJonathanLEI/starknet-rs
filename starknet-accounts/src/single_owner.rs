@@ -4,8 +4,8 @@ use async_trait::async_trait;
 use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
-        AddTransactionResult, BlockId, InvokeFunction, InvokeFunctionTransactionRequest,
-        TransactionRequest, UnsignedFieldElement,
+        AddTransactionResult, BlockId, FieldElement, InvokeFunction,
+        InvokeFunctionTransactionRequest, TransactionRequest,
     },
     utils::get_selector_from_name,
 };
@@ -20,7 +20,7 @@ where
     provider: P,
     #[allow(unused)]
     signer: S,
-    address: UnsignedFieldElement,
+    address: FieldElement,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -51,7 +51,7 @@ where
     P: Provider + Send,
     S: Signer + Send,
 {
-    pub fn new(provider: P, signer: S, address: UnsignedFieldElement) -> Self {
+    pub fn new(provider: P, signer: S, address: FieldElement) -> Self {
         Self {
             provider,
             signer,
@@ -72,7 +72,7 @@ where
     async fn get_nonce(
         &self,
         block_identifier: BlockId,
-    ) -> Result<UnsignedFieldElement, Self::GetNonceError> {
+    ) -> Result<FieldElement, Self::GetNonceError> {
         let call_result = self
             .provider
             .call_contract(
@@ -99,10 +99,10 @@ where
 
     async fn execute(
         &self,
-        to: UnsignedFieldElement,
-        selector: UnsignedFieldElement,
-        calldata: &[UnsignedFieldElement],
-        nonce: UnsignedFieldElement,
+        to: FieldElement,
+        selector: FieldElement,
+        calldata: &[FieldElement],
+        nonce: FieldElement,
     ) -> Result<AddTransactionResult, Self::ExecuteError> {
         let message_hash = compute_hash_on_elements(&[
             self.address,

@@ -1,5 +1,5 @@
 use super::{
-    UnsignedFieldElement,
+    FieldElement,
     {
         super::serde::unsigned_field_element::{UfeHex, UfeHexOption, UfePendingBlockHash},
         TransactionStatus,
@@ -10,7 +10,7 @@ use serde::Deserialize;
 use serde_with::serde_as;
 
 pub enum TransactionId {
-    Hash(UnsignedFieldElement),
+    Hash(FieldElement),
     Number(u64),
 }
 
@@ -32,7 +32,7 @@ pub enum Transaction {
 pub struct BriefTransaction {
     #[serde(default)]
     #[serde_as(as = "UfeHexOption")]
-    pub block_hash: Option<UnsignedFieldElement>,
+    pub block_hash: Option<FieldElement>,
     #[serde(alias = "tx_status")]
     pub status: TransactionStatus,
 }
@@ -45,7 +45,7 @@ pub struct FullTransaction {
     pub status: TransactionStatus,
     #[serde(default)]
     #[serde_as(as = "UfePendingBlockHash")]
-    pub block_hash: Option<UnsignedFieldElement>,
+    pub block_hash: Option<FieldElement>,
     pub transaction_index: Option<u64>,
 }
 
@@ -60,27 +60,27 @@ pub enum EntryPointType {
 #[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct DeployTransaction {
-    pub constructor_calldata: Vec<UnsignedFieldElement>,
+    pub constructor_calldata: Vec<FieldElement>,
     #[serde_as(as = "UfeHex")]
-    pub contract_address: UnsignedFieldElement,
+    pub contract_address: FieldElement,
     #[serde_as(as = "UfeHex")]
-    pub contract_address_salt: UnsignedFieldElement,
+    pub contract_address_salt: FieldElement,
     #[serde_as(as = "UfeHex")]
-    pub transaction_hash: UnsignedFieldElement,
+    pub transaction_hash: FieldElement,
 }
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct InvokeFunctionTransaction {
     #[serde_as(as = "UfeHex")]
-    pub contract_address: UnsignedFieldElement,
+    pub contract_address: FieldElement,
     pub entry_point_type: EntryPointType,
     #[serde_as(as = "UfeHex")]
-    pub entry_point_selector: UnsignedFieldElement,
-    pub calldata: Vec<UnsignedFieldElement>,
-    pub signature: Vec<UnsignedFieldElement>,
+    pub entry_point_selector: FieldElement,
+    pub calldata: Vec<FieldElement>,
+    pub signature: Vec<FieldElement>,
     #[serde_as(as = "UfeHex")]
-    pub transaction_hash: UnsignedFieldElement,
+    pub transaction_hash: FieldElement,
 }
 
 #[cfg(test)]
@@ -138,7 +138,7 @@ mod tests {
         assert_eq!(
             tx.block_hash,
             Some(
-                UnsignedFieldElement::from_hex_str(
+                FieldElement::from_hex_be(
                     "0xca6e3e44d58747b398a0b4e882245c6bc9f5cd666674824e14929708fb8d09"
                 )
                 .unwrap()

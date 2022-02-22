@@ -1,7 +1,7 @@
 use serde::{de::Error as DeError, Deserialize, Deserializer, Serializer};
 use serde_with::{DeserializeAs, SerializeAs};
 
-use crate::types::UnsignedFieldElement;
+use crate::types::FieldElement;
 
 pub struct UfeHex;
 
@@ -9,8 +9,8 @@ pub struct UfeHexOption;
 
 pub struct UfePendingBlockHash;
 
-impl SerializeAs<UnsignedFieldElement> for UfeHex {
-    fn serialize_as<S>(value: &UnsignedFieldElement, serializer: S) -> Result<S::Ok, S::Error>
+impl SerializeAs<FieldElement> for UfeHex {
+    fn serialize_as<S>(value: &FieldElement, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -18,24 +18,21 @@ impl SerializeAs<UnsignedFieldElement> for UfeHex {
     }
 }
 
-impl<'de> DeserializeAs<'de, UnsignedFieldElement> for UfeHex {
-    fn deserialize_as<D>(deserializer: D) -> Result<UnsignedFieldElement, D::Error>
+impl<'de> DeserializeAs<'de, FieldElement> for UfeHex {
+    fn deserialize_as<D>(deserializer: D) -> Result<FieldElement, D::Error>
     where
         D: Deserializer<'de>,
     {
         let value = String::deserialize(deserializer)?;
-        match UnsignedFieldElement::from_hex_str(&value) {
+        match FieldElement::from_hex_be(&value) {
             Ok(value) => Ok(value),
             Err(err) => Err(DeError::custom(format!("invalid hex string: {}", err))),
         }
     }
 }
 
-impl SerializeAs<Option<UnsignedFieldElement>> for UfeHexOption {
-    fn serialize_as<S>(
-        value: &Option<UnsignedFieldElement>,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error>
+impl SerializeAs<Option<FieldElement>> for UfeHexOption {
+    fn serialize_as<S>(value: &Option<FieldElement>, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -46,15 +43,15 @@ impl SerializeAs<Option<UnsignedFieldElement>> for UfeHexOption {
     }
 }
 
-impl<'de> DeserializeAs<'de, Option<UnsignedFieldElement>> for UfeHexOption {
-    fn deserialize_as<D>(deserializer: D) -> Result<Option<UnsignedFieldElement>, D::Error>
+impl<'de> DeserializeAs<'de, Option<FieldElement>> for UfeHexOption {
+    fn deserialize_as<D>(deserializer: D) -> Result<Option<FieldElement>, D::Error>
     where
         D: Deserializer<'de>,
     {
         let value = String::deserialize(deserializer)?;
         match value.as_str() {
             "" => Ok(None),
-            _ => match UnsignedFieldElement::from_hex_str(&value) {
+            _ => match FieldElement::from_hex_be(&value) {
                 Ok(value) => Ok(Some(value)),
                 Err(err) => Err(DeError::custom(format!("invalid hex string: {}", err))),
             },
@@ -62,11 +59,8 @@ impl<'de> DeserializeAs<'de, Option<UnsignedFieldElement>> for UfeHexOption {
     }
 }
 
-impl SerializeAs<Option<UnsignedFieldElement>> for UfePendingBlockHash {
-    fn serialize_as<S>(
-        value: &Option<UnsignedFieldElement>,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error>
+impl SerializeAs<Option<FieldElement>> for UfePendingBlockHash {
+    fn serialize_as<S>(value: &Option<FieldElement>, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -78,8 +72,8 @@ impl SerializeAs<Option<UnsignedFieldElement>> for UfePendingBlockHash {
     }
 }
 
-impl<'de> DeserializeAs<'de, Option<UnsignedFieldElement>> for UfePendingBlockHash {
-    fn deserialize_as<D>(deserializer: D) -> Result<Option<UnsignedFieldElement>, D::Error>
+impl<'de> DeserializeAs<'de, Option<FieldElement>> for UfePendingBlockHash {
+    fn deserialize_as<D>(deserializer: D) -> Result<Option<FieldElement>, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -87,7 +81,7 @@ impl<'de> DeserializeAs<'de, Option<UnsignedFieldElement>> for UfePendingBlockHa
         if value == "pending" {
             Ok(None)
         } else {
-            match UnsignedFieldElement::from_hex_str(&value) {
+            match FieldElement::from_hex_be(&value) {
                 Ok(value) => Ok(Some(value)),
                 Err(err) => Err(DeError::custom(format!("invalid hex string: {}", err))),
             }
@@ -103,7 +97,7 @@ mod tests {
 
     #[serde_as]
     #[derive(Deserialize)]
-    struct TestStruct(#[serde_as(as = "UfeHexOption")] pub Option<UnsignedFieldElement>);
+    struct TestStruct(#[serde_as(as = "UfeHexOption")] pub Option<FieldElement>);
 
     #[test]
     fn empty_string_deser() {

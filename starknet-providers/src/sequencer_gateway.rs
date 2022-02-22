@@ -9,9 +9,9 @@ use starknet_core::{
     serde::unsigned_field_element::UfeHex,
     types::{
         AddTransactionResult, Block, BlockId, BriefTransaction, CallContractResult,
-        ContractAddresses, ContractArtifact, ContractCode, FullTransaction, InvokeFunction,
-        StarknetError, StateUpdate, TransactionId, TransactionReceipt, TransactionRequest,
-        UnsignedFieldElement,
+        ContractAddresses, ContractArtifact, ContractCode, FieldElement, FullTransaction,
+        InvokeFunction, StarknetError, StateUpdate, TransactionId, TransactionReceipt,
+        TransactionRequest,
     },
 };
 use thiserror::Error;
@@ -75,12 +75,12 @@ enum GetCodeResponse {
     StarknetError(StarknetError),
 }
 
-// Work UnsignedFieldElement deserialization
+// Work FieldElement deserialization
 #[serde_as]
 #[derive(Deserialize)]
 #[serde(untagged)]
-enum RawUnsignedFieldElementResponse {
-    Data(#[serde_as(as = "UfeHex")] UnsignedFieldElement),
+enum RawFieldElementResponse {
+    Data(#[serde_as(as = "UfeHex")] FieldElement),
     StarknetError(StarknetError),
 }
 
@@ -223,7 +223,7 @@ impl Provider for SequencerGatewayProvider {
 
     async fn get_code(
         &self,
-        contract_address: UnsignedFieldElement,
+        contract_address: FieldElement,
         block_identifier: BlockId,
     ) -> Result<ContractCode, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_code");
@@ -249,7 +249,7 @@ impl Provider for SequencerGatewayProvider {
 
     async fn get_full_contract(
         &self,
-        contract_address: UnsignedFieldElement,
+        contract_address: FieldElement,
         block_identifier: BlockId,
     ) -> Result<ContractArtifact, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_full_contract");
@@ -271,10 +271,10 @@ impl Provider for SequencerGatewayProvider {
 
     async fn get_storage_at(
         &self,
-        contract_address: UnsignedFieldElement,
-        key: UnsignedFieldElement,
+        contract_address: FieldElement,
+        key: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<UnsignedFieldElement, Self::Error> {
+    ) -> Result<FieldElement, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_storage_at");
         request_url
             .query_pairs_mut()
@@ -283,7 +283,7 @@ impl Provider for SequencerGatewayProvider {
         append_block_id(&mut request_url, block_identifier);
 
         match self
-            .send_get_request::<GatewayResponse<UnsignedFieldElement>>(request_url)
+            .send_get_request::<GatewayResponse<FieldElement>>(request_url)
             .await?
         {
             GatewayResponse::Data(data) => Ok(data),
@@ -347,30 +347,24 @@ impl Provider for SequencerGatewayProvider {
         }
     }
 
-    async fn get_block_hash_by_id(
-        &self,
-        block_number: u64,
-    ) -> Result<UnsignedFieldElement, Self::Error> {
+    async fn get_block_hash_by_id(&self, block_number: u64) -> Result<FieldElement, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_block_hash_by_id");
         request_url
             .query_pairs_mut()
             .append_pair("blockId", &block_number.to_string());
 
         match self
-            .send_get_request::<RawUnsignedFieldElementResponse>(request_url)
+            .send_get_request::<RawFieldElementResponse>(request_url)
             .await?
         {
-            RawUnsignedFieldElementResponse::Data(hash) => Ok(hash),
-            RawUnsignedFieldElementResponse::StarknetError(starknet_err) => {
+            RawFieldElementResponse::Data(hash) => Ok(hash),
+            RawFieldElementResponse::StarknetError(starknet_err) => {
                 Err(ProviderError::StarknetError(starknet_err))
             }
         }
     }
 
-    async fn get_block_id_by_hash(
-        &self,
-        block_hash: UnsignedFieldElement,
-    ) -> Result<u64, Self::Error> {
+    async fn get_block_id_by_hash(&self, block_hash: FieldElement) -> Result<u64, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_block_id_by_hash");
         request_url
             .query_pairs_mut()
@@ -390,18 +384,18 @@ impl Provider for SequencerGatewayProvider {
     async fn get_transaction_hash_by_id(
         &self,
         transaction_number: u64,
-    ) -> Result<UnsignedFieldElement, Self::Error> {
+    ) -> Result<FieldElement, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_hash_by_id");
         request_url
             .query_pairs_mut()
             .append_pair("transactionId", &transaction_number.to_string());
 
         match self
-            .send_get_request::<RawUnsignedFieldElementResponse>(request_url)
+            .send_get_request::<RawFieldElementResponse>(request_url)
             .await?
         {
-            RawUnsignedFieldElementResponse::Data(hash) => Ok(hash),
-            RawUnsignedFieldElementResponse::StarknetError(starknet_err) => {
+            RawFieldElementResponse::Data(hash) => Ok(hash),
+            RawFieldElementResponse::StarknetError(starknet_err) => {
                 Err(ProviderError::StarknetError(starknet_err))
             }
         }
@@ -409,7 +403,7 @@ impl Provider for SequencerGatewayProvider {
 
     async fn get_transaction_id_by_hash(
         &self,
-        transaction_hash: UnsignedFieldElement,
+        transaction_hash: FieldElement,
     ) -> Result<u64, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_id_by_hash");
         request_url

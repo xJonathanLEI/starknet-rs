@@ -3,7 +3,7 @@ use crate::{Infallible, Signer, SigningKey, VerifyingKey};
 use async_trait::async_trait;
 use starknet_core::{
     crypto::{EcdsaSignError, Signature},
-    types::UnsignedFieldElement,
+    types::FieldElement,
 };
 
 pub struct LocalWallet {
@@ -31,7 +31,7 @@ impl Signer for LocalWallet {
         Ok(self.private_key.verifying_key())
     }
 
-    async fn sign_hash(&self, hash: &UnsignedFieldElement) -> Result<Signature, Self::SignError> {
+    async fn sign_hash(&self, hash: &FieldElement) -> Result<Signature, Self::SignError> {
         Ok(self.private_key.sign(hash)?)
     }
 }

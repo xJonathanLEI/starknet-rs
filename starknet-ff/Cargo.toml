@@ -16,3 +16,7 @@ keywords = ["ethereum", "starknet", "web3"]
 ark-ff = "0.3.0"
 # Parity's scale codec locks us here
 bitvec = "0.20.4"
+crypto-bigint = "0.3.2"
+hex = "0.4.3"
+serde = "1.0.133"
+thiserror = "1.0.30"

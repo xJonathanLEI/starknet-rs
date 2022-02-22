@@ -1,4 +1,4 @@
-use super::{super::serde::unsigned_field_element::UfeHex, UnsignedFieldElement};
+use super::{super::serde::unsigned_field_element::UfeHex, FieldElement};
 
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
@@ -7,16 +7,16 @@ use serde_with::serde_as;
 #[derive(Debug, Serialize)]
 pub struct InvokeFunction {
     #[serde_as(as = "UfeHex")]
-    pub contract_address: UnsignedFieldElement,
+    pub contract_address: FieldElement,
     #[serde_as(as = "UfeHex")]
-    pub entry_point_selector: UnsignedFieldElement,
-    pub calldata: Vec<UnsignedFieldElement>,
-    pub signature: Vec<UnsignedFieldElement>,
+    pub entry_point_selector: FieldElement,
+    pub calldata: Vec<FieldElement>,
+    pub signature: Vec<FieldElement>,
 }
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct CallContractResult {
     #[serde_as(as = "Vec<UfeHex>")]
-    pub result: Vec<UnsignedFieldElement>,
+    pub result: Vec<FieldElement>,
 }
