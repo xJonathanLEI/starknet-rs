@@ -40,18 +40,18 @@ pub struct ConfirmedReceipt {
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TransactionStatus {
-    /// transaction has not been received yet (i.e. not written to storage)
+    /// Transaction has not been received yet (i.e. not written to storage)
     NotReceived,
-    /// transaction was received by the sequenced
+    /// Transaction was received by the sequenced
     Received,
-    /// transaction passed teh validation and entered the pending block
+    /// Transaction passed teh validation and entered the pending block
     Pending,
-    /// the transaction failed validation and was skipped (applies both to a
+    /// The transaction failed validation and was skipped (applies both to a
     /// pending and actual created block)
     Rejected,
-    /// transaction passed teh validation and entered a created block
+    /// Transaction passed teh validation and entered a created block
     AcceptedOnL2,
-    /// transaction was accepted on-chain
+    /// Transaction was accepted on-chain
     AcceptedOnL1,
 }
 

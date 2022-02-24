@@ -16,15 +16,15 @@ pub enum BlockId {
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum BlockStatus {
-    /// block that is yet to be closed
+    /// Block that is yet to be closed
     Pending,
-    /// block failed in the L2 pipeline
+    /// Block failed in the L2 pipeline
     Aborted,
-    /// rejected on L1
+    /// A reverted block (rejected on L1)
     Reverted,
-    /// block that was created on L2, in contrast to Pending, which is not yet closed
+    /// Block that was created on L2, in contrast to Pending, which is not yet closed
     AcceptedOnL2,
-    /// accepted on L1
+    /// Accepted on L1
     AcceptedOnL1,
 }
 
