@@ -8,10 +8,10 @@ use serde_with::serde_as;
 use starknet_core::{
     serde::unsigned_field_element::UfeHex,
     types::{
-        AddTransactionResult, Block, BlockId, BriefTransaction, CallContractResult,
-        ContractAddresses, ContractArtifact, ContractCode, FieldElement, FullTransaction,
-        InvokeFunction, StarknetError, StateUpdate, TransactionId, TransactionReceipt,
-        TransactionRequest,
+        AddTransactionResult, Block, BlockId, CallContractResult, ContractAddresses,
+        ContractArtifact, ContractCode, FieldElement, InvokeFunction, StarknetError, StateUpdate,
+        TransactionId, TransactionInfo, TransactionReceipt, TransactionRequest,
+        TransactionStatusInfo,
     },
 };
 use thiserror::Error;
@@ -296,12 +296,12 @@ impl Provider for SequencerGatewayProvider {
     async fn get_transaction_status(
         &self,
         transaction_hash_or_number: TransactionId,
-    ) -> Result<BriefTransaction, Self::Error> {
+    ) -> Result<TransactionStatusInfo, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_status");
         append_transaction_id(&mut request_url, transaction_hash_or_number);
 
         match self
-            .send_get_request::<GatewayResponse<BriefTransaction>>(request_url)
+            .send_get_request::<GatewayResponse<TransactionStatusInfo>>(request_url)
             .await?
         {
             GatewayResponse::Data(tx_status) => Ok(tx_status),
@@ -314,12 +314,12 @@ impl Provider for SequencerGatewayProvider {
     async fn get_transaction(
         &self,
         transaction_hash_or_number: TransactionId,
-    ) -> Result<FullTransaction, Self::Error> {
+    ) -> Result<TransactionInfo, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction");
         append_transaction_id(&mut request_url, transaction_hash_or_number);
 
         match self
-            .send_get_request::<GatewayResponse<FullTransaction>>(request_url)
+            .send_get_request::<GatewayResponse<TransactionInfo>>(request_url)
             .await?
         {
             GatewayResponse::Data(tx) => Ok(tx),
