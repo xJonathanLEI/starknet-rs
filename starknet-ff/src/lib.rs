@@ -242,7 +242,11 @@ impl Display for FieldElement {
         let ten = U256::from_u8(10u8);
 
         loop {
-            let digit = (current.checked_rem(&ten)).unwrap().to_uint_array()[0] as u8;
+            let digit = if current < ten {
+                current.to_uint_array()[0] as u8
+            } else {
+                (current.checked_rem(&ten)).unwrap().to_uint_array()[0] as u8
+            };
             buf[i] = digit + b'0';
             current = current.checked_div(&ten).unwrap();
             if current.is_zero().into() {
@@ -355,6 +359,24 @@ impl<'a> Debug for InnerDebug<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_dec_fmt() {
+        let nums = [
+            "0",
+            "1",
+            "10",
+            "11",
+            "3618502788666131213697322783095070105623107215331596699973092056135872020480",
+        ];
+
+        for num in nums.iter() {
+            assert_eq!(
+                &format!("{}", FieldElement::from_dec_str(num).unwrap()),
+                num
+            );
+        }
+    }
 
     #[test]
     fn test_zero_padded_hex_fmt() {
