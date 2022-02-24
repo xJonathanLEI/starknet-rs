@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use starknet_core::types::{
-    AddTransactionResult, Block, BlockId, BriefTransaction, CallContractResult, ContractAddresses,
-    ContractArtifact, ContractCode, FieldElement, FullTransaction, InvokeFunction, StateUpdate,
-    TransactionId, TransactionReceipt, TransactionRequest,
+    AddTransactionResult, Block, BlockId, CallContractResult, ContractAddresses, ContractArtifact,
+    ContractCode, FieldElement, InvokeFunction, StateUpdate, TransactionId, TransactionInfo,
+    TransactionReceipt, TransactionRequest, TransactionStatusInfo,
 };
 use std::error::Error;
 
@@ -51,12 +51,12 @@ pub trait Provider {
     async fn get_transaction_status(
         &self,
         transaction_hash_or_number: TransactionId,
-    ) -> Result<BriefTransaction, Self::Error>;
+    ) -> Result<TransactionStatusInfo, Self::Error>;
 
     async fn get_transaction(
         &self,
         transaction_hash_or_number: TransactionId,
-    ) -> Result<FullTransaction, Self::Error>;
+    ) -> Result<TransactionInfo, Self::Error>;
 
     async fn get_transaction_receipt(
         &self,

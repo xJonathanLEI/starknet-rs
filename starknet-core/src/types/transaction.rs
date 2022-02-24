@@ -23,38 +23,48 @@ pub enum TransactionType {
 
 #[derive(Debug, Deserialize)]
 pub enum Transaction {
-    Brief(BriefTransaction),
-    Full(FullTransaction),
+    Brief(TransactionStatusInfo),
+    Full(TransactionInfo),
 }
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-pub struct BriefTransaction {
+pub struct TransactionStatusInfo {
     #[serde(default)]
     #[serde_as(as = "UfeHexOption")]
     pub block_hash: Option<FieldElement>,
     #[serde(alias = "tx_status")]
     pub status: TransactionStatus,
+    #[serde(alias = "tx_failure_reason")]
+    pub transaction_failure_reason: Option<TransactionFailureReason>,
+}
+#[derive(Debug, Deserialize)]
+pub struct TransactionFailureReason {
+    pub tx_id: u64,
+    pub code: String,
+    pub error_message: Option<String>,
 }
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-pub struct FullTransaction {
-    pub block_number: Option<u64>,
-    pub transaction: Option<TransactionType>,
-    pub status: TransactionStatus,
+pub struct TransactionInfo {
     #[serde(default)]
     #[serde_as(as = "UfePendingBlockHash")]
     pub block_hash: Option<FieldElement>,
+    pub block_number: Option<u64>,
+    pub status: TransactionStatus,
+    #[serde(rename(deserialize = "transaction"))]
+    pub r#type: Option<TransactionType>,
+    pub transaction_failure_reason: Option<TransactionFailureReason>,
     pub transaction_index: Option<u64>,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum EntryPointType {
-    #[serde(rename = "EXTERNAL")]
     External,
-    #[serde(rename = "L1_HANDLER")]
     L1Handler,
+    Constructor,
 }
 
 #[serde_as]
@@ -91,11 +101,12 @@ mod tests {
     fn test_deser_full_invoke_transaction() {
         let raw =
             include_str!("../../test-data/raw_gateway_responses/get_transaction/1_invoke.txt");
-        let tx: FullTransaction = serde_json::from_str(raw).unwrap();
+        let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
 
         assert_eq!(tx.block_number, Some(39099));
-        if let TransactionType::InvokeFunction(invoke) = tx.transaction.unwrap() {
+        if let TransactionType::InvokeFunction(invoke) = tx.r#type.unwrap() {
             assert_eq!(invoke.signature.len(), 2);
+            assert_eq!(invoke.entry_point_type, EntryPointType::External);
         } else {
             panic!("Did not deserialize TransactionType::InvokeFunction properly")
         }
@@ -105,11 +116,11 @@ mod tests {
     fn test_deser_full_deploy_transaction() {
         let raw =
             include_str!("../../test-data/raw_gateway_responses/get_transaction/2_deploy.txt");
-        let tx: FullTransaction = serde_json::from_str(raw).unwrap();
+        let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
 
         assert_eq!(tx.block_number, Some(39181));
-        if let TransactionType::Deploy(deploy) = tx.transaction.unwrap() {
-            assert_eq!(deploy.constructor_calldata.len(), 2)
+        if let TransactionType::Deploy(deploy) = tx.r#type.unwrap() {
+            assert_eq!(deploy.constructor_calldata.len(), 2);
         } else {
             panic!("Did not deserialize TransactionType::Deploy properly");
         }
@@ -120,10 +131,22 @@ mod tests {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction/3_not_received.txt"
         );
-        let tx: FullTransaction = serde_json::from_str(raw).unwrap();
+        let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
 
         assert_eq!(tx.block_number, None);
         assert_eq!(tx.status, TransactionStatus::NotReceived);
+    }
+
+    #[test]
+    fn test_deser_failure() {
+        let raw =
+            include_str!("../../test-data/raw_gateway_responses/get_transaction/4_failure.txt");
+        let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
+
+        assert!(tx.transaction_failure_reason.is_some());
+        let failure_reason = tx.transaction_failure_reason.unwrap();
+        assert_eq!(failure_reason.tx_id, 979378);
+        assert_eq!(failure_reason.code, "TRANSACTION_FAILED");
     }
 
     #[test]
@@ -132,7 +155,7 @@ mod tests {
             "../../test-data/raw_gateway_responses/get_transaction_status/1_accepted.txt"
         );
 
-        let tx: BriefTransaction = serde_json::from_str(raw).unwrap();
+        let tx: TransactionStatusInfo = serde_json::from_str(raw).unwrap();
 
         assert_eq!(tx.status, TransactionStatus::AcceptedOnL1);
         assert_eq!(
@@ -152,9 +175,22 @@ mod tests {
             "../../test-data/raw_gateway_responses/get_transaction_status/2_not_received.txt"
         );
 
-        let tx: BriefTransaction = serde_json::from_str(raw).unwrap();
+        let tx: TransactionStatusInfo = serde_json::from_str(raw).unwrap();
 
         assert_eq!(tx.status, TransactionStatus::NotReceived);
         assert!(tx.block_hash.is_none());
+    }
+
+    #[test]
+    fn test_deser_brief_failure() {
+        let raw = include_str!(
+            "../../test-data/raw_gateway_responses/get_transaction_status/3_failure.txt"
+        );
+
+        let tx: TransactionStatusInfo = serde_json::from_str(raw).unwrap();
+
+        assert_eq!(tx.status, TransactionStatus::Rejected);
+        assert!(tx.block_hash.is_none());
+        assert!(tx.transaction_failure_reason.is_some());
     }
 }

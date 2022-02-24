@@ -13,6 +13,21 @@ pub enum BlockId {
     Latest,
 }
 
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum BlockStatus {
+    /// Block that is yet to be closed
+    Pending,
+    /// Block failed in the L2 pipeline
+    Aborted,
+    /// A reverted block (rejected on L1)
+    Reverted,
+    /// Block that was created on L2, in contrast to Pending, which is not yet closed
+    AcceptedOnL2,
+    /// Accepted on L1
+    AcceptedOnL1,
+}
+
 #[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct Block {
@@ -26,6 +41,7 @@ pub struct Block {
     #[serde(default)]
     #[serde_as(as = "UfeHexOption")]
     pub state_root: Option<FieldElement>,
+    pub status: BlockStatus,
     pub transactions: Vec<TransactionType>,
     pub transaction_receipts: Vec<ConfirmedTransactionReceipt>,
 }
@@ -43,6 +59,7 @@ mod tests {
         let block: Block = serde_json::from_str(raw).unwrap();
 
         assert_eq!(block.block_number.unwrap(), 39232);
+        assert_eq!(block.status, BlockStatus::AcceptedOnL1);
         assert_eq!(
             block.state_root.unwrap(),
             FieldElement::from_hex_be(
@@ -107,5 +124,6 @@ mod tests {
         assert!(block.block_hash.is_none());
         assert!(block.block_number.is_none());
         assert!(block.state_root.is_none());
+        assert_eq!(block.status, BlockStatus::Pending);
     }
 }
