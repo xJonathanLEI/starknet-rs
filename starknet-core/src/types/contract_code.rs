@@ -1,6 +1,6 @@
 use super::{super::serde::unsigned_field_element::UfeHex, FieldElement};
 
-use serde::{Deserialize, Serialize};
+use serde::{de::Error as DeError, Deserialize, Serialize};
 use serde_with::serde_as;
 
 #[serde_as]
@@ -11,7 +11,7 @@ pub struct ContractCode {
     pub abi: Option<Vec<AbiEntry>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum AbiEntry {
     Constructor(Constructor),
@@ -82,6 +82,47 @@ pub struct Member {
     pub name: String,
     pub offset: u64,
     pub r#type: String,
+}
+
+// We need to manually implement this because `arbitrary_precision` doesn't work with `tag`:
+//   https://github.com/serde-rs/serde/issues/1183
+impl<'de> Deserialize<'de> for AbiEntry {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let temp_value = serde_json::Value::deserialize(deserializer)?;
+        match &temp_value["type"] {
+            serde_json::Value::String(type_str) => match &type_str[..] {
+                "constructor" => Ok(AbiEntry::Constructor(
+                    Constructor::deserialize(temp_value).map_err(|err| {
+                        DeError::custom(format!("invalid constructor variant: {}", err))
+                    })?,
+                )),
+                "function" => Ok(AbiEntry::Function(
+                    Function::deserialize(temp_value).map_err(|err| {
+                        DeError::custom(format!("invalid function variant: {}", err))
+                    })?,
+                )),
+                "struct" => Ok(AbiEntry::Struct(Struct::deserialize(temp_value).map_err(
+                    |err| DeError::custom(format!("invalid struct variant: {}", err)),
+                )?)),
+                "l1_handler" => Ok(AbiEntry::L1Handler(
+                    L1Handler::deserialize(temp_value).map_err(|err| {
+                        DeError::custom(format!("invalid l1_handler variant: {}", err))
+                    })?,
+                )),
+                "event" => Ok(AbiEntry::Event(Event::deserialize(temp_value).map_err(
+                    |err| DeError::custom(format!("invalid event variant: {}", err)),
+                )?)),
+                _ => Err(DeError::custom(format!(
+                    "unknown ABI entry type: {}",
+                    type_str
+                ))),
+            },
+            _ => Err(DeError::custom("invalid type field")),
+        }
+    }
 }
 
 #[cfg(test)]
