@@ -60,15 +60,26 @@ async fn can_execute_tst_mint() {
 
     let result = account
         .execute(
-            &[Call {
-                to: tst_token_address,
-                selector: get_selector_from_name("mint").unwrap(),
-                calldata: vec![
-                    address,
-                    FieldElement::from_dec_str("1000000000000000000000").unwrap(),
-                    FieldElement::ZERO,
-                ],
-            }],
+            &[
+                Call {
+                    to: tst_token_address,
+                    selector: get_selector_from_name("mint").unwrap(),
+                    calldata: vec![
+                        address,
+                        FieldElement::from_dec_str("1000000000000000000000").unwrap(),
+                        FieldElement::ZERO,
+                    ],
+                },
+                Call {
+                    to: tst_token_address,
+                    selector: get_selector_from_name("mint").unwrap(),
+                    calldata: vec![
+                        address,
+                        FieldElement::from_dec_str("2000000000000000000000").unwrap(),
+                        FieldElement::ZERO,
+                    ],
+                },
+            ],
             nonce,
         )
         .await
