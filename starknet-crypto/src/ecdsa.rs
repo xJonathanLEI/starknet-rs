@@ -118,6 +118,7 @@ mod tests {
     //   https://github.com/starkware-libs/crypto-cpp/blob/95864fbe11d5287e345432dbe1e80dea3c35fc58/src/starkware/crypto/ffi/crypto_lib_test.go
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_public_key_1() {
         let private_key = field_element_from_be_hex(
             "03c1e9550e66958296d11b60f8e8e7a7ad990d07fa65d5f7652c4a6c87d4e3cc",
@@ -130,6 +131,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_public_key_2() {
         let private_key = field_element_from_be_hex(
             "0000000000000000000000000000000000000000000000000000000000000012",
@@ -142,6 +144,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_verify_valid_message() {
         let stark_key = field_element_from_be_hex(
             "01ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca",
@@ -163,6 +166,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_verify_invalid_message() {
         let stark_key = field_element_from_be_hex(
             "077a4b314db07c45076d11f62b6f9e748a39790441823307743cf00d6597ea43",
@@ -184,6 +188,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_sign() {
         let private_key = field_element_from_be_hex(
             "0000000000000000000000000000000000000000000000000000000000000001",

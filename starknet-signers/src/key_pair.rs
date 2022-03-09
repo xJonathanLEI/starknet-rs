@@ -55,6 +55,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_secret_scalar() {
         // Generated with `cairo-lang`
         let private_key = FieldElement::from_hex_be(
@@ -68,6 +69,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_verifying_key() {
         // Generated with `cairo-lang`
         let private_key = FieldElement::from_hex_be(
@@ -86,6 +88,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_sign() {
         // Generated with `cairo-lang`
         let private_key = FieldElement::from_hex_be(
@@ -113,6 +116,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_hash_out_of_range() {
         let private_key = FieldElement::from_hex_be(
             "0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79",
@@ -132,6 +136,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_verify_valid_signature() {
         // Generated with `cairo-lang`
         let public_key = FieldElement::from_hex_be(
@@ -160,6 +165,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_verify_invalid_signature() {
         // Generated with `cairo-lang`
         let public_key = FieldElement::from_hex_be(

@@ -43,6 +43,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_starknet_keccak() {
         // Generated from `cairo-lang`
         let data = b"execute";
@@ -57,6 +58,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_selector_from_name() {
         // Generated from `cairo-lang`
         let func_name = "execute";
@@ -71,6 +73,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_default_selector() {
         let default_selector = FieldElement::from_hex_be(
             "0000000000000000000000000000000000000000000000000000000000000000",
@@ -88,6 +91,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_selector_from_non_ascii_name() {
         let func_name = "🦀";
 

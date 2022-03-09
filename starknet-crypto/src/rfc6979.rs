@@ -92,12 +92,14 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_generate_k_padded() {
         // Test vectors generated from `cairo-lang`
         test_generate_k_from_json_str(include_str!("../test-data/rfc6979_padded.json"));
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_generate_k_not_padded() {
         // Test vectors generated from `cairo-lang`
         test_generate_k_from_json_str(include_str!("../test-data/rfc6979_not_padded.json"));

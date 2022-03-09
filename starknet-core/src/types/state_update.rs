@@ -48,6 +48,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_state_update_deser() {
         let raw =
             include_str!("../../test-data/raw_gateway_responses/get_state_update/1_success.txt");

@@ -46,6 +46,7 @@ mod tests {
     //   https://github.com/starkware-libs/crypto-cpp/blob/95864fbe11d5287e345432dbe1e80dea3c35fc58/src/starkware/crypto/ffi/crypto_lib_test.go
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_pedersen_hash() {
         let in1 = field_element_from_be_hex(
             "03d937c035c878245caf64531a5756109c53068da139362728feb561405371cb",

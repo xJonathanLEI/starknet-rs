@@ -108,6 +108,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_receipt_deser_accepted() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction_receipt/1_accepted.txt"
@@ -121,6 +122,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_receipt_deser_not_received() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction_receipt/2_not_received.txt"
@@ -139,6 +141,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_receipt_deser_with_events() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction_receipt/3_with_events.txt"
@@ -149,6 +152,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_receipt_deser_failure() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction_receipt/4_failure.txt"
@@ -160,6 +164,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_transaction_status_deser_accepted_on_l2() {
         // note that the hashes coming from the API can be shorter
         // by a byte or two than the FieldElement into which we serialize into,
@@ -183,6 +188,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_transaction_status_deser_accepted_on_l1() {
         // curl -X GET https://alpha4.starknet.io/feeder_gateway/get_transaction_status\?transactionHash\=0x10f2462bd8d90ad7242f16c5432f5ca6a53d2846592c6170242e032a5f836a
         let raw = r#"{
@@ -202,6 +208,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_transaction_status_deser_rejected() {
         let raw = r#"{
             "tx_status": "REJECTED",
