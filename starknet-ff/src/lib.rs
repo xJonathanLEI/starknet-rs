@@ -3,7 +3,6 @@
 use crate::fr::FrParameters;
 
 use ark_ff::{fields::Fp256, BigInteger, BigInteger256, Field, PrimeField, SquareRootField};
-use bitvec::{array::BitArray, order::Lsb0};
 use crypto_bigint::{CheckedAdd, CheckedMul, Zero, U256};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Display, LowerHex, UpperHex};
@@ -99,7 +98,7 @@ impl FieldElement {
             res = r;
         }
 
-        Fp256::<FrParameters>::from_repr(BigInteger256::new(res.to_uint_array()))
+        Fp256::<FrParameters>::from_repr(u256_to_biginteger256(&res))
             .map(|inner| Self { inner })
             .ok_or(FromDecStrError::OutOfRange)
     }
@@ -144,8 +143,15 @@ impl FieldElement {
     }
 
     /// Transforms [FieldElement] into little endian bit representation.
-    pub fn to_bits_le(self) -> BitArray<Lsb0, [u64; 4]> {
-        BitArray::<Lsb0, [u64; 4]>::new(self.inner.into_repr().0)
+    pub fn to_bits_le(self) -> [bool; 256] {
+        let mut bits = [false; 256];
+        for (ind_element, element) in self.inner.into_repr().0.iter().enumerate() {
+            for ind_bit in 0..64 {
+                bits[ind_element * 64 + ind_bit] = (element >> ind_bit) & 1 == 1;
+            }
+        }
+
+        bits
     }
 
     /// Convert the field element into a big-endian byte representation
@@ -230,7 +236,7 @@ impl Display for FieldElement {
         // Ported from:
         //   https://github.com/paritytech/parity-common/blob/b37d0b312d39fa47c61c4430b30ca87d90e45a08/uint/src/uint.rs#L1650
 
-        let repr = U256::from_uint_array(self.inner.into_repr().0);
+        let repr: U256 = self.into();
 
         if repr.is_zero().into() {
             return write!(f, "0");
@@ -263,7 +269,7 @@ impl Display for FieldElement {
 
 impl LowerHex for FieldElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let repr = U256::from_uint_array(self.inner.into_repr().0);
+        let repr: U256 = self.into();
 
         let width = if f.sign_aware_zero_pad() {
             f.width().unwrap().min(64)
@@ -275,7 +281,7 @@ impl LowerHex for FieldElement {
         }
         let mut latch = false;
         let mut ind_nibble = 0;
-        for ch in repr.to_uint_array().iter().rev() {
+        for ch in u256_to_u64_array(&repr).iter().rev() {
             for x in 0..16 {
                 let nibble = (ch & (15u64 << ((15 - x) * 4) as u64)) >> (((15 - x) * 4) as u64);
                 if !latch {
@@ -293,7 +299,7 @@ impl LowerHex for FieldElement {
 
 impl UpperHex for FieldElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let repr = U256::from_uint_array(self.inner.into_repr().0);
+        let repr: U256 = self.into();
 
         let width = if f.sign_aware_zero_pad() {
             f.width().unwrap().min(64)
@@ -305,7 +311,7 @@ impl UpperHex for FieldElement {
         }
         let mut latch = false;
         let mut ind_nibble = 0;
-        for ch in repr.to_uint_array().iter().rev() {
+        for ch in u256_to_u64_array(&repr).iter().rev() {
             for x in 0..16 {
                 let nibble = (ch & (15u64 << ((15 - x) * 4) as u64)) >> (((15 - x) * 4) as u64);
                 if !latch {
@@ -350,10 +356,41 @@ impl From<usize> for FieldElement {
     }
 }
 
+impl From<&FieldElement> for U256 {
+    #[cfg(target_pointer_width = "64")]
+    fn from(value: &FieldElement) -> Self {
+        U256::from_uint_array(value.inner.into_repr().0)
+    }
+
+    #[cfg(target_pointer_width = "32")]
+    fn from(value: &FieldElement) -> Self {
+        U256::from_uint_array(unsafe {
+            std::mem::transmute::<[u64; 4], [u32; 8]>(value.inner.into_repr().0)
+        })
+    }
+}
+
 impl<'a> Debug for InnerDebug<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#064x}", self.0)
     }
+}
+
+#[inline]
+fn u256_to_biginteger256(num: &U256) -> BigInteger256 {
+    BigInteger256::new(u256_to_u64_array(num))
+}
+
+#[cfg(target_pointer_width = "64")]
+#[inline]
+fn u256_to_u64_array(num: &U256) -> [u64; 4] {
+    num.to_uint_array()
+}
+
+#[cfg(target_pointer_width = "32")]
+#[inline]
+fn u256_to_u64_array(num: &U256) -> [u64; 4] {
+    unsafe { std::mem::transmute::<[u32; 8], [u64; 4]>(num.to_uint_array()) }
 }
 
 #[cfg(test)]

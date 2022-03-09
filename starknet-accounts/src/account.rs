@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use starknet_core::types::{AddTransactionResult, BlockId, FieldElement};
 use std::error::Error;
 
-#[async_trait]
+#[async_trait(?Send)]
 pub trait Account {
     type GetNonceError: Error + Send;
     type ExecuteError: Error + Send;
