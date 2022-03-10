@@ -1,4 +1,4 @@
-use crate::Account;
+use crate::{Account, Call};
 
 use async_trait::async_trait;
 use starknet_core::{
@@ -11,6 +11,14 @@ use starknet_core::{
 };
 use starknet_providers::Provider;
 use starknet_signers::Signer;
+
+/// Cairo string for "StarkNet Transaction"
+const PREFIX_TRANSACTION: FieldElement = FieldElement::from_mont([
+    312878089121980887,
+    10823108295910496339,
+    18446744028905198002,
+    130780744342863686,
+]);
 
 pub struct SingleOwnerAccount<P, S>
 where
@@ -99,17 +107,27 @@ where
 
     async fn execute(
         &self,
-        to: FieldElement,
-        selector: FieldElement,
-        calldata: &[FieldElement],
+        calls: &[Call],
         nonce: FieldElement,
     ) -> Result<AddTransactionResult, Self::ExecuteError> {
         let message_hash = compute_hash_on_elements(&[
+            PREFIX_TRANSACTION,
             self.address,
-            to,
-            selector,
-            compute_hash_on_elements(calldata),
+            compute_hash_on_elements(
+                &calls
+                    .iter()
+                    .map(|call| {
+                        compute_hash_on_elements(&[
+                            call.to,
+                            call.selector,
+                            compute_hash_on_elements(&call.calldata),
+                        ])
+                    })
+                    .collect::<Vec<_>>(),
+            ),
             nonce,
+            FieldElement::ZERO, // max_fee
+            FieldElement::ZERO, // version
         ]);
         let signature = self
             .signer
@@ -117,17 +135,29 @@ where
             .await
             .map_err(ExecuteError::SignerError)?;
 
-        let mut execute_calldata = vec![to, selector, calldata.len().into()];
-        for item in calldata.iter() {
-            execute_calldata.push(*item);
+        let mut concated_calldata: Vec<FieldElement> = vec![];
+        let mut execute_calldata: Vec<FieldElement> = vec![calls.len().into()];
+        for call in calls.iter() {
+            execute_calldata.push(call.to); // to
+            execute_calldata.push(call.selector); // selector
+            execute_calldata.push(concated_calldata.len().into()); // data_offset
+            execute_calldata.push(call.calldata.len().into()); // data_len
+
+            for item in call.calldata.iter() {
+                concated_calldata.push(*item);
+            }
         }
-        execute_calldata.push(nonce);
+        execute_calldata.push(concated_calldata.len().into()); // calldata_len
+        for item in concated_calldata.into_iter() {
+            execute_calldata.push(item); // calldata
+        }
+        execute_calldata.push(nonce); // nonce
 
         self.provider
             .add_transaction(
                 TransactionRequest::InvokeFunction(InvokeFunctionTransactionRequest {
                     contract_address: self.address,
-                    entry_point_selector: get_selector_from_name("execute").unwrap(),
+                    entry_point_selector: get_selector_from_name("__execute__").unwrap(),
                     calldata: execute_calldata,
                     signature: vec![signature.r, signature.s],
                 }),

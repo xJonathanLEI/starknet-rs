@@ -95,7 +95,7 @@ async fn main() {
 
 ```rust
 use starknet::{
-    accounts::{Account, SingleOwnerAccount},
+    accounts::{Account, Call, SingleOwnerAccount},
     core::{
         types::{BlockId, FieldElement},
         utils::get_selector_from_name,
@@ -121,13 +121,15 @@ async fn main() {
 
     let result = account
         .execute(
-            tst_token_address,
-            get_selector_from_name("mint").unwrap(),
-            &[
-                address,
-                FieldElement::from_dec_str("1000000000000000000000").unwrap(),
-                FieldElement::ZERO,
-            ],
+            &[Call {
+                to: tst_token_address,
+                selector: get_selector_from_name("mint").unwrap(),
+                calldata: vec![
+                    address,
+                    FieldElement::from_dec_str("1000000000000000000000").unwrap(),
+                    FieldElement::ZERO,
+                ],
+            }],
             nonce,
         )
         .await

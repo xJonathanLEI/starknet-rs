@@ -1,3 +1,5 @@
+use crate::Call;
+
 use async_trait::async_trait;
 use starknet_core::types::{AddTransactionResult, BlockId, FieldElement};
 use std::error::Error;
@@ -14,9 +16,7 @@ pub trait Account {
 
     async fn execute(
         &self,
-        to: FieldElement,
-        selector: FieldElement,
-        calldata: &[FieldElement],
+        calls: &[Call],
         nonce: FieldElement,
     ) -> Result<AddTransactionResult, Self::ExecuteError>;
 }

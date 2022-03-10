@@ -1,4 +1,4 @@
-use starknet_accounts::{Account, SingleOwnerAccount};
+use starknet_accounts::{Account, Call, SingleOwnerAccount};
 use starknet_core::{
     types::{AddTransactionResultCode, BlockId, FieldElement},
     utils::get_selector_from_name,
@@ -17,7 +17,7 @@ async fn can_get_nonce() {
         .unwrap(),
     ));
     let address = FieldElement::from_hex_be(
-        "05882e52432ed597982a4d2246148e5e470b6eb8d19978a3c15a479962bca059",
+        "059b844bae1727516c6d5c40d2540f6f0a0eebc7eed2adf760515b45dbc20593",
     )
     .unwrap();
 
@@ -47,7 +47,7 @@ async fn can_execute_tst_mint() {
         .unwrap(),
     ));
     let address = FieldElement::from_hex_be(
-        "05882e52432ed597982a4d2246148e5e470b6eb8d19978a3c15a479962bca059",
+        "059b844bae1727516c6d5c40d2540f6f0a0eebc7eed2adf760515b45dbc20593",
     )
     .unwrap();
     let tst_token_address = FieldElement::from_hex_be(
@@ -60,12 +60,25 @@ async fn can_execute_tst_mint() {
 
     let result = account
         .execute(
-            tst_token_address,
-            get_selector_from_name("mint").unwrap(),
             &[
-                address,
-                FieldElement::from_dec_str("1000000000000000000000").unwrap(),
-                FieldElement::ZERO,
+                Call {
+                    to: tst_token_address,
+                    selector: get_selector_from_name("mint").unwrap(),
+                    calldata: vec![
+                        address,
+                        FieldElement::from_dec_str("1000000000000000000000").unwrap(),
+                        FieldElement::ZERO,
+                    ],
+                },
+                Call {
+                    to: tst_token_address,
+                    selector: get_selector_from_name("mint").unwrap(),
+                    calldata: vec![
+                        address,
+                        FieldElement::from_dec_str("2000000000000000000000").unwrap(),
+                        FieldElement::ZERO,
+                    ],
+                },
             ],
             nonce,
         )
