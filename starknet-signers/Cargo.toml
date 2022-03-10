@@ -17,3 +17,6 @@ starknet-core = { version = "0.1.0", path = "../starknet-core" }
 starknet-crypto = { version = "0.1.0", path = "../starknet-crypto" }
 async-trait = "0.1.52"
 thiserror = "1.0.30"
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen-test = "0.3.29"

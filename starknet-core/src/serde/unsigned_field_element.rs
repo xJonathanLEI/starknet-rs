@@ -100,6 +100,7 @@ mod tests {
     struct TestStruct(#[serde_as(as = "UfeHexOption")] pub Option<FieldElement>);
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn empty_string_deser() {
         let r = serde_json::from_str::<TestStruct>("\"\"").unwrap();
         assert_eq!(r.0, None);

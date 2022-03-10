@@ -98,6 +98,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_full_invoke_transaction() {
         let raw =
             include_str!("../../test-data/raw_gateway_responses/get_transaction/1_invoke.txt");
@@ -113,6 +114,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_full_deploy_transaction() {
         let raw =
             include_str!("../../test-data/raw_gateway_responses/get_transaction/2_deploy.txt");
@@ -127,6 +129,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_not_received() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction/3_not_received.txt"
@@ -138,6 +141,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_failure() {
         let raw =
             include_str!("../../test-data/raw_gateway_responses/get_transaction/4_failure.txt");
@@ -150,6 +154,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_brief_accepted() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction_status/1_accepted.txt"
@@ -170,6 +175,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_brief_not_received() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction_status/2_not_received.txt"
@@ -182,6 +188,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_brief_failure() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction_status/3_failure.txt"

@@ -106,6 +106,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_artifact_deser_oz_account() {
         serde_json::from_str::<ContractArtifact>(include_str!(
             "../../test-data/contracts/artifacts/oz_account.txt"
@@ -114,6 +115,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_artifact_deser_event_example() {
         serde_json::from_str::<ContractArtifact>(include_str!(
             "../../test-data/contracts/artifacts/event_example.txt"
@@ -122,6 +124,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_full_contract_deser_code() {
         serde_json::from_str::<ContractArtifact>(include_str!(
             "../../test-data/raw_gateway_responses/get_full_contract/1_code.txt"
@@ -130,6 +133,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_full_contract_deser_all_abi_types() {
         serde_json::from_str::<ContractArtifact>(include_str!(
             "../../test-data/raw_gateway_responses/get_full_contract/2_all_abi_types.txt"

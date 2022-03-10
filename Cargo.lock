@@ -862,9 +862,9 @@ checksum = "1aab8fc367588b89dcee83ab0fd66b72b50b72fa1904d7095045ace2b0c81c35"
 
 [[package]]
 name = "js-sys"
-version = "0.3.55"
+version = "0.3.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7cc9ffccd38c451a86bf13657df244e9c3f37493cce8e5e21e940963777acc84"
+checksum = "a38fc24e30fd564ce974c02bf1d337caddff65be6cc4735a1f7eab22a7440f04"
 dependencies = [
  "wasm-bindgen",
 ]
@@ -1469,6 +1469,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "scoped-tls"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ea6a9290e3c9cf0f18145ef7ffa62d68ee0bf5fcd651017e586dc7fd5da448c2"
+
+[[package]]
 name = "scopeguard"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1703,6 +1709,7 @@ dependencies = [
  "starknet-crypto",
  "starknet-ff",
  "thiserror",
+ "wasm-bindgen-test",
 ]
 
 [[package]]
@@ -1723,6 +1730,7 @@ dependencies = [
  "sha2",
  "starknet-ff",
  "thiserror",
+ "wasm-bindgen-test",
  "zeroize",
 ]
 
@@ -1736,6 +1744,7 @@ dependencies = [
  "hex",
  "serde",
  "thiserror",
+ "wasm-bindgen-test",
 ]
 
 [[package]]
@@ -1760,6 +1769,7 @@ dependencies = [
  "starknet-core",
  "starknet-crypto",
  "thiserror",
+ "wasm-bindgen-test",
 ]
 
 [[package]]
@@ -2120,9 +2130,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-futures"
-version = "0.4.28"
+version = "0.4.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e8d7523cb1f2a4c96c1317ca690031b714a51cc14e05f712446691f413f5d39"
+checksum = "2eb6ec270a31b1d3c7e266b999739109abce8b6c87e4b31fcfcd788b65267395"
 dependencies = [
  "cfg-if",
  "js-sys",
@@ -2158,6 +2168,30 @@ name = "wasm-bindgen-shared"
 version = "0.2.79"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d958d035c4438e28c70e4321a2911302f10135ce78a9c7834c0cab4123d06a2"
+
+[[package]]
+name = "wasm-bindgen-test"
+version = "0.3.29"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "45c8d417d87eefa0087e62e3c75ad086be39433449e2961add9a5d9ce5acc2f1"
+dependencies = [
+ "console_error_panic_hook",
+ "js-sys",
+ "scoped-tls",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wasm-bindgen-test-macro",
+]
+
+[[package]]
+name = "wasm-bindgen-test-macro"
+version = "0.3.29"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d0e560d44db5e73b69a9757a15512fe7e1ef93ed2061c928871a4025798293dd"
+dependencies = [
+ "proc-macro2",
+ "quote",
+]
 
 [[package]]
 name = "web-sys"

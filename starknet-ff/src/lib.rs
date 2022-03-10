@@ -398,6 +398,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_dec_fmt() {
         let nums = [
             "0",
@@ -416,6 +417,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_zero_padded_hex_fmt() {
         let fe = FieldElement::from_hex_be("0x1234abcd").unwrap();
 
@@ -437,6 +439,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_addition() {
         let additions = [
             ["1", "1", "2"],
@@ -457,6 +460,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_subtraction() {
         let subtractions = [
             ["10", "7", "3"],
@@ -477,6 +481,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_multiplication() {
         let multiplications = [
             ["2", "3", "6"],
