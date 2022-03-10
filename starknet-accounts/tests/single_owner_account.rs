@@ -7,7 +7,6 @@ use starknet_providers::SequencerGatewayProvider;
 use starknet_signers::{LocalWallet, SigningKey};
 
 #[tokio::test]
-#[ignore = "temporarily skipping test until Starkware improves network stability"]
 async fn can_get_nonce() {
     let provider = SequencerGatewayProvider::starknet_alpha_goerli();
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
@@ -30,7 +29,6 @@ async fn can_get_nonce() {
 }
 
 #[tokio::test]
-#[ignore = "temporarily skipping test until Starkware improves network stability"]
 async fn can_execute_tst_mint() {
     // This test case is not very useful as the sequencer will always respond with
     // `TransactionReceived` even if the transaction will eventually fail, just like how
