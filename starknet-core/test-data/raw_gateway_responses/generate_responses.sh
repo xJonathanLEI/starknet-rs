@@ -1,10 +1,11 @@
 #!/bin/sh
 
-# ./get_block/1_with_deploy_tx.txt
-curl -o ./get_block/1_with_deploy_tx.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=39232"
+# ./get_block/1_with_transactions.txt
+curl -o ./get_block/1_with_transactions.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=39232"
 
 # ./get_block/2_with_messages.txt
-curl -o ./get_block/2_with_messages.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=39227"
+# (Changed from 39227 to 122387 due to a bug in StarkNet)
+curl -o ./get_block/2_with_messages.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=122387"
 
 # ./get_block/3_with_events.txt
 curl -o ./get_block/3_with_events.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=47543"
@@ -53,6 +54,9 @@ curl -o ./get_transaction_status/3_failure.txt "https://alpha4.starknet.io/feede
 
 # ./get_state_update/1_success.txt
 curl -o ./get_state_update/1_success.txt "https://alpha4.starknet.io/feeder_gateway/get_state_update?blockNumber=70004"
+
+# ./get_state_update/2_pending_block.txt (non-deterministic)
+curl -o ./get_state_update/2_pending_block.txt "https://alpha4.starknet.io/feeder_gateway/get_state_update?blockNumber=pending"
 
 # ./get_full_contract/1_code.txt
 curl -o ./get_full_contract/1_code.txt "https://alpha4.starknet.io/feeder_gateway/get_full_contract?contractAddress=0x05ffd28b3ff2eecd6da0fa64c90e928a9f46f1563976a4fe1770ab48ee43506a"
