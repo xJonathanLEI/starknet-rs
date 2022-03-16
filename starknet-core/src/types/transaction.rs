@@ -9,11 +9,6 @@ use super::{
 use serde::Deserialize;
 use serde_with::serde_as;
 
-pub enum TransactionId {
-    Hash(FieldElement),
-    Number(u64),
-}
-
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TransactionType {
