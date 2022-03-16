@@ -40,7 +40,6 @@ pub struct TransactionStatusInfo {
 }
 #[derive(Debug, Deserialize)]
 pub struct TransactionFailureReason {
-    pub tx_id: u64,
     pub code: String,
     pub error_message: Option<String>,
 }
@@ -70,6 +69,7 @@ pub enum EntryPointType {
 #[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct DeployTransaction {
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub constructor_calldata: Vec<FieldElement>,
     #[serde_as(as = "UfeHex")]
     pub contract_address: FieldElement,
@@ -87,6 +87,7 @@ pub struct InvokeFunctionTransaction {
     pub entry_point_type: EntryPointType,
     #[serde_as(as = "UfeHex")]
     pub entry_point_selector: FieldElement,
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub calldata: Vec<FieldElement>,
     pub signature: Vec<FieldElement>,
     #[serde_as(as = "UfeHex")]
@@ -149,7 +150,6 @@ mod tests {
 
         assert!(tx.transaction_failure_reason.is_some());
         let failure_reason = tx.transaction_failure_reason.unwrap();
-        assert_eq!(failure_reason.tx_id, 979378);
         assert_eq!(failure_reason.code, "TRANSACTION_FAILED");
     }
 
