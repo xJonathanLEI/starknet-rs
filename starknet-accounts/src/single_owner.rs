@@ -4,8 +4,8 @@ use async_trait::async_trait;
 use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
-        AddTransactionResult, BlockId, FieldElement, InvokeFunction,
-        InvokeFunctionTransactionRequest, TransactionRequest,
+        AddTransactionResult, BlockId, FieldElement, InvokeFunctionTransactionRequest,
+        TransactionRequest,
     },
     utils::get_selector_from_name,
 };
@@ -84,7 +84,7 @@ where
         let call_result = self
             .provider
             .call_contract(
-                InvokeFunction {
+                InvokeFunctionTransactionRequest {
                     contract_address: self.address,
                     entry_point_selector: get_selector_from_name("get_nonce").unwrap(),
                     calldata: vec![],

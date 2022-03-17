@@ -29,7 +29,7 @@ mod contract_addresses;
 pub use contract_addresses::ContractAddresses;
 
 mod call_contract;
-pub use call_contract::{CallContractResult, InvokeFunction};
+pub use call_contract::CallContractResult;
 
 mod transaction_request;
 pub use transaction_request::{
