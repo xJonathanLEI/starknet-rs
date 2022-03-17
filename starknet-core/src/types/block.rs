@@ -95,11 +95,11 @@ mod tests {
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
-        assert_eq!(block.block_number.unwrap(), 39227);
-        assert_eq!(block.transaction_receipts.len(), 4);
-        let receipt = &block.transaction_receipts[0];
+        assert_eq!(block.block_number.unwrap(), 122387);
+        assert_eq!(block.transaction_receipts.len(), 49);
+        let receipt = &block.transaction_receipts[22];
         assert_eq!(receipt.l2_to_l1_messages.len(), 1);
-        assert_eq!(receipt.l2_to_l1_messages[0].payload.len(), 5);
+        assert_eq!(receipt.l2_to_l1_messages[0].payload.len(), 2);
     }
 
     #[test]

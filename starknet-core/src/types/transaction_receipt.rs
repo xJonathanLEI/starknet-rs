@@ -64,12 +64,12 @@ pub struct ExecutionResources {
 
 #[derive(Debug, Deserialize)]
 pub struct BuiltinInstanceCounter {
-    pub pedersen_builtin: u64,
-    pub range_check_builtin: u64,
-    pub bitwise_builtin: u64,
-    pub output_builtin: u64,
-    pub ecdsa_builtin: u64,
-    pub ec_op_builtin: u64,
+    pub pedersen_builtin: Option<u64>,
+    pub range_check_builtin: Option<u64>,
+    pub bitwise_builtin: Option<u64>,
+    pub output_builtin: Option<u64>,
+    pub ecdsa_builtin: Option<u64>,
+    pub ec_op_builtin: Option<u64>,
 }
 
 #[serde_as]
@@ -79,6 +79,7 @@ pub struct L1ToL2Message {
     #[serde_as(as = "UfeHex")]
     pub to_address: FieldElement,
     pub selector: FieldElement,
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub payload: Vec<FieldElement>,
     pub nonce: Option<u64>,
 }
@@ -89,6 +90,7 @@ pub struct L2ToL1Message {
     #[serde_as(as = "UfeHex")]
     pub from_address: FieldElement,
     pub to_address: L1Address,
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub payload: Vec<FieldElement>,
 }
 
@@ -97,7 +99,9 @@ pub struct L2ToL1Message {
 pub struct Event {
     #[serde_as(as = "UfeHex")]
     pub from_address: FieldElement,
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub keys: Vec<FieldElement>,
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub data: Vec<FieldElement>,
 }
 
