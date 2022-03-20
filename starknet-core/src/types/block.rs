@@ -52,6 +52,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_with_transactions() {
         let raw =
             include_str!("../../test-data/raw_gateway_responses/get_block/1_with_transactions.txt");
@@ -86,6 +87,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_with_messages() {
         // has an L2 to L1 message
         let raw =
@@ -93,14 +95,15 @@ mod tests {
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
-        assert_eq!(block.block_number.unwrap(), 39227);
-        assert_eq!(block.transaction_receipts.len(), 4);
-        let receipt = &block.transaction_receipts[0];
+        assert_eq!(block.block_number.unwrap(), 122387);
+        assert_eq!(block.transaction_receipts.len(), 49);
+        let receipt = &block.transaction_receipts[22];
         assert_eq!(receipt.l2_to_l1_messages.len(), 1);
-        assert_eq!(receipt.l2_to_l1_messages[0].payload.len(), 5);
+        assert_eq!(receipt.l2_to_l1_messages[0].payload.len(), 2);
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_with_events() {
         // has events introduced with StarkNet v0.7.0
         let raw = include_str!("../../test-data/raw_gateway_responses/get_block/3_with_events.txt");
@@ -115,6 +118,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_pending() {
         // pending blocks don't have `block_hash`, `block_number`, or `state_root`
         let raw = include_str!("../../test-data/raw_gateway_responses/get_block/4_pending.txt");

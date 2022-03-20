@@ -9,11 +9,6 @@ use super::{
 use serde::Deserialize;
 use serde_with::serde_as;
 
-pub enum TransactionId {
-    Hash(FieldElement),
-    Number(u64),
-}
-
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TransactionType {
@@ -40,7 +35,6 @@ pub struct TransactionStatusInfo {
 }
 #[derive(Debug, Deserialize)]
 pub struct TransactionFailureReason {
-    pub tx_id: u64,
     pub code: String,
     pub error_message: Option<String>,
 }
@@ -70,6 +64,7 @@ pub enum EntryPointType {
 #[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct DeployTransaction {
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub constructor_calldata: Vec<FieldElement>,
     #[serde_as(as = "UfeHex")]
     pub contract_address: FieldElement,
@@ -87,6 +82,7 @@ pub struct InvokeFunctionTransaction {
     pub entry_point_type: EntryPointType,
     #[serde_as(as = "UfeHex")]
     pub entry_point_selector: FieldElement,
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub calldata: Vec<FieldElement>,
     pub signature: Vec<FieldElement>,
     #[serde_as(as = "UfeHex")]
@@ -98,6 +94,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_full_invoke_transaction() {
         let raw =
             include_str!("../../test-data/raw_gateway_responses/get_transaction/1_invoke.txt");
@@ -113,6 +110,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_full_deploy_transaction() {
         let raw =
             include_str!("../../test-data/raw_gateway_responses/get_transaction/2_deploy.txt");
@@ -127,6 +125,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_not_received() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction/3_not_received.txt"
@@ -138,6 +137,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_failure() {
         let raw =
             include_str!("../../test-data/raw_gateway_responses/get_transaction/4_failure.txt");
@@ -145,11 +145,11 @@ mod tests {
 
         assert!(tx.transaction_failure_reason.is_some());
         let failure_reason = tx.transaction_failure_reason.unwrap();
-        assert_eq!(failure_reason.tx_id, 979378);
         assert_eq!(failure_reason.code, "TRANSACTION_FAILED");
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_brief_accepted() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction_status/1_accepted.txt"
@@ -170,6 +170,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_brief_not_received() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction_status/2_not_received.txt"
@@ -182,6 +183,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_brief_failure() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction_status/3_failure.txt"

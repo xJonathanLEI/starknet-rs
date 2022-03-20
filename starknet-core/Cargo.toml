@@ -19,7 +19,10 @@ base64 = "0.13.0"
 ethereum-types = "0.12.1"
 hex = "0.4.3"
 serde = { version = "1.0.133", features = ["derive"] }
-serde_json = "1.0.74"
+serde_json = { version = "1.0.74", features = ["arbitrary_precision"] }
 serde_with = "1.12.0"
 sha3 = "0.10.0"
 thiserror = "1.0.30"
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen-test = "0.3.29"

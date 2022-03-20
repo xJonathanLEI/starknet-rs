@@ -2,7 +2,6 @@ use starknet_contract::ContractFactory;
 use starknet_core::types::{ContractArtifact, FieldElement};
 
 #[tokio::test]
-#[ignore = "temporarily skipping test until Starkware improves network stability"]
 async fn can_deploy_contract_to_alpha_goerli() {
     let artifact = serde_json::from_str::<ContractArtifact>(include_str!(
         "../test-data/artifacts/oz_account.txt"

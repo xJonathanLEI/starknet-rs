@@ -14,9 +14,13 @@ keywords = ["ethereum", "starknet", "web3"]
 
 [dependencies]
 ark-ff = "0.3.0"
-# Parity's scale codec locks us here
-bitvec = "0.20.4"
 crypto-bigint = "0.3.2"
 hex = "0.4.3"
 serde = "1.0.133"
 thiserror = "1.0.30"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2.3", features = ["js"] }
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen-test = "0.3.29"

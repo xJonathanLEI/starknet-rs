@@ -9,8 +9,8 @@ use starknet_core::{
     serde::unsigned_field_element::UfeHex,
     types::{
         AddTransactionResult, Block, BlockId, CallContractResult, ContractAddresses,
-        ContractArtifact, ContractCode, FieldElement, InvokeFunction, StarknetError, StateUpdate,
-        TransactionId, TransactionInfo, TransactionReceipt, TransactionRequest,
+        ContractArtifact, ContractCode, FieldElement, InvokeFunctionTransactionRequest,
+        StarknetError, StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest,
         TransactionStatusInfo,
     },
 };
@@ -136,7 +136,7 @@ impl SequencerGatewayProvider {
     }
 }
 
-#[async_trait]
+#[async_trait(?Send)]
 impl Provider for SequencerGatewayProvider {
     type Error = ProviderError;
 
@@ -174,7 +174,7 @@ impl Provider for SequencerGatewayProvider {
 
     async fn call_contract(
         &self,
-        invoke_tx: InvokeFunction,
+        invoke_tx: InvokeFunctionTransactionRequest,
         block_identifier: BlockId,
     ) -> Result<CallContractResult, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("call_contract");
@@ -295,10 +295,12 @@ impl Provider for SequencerGatewayProvider {
 
     async fn get_transaction_status(
         &self,
-        transaction_hash_or_number: TransactionId,
+        transaction_hash: FieldElement,
     ) -> Result<TransactionStatusInfo, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_status");
-        append_transaction_id(&mut request_url, transaction_hash_or_number);
+        request_url
+            .query_pairs_mut()
+            .append_pair("transactionHash", &format!("{:#x}", transaction_hash));
 
         match self
             .send_get_request::<GatewayResponse<TransactionStatusInfo>>(request_url)
@@ -313,10 +315,12 @@ impl Provider for SequencerGatewayProvider {
 
     async fn get_transaction(
         &self,
-        transaction_hash_or_number: TransactionId,
+        transaction_hash: FieldElement,
     ) -> Result<TransactionInfo, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction");
-        append_transaction_id(&mut request_url, transaction_hash_or_number);
+        request_url
+            .query_pairs_mut()
+            .append_pair("transactionHash", &format!("{:#x}", transaction_hash));
 
         match self
             .send_get_request::<GatewayResponse<TransactionInfo>>(request_url)
@@ -331,10 +335,12 @@ impl Provider for SequencerGatewayProvider {
 
     async fn get_transaction_receipt(
         &self,
-        transaction_hash_or_number: TransactionId,
+        transaction_hash: FieldElement,
     ) -> Result<TransactionReceipt, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_receipt");
-        append_transaction_id(&mut request_url, transaction_hash_or_number);
+        request_url
+            .query_pairs_mut()
+            .append_pair("transactionHash", &format!("{:#x}", transaction_hash));
 
         match self
             .send_get_request::<GatewayResponse<TransactionReceipt>>(request_url)
@@ -456,18 +462,5 @@ fn append_block_id(url: &mut Url, block_identifier: BlockId) {
             url.query_pairs_mut().append_pair("blockNumber", "pending");
         }
         BlockId::Latest => (), // latest block is implicit
-    };
-}
-
-fn append_transaction_id(url: &mut Url, block_identifier: TransactionId) {
-    match block_identifier {
-        TransactionId::Hash(tx_hash) => {
-            url.query_pairs_mut()
-                .append_pair("transactionHash", &format!("{:#x}", tx_hash));
-        }
-        TransactionId::Number(tx_number) => {
-            url.query_pairs_mut()
-                .append_pair("transactionId", &tx_number.to_string());
-        }
     };
 }

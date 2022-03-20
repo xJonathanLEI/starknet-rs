@@ -23,6 +23,7 @@ members = [
     "starknet-signers",
     "starknet-accounts",
     "starknet-ff",
+    "examples/starknet-wasm",
 ]
 
 [dependencies]

@@ -1,6 +1,6 @@
 use super::{super::serde::unsigned_field_element::UfeHex, FieldElement};
 
-use serde::{Deserialize, Serialize};
+use serde::{de::Error as DeError, Deserialize, Serialize};
 use serde_with::serde_as;
 
 #[serde_as]
@@ -11,7 +11,7 @@ pub struct ContractCode {
     pub abi: Option<Vec<AbiEntry>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum AbiEntry {
     Constructor(Constructor),
@@ -84,11 +84,53 @@ pub struct Member {
     pub r#type: String,
 }
 
+// We need to manually implement this because `arbitrary_precision` doesn't work with `tag`:
+//   https://github.com/serde-rs/serde/issues/1183
+impl<'de> Deserialize<'de> for AbiEntry {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let temp_value = serde_json::Value::deserialize(deserializer)?;
+        match &temp_value["type"] {
+            serde_json::Value::String(type_str) => match &type_str[..] {
+                "constructor" => Ok(AbiEntry::Constructor(
+                    Constructor::deserialize(temp_value).map_err(|err| {
+                        DeError::custom(format!("invalid constructor variant: {}", err))
+                    })?,
+                )),
+                "function" => Ok(AbiEntry::Function(
+                    Function::deserialize(temp_value).map_err(|err| {
+                        DeError::custom(format!("invalid function variant: {}", err))
+                    })?,
+                )),
+                "struct" => Ok(AbiEntry::Struct(Struct::deserialize(temp_value).map_err(
+                    |err| DeError::custom(format!("invalid struct variant: {}", err)),
+                )?)),
+                "l1_handler" => Ok(AbiEntry::L1Handler(
+                    L1Handler::deserialize(temp_value).map_err(|err| {
+                        DeError::custom(format!("invalid l1_handler variant: {}", err))
+                    })?,
+                )),
+                "event" => Ok(AbiEntry::Event(Event::deserialize(temp_value).map_err(
+                    |err| DeError::custom(format!("invalid event variant: {}", err)),
+                )?)),
+                _ => Err(DeError::custom(format!(
+                    "unknown ABI entry type: {}",
+                    type_str
+                ))),
+            },
+            _ => Err(DeError::custom("invalid type field")),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_contract_code_deser() {
         let raw = include_str!("../../test-data/raw_gateway_responses/get_code/1_code.txt");
 
@@ -121,6 +163,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_contract_code_deser_all_abi_types() {
         // $ curl "https://alpha4.starknet.io/feeder_gateway/get_code?contractAddress=0x06ef97a90be1c0458f6e7bd1faf05021f2d81211f658155df0c5c97a39eb2d12"
         // Contract built from: https://github.com/starkware-libs/cairo-lang/blob/3d33c4e829a87bc3d88cf04ed6a489e788918b8b/src/starkware/starknet/compiler/starknet_preprocessor_test.py#L143

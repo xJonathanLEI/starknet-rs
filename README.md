@@ -31,6 +31,7 @@ starknet = { git = "https://github.com/xJonathanLEI/starknet-rs" }
 ## Features
 
 - [x] Sequencer gateway / feeder gateway client
+- [ ] Full node JSON-RPC API client
 - [x] Smart contract deployment
 - [x] Signer for using [IAccount](https://github.com/OpenZeppelin/cairo-contracts/blob/main/openzeppelin/account/IAccount.cairo) account contracts
 - [ ] Strongly-typed smart contract binding code generation from ABI
@@ -94,7 +95,7 @@ async fn main() {
 
 ```rust
 use starknet::{
-    accounts::{Account, SingleOwnerAccount},
+    accounts::{Account, Call, SingleOwnerAccount},
     core::{
         types::{BlockId, FieldElement},
         utils::get_selector_from_name,
@@ -120,13 +121,15 @@ async fn main() {
 
     let result = account
         .execute(
-            tst_token_address,
-            get_selector_from_name("mint").unwrap(),
-            &[
-                address,
-                FieldElement::from_dec_str("1000000000000000000000").unwrap(),
-                FieldElement::ZERO,
-            ],
+            &[Call {
+                to: tst_token_address,
+                selector: get_selector_from_name("mint").unwrap(),
+                calldata: vec![
+                    address,
+                    FieldElement::from_dec_str("1000000000000000000000").unwrap(),
+                    FieldElement::ZERO,
+                ],
+            }],
             nonce,
         )
         .await

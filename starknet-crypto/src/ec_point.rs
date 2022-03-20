@@ -1,5 +1,3 @@
-use bitvec::{order::Lsb0, slice::BitSlice};
-
 use crate::{
     pedersen_params::{ALPHA, BETA},
     FieldElement,
@@ -92,7 +90,7 @@ impl EcPoint {
         })
     }
 
-    pub fn multiply(&self, bits: &BitSlice<Lsb0, u64>) -> EcPoint {
+    pub fn multiply(&self, bits: &[bool]) -> EcPoint {
         let mut product = EcPoint::identity();
         for b in bits.iter().rev() {
             product = product.double();

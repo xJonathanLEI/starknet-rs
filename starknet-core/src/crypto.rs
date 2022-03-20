@@ -81,6 +81,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_compute_hash_on_elements() {
         // Generated with `cairo-lang`
         let hash = compute_hash_on_elements(&[
@@ -98,6 +99,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_compute_hash_on_elements_empty_data() {
         // Generated with `cairo-lang`
         let hash = compute_hash_on_elements(&[]);
@@ -110,6 +112,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_ecdsa_sign() {
         // Generated with `cairo-lang`
         let signature = ecdsa_sign(
@@ -137,6 +140,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_ecdsa_sign_message_hash_out_of_range() {
         match ecdsa_sign(
             &FieldElement::from_hex_be(
@@ -154,6 +158,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_ecdsa_verify_valid_signature() {
         // Generated with `cairo-lang`
         let public_key = FieldElement::from_hex_be(
@@ -180,6 +185,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_ecdsa_verify_invalid_signature() {
         // Generated with `cairo-lang`
         let public_key = FieldElement::from_hex_be(

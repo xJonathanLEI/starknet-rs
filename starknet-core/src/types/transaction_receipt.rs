@@ -64,12 +64,12 @@ pub struct ExecutionResources {
 
 #[derive(Debug, Deserialize)]
 pub struct BuiltinInstanceCounter {
-    pub pedersen_builtin: u64,
-    pub range_check_builtin: u64,
-    pub bitwise_builtin: u64,
-    pub output_builtin: u64,
-    pub ecdsa_builtin: u64,
-    pub ec_op_builtin: u64,
+    pub pedersen_builtin: Option<u64>,
+    pub range_check_builtin: Option<u64>,
+    pub bitwise_builtin: Option<u64>,
+    pub output_builtin: Option<u64>,
+    pub ecdsa_builtin: Option<u64>,
+    pub ec_op_builtin: Option<u64>,
 }
 
 #[serde_as]
@@ -79,6 +79,7 @@ pub struct L1ToL2Message {
     #[serde_as(as = "UfeHex")]
     pub to_address: FieldElement,
     pub selector: FieldElement,
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub payload: Vec<FieldElement>,
     pub nonce: Option<u64>,
 }
@@ -89,6 +90,7 @@ pub struct L2ToL1Message {
     #[serde_as(as = "UfeHex")]
     pub from_address: FieldElement,
     pub to_address: L1Address,
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub payload: Vec<FieldElement>,
 }
 
@@ -97,7 +99,9 @@ pub struct L2ToL1Message {
 pub struct Event {
     #[serde_as(as = "UfeHex")]
     pub from_address: FieldElement,
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub keys: Vec<FieldElement>,
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub data: Vec<FieldElement>,
 }
 
@@ -108,6 +112,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_receipt_deser_accepted() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction_receipt/1_accepted.txt"
@@ -121,6 +126,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_receipt_deser_not_received() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction_receipt/2_not_received.txt"
@@ -139,6 +145,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_receipt_deser_with_events() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction_receipt/3_with_events.txt"
@@ -149,6 +156,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_receipt_deser_failure() {
         let raw = include_str!(
             "../../test-data/raw_gateway_responses/get_transaction_receipt/4_failure.txt"
@@ -160,6 +168,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_transaction_status_deser_accepted_on_l2() {
         // note that the hashes coming from the API can be shorter
         // by a byte or two than the FieldElement into which we serialize into,
@@ -183,6 +192,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_transaction_status_deser_accepted_on_l1() {
         // curl -X GET https://alpha4.starknet.io/feeder_gateway/get_transaction_status\?transactionHash\=0x10f2462bd8d90ad7242f16c5432f5ca6a53d2846592c6170242e032a5f836a
         let raw = r#"{
@@ -202,6 +212,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_transaction_status_deser_rejected() {
         let raw = r#"{
             "tx_status": "REJECTED",

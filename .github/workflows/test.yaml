@@ -65,3 +65,48 @@ jobs:
         with:
           command: test
           args: --all --target ${{ matrix.target }}
+
+  wasm-test:
+    name: WASM tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Setup toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - uses: Swatinem/rust-cache@v1
+        with:
+          cache-on-failure:
+
+      - name: Add wasm32-unknown-unknown target
+        run: |
+          rustup target add wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: wasm-pack
+
+      - name: Run starknet-ff tests
+        run: |
+          (cd ./starknet-ff && wasm-pack test --node)
+
+      - name: Run starknet-crypto tests
+        run: |
+          (cd ./starknet-crypto && wasm-pack test --node)
+
+      - name: Run starknet-core tests
+        run: |
+          (cd ./starknet-core && wasm-pack test --node)
+
+      - name: Run starknet-signers tests
+        run: |
+          (cd ./starknet-signers && wasm-pack test --node)
