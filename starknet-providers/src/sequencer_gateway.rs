@@ -511,3 +511,17 @@ fn append_block_id(url: &mut Url, block_identifier: BlockId) {
         BlockId::Latest => (), // latest block is implicit
     };
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_estimate_fee_deser() {
+        serde_json::from_str::<GatewayResponse<FeeEstimate>>(include_str!(
+            "../test-data/estimate_fee/1_success.txt"
+        ))
+        .unwrap();
+    }
+}
