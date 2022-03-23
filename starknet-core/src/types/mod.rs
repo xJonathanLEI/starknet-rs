@@ -45,3 +45,9 @@ pub use state_update::StateUpdate;
 
 pub mod contract_artifact;
 pub use contract_artifact::ContractArtifact;
+
+mod fee;
+pub use fee::{FeeEstimate, FeeUnit};
+
+pub mod trace;
+pub use trace::TransactionTrace;

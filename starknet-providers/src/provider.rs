@@ -1,8 +1,9 @@
 use async_trait::async_trait;
 use starknet_core::types::{
     AddTransactionResult, Block, BlockId, CallContractResult, ContractAddresses, ContractArtifact,
-    ContractCode, FieldElement, InvokeFunctionTransactionRequest, StateUpdate, TransactionInfo,
-    TransactionReceipt, TransactionRequest, TransactionStatusInfo,
+    ContractCode, FeeEstimate, FieldElement, InvokeFunctionTransactionRequest, StateUpdate,
+    TransactionInfo, TransactionReceipt, TransactionRequest, TransactionStatusInfo,
+    TransactionTrace,
 };
 use std::error::Error;
 
@@ -23,6 +24,12 @@ pub trait Provider {
         invoke_tx: InvokeFunctionTransactionRequest,
         block_identifier: BlockId,
     ) -> Result<CallContractResult, Self::Error>;
+
+    async fn estimate_fee(
+        &self,
+        invoke_tx: InvokeFunctionTransactionRequest,
+        block_identifier: BlockId,
+    ) -> Result<FeeEstimate, Self::Error>;
 
     async fn get_block(&self, block_identifier: BlockId) -> Result<Block, Self::Error>;
 
@@ -63,6 +70,11 @@ pub trait Provider {
         transaction_hash: FieldElement,
     ) -> Result<TransactionReceipt, Self::Error>;
 
+    async fn get_transaction_trace(
+        &self,
+        transaction_hash: FieldElement,
+    ) -> Result<TransactionTrace, Self::Error>;
+
     async fn get_block_hash_by_id(&self, block_number: u64) -> Result<FieldElement, Self::Error>;
 
     async fn get_block_id_by_hash(&self, block_hash: FieldElement) -> Result<u64, Self::Error>;
@@ -78,4 +90,6 @@ pub trait Provider {
     ) -> Result<u64, Self::Error>;
 
     async fn get_last_batch_id(&self) -> Result<u64, Self::Error>;
+
+    async fn get_l1_blockchain_id(&self) -> Result<u64, Self::Error>;
 }
