@@ -16,12 +16,6 @@ pub enum TransactionType {
     InvokeFunction(InvokeFunctionTransaction),
 }
 
-#[derive(Debug, Deserialize)]
-pub enum Transaction {
-    Brief(TransactionStatusInfo),
-    Full(TransactionInfo),
-}
-
 #[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct TransactionStatusInfo {
