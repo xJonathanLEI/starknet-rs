@@ -7,7 +7,7 @@ use starknet_core::types::{
 };
 use std::error::Error;
 
-#[async_trait(?Send)]
+#[async_trait]
 pub trait Provider {
     type Error: Error + Send;
 
