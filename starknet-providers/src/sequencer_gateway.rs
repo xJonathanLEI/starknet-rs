@@ -136,7 +136,7 @@ impl SequencerGatewayProvider {
     }
 }
 
-#[async_trait(?Send)]
+#[async_trait]
 impl Provider for SequencerGatewayProvider {
     type Error = ProviderError;
 
