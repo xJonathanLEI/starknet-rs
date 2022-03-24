@@ -68,7 +68,7 @@ where
     }
 }
 
-#[async_trait(?Send)]
+#[async_trait]
 impl<P, S> Account for SingleOwnerAccount<P, S>
 where
     P: Provider + Sync + Send,

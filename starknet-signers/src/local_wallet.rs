@@ -22,7 +22,7 @@ impl LocalWallet {
     }
 }
 
-#[async_trait(?Send)]
+#[async_trait]
 impl Signer for LocalWallet {
     type GetPublicKeyError = Infallible;
     type SignError = SignError;

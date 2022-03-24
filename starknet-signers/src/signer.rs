@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use starknet_core::{crypto::Signature, types::FieldElement};
 use std::error::Error;
 
-#[async_trait(?Send)]
+#[async_trait]
 pub trait Signer {
     type GetPublicKeyError: Error + Send;
     type SignError: Error + Send;
