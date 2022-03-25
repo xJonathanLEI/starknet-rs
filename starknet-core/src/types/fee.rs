@@ -6,7 +6,7 @@ pub struct FeeEstimate {
     pub unit: FeeUnit,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub enum FeeUnit {
     #[serde(rename = "wei")]
     Wei,

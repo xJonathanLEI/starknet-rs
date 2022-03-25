@@ -1,7 +1,7 @@
 use crate::Call;
 
 use async_trait::async_trait;
-use starknet_core::types::{AddTransactionResult, BlockId, FieldElement};
+use starknet_core::types::{AddTransactionResult, BlockId, FieldElement, FeeEstimate};
 use std::error::Error;
 
 #[async_trait(?Send)]
@@ -19,4 +19,11 @@ pub trait Account {
         calls: &[Call],
         nonce: FieldElement,
     ) -> Result<AddTransactionResult, Self::ExecuteError>;
+
+    async fn estimate_fee(
+        &self,
+        calls: &[Call],
+        nonce: FieldElement,
+        block_identifier: BlockId,
+    ) -> Result<FeeEstimate, Self::ExecuteError>;
 }

@@ -5,7 +5,7 @@ use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
         AddTransactionResult, BlockId, FieldElement, InvokeFunctionTransactionRequest,
-        TransactionRequest,
+        TransactionRequest, FeeEstimate,
     },
     utils::get_selector_from_name,
 };
@@ -162,6 +162,70 @@ where
                     signature: vec![signature.r, signature.s],
                 }),
                 None,
+            )
+            .await
+            .map_err(ExecuteError::ProviderError)
+    }
+
+    async fn estimate_fee(
+        &self,
+        calls: &[Call],
+        nonce: FieldElement,
+        block_identifier: BlockId,
+    ) -> Result<FeeEstimate, Self::ExecuteError> {
+        let message_hash = compute_hash_on_elements(&[
+            PREFIX_TRANSACTION,
+            self.address,
+            compute_hash_on_elements(
+                &calls
+                    .iter()
+                    .map(|call| {
+                        compute_hash_on_elements(&[
+                            call.to,
+                            call.selector,
+                            compute_hash_on_elements(&call.calldata),
+                        ])
+                    })
+                    .collect::<Vec<_>>(),
+            ),
+            nonce,
+            FieldElement::ZERO, // max_fee
+            FieldElement::ZERO, // version
+        ]);
+        let signature = self
+            .signer
+            .sign_hash(&message_hash)
+            .await
+            .map_err(ExecuteError::SignerError)?;
+
+        // Create Calldata
+        let mut concated_calldata: Vec<FieldElement> = vec![];
+        let mut estimate_calldata: Vec<FieldElement> = vec![calls.len().into()];
+        for call in calls.iter() {
+            estimate_calldata.push(call.to); // to
+            estimate_calldata.push(call.selector); // selector
+            estimate_calldata.push(concated_calldata.len().into()); // data_offset
+            estimate_calldata.push(call.calldata.len().into()); // data_len
+
+            for item in call.calldata.iter() {
+                concated_calldata.push(*item);
+            }
+        }
+        estimate_calldata.push(concated_calldata.len().into()); // calldata_len
+        for item in concated_calldata.into_iter() {
+            estimate_calldata.push(item); // calldata
+        }
+        estimate_calldata.push(nonce); // nonce
+
+        self.provider
+            .estimate_fee(
+                InvokeFunctionTransactionRequest {
+                    contract_address: self.address,
+                    entry_point_selector: get_selector_from_name("__execute__").unwrap(),
+                    calldata: estimate_calldata,
+                    signature: vec![signature.r, signature.s],
+                },
+                block_identifier,
             )
             .await
             .map_err(ExecuteError::ProviderError)
