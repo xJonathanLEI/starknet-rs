@@ -5,7 +5,7 @@ use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
         AddTransactionResult, BlockId, FieldElement, InvokeFunctionTransactionRequest,
-        TransactionRequest,
+        TransactionRequest, ContractDefinition, DeployTransactionRequest,
     },
     utils::get_selector_from_name,
 };
@@ -161,6 +161,25 @@ where
                     calldata: execute_calldata,
                     signature: vec![signature.r, signature.s],
                 }),
+                None,
+            )
+            .await
+            .map_err(ExecuteError::ProviderError)
+    }
+
+    async fn deploy_account(
+        &self,
+        constructor_calldata: Vec<FieldElement>,
+        contract_definition: ContractDefinition,
+        contract_address_salt: FieldElement,
+    ) -> Result<AddTransactionResult, Self::ExecuteError> {
+        self.provider
+            .add_transaction(
+                TransactionRequest::Deploy(DeployTransactionRequest {
+                constructor_calldata,
+                contract_address_salt,
+                contract_definition
+            }),
                 None,
             )
             .await

@@ -18,6 +18,7 @@ starknet-providers = { version = "0.1.0", path = "../starknet-providers" }
 starknet-signers = { version = "0.1.0", path = "../starknet-signers" }
 async-trait = "0.1.52"
 thiserror = "1.0.30"
+serde_json = { version = "1.0.74", features = ["arbitrary_precision"] }
 
 [dev-dependencies]
 tokio = { version = "1.15.0", features = ["full"] }

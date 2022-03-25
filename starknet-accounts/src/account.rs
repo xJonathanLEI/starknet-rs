@@ -1,7 +1,7 @@
 use crate::Call;
 
 use async_trait::async_trait;
-use starknet_core::types::{AddTransactionResult, BlockId, FieldElement};
+use starknet_core::types::{AddTransactionResult, BlockId, FieldElement, ContractDefinition};
 use std::error::Error;
 
 #[async_trait(?Send)]
@@ -18,5 +18,12 @@ pub trait Account {
         &self,
         calls: &[Call],
         nonce: FieldElement,
+    ) -> Result<AddTransactionResult, Self::ExecuteError>;
+
+    async fn deploy_account(
+        &self,
+        constructor_calldata: Vec<FieldElement>,
+        contract_definition: ContractDefinition,
+        contract_address_salt: FieldElement,
     ) -> Result<AddTransactionResult, Self::ExecuteError>;
 }
