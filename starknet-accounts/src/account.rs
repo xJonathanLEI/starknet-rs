@@ -1,7 +1,7 @@
 use crate::Call;
 
 use async_trait::async_trait;
-use starknet_core::types::{AddTransactionResult, BlockId, FieldElement, FeeEstimate};
+use starknet_core::types::{AddTransactionResult, BlockId, FeeEstimate, FieldElement};
 use std::error::Error;
 
 #[async_trait(?Send)]

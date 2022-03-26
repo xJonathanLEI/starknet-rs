@@ -1,6 +1,6 @@
 use starknet_accounts::{Account, Call, SingleOwnerAccount};
 use starknet_core::{
-    types::{AddTransactionResultCode, BlockId, FieldElement, FeeUnit},
+    types::{AddTransactionResultCode, BlockId, FeeUnit, FieldElement},
     utils::get_selector_from_name,
 };
 use starknet_providers::SequencerGatewayProvider;
@@ -130,7 +130,7 @@ async fn can_estimate_fee() {
                 },
             ],
             nonce,
-            BlockId::Latest
+            BlockId::Latest,
         )
         .await
         .unwrap();
