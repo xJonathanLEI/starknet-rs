@@ -51,6 +51,8 @@ pub struct InvokeFunctionTransaction {
     pub entry_point_selector: FieldElement,
     pub calldata: Vec<FieldElement>,
     pub signature: Vec<FieldElement>,
+    #[serde_as(as = "UfeHex")]
+    pub max_fee: FieldElement,
 }
 
 #[derive(Debug, Serialize)]

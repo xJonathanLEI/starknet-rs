@@ -81,6 +81,8 @@ pub struct InvokeFunctionTransaction {
     pub signature: Vec<FieldElement>,
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub max_fee: FieldElement,
 }
 
 #[cfg(test)]

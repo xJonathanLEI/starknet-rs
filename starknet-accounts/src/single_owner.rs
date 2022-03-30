@@ -66,50 +66,13 @@ where
             address,
         }
     }
-}
 
-#[async_trait(?Send)]
-impl<P, S> Account for SingleOwnerAccount<P, S>
-where
-    P: Provider + Sync + Send,
-    S: Signer + Sync + Send,
-{
-    type GetNonceError = GetNonceError<P::Error>;
-    type ExecuteError = ExecuteError<P::Error, S::SignError>;
-
-    async fn get_nonce(
-        &self,
-        block_identifier: BlockId,
-    ) -> Result<FieldElement, Self::GetNonceError> {
-        let call_result = self
-            .provider
-            .call_contract(
-                InvokeFunctionTransactionRequest {
-                    contract_address: self.address,
-                    entry_point_selector: get_selector_from_name("get_nonce").unwrap(),
-                    calldata: vec![],
-                    signature: vec![],
-                },
-                block_identifier,
-            )
-            .await
-            .map_err(GetNonceError::ProviderError)?;
-
-        if call_result.result.len() == 1 {
-            Ok(call_result.result[0])
-        } else {
-            Err(GetNonceError::InvalidResponseLength {
-                expected: 1,
-                actual: call_result.result.len(),
-            })
-        }
-    }
-
-    async fn execute(
+    async fn generate_invoke_request(
         &self,
         calls: &[Call],
         nonce: FieldElement,
-    ) -> Result<AddTransactionResult, Self::ExecuteError> {
+        max_fee: FieldElement,
+    ) -> Result<InvokeFunctionTransactionRequest, ExecuteError<P::Error, S::SignError>> {
         let message_hash = compute_hash_on_elements(&[
             PREFIX_TRANSACTION,
             self.address,
@@ -126,7 +89,7 @@ where
                     .collect::<Vec<_>>(),
             ),
             nonce,
-            FieldElement::ZERO, // max_fee
+            max_fee,
             FieldElement::ZERO, // version
         ]);
         let signature = self
@@ -153,14 +116,76 @@ where
         }
         execute_calldata.push(nonce); // nonce
 
+        Ok(InvokeFunctionTransactionRequest {
+            contract_address: self.address,
+            entry_point_selector: get_selector_from_name("__execute__").unwrap(),
+            calldata: execute_calldata,
+            signature: vec![signature.r, signature.s],
+            max_fee,
+        })
+    }
+}
+
+#[async_trait(?Send)]
+impl<P, S> Account for SingleOwnerAccount<P, S>
+where
+    P: Provider + Sync + Send,
+    S: Signer + Sync + Send,
+{
+    type GetNonceError = GetNonceError<P::Error>;
+    type ExecuteError = ExecuteError<P::Error, S::SignError>;
+
+    async fn get_nonce(
+        &self,
+        block_identifier: BlockId,
+    ) -> Result<FieldElement, Self::GetNonceError> {
+        let call_result = self
+            .provider
+            .call_contract(
+                InvokeFunctionTransactionRequest {
+                    contract_address: self.address,
+                    entry_point_selector: get_selector_from_name("get_nonce").unwrap(),
+                    calldata: vec![],
+                    signature: vec![],
+                    max_fee: FieldElement::ZERO,
+                },
+                block_identifier,
+            )
+            .await
+            .map_err(GetNonceError::ProviderError)?;
+
+        if call_result.result.len() == 1 {
+            Ok(call_result.result[0])
+        } else {
+            Err(GetNonceError::InvalidResponseLength {
+                expected: 1,
+                actual: call_result.result.len(),
+            })
+        }
+    }
+
+    async fn execute(
+        &self,
+        calls: &[Call],
+        nonce: FieldElement,
+    ) -> Result<AddTransactionResult, Self::ExecuteError> {
+        // Hard-coded fee estimation
+        // TODO: use builder pattern to allow manually specifying fees and more
+        let estimate_fee_request = self
+            .generate_invoke_request(calls, nonce, FieldElement::ZERO)
+            .await?;
+        let fee_estimate = self
+            .provider
+            .estimate_fee(estimate_fee_request, BlockId::Latest)
+            .await
+            .map_err(ExecuteError::ProviderError)?;
+
+        let add_transaction_request = self
+            .generate_invoke_request(calls, nonce, fee_estimate.amount.into())
+            .await?;
         self.provider
             .add_transaction(
-                TransactionRequest::InvokeFunction(InvokeFunctionTransactionRequest {
-                    contract_address: self.address,
-                    entry_point_selector: get_selector_from_name("__execute__").unwrap(),
-                    calldata: execute_calldata,
-                    signature: vec![signature.r, signature.s],
-                }),
+                TransactionRequest::InvokeFunction(add_transaction_request),
                 None,
             )
             .await
