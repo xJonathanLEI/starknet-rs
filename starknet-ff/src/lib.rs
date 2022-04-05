@@ -347,6 +347,14 @@ impl<'de> Deserialize<'de> for FieldElement {
     }
 }
 
+impl From<u64> for FieldElement {
+    fn from(value: u64) -> Self {
+        Self {
+            inner: Fp256::<FrParameters>::from_repr(BigInteger256::new([value, 0, 0, 0])).unwrap(),
+        }
+    }
+}
+
 impl From<usize> for FieldElement {
     fn from(value: usize) -> Self {
         Self {
