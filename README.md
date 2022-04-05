@@ -93,6 +93,8 @@ async fn main() {
 
 ### Mint yourself 1,000 TST tokens on `alpha-goerli`
 
+Make sure your account has some L2 Goerli ETH to pay for the transaction fee. You can use [this faucet](https://faucet.goerli.starknet.io/) to fund your account.
+
 ```rust
 use starknet::{
     accounts::{Account, Call, SingleOwnerAccount},
