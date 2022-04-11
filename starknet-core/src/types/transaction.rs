@@ -64,6 +64,10 @@ pub struct DeployTransaction {
     pub contract_address: FieldElement,
     #[serde_as(as = "UfeHex")]
     pub contract_address_salt: FieldElement,
+    // Field marked optional as `get_block` doesn't include it yet. Drop optional once resolved.
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub class_hash: Option<FieldElement>,
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
 }
@@ -78,6 +82,7 @@ pub struct InvokeFunctionTransaction {
     pub entry_point_selector: FieldElement,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub calldata: Vec<FieldElement>,
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub signature: Vec<FieldElement>,
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,

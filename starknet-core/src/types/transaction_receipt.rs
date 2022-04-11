@@ -24,6 +24,9 @@ pub struct Receipt {
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
     pub transaction_index: Option<u64>,
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub actual_fee: Option<FieldElement>,
 }
 
 #[serde_as]
