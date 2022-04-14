@@ -72,7 +72,11 @@ mod tests {
         assert_eq!(block.transaction_receipts.len(), 3);
 
         if let TransactionType::Deploy(tx) = &block.transactions[0] {
-            assert_eq!(tx.constructor_calldata.len(), 2)
+            assert_eq!(tx.constructor_calldata.len(), 2);
+
+            // StarkNet bug (?) causing old blocks to not have this field. Making this assertion to
+            // we don't miss the fix.
+            assert!(tx.class_hash.is_none());
         } else {
             panic!("Did not deserialize Transaction::Deploy properly");
         }
@@ -84,6 +88,9 @@ mod tests {
         }
         let receipt = &block.transaction_receipts[0];
         assert_eq!(receipt.execution_resources.n_steps, 68);
+
+        // Same as the `class_hash` assertion above
+        assert!(receipt.actual_fee.is_none());
     }
 
     #[test]
