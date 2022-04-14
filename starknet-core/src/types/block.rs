@@ -72,7 +72,11 @@ mod tests {
         assert_eq!(block.transaction_receipts.len(), 3);
 
         if let TransactionType::Deploy(tx) = &block.transactions[0] {
-            assert_eq!(tx.constructor_calldata.len(), 2)
+            assert_eq!(tx.constructor_calldata.len(), 2);
+
+            // StarkNet bug (?) causing old blocks to not have this field. Making this assertion to
+            // we don't miss the fix.
+            assert!(tx.class_hash.is_none());
         } else {
             panic!("Did not deserialize Transaction::Deploy properly");
         }
@@ -84,6 +88,9 @@ mod tests {
         }
         let receipt = &block.transaction_receipts[0];
         assert_eq!(receipt.execution_resources.n_steps, 68);
+
+        // Same as the `class_hash` assertion above
+        assert!(receipt.actual_fee.is_none());
     }
 
     #[test]
@@ -129,5 +136,27 @@ mod tests {
         assert!(block.block_number.is_none());
         assert!(block.state_root.is_none());
         assert_eq!(block.status, BlockStatus::Pending);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_block_deser_new_attributes() {
+        // This block contains new fields introduced in StarkNet v0.8.1
+        let raw = include_str!(
+            "../../test-data/raw_gateway_responses/get_block/5_with_class_hash_and_actual_fee.txt"
+        );
+
+        let block: Block = serde_json::from_str(raw).unwrap();
+
+        let transaction = &block.transactions[43];
+        match transaction {
+            TransactionType::Deploy(transaction) => {
+                assert!(transaction.class_hash.is_some());
+            }
+            _ => panic!("Unexpected transaction type"),
+        }
+
+        let receipt = &block.transaction_receipts[0];
+        assert!(receipt.actual_fee.is_some());
     }
 }

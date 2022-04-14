@@ -24,6 +24,9 @@ pub struct Receipt {
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
     pub transaction_index: Option<u64>,
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub actual_fee: Option<FieldElement>,
 }
 
 #[serde_as]
@@ -35,6 +38,11 @@ pub struct ConfirmedReceipt {
     pub execution_resources: ExecutionResources,
     pub l2_to_l1_messages: Vec<L2ToL1Message>,
     pub events: Vec<Event>,
+    // This field is marked optional because it's missing from old blocks. Drop `Option` once it's
+    // resolved.
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub actual_fee: Option<FieldElement>,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]

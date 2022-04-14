@@ -6,10 +6,12 @@ use serde_with::serde_as;
 use starknet_crypto::FieldElement;
 
 /// Represents the trace of a StarkNet transaction execution, including internal calls.
+#[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct TransactionTrace {
     /// An object describing the invocation of a specific function.
     pub function_invocation: FunctionInvocation,
+    #[serde_as(as = "Vec<UfeHex>")]
     pub signature: Vec<FieldElement>,
 }
 
