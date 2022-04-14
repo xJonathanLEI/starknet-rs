@@ -158,10 +158,7 @@ mod tests {
 
         let verifying_key = VerifyingKey::from_scalar(public_key);
 
-        assert_eq!(
-            verifying_key.verify(&hash, &Signature { r, s }).unwrap(),
-            true
-        );
+        assert!(verifying_key.verify(&hash, &Signature { r, s }).unwrap());
     }
 
     #[test]
@@ -187,9 +184,6 @@ mod tests {
 
         let verifying_key = VerifyingKey::from_scalar(public_key);
 
-        assert_eq!(
-            verifying_key.verify(&hash, &Signature { r, s }).unwrap(),
-            false
-        );
+        assert!(!verifying_key.verify(&hash, &Signature { r, s }).unwrap());
     }
 }

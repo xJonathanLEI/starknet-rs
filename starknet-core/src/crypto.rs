@@ -178,10 +178,7 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(
-            ecdsa_verify(&public_key, &message_hash, &Signature { r, s }).unwrap(),
-            true
-        );
+        assert!(ecdsa_verify(&public_key, &message_hash, &Signature { r, s }).unwrap());
     }
 
     #[test]
@@ -205,9 +202,6 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(
-            ecdsa_verify(&public_key, &message_hash, &Signature { r, s }).unwrap(),
-            false
-        );
+        assert!(!ecdsa_verify(&public_key, &message_hash, &Signature { r, s }).unwrap());
     }
 }

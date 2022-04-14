@@ -159,10 +159,7 @@ mod tests {
             "0405c3191ab3883ef2b763af35bc5f5d15b3b4e99461d70e84c654a351a7c81b",
         );
 
-        assert_eq!(
-            verify(&stark_key, &msg_hash, &r_bytes, &s_bytes).unwrap(),
-            true
-        );
+        assert!(verify(&stark_key, &msg_hash, &r_bytes, &s_bytes).unwrap());
     }
 
     #[test]
@@ -181,10 +178,7 @@ mod tests {
             "01f2c44a7798f55192f153b4c48ea5c1241fbb69e6132cc8a0da9c5b62a4286e",
         );
 
-        assert_eq!(
-            verify(&stark_key, &msg_hash, &r_bytes, &s_bytes).unwrap(),
-            false
-        );
+        assert!(!verify(&stark_key, &msg_hash, &r_bytes, &s_bytes).unwrap());
     }
 
     #[test]
@@ -203,9 +197,6 @@ mod tests {
         let signature = sign(&private_key, &message, &k).unwrap();
         let public_key = get_public_key(&private_key);
 
-        assert_eq!(
-            verify(&public_key, &message, &signature.r, &signature.s).unwrap(),
-            true
-        );
+        assert!(verify(&public_key, &message, &signature.r, &signature.s).unwrap());
     }
 }
