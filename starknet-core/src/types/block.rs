@@ -130,4 +130,26 @@ mod tests {
         assert!(block.state_root.is_none());
         assert_eq!(block.status, BlockStatus::Pending);
     }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_block_deser_new_attributes() {
+        // This block contains new fields introduced in StarkNet v0.8.1
+        let raw = include_str!(
+            "../../test-data/raw_gateway_responses/get_block/5_with_class_hash_and_actual_fee.txt"
+        );
+
+        let block: Block = serde_json::from_str(raw).unwrap();
+
+        let transaction = &block.transactions[43];
+        match transaction {
+            TransactionType::Deploy(transaction) => {
+                assert!(transaction.class_hash.is_some());
+            }
+            _ => panic!("Unexpected transaction type"),
+        }
+
+        let receipt = &block.transaction_receipts[0];
+        assert!(receipt.actual_fee.is_some());
+    }
 }

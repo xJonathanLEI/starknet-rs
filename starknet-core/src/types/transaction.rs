@@ -64,7 +64,7 @@ pub struct DeployTransaction {
     pub contract_address: FieldElement,
     #[serde_as(as = "UfeHex")]
     pub contract_address_salt: FieldElement,
-    // Field marked optional as `get_block` doesn't include it yet. Drop optional once resolved.
+    // Field marked optional as old blocks don't include it yet. Drop optional once resolved.
     #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
     pub class_hash: Option<FieldElement>,
