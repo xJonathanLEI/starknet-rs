@@ -180,8 +180,9 @@ where
             .await
             .map_err(ExecuteError::ProviderError)?;
 
+        // Adds 10% fee buffer
         let add_transaction_request = self
-            .generate_invoke_request(calls, nonce, fee_estimate.amount.into())
+            .generate_invoke_request(calls, nonce, (fee_estimate.amount * 11 / 10).into())
             .await?;
         self.provider
             .add_transaction(
