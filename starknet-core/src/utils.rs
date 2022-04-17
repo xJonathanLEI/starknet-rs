@@ -148,4 +148,22 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_cairo_short_string_to_felt_too_long() {
+        assert!(matches!(
+            cairo_short_string_to_felt("12345678901234567890123456789012"),
+            Err(CairoShortStringToFeltError::StringTooLong)
+        ));
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_cairo_short_string_to_felt_non_ascii() {
+        assert!(matches!(
+            cairo_short_string_to_felt("🦀"),
+            Err(CairoShortStringToFeltError::NonAsciiCharacter)
+        ));
+    }
 }
