@@ -4,7 +4,7 @@ set -x
 set -e
 
 compile () {
-  starknet-compile $1  --output $2
+  starknet-compile $1  --output $2 $3
   chown $USER_ID:$GROUP_ID $2
 }
 
@@ -15,5 +15,5 @@ sed -i "s/indent=4/separators=(',', ':')/g" /usr/local/lib/python3.7/site-packag
 compile "/contracts/EventExample.cairo" "/artifacts/event_example.txt"
 
 # ./artifacts/oz_account.txt
-cd /contracts/openzeppelin
-compile "/contracts/openzeppelin/openzeppelin/account/Account.cairo" "/artifacts/oz_account.txt"
+cd /contracts/openzeppelin/src
+compile "/contracts/openzeppelin/src/openzeppelin/account/Account.cairo" "/artifacts/oz_account.txt" --account_contract
