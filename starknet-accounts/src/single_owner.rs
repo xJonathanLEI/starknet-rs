@@ -12,12 +12,12 @@ use starknet_core::{
 use starknet_providers::Provider;
 use starknet_signers::Signer;
 
-/// Cairo string for "StarkNet Transaction"
-const PREFIX_TRANSACTION: FieldElement = FieldElement::from_mont([
-    312878089121980887,
-    10823108295910496339,
-    18446744028905198002,
-    130780744342863686,
+/// Cairo string for "invoke"
+pub const PREFIX_INVOKE: FieldElement = FieldElement::from_mont([
+    18443034532770911073,
+    18446744073709551615,
+    18446744073709551615,
+    513398556346534256,
 ]);
 
 pub struct SingleOwnerAccount<P, S>
@@ -29,6 +29,7 @@ where
     #[allow(unused)]
     signer: S,
     address: FieldElement,
+    chain_id: FieldElement,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -59,11 +60,12 @@ where
     P: Provider + Send,
     S: Signer + Send,
 {
-    pub fn new(provider: P, signer: S, address: FieldElement) -> Self {
+    pub fn new(provider: P, signer: S, address: FieldElement, chain_id: FieldElement) -> Self {
         Self {
             provider,
             signer,
             address,
+            chain_id,
         }
     }
 
@@ -73,31 +75,6 @@ where
         nonce: FieldElement,
         max_fee: FieldElement,
     ) -> Result<InvokeFunctionTransactionRequest, ExecuteError<P::Error, S::SignError>> {
-        let message_hash = compute_hash_on_elements(&[
-            PREFIX_TRANSACTION,
-            self.address,
-            compute_hash_on_elements(
-                &calls
-                    .iter()
-                    .map(|call| {
-                        compute_hash_on_elements(&[
-                            call.to,
-                            call.selector,
-                            compute_hash_on_elements(&call.calldata),
-                        ])
-                    })
-                    .collect::<Vec<_>>(),
-            ),
-            nonce,
-            max_fee,
-            FieldElement::ZERO, // version
-        ]);
-        let signature = self
-            .signer
-            .sign_hash(&message_hash)
-            .await
-            .map_err(ExecuteError::SignerError)?;
-
         let mut concated_calldata: Vec<FieldElement> = vec![];
         let mut execute_calldata: Vec<FieldElement> = vec![calls.len().into()];
         for call in calls.iter() {
@@ -115,6 +92,21 @@ where
             execute_calldata.push(item); // calldata
         }
         execute_calldata.push(nonce); // nonce
+
+        let transaction_hash = compute_hash_on_elements(&[
+            PREFIX_INVOKE,
+            FieldElement::ZERO, // version
+            self.address,
+            get_selector_from_name("__execute__").unwrap(),
+            compute_hash_on_elements(&execute_calldata),
+            max_fee,
+            self.chain_id,
+        ]);
+        let signature = self
+            .signer
+            .sign_hash(&transaction_hash)
+            .await
+            .map_err(ExecuteError::SignerError)?;
 
         Ok(InvokeFunctionTransactionRequest {
             contract_address: self.address,
