@@ -13,11 +13,19 @@ use starknet_providers::Provider;
 use starknet_signers::Signer;
 
 /// Cairo string for "invoke"
-pub const PREFIX_INVOKE: FieldElement = FieldElement::from_mont([
+const PREFIX_INVOKE: FieldElement = FieldElement::from_mont([
     18443034532770911073,
     18446744073709551615,
     18446744073709551615,
     513398556346534256,
+]);
+
+/// Selector for "__execute__"
+const SELECTOR_EXECUTE: FieldElement = FieldElement::from_mont([
+    12003533864240545316,
+    425026474450283495,
+    15935222606396478900,
+    305947032915839070,
 ]);
 
 pub struct SingleOwnerAccount<P, S>
@@ -97,7 +105,7 @@ where
             PREFIX_INVOKE,
             FieldElement::ZERO, // version
             self.address,
-            get_selector_from_name("__execute__").unwrap(),
+            SELECTOR_EXECUTE,
             compute_hash_on_elements(&execute_calldata),
             max_fee,
             self.chain_id,
@@ -110,7 +118,7 @@ where
 
         Ok(InvokeFunctionTransactionRequest {
             contract_address: self.address,
-            entry_point_selector: get_selector_from_name("__execute__").unwrap(),
+            entry_point_selector: SELECTOR_EXECUTE,
             calldata: execute_calldata,
             signature: vec![signature.r, signature.s],
             max_fee,
