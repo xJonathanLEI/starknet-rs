@@ -38,6 +38,7 @@ pub struct ConfirmedReceipt {
     pub transaction_hash: FieldElement,
     pub transaction_index: u64,
     pub execution_resources: ExecutionResources,
+    pub l1_to_l2_consumed_message: Option<L1ToL2Message>,
     pub l2_to_l1_messages: Vec<L2ToL1Message>,
     pub events: Vec<Event>,
     // This field is marked optional because it's missing from old blocks. Drop `Option` once it's
@@ -92,10 +93,12 @@ pub struct L1ToL2Message {
     pub from_address: L1Address,
     #[serde_as(as = "UfeHex")]
     pub to_address: FieldElement,
+    #[serde_as(deserialize_as = "UfeHex")]
     pub selector: FieldElement,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub payload: Vec<FieldElement>,
-    pub nonce: Option<u64>,
+    #[serde_as(deserialize_as = "Option<UfeHex>")]
+    pub nonce: Option<FieldElement>,
 }
 
 #[serde_as]
