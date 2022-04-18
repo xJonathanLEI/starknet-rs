@@ -5,6 +5,7 @@ use serde_with::serde_as;
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct ContractCode {
     #[serde_as(as = "Vec<UfeHex>")]
     pub bytecode: Vec<FieldElement>,
@@ -60,24 +61,28 @@ pub struct Event {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct Input {
     pub name: String,
     pub r#type: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct Output {
     pub name: String,
     pub r#type: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct EventData {
     pub name: String,
     pub r#type: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct Member {
     pub name: String,
     pub offset: u64,

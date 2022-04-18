@@ -8,6 +8,7 @@ use starknet_crypto::FieldElement;
 /// Represents the trace of a StarkNet transaction execution, including internal calls.
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct TransactionTrace {
     /// An object describing the invocation of a specific function.
     pub function_invocation: FunctionInvocation,
@@ -18,6 +19,7 @@ pub struct TransactionTrace {
 /// A lean version of CallInfo class, containing merely the information relevant for the user.
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct FunctionInvocation {
     #[serde_as(as = "UfeHex")]
     pub caller_address: FieldElement,
@@ -40,6 +42,7 @@ pub struct FunctionInvocation {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct OrderedEventResponse {
     pub order: u64,
     #[serde_as(as = "Vec<UfeHex>")]
@@ -50,6 +53,7 @@ pub struct OrderedEventResponse {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct OrderedL2ToL1MessageResponse {
     pub order: u64,
     pub to_address: Address,

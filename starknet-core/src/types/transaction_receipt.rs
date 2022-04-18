@@ -10,6 +10,7 @@ use serde_with::serde_as;
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct Receipt {
     #[serde(default)]
     #[serde_as(as = "UfePendingBlockHash")]
@@ -31,6 +32,7 @@ pub struct Receipt {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct ConfirmedReceipt {
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
@@ -47,6 +49,7 @@ pub struct ConfirmedReceipt {
 
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub enum TransactionStatus {
     /// Transaction has not been received yet (i.e. not written to storage)
     NotReceived,
@@ -64,6 +67,7 @@ pub enum TransactionStatus {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct ExecutionResources {
     pub n_steps: u64,
     pub n_memory_holes: u64,
@@ -71,6 +75,7 @@ pub struct ExecutionResources {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct BuiltinInstanceCounter {
     pub pedersen_builtin: Option<u64>,
     pub range_check_builtin: Option<u64>,
@@ -82,6 +87,7 @@ pub struct BuiltinInstanceCounter {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct L1ToL2Message {
     pub from_address: L1Address,
     #[serde_as(as = "UfeHex")]
@@ -94,6 +100,7 @@ pub struct L1ToL2Message {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct L2ToL1Message {
     #[serde_as(as = "UfeHex")]
     pub from_address: FieldElement,
@@ -104,6 +111,7 @@ pub struct L2ToL1Message {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct Event {
     #[serde_as(as = "UfeHex")]
     pub from_address: FieldElement,
