@@ -1,6 +1,7 @@
 use starknet::{
     accounts::{Account, Call, SingleOwnerAccount},
     core::{
+        chain_id,
         types::{BlockId, FieldElement},
         utils::get_selector_from_name,
     },
@@ -20,7 +21,7 @@ async fn main() {
     )
     .unwrap();
 
-    let account = SingleOwnerAccount::new(provider, signer, address);
+    let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
     let nonce = account.get_nonce(BlockId::Latest).await.unwrap();
 
     let result = account
