@@ -55,32 +55,29 @@ async fn can_execute_tst_mint() {
     .unwrap();
 
     let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
-    let nonce = account.get_nonce(BlockId::Pending).await.unwrap();
 
     let result = account
-        .execute(
-            &[
-                Call {
-                    to: tst_token_address,
-                    selector: get_selector_from_name("mint").unwrap(),
-                    calldata: vec![
-                        address,
-                        FieldElement::from_dec_str("1000000000000000000000").unwrap(),
-                        FieldElement::ZERO,
-                    ],
-                },
-                Call {
-                    to: tst_token_address,
-                    selector: get_selector_from_name("mint").unwrap(),
-                    calldata: vec![
-                        address,
-                        FieldElement::from_dec_str("2000000000000000000000").unwrap(),
-                        FieldElement::ZERO,
-                    ],
-                },
-            ],
-            nonce,
-        )
+        .execute(&[
+            Call {
+                to: tst_token_address,
+                selector: get_selector_from_name("mint").unwrap(),
+                calldata: vec![
+                    address,
+                    FieldElement::from_dec_str("1000000000000000000000").unwrap(),
+                    FieldElement::ZERO,
+                ],
+            },
+            Call {
+                to: tst_token_address,
+                selector: get_selector_from_name("mint").unwrap(),
+                calldata: vec![
+                    address,
+                    FieldElement::from_dec_str("2000000000000000000000").unwrap(),
+                    FieldElement::ZERO,
+                ],
+            },
+        ])
+        .send()
         .await
         .unwrap();
 

@@ -1,4 +1,7 @@
-use crate::{Account, Call};
+use crate::{
+    account::{AccountCall, AttachedAccountCall},
+    Account, Call,
+};
 
 use async_trait::async_trait;
 use starknet_core::{
@@ -52,11 +55,13 @@ where
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum ExecuteError<P, S>
+pub enum SendTransactionError<P, S>
 where
     P: std::error::Error + Send,
     S: std::error::Error + Send,
 {
+    #[error(transparent)]
+    GetNonceError(GetNonceError<P>),
     #[error(transparent)]
     ProviderError(P),
     #[error(transparent)]
@@ -82,7 +87,7 @@ where
         calls: &[Call],
         nonce: FieldElement,
         max_fee: FieldElement,
-    ) -> Result<InvokeFunctionTransactionRequest, ExecuteError<P::Error, S::SignError>> {
+    ) -> Result<InvokeFunctionTransactionRequest, S::SignError> {
         let mut concated_calldata: Vec<FieldElement> = vec![];
         let mut execute_calldata: Vec<FieldElement> = vec![calls.len().into()];
         for call in calls.iter() {
@@ -110,11 +115,7 @@ where
             max_fee,
             self.chain_id,
         ]);
-        let signature = self
-            .signer
-            .sign_hash(&transaction_hash)
-            .await
-            .map_err(ExecuteError::SignerError)?;
+        let signature = self.signer.sign_hash(&transaction_hash).await?;
 
         Ok(InvokeFunctionTransactionRequest {
             contract_address: self.address,
@@ -133,7 +134,7 @@ where
     S: Signer + Sync + Send,
 {
     type GetNonceError = GetNonceError<P::Error>;
-    type ExecuteError = ExecuteError<P::Error, S::SignError>;
+    type SendTransactionError = SendTransactionError<P::Error, S::SignError>;
 
     async fn get_nonce(
         &self,
@@ -164,32 +165,58 @@ where
         }
     }
 
-    async fn execute(
-        &self,
-        calls: &[Call],
-        nonce: FieldElement,
-    ) -> Result<AddTransactionResult, Self::ExecuteError> {
-        // Hard-coded fee estimation
-        // TODO: use builder pattern to allow manually specifying fees and more
-        let estimate_fee_request = self
-            .generate_invoke_request(calls, nonce, FieldElement::ZERO)
-            .await?;
-        let fee_estimate = self
-            .provider
-            .estimate_fee(estimate_fee_request, BlockId::Latest)
-            .await
-            .map_err(ExecuteError::ProviderError)?;
+    fn execute(&self, calls: &[Call]) -> AttachedAccountCall<Self> {
+        AttachedAccountCall::<Self> {
+            calls: calls.to_vec(),
+            nonce: None,
+            max_fee: None,
+            account: self,
+        }
+    }
 
-        // Adds 10% fee buffer
+    async fn send_transaction<C>(
+        &self,
+        call: &C,
+    ) -> Result<AddTransactionResult, Self::SendTransactionError>
+    where
+        C: AccountCall,
+    {
+        let nonce = match call.get_nonce() {
+            Some(value) => value.to_owned(),
+            None => match self.get_nonce(BlockId::Latest).await {
+                Ok(value) => value,
+                Err(err) => return Err(SendTransactionError::GetNonceError(err)),
+            },
+        };
+
+        let max_fee = match call.get_max_fee() {
+            Some(value) => value.to_owned(),
+            None => {
+                let estimate_fee_request = self
+                    .generate_invoke_request(call.get_calls(), nonce, FieldElement::ZERO)
+                    .await
+                    .map_err(SendTransactionError::SignerError)?;
+                let fee_estimate = self
+                    .provider
+                    .estimate_fee(estimate_fee_request, BlockId::Latest)
+                    .await
+                    .map_err(SendTransactionError::ProviderError)?;
+
+                // Adds 10% fee buffer
+                (fee_estimate.amount * 11 / 10).into()
+            }
+        };
+
         let add_transaction_request = self
-            .generate_invoke_request(calls, nonce, (fee_estimate.amount * 11 / 10).into())
-            .await?;
+            .generate_invoke_request(call.get_calls(), nonce, max_fee)
+            .await
+            .map_err(SendTransactionError::SignerError)?;
         self.provider
             .add_transaction(
                 TransactionRequest::InvokeFunction(add_transaction_request),
                 None,
             )
             .await
-            .map_err(ExecuteError::ProviderError)
+            .map_err(SendTransactionError::ProviderError)
     }
 }
