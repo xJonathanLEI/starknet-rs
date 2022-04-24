@@ -89,6 +89,10 @@ jobs:
         run: |
           rustup target add wasm32-unknown-unknown
 
+      - name: Build project
+        run: |
+          cargo build --all --target wasm32-unknown-unknown
+
       - name: Install wasm-pack
         uses: actions-rs/cargo@v1
         with:

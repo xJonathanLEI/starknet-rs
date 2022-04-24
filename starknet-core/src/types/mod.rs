@@ -6,7 +6,7 @@ pub use block::{Block, BlockId};
 
 mod transaction;
 pub use transaction::{
-    DeployTransaction, EntryPointType, InvokeFunctionTransaction, Transaction, TransactionInfo,
+    DeployTransaction, EntryPointType, InvokeFunctionTransaction, TransactionInfo,
     TransactionStatusInfo, TransactionType,
 };
 
@@ -45,3 +45,9 @@ pub use state_update::StateUpdate;
 
 pub mod contract_artifact;
 pub use contract_artifact::ContractArtifact;
+
+mod fee;
+pub use fee::{FeeEstimate, FeeUnit};
+
+pub mod trace;
+pub use trace::TransactionTrace;

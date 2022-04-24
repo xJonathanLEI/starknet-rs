@@ -32,3 +32,7 @@ starknet-providers = { version = "0.1.0", path = "./starknet-providers" }
 starknet-contract = { version = "0.1.0", path = "./starknet-contract" }
 starknet-signers = { version = "0.1.0", path = "./starknet-signers" }
 starknet-accounts = { version = "0.1.0", path = "./starknet-accounts" }
+
+[dev-dependencies]
+tokio = { version = "1.15.0", features = ["full"] }
+serde_json = "1.0.74"

@@ -11,19 +11,15 @@ use serde_with::serde_as;
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub enum TransactionType {
     Deploy(DeployTransaction),
     InvokeFunction(InvokeFunctionTransaction),
 }
 
-#[derive(Debug, Deserialize)]
-pub enum Transaction {
-    Brief(TransactionStatusInfo),
-    Full(TransactionInfo),
-}
-
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct TransactionStatusInfo {
     #[serde(default)]
     #[serde_as(as = "UfeHexOption")]
@@ -34,6 +30,7 @@ pub struct TransactionStatusInfo {
     pub transaction_failure_reason: Option<TransactionFailureReason>,
 }
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct TransactionFailureReason {
     pub code: String,
     pub error_message: Option<String>,
@@ -41,6 +38,7 @@ pub struct TransactionFailureReason {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct TransactionInfo {
     #[serde(default)]
     #[serde_as(as = "UfePendingBlockHash")]
@@ -55,6 +53,7 @@ pub struct TransactionInfo {
 
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub enum EntryPointType {
     External,
     L1Handler,
@@ -63,6 +62,7 @@ pub enum EntryPointType {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct DeployTransaction {
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub constructor_calldata: Vec<FieldElement>,
@@ -70,12 +70,17 @@ pub struct DeployTransaction {
     pub contract_address: FieldElement,
     #[serde_as(as = "UfeHex")]
     pub contract_address_salt: FieldElement,
+    // Field marked optional as old blocks don't include it yet. Drop optional once resolved.
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub class_hash: Option<FieldElement>,
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
 }
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct InvokeFunctionTransaction {
     #[serde_as(as = "UfeHex")]
     pub contract_address: FieldElement,
@@ -84,9 +89,12 @@ pub struct InvokeFunctionTransaction {
     pub entry_point_selector: FieldElement,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub calldata: Vec<FieldElement>,
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub signature: Vec<FieldElement>,
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub max_fee: FieldElement,
 }
 
 #[cfg(test)]

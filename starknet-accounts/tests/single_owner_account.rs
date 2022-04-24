@@ -1,5 +1,6 @@
 use starknet_accounts::{Account, Call, SingleOwnerAccount};
 use starknet_core::{
+    chain_id,
     types::{AddTransactionResultCode, BlockId, FieldElement},
     utils::get_selector_from_name,
 };
@@ -16,11 +17,11 @@ async fn can_get_nonce() {
         .unwrap(),
     ));
     let address = FieldElement::from_hex_be(
-        "059b844bae1727516c6d5c40d2540f6f0a0eebc7eed2adf760515b45dbc20593",
+        "01352dd0ac2a462cb53e4f125169b28f13bd6199091a9815c444dcae83056bbc",
     )
     .unwrap();
 
-    let account = SingleOwnerAccount::new(provider, signer, address);
+    let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
 
     assert_ne!(
         account.get_nonce(BlockId::Latest).await.unwrap(),
@@ -45,7 +46,7 @@ async fn can_execute_tst_mint() {
         .unwrap(),
     ));
     let address = FieldElement::from_hex_be(
-        "059b844bae1727516c6d5c40d2540f6f0a0eebc7eed2adf760515b45dbc20593",
+        "01352dd0ac2a462cb53e4f125169b28f13bd6199091a9815c444dcae83056bbc",
     )
     .unwrap();
     let tst_token_address = FieldElement::from_hex_be(
@@ -53,7 +54,7 @@ async fn can_execute_tst_mint() {
     )
     .unwrap();
 
-    let account = SingleOwnerAccount::new(provider, signer, address);
+    let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
     let nonce = account.get_nonce(BlockId::Pending).await.unwrap();
 
     let result = account

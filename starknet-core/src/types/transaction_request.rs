@@ -11,6 +11,7 @@ use serde_with::serde_as;
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct AddTransactionResult {
     pub code: AddTransactionResultCode,
     #[serde_as(as = "UfeHex")]
@@ -21,6 +22,7 @@ pub struct AddTransactionResult {
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub enum AddTransactionResultCode {
     #[serde(rename = "TRANSACTION_RECEIVED")]
     TransactionReceived,
@@ -51,6 +53,8 @@ pub struct InvokeFunctionTransaction {
     pub entry_point_selector: FieldElement,
     pub calldata: Vec<FieldElement>,
     pub signature: Vec<FieldElement>,
+    #[serde_as(as = "UfeHex")]
+    pub max_fee: FieldElement,
 }
 
 #[derive(Debug, Serialize)]
@@ -64,6 +68,7 @@ pub struct ContractDefinition {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct EntryPointsByType {
     pub constructor: Vec<EntryPoint>,
     pub external: Vec<EntryPoint>,
@@ -72,6 +77,7 @@ pub struct EntryPointsByType {
 
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct EntryPoint {
     #[serde_as(as = "UfeHex")]
     pub selector: FieldElement,

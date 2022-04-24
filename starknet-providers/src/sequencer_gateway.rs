@@ -9,9 +9,9 @@ use starknet_core::{
     serde::unsigned_field_element::UfeHex,
     types::{
         AddTransactionResult, Block, BlockId, CallContractResult, ContractAddresses,
-        ContractArtifact, ContractCode, FieldElement, InvokeFunctionTransactionRequest,
-        StarknetError, StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest,
-        TransactionStatusInfo,
+        ContractArtifact, ContractCode, FeeEstimate, FieldElement,
+        InvokeFunctionTransactionRequest, StarknetError, StateUpdate, TransactionInfo,
+        TransactionReceipt, TransactionRequest, TransactionStatusInfo, TransactionTrace,
     },
 };
 use thiserror::Error;
@@ -188,6 +188,22 @@ impl Provider for SequencerGatewayProvider {
         }
     }
 
+    async fn estimate_fee(
+        &self,
+        invoke_tx: InvokeFunctionTransactionRequest,
+        block_identifier: BlockId,
+    ) -> Result<FeeEstimate, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("estimate_fee");
+        append_block_id(&mut request_url, block_identifier);
+
+        match self.send_post_request(request_url, &invoke_tx).await? {
+            GatewayResponse::Data(data) => Ok(data),
+            GatewayResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+
     async fn get_block(&self, block_identifier: BlockId) -> Result<Block, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_block");
         append_block_id(&mut request_url, block_identifier);
@@ -353,6 +369,23 @@ impl Provider for SequencerGatewayProvider {
         }
     }
 
+    async fn get_transaction_trace(
+        &self,
+        transaction_hash: FieldElement,
+    ) -> Result<TransactionTrace, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("get_transaction_trace");
+        request_url
+            .query_pairs_mut()
+            .append_pair("transactionHash", &format!("{:#x}", transaction_hash));
+
+        match self.send_get_request(request_url).await? {
+            GatewayResponse::Data(trace) => Ok(trace),
+            GatewayResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+
     async fn get_block_hash_by_id(&self, block_number: u64) -> Result<FieldElement, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_block_hash_by_id");
         request_url
@@ -440,6 +473,20 @@ impl Provider for SequencerGatewayProvider {
             }
         }
     }
+
+    async fn get_l1_blockchain_id(&self) -> Result<u64, Self::Error> {
+        let request_url = self.extend_feeder_gateway_url("get_l1_blockchain_id");
+
+        match self
+            .send_get_request::<GatewayResponse<u64>>(request_url)
+            .await?
+        {
+            GatewayResponse::Data(network_id) => Ok(network_id),
+            GatewayResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
 }
 
 fn extend_url(url: &mut Url, segment: &str) {
@@ -463,4 +510,18 @@ fn append_block_id(url: &mut Url, block_identifier: BlockId) {
         }
         BlockId::Latest => (), // latest block is implicit
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_estimate_fee_deser() {
+        serde_json::from_str::<GatewayResponse<FeeEstimate>>(include_str!(
+            "../test-data/estimate_fee/1_success.txt"
+        ))
+        .unwrap();
+    }
 }

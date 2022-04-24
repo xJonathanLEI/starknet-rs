@@ -10,6 +10,7 @@ use serde_with::serde_as;
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct Receipt {
     #[serde(default)]
     #[serde_as(as = "UfePendingBlockHash")]
@@ -24,21 +25,32 @@ pub struct Receipt {
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
     pub transaction_index: Option<u64>,
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub actual_fee: Option<FieldElement>,
 }
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct ConfirmedReceipt {
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
     pub transaction_index: u64,
     pub execution_resources: ExecutionResources,
+    pub l1_to_l2_consumed_message: Option<L1ToL2Message>,
     pub l2_to_l1_messages: Vec<L2ToL1Message>,
     pub events: Vec<Event>,
+    // This field is marked optional because it's missing from old blocks. Drop `Option` once it's
+    // resolved.
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub actual_fee: Option<FieldElement>,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub enum TransactionStatus {
     /// Transaction has not been received yet (i.e. not written to storage)
     NotReceived,
@@ -56,6 +68,7 @@ pub enum TransactionStatus {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct ExecutionResources {
     pub n_steps: u64,
     pub n_memory_holes: u64,
@@ -63,6 +76,7 @@ pub struct ExecutionResources {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct BuiltinInstanceCounter {
     pub pedersen_builtin: Option<u64>,
     pub range_check_builtin: Option<u64>,
@@ -74,18 +88,22 @@ pub struct BuiltinInstanceCounter {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct L1ToL2Message {
     pub from_address: L1Address,
     #[serde_as(as = "UfeHex")]
     pub to_address: FieldElement,
+    #[serde_as(deserialize_as = "UfeHex")]
     pub selector: FieldElement,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub payload: Vec<FieldElement>,
-    pub nonce: Option<u64>,
+    #[serde_as(deserialize_as = "Option<UfeHex>")]
+    pub nonce: Option<FieldElement>,
 }
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct L2ToL1Message {
     #[serde_as(as = "UfeHex")]
     pub from_address: FieldElement,
@@ -96,6 +114,7 @@ pub struct L2ToL1Message {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct Event {
     #[serde_as(as = "UfeHex")]
     pub from_address: FieldElement,
