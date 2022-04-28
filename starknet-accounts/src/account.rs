@@ -1,7 +1,7 @@
 use crate::Call;
 
 use async_trait::async_trait;
-use starknet_core::types::{AddTransactionResult, BlockId, FieldElement};
+use starknet_core::types::{AddTransactionResult, BlockId, FeeEstimate, FieldElement};
 use std::error::Error;
 
 #[derive(Debug)]
@@ -27,6 +27,7 @@ pub trait AccountCall {
 #[async_trait(?Send)]
 pub trait Account: Sized {
     type GetNonceError: Error + Send;
+    type EstimateFeeError: Error + Send;
     type SendTransactionError: Error + Send;
 
     async fn get_nonce(
@@ -35,6 +36,10 @@ pub trait Account: Sized {
     ) -> Result<FieldElement, Self::GetNonceError>;
 
     fn execute(&self, calls: &[Call]) -> AttachedAccountCall<Self>;
+
+    async fn estimate_fee<C>(&self, call: &C) -> Result<FeeEstimate, Self::EstimateFeeError>
+    where
+        C: AccountCall;
 
     async fn send_transaction<C>(
         &self,
@@ -48,6 +53,10 @@ impl<'a, A> AttachedAccountCall<'a, A>
 where
     A: Account,
 {
+    pub async fn estimate_fee(&self) -> Result<FeeEstimate, A::EstimateFeeError> {
+        self.account.estimate_fee(self).await
+    }
+
     pub async fn send(&self) -> Result<AddTransactionResult, A::SendTransactionError> {
         self.account.send_transaction(self).await
     }
