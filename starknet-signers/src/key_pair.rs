@@ -4,12 +4,12 @@ use starknet_core::{
 };
 use starknet_crypto::get_public_key;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SigningKey {
     secret_scalar: FieldElement,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VerifyingKey {
     scalar: FieldElement,
 }
