@@ -31,6 +31,7 @@ const SELECTOR_EXECUTE: FieldElement = FieldElement::from_mont([
     305947032915839070,
 ]);
 
+#[derive(Debug, Clone)]
 pub struct SingleOwnerAccount<P, S>
 where
     P: Provider + Send,
