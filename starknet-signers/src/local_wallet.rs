@@ -6,6 +6,7 @@ use starknet_core::{
     types::FieldElement,
 };
 
+#[derive(Debug, Clone)]
 pub struct LocalWallet {
     private_key: SigningKey,
 }

@@ -1,6 +1,6 @@
 use starknet_core::types::FieldElement;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Call {
     pub to: FieldElement,
     pub selector: FieldElement,
