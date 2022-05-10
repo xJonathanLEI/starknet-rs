@@ -16,6 +16,9 @@ curl -o ./get_block/4_pending.txt "https://alpha4.starknet.io/feeder_gateway/get
 # ./get_block/5_with_class_hash_and_actual_fee.txt
 curl -o ./get_block/5_with_class_hash_and_actual_fee.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=156800"
 
+# ./get_block/6_with_sequencer_address.txt
+curl -o ./get_block/6_with_sequencer_address.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=183471"
+
 # ./get_code/1_code.txt
 curl -o ./get_code/1_code.txt "https://alpha4.starknet.io/feeder_gateway/get_code?contractAddress=0x05ffd28b3ff2eecd6da0fa64c90e928a9f46f1563976a4fe1770ab48ee43506a"
 
