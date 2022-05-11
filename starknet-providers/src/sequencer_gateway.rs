@@ -57,6 +57,13 @@ impl SequencerGatewayProvider {
             Url::parse("https://alpha4.starknet.io/feeder_gateway").unwrap(),
         )
     }
+
+    pub fn starknet_alpha_localhost() -> Self {
+        Self::new(
+            Url::parse("http://127.0.0.1:5000/gateway").unwrap(),
+            Url::parse("http://127.0.0.1:5000/feeder_gateway").unwrap(),
+        )
+    }
 }
 
 #[derive(Deserialize)]
