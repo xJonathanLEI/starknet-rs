@@ -40,10 +40,16 @@ pub struct Block {
     #[serde_as(as = "UfeHex")]
     pub parent_block_hash: FieldElement,
     pub timestamp: u64,
+    // Field marked optional as old blocks don't include it yet. Drop optional once resolved.
+    #[serde(default)]
+    #[serde_as(as = "UfeHexOption")]
+    pub sequencer_address: Option<FieldElement>,
     #[serde(default)]
     #[serde_as(as = "UfeHexOption")]
     pub state_root: Option<FieldElement>,
     pub status: BlockStatus,
+    #[serde_as(as = "UfeHex")]
+    pub gas_price: FieldElement,
     pub transactions: Vec<TransactionType>,
     pub transaction_receipts: Vec<ConfirmedTransactionReceipt>,
 }
@@ -75,10 +81,6 @@ mod tests {
 
         if let TransactionType::Deploy(tx) = &block.transactions[0] {
             assert_eq!(tx.constructor_calldata.len(), 2);
-
-            // StarkNet bug (?) causing old blocks to not have this field. Making this assertion to
-            // we don't miss the fix.
-            assert!(tx.class_hash.is_none());
         } else {
             panic!("Did not deserialize Transaction::Deploy properly");
         }
@@ -90,9 +92,6 @@ mod tests {
         }
         let receipt = &block.transaction_receipts[0];
         assert_eq!(receipt.execution_resources.n_steps, 68);
-
-        // Same as the `class_hash` assertion above
-        assert!(receipt.actual_fee.is_none());
     }
 
     #[test]
@@ -142,23 +141,47 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_block_deser_new_attributes() {
+    fn test_block_deser_new_attributes_0_8_1() {
         // This block contains new fields introduced in StarkNet v0.8.1
-        let raw = include_str!(
+        let new_block: Block = serde_json::from_str(include_str!(
             "../../test-data/raw_gateway_responses/get_block/5_with_class_hash_and_actual_fee.txt"
-        );
-
-        let block: Block = serde_json::from_str(raw).unwrap();
-
-        let transaction = &block.transactions[43];
-        match transaction {
+        ))
+        .unwrap();
+        match &new_block.transactions[43] {
             TransactionType::Deploy(transaction) => {
                 assert!(transaction.class_hash.is_some());
             }
             _ => panic!("Unexpected transaction type"),
         }
+        assert!(&new_block.transaction_receipts[0].actual_fee.is_some());
 
-        let receipt = &block.transaction_receipts[0];
-        assert!(receipt.actual_fee.is_some());
+        let old_block: Block = serde_json::from_str(include_str!(
+            "../../test-data/raw_gateway_responses/get_block/2_with_messages.txt"
+        ))
+        .unwrap();
+        match &old_block.transactions[2] {
+            TransactionType::Deploy(transaction) => {
+                assert!(transaction.class_hash.is_none());
+            }
+            _ => panic!("Unexpected transaction type"),
+        }
+        assert!(&old_block.transaction_receipts[0].actual_fee.is_none());
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_block_deser_new_attributes_0_8_2() {
+        // This block contains new fields introduced in StarkNet v0.8.2
+        let new_block: Block = serde_json::from_str(include_str!(
+            "../../test-data/raw_gateway_responses/get_block/6_with_sequencer_address.txt"
+        ))
+        .unwrap();
+        assert!(new_block.sequencer_address.is_some());
+
+        let old_block: Block = serde_json::from_str(include_str!(
+            "../../test-data/raw_gateway_responses/get_block/2_with_messages.txt"
+        ))
+        .unwrap();
+        assert!(old_block.sequencer_address.is_none());
     }
 }
