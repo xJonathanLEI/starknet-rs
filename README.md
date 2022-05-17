@@ -5,7 +5,7 @@
 
 **Complete StarkNet library in Rust**
 
-![starknet-version-v0.8.1](https://img.shields.io/badge/StarkNet_Version-v0.8.1-2ea44f?logo=ethereum)
+![starknet-version-v0.8.2](https://img.shields.io/badge/StarkNet_Version-v0.8.2-2ea44f?logo=ethereum)
 [![linting-badge](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml/badge.svg?branch=master)](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml)
 [![crates-badge](https://img.shields.io/crates/v/starknet.svg)](https://crates.io/crates/starknet)
 
