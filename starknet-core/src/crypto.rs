@@ -9,6 +9,16 @@ pub struct Signature {
     pub s: FieldElement,
 }
 
+// shot in hex format
+impl fmt::Display for Signature {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}{}",
+            hex::encode(self.r.to_bytes_be()),
+            hex::encode(self.s.to_bytes_be()),
+        )
+    }
+}
+
 #[derive(Debug, Error)]
 pub enum EcdsaSignError {
     #[error("message hash out of range")]
