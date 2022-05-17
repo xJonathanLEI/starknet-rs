@@ -1,5 +1,5 @@
 use crate::types::FieldElement;
-
+use std::fmt;
 use starknet_crypto::{pedersen_hash, rfc6979_generate_k, sign, verify, SignError, VerifyError};
 use thiserror::Error;
 
