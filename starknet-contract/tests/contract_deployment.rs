@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use starknet_contract::ContractFactory;
 use starknet_core::types::{ContractArtifact, FieldElement};
 
@@ -7,7 +9,7 @@ async fn can_deploy_contract_to_alpha_goerli() {
         "../test-data/artifacts/oz_account.txt"
     ))
     .unwrap();
-    let provider = starknet_providers::SequencerGatewayProvider::starknet_alpha_goerli();
+    let provider = Arc::new(starknet_providers::SequencerGatewayProvider::starknet_alpha_goerli());
 
     let factory = ContractFactory::new(artifact, provider).unwrap();
 
