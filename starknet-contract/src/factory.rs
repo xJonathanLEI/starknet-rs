@@ -1,5 +1,5 @@
 use flate2::{write::GzEncoder, Compression};
-use rand::{thread_rng, RngCore};
+use rand::{prelude::StdRng, RngCore, SeedableRng};
 use starknet_core::types::{
     AbiEntry, AddTransactionResult, ContractArtifact, ContractDefinition, DeployTransactionRequest,
     EntryPointsByType, FieldElement, TransactionRequest,
@@ -57,7 +57,7 @@ impl<P: Provider> Factory<P> {
 
         // Generate 31 bytes only here to avoid out of range error
         // TODO: change to cover full range
-        let mut rng = thread_rng();
+        let mut rng = StdRng::from_entropy();
         rng.fill_bytes(&mut salt_buffer[1..]);
 
         self.provider
