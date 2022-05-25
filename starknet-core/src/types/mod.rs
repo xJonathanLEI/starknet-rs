@@ -6,8 +6,8 @@ pub use block::{Block, BlockId};
 
 mod transaction;
 pub use transaction::{
-    DeployTransaction, EntryPointType, InvokeFunctionTransaction, TransactionInfo,
-    TransactionStatusInfo, TransactionType,
+    DeployTransaction, EntryPointType, InvokeFunctionTransaction, TransactionFailureReason,
+    TransactionInfo, TransactionStatusInfo, TransactionType,
 };
 
 mod transaction_receipt;
