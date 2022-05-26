@@ -78,7 +78,7 @@ impl<'de> DeserializeAs<'de, Option<FieldElement>> for UfePendingBlockHash {
         D: Deserializer<'de>,
     {
         let value = String::deserialize(deserializer)?;
-        if value == "pending" {
+        if value.is_empty() || value == "pending" || value == "None" {
             Ok(None)
         } else {
             match FieldElement::from_hex_be(&value) {
