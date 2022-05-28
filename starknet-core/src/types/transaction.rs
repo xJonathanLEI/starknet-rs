@@ -1,7 +1,7 @@
 use super::{
     FieldElement,
     {
-        super::serde::unsigned_field_element::{UfeHex, UfeHexOption, UfePendingBlockHash},
+        super::serde::unsigned_field_element::{UfeHex, UfePendingBlockHash},
         TransactionStatus,
     },
 };
@@ -22,7 +22,7 @@ pub enum TransactionType {
 #[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct TransactionStatusInfo {
     #[serde(default)]
-    #[serde_as(as = "UfeHexOption")]
+    #[serde_as(as = "UfePendingBlockHash")]
     pub block_hash: Option<FieldElement>,
     #[serde(alias = "tx_status")]
     pub status: TransactionStatus,
@@ -202,5 +202,19 @@ mod tests {
         assert_eq!(tx.status, TransactionStatus::Rejected);
         assert!(tx.block_hash.is_none());
         assert!(tx.transaction_failure_reason.is_some());
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_deser_brief_pending() {
+        let raw = include_str!(
+            "../../test-data/raw_gateway_responses/get_transaction_status/manual/1_pending.txt"
+        );
+
+        let tx: TransactionStatusInfo = serde_json::from_str(raw).unwrap();
+
+        assert_eq!(tx.status, TransactionStatus::Pending);
+        assert!(tx.block_hash.is_none());
+        assert!(tx.transaction_failure_reason.is_none());
     }
 }
