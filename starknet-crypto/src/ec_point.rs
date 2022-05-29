@@ -20,6 +20,10 @@ impl EcPoint {
             infinity: false,
         }
     }
+    
+    pub fn calculate_y(x: FieldElement) -> FieldElement {
+        (x * x * x + ALPHA * x + BETA).sqrt().unwrap()
+    }
 
     fn identity() -> EcPoint {
         Self {

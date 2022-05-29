@@ -1,5 +1,5 @@
 use crate::types::FieldElement;
-
+use std::fmt;
 use starknet_crypto::{pedersen_hash, rfc6979_generate_k, sign, verify, SignError, VerifyError};
 use thiserror::Error;
 
@@ -7,6 +7,16 @@ use thiserror::Error;
 pub struct Signature {
     pub r: FieldElement,
     pub s: FieldElement,
+}
+
+// shot in hex format
+impl fmt::Display for Signature {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}{}",
+            hex::encode(self.r.to_bytes_be()),
+            hex::encode(self.s.to_bytes_be()),
+        )
+    }
 }
 
 #[derive(Debug, Error)]

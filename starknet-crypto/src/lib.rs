@@ -13,9 +13,11 @@ mod test_utils;
 
 pub use starknet_ff::FieldElement;
 
+pub use ec_point::EcPoint;
+
 pub use pedersen_hash::pedersen_hash;
 
-pub use ecdsa::{get_public_key, sign, verify};
+pub use ecdsa::{get_public_key, sign, Signature, verify};
 
 pub use crate::rfc6979::generate_k as rfc6979_generate_k;
 
