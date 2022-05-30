@@ -1,8 +1,8 @@
 use crate::{
     ec_point::EcPoint,
     fe_utils::{add_unbounded, bigint_mul_mod_floor, mod_inverse, mul_mod_floor},
-    pedersen_params::{CONSTANT_POINTS, EC_ORDER},
-    FieldElement, SignError, VerifyError,
+    FieldElement,
+    pedersen_params::{CONSTANT_POINTS, EC_ORDER}, SignError, VerifyError,
 };
 
 const ELEMENT_UPPER_BOUND: FieldElement = FieldElement::from_mont([
@@ -13,11 +13,21 @@ const ELEMENT_UPPER_BOUND: FieldElement = FieldElement::from_mont([
 ]);
 
 /// Stark ECDSA signature
+#[derive(Debug)]
 pub struct Signature {
     /// The `r` value of a signature
     pub r: FieldElement,
     /// The `s` value of a signature
     pub s: FieldElement,
+}
+
+impl fmt::Display for Signature {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}{}",
+               hex::encode(self.r.to_bytes_be()),
+               hex::encode(self.s.to_bytes_be()),
+        )
+    }
 }
 
 /// Computes the public key given a Stark private key.
@@ -111,10 +121,11 @@ pub fn verify(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::test_utils::field_element_from_be_hex;
 
-    // Test cases ported from:
+    use super::*;
+
+// Test cases ported from:
     //   https://github.com/starkware-libs/crypto-cpp/blob/95864fbe11d5287e345432dbe1e80dea3c35fc58/src/starkware/crypto/ffi/crypto_lib_test.go
 
     #[test]

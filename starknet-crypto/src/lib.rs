@@ -1,4 +1,11 @@
-#![doc = include_str!("../README.md")]
+#![doc = include_str ! ("../README.md")]
+
+pub use ecdsa::{get_public_key, sign, Signature, verify};
+pub use error::{SignError, VerifyError};
+pub use pedersen_hash::pedersen_hash;
+pub use starknet_ff::FieldElement;
+
+pub use crate::rfc6979::generate_k as rfc6979_generate_k;
 
 mod ec_point;
 mod ecdsa;
@@ -11,12 +18,3 @@ mod rfc6979;
 #[cfg(test)]
 mod test_utils;
 
-pub use starknet_ff::FieldElement;
-
-pub use pedersen_hash::pedersen_hash;
-
-pub use ecdsa::{get_public_key, sign, verify};
-
-pub use crate::rfc6979::generate_k as rfc6979_generate_k;
-
-pub use error::{SignError, VerifyError};
