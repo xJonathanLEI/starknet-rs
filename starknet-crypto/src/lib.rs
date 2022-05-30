@@ -1,6 +1,6 @@
 #![doc = include_str ! ("../README.md")]
 
-pub use ecdsa::{get_public_key, sign, Signature, verify};
+pub use ecdsa::{get_public_key, sign, verify, Signature};
 pub use error::{SignError, VerifyError};
 pub use pedersen_hash::pedersen_hash;
 pub use starknet_ff::FieldElement;
@@ -17,4 +17,3 @@ mod rfc6979;
 
 #[cfg(test)]
 mod test_utils;
-

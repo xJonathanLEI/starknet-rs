@@ -1,9 +1,10 @@
 use crate::{
     ec_point::EcPoint,
     fe_utils::{add_unbounded, bigint_mul_mod_floor, mod_inverse, mul_mod_floor},
-    FieldElement,
-    pedersen_params::{CONSTANT_POINTS, EC_ORDER}, SignError, VerifyError,
+    pedersen_params::{CONSTANT_POINTS, EC_ORDER},
+    FieldElement, SignError, VerifyError,
 };
+use std::fmt;
 
 const ELEMENT_UPPER_BOUND: FieldElement = FieldElement::from_mont([
     18446743986131435553,
@@ -23,9 +24,11 @@ pub struct Signature {
 
 impl fmt::Display for Signature {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}{}",
-               hex::encode(self.r.to_bytes_be()),
-               hex::encode(self.s.to_bytes_be()),
+        write!(
+            f,
+            "{}{}",
+            hex::encode(self.r.to_bytes_be()),
+            hex::encode(self.s.to_bytes_be()),
         )
     }
 }
@@ -125,7 +128,7 @@ mod tests {
 
     use super::*;
 
-// Test cases ported from:
+    // Test cases ported from:
     //   https://github.com/starkware-libs/crypto-cpp/blob/95864fbe11d5287e345432dbe1e80dea3c35fc58/src/starkware/crypto/ffi/crypto_lib_test.go
 
     #[test]

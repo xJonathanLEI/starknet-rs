@@ -2,8 +2,8 @@ use std::fmt;
 
 use thiserror::Error;
 
-use starknet_crypto::{rfc6979_generate_k, sign, SignError, verify, VerifyError};
 pub use starknet_crypto::{pedersen_hash, Signature};
+use starknet_crypto::{rfc6979_generate_k, sign, verify, SignError, VerifyError};
 
 use crate::types::FieldElement;
 
