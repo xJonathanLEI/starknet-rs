@@ -5,7 +5,7 @@ use starknet_core::types::{
     EntryPointsByType, FieldElement, TransactionRequest,
 };
 use starknet_providers::Provider;
-use std::{io::Write, sync::Arc};
+use std::io::Write;
 
 pub struct Factory<P>
 where
@@ -14,7 +14,7 @@ where
     compressed_program: Vec<u8>,
     entry_points_by_type: EntryPointsByType,
     abi: Vec<AbiEntry>,
-    provider: Arc<P>,
+    provider: P,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -26,7 +26,7 @@ pub enum FactoryError {
 }
 
 impl<P: Provider> Factory<P> {
-    pub fn new(artifact: ContractArtifact, provider: Arc<P>) -> Result<Self, FactoryError> {
+    pub fn new(artifact: ContractArtifact, provider: P) -> Result<Self, FactoryError> {
         let program_json = serde_json::to_string(&artifact.program)
             .map_err(FactoryError::CannotSerializeProgram)?;
 
