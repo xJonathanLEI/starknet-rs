@@ -6,16 +6,17 @@ use starknet_core::{
 };
 use starknet_providers::SequencerGatewayProvider;
 use starknet_signers::{LocalWallet, SigningKey};
+use std::sync::Arc;
 
 #[tokio::test]
 async fn can_get_nonce() {
-    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
-    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
+    let provider = Arc::new(SequencerGatewayProvider::starknet_alpha_goerli());
+    let signer = Arc::new(LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be(
             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
         )
         .unwrap(),
-    ));
+    )));
     let address = FieldElement::from_hex_be(
         "01352dd0ac2a462cb53e4f125169b28f13bd6199091a9815c444dcae83056bbc",
     )
@@ -31,13 +32,13 @@ async fn can_get_nonce() {
 
 #[tokio::test]
 async fn can_estimate_fee() {
-    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
-    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
+    let provider = Arc::new(SequencerGatewayProvider::starknet_alpha_goerli());
+    let signer = Arc::new(LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be(
             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
         )
         .unwrap(),
-    ));
+    )));
     let address = FieldElement::from_hex_be(
         "01352dd0ac2a462cb53e4f125169b28f13bd6199091a9815c444dcae83056bbc",
     )
@@ -86,13 +87,13 @@ async fn can_execute_tst_mint() {
     //   - change to use a local testing network similar to Ganacha for Ethereum; or
     //   - poll the transaction hash until it's processed.
 
-    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
-    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
+    let provider = Arc::new(SequencerGatewayProvider::starknet_alpha_goerli());
+    let signer = Arc::new(LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be(
             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
         )
         .unwrap(),
-    ));
+    )));
     let address = FieldElement::from_hex_be(
         "01352dd0ac2a462cb53e4f125169b28f13bd6199091a9815c444dcae83056bbc",
     )

@@ -14,6 +14,7 @@ use starknet_core::{
 };
 use starknet_providers::Provider;
 use starknet_signers::Signer;
+use std::sync::Arc;
 
 /// Cairo string for "invoke"
 const PREFIX_INVOKE: FieldElement = FieldElement::from_mont([
@@ -37,9 +38,8 @@ where
     P: Provider + Send,
     S: Signer + Send,
 {
-    provider: P,
-    #[allow(unused)]
-    signer: S,
+    provider: Arc<P>,
+    signer: Arc<S>,
     address: FieldElement,
     chain_id: FieldElement,
 }
@@ -67,7 +67,12 @@ where
     P: Provider + Sync + Send,
     S: Signer + Sync + Send,
 {
-    pub fn new(provider: P, signer: S, address: FieldElement, chain_id: FieldElement) -> Self {
+    pub fn new(
+        provider: Arc<P>,
+        signer: Arc<S>,
+        address: FieldElement,
+        chain_id: FieldElement,
+    ) -> Self {
         Self {
             provider,
             signer,

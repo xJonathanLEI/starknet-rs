@@ -4,13 +4,14 @@ use starknet::{
     providers::SequencerGatewayProvider,
     signers::{LocalWallet, SigningKey},
 };
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
-    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
-    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
+    let provider = Arc::new(SequencerGatewayProvider::starknet_alpha_goerli());
+    let signer = Arc::new(LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
-    ));
+    )));
     let address = FieldElement::from_hex_be("YOUR_ACCOUNT_CONTRACT_ADDRESS_IN_HEX_HERE").unwrap();
     let tst_token_address = FieldElement::from_hex_be(
         "07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
