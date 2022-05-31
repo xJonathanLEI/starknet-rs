@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use auto_impl::auto_impl;
 use starknet_core::types::{
     AddTransactionResult, Block, BlockId, CallContractResult, ContractAddresses, ContractArtifact,
     ContractCode, FeeEstimate, FieldElement, InvokeFunctionTransactionRequest, StateUpdate,
@@ -9,6 +10,7 @@ use std::error::Error;
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[auto_impl(&, Box, Arc)]
 pub trait Provider {
     type Error: Error + Send;
 
