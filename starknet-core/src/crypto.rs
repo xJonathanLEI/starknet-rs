@@ -1,7 +1,7 @@
 use crate::types::FieldElement;
 
-use starknet_crypto::{rfc6979_generate_k, sign, verify, SignError, VerifyError};
 pub use starknet_crypto::{pedersen_hash, Signature};
+use starknet_crypto::{rfc6979_generate_k, sign, verify, SignError, VerifyError};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
