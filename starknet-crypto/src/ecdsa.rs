@@ -124,9 +124,8 @@ pub fn verify(
 
 #[cfg(test)]
 mod tests {
-    use crate::test_utils::field_element_from_be_hex;
-
     use super::*;
+    use crate::test_utils::field_element_from_be_hex;
 
     // Test cases ported from:
     //   https://github.com/starkware-libs/crypto-cpp/blob/95864fbe11d5287e345432dbe1e80dea3c35fc58/src/starkware/crypto/ffi/crypto_lib_test.go
