@@ -4,6 +4,7 @@ use crate::{
     pedersen_params::{CONSTANT_POINTS, EC_ORDER},
     FieldElement, SignError, VerifyError,
 };
+use std::fmt;
 
 const ELEMENT_UPPER_BOUND: FieldElement = FieldElement::from_mont([
     18446743986131435553,
@@ -13,11 +14,23 @@ const ELEMENT_UPPER_BOUND: FieldElement = FieldElement::from_mont([
 ]);
 
 /// Stark ECDSA signature
+#[derive(Debug)]
 pub struct Signature {
     /// The `r` value of a signature
     pub r: FieldElement,
     /// The `s` value of a signature
     pub s: FieldElement,
+}
+
+impl fmt::Display for Signature {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}{}",
+            hex::encode(self.r.to_bytes_be()),
+            hex::encode(self.s.to_bytes_be()),
+        )
+    }
 }
 
 /// Computes the public key given a Stark private key.

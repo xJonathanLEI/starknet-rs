@@ -1,13 +1,8 @@
 use crate::types::FieldElement;
 
-use starknet_crypto::{pedersen_hash, rfc6979_generate_k, sign, verify, SignError, VerifyError};
+pub use starknet_crypto::{pedersen_hash, Signature};
+use starknet_crypto::{rfc6979_generate_k, sign, verify, SignError, VerifyError};
 use thiserror::Error;
-
-#[derive(Debug)]
-pub struct Signature {
-    pub r: FieldElement,
-    pub s: FieldElement,
-}
 
 #[derive(Debug, Error)]
 pub enum EcdsaSignError {
