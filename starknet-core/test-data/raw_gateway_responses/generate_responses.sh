@@ -90,3 +90,6 @@ curl -o ./estimate_fee/1_success.txt "https://alpha4.starknet.io/feeder_gateway/
         ],
         "signature": []
     }'
+
+# ./get_storage_at/1_empty.txt
+curl -o ./get_storage_at/1_empty.txt "https://alpha4.starknet.io/feeder_gateway/get_storage_at?contractAddress=0x1&key=2"

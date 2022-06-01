@@ -307,11 +307,11 @@ impl Provider for SequencerGatewayProvider {
         append_block_id(&mut request_url, block_identifier);
 
         match self
-            .send_get_request::<GatewayResponse<FieldElement>>(request_url)
+            .send_get_request::<RawFieldElementResponse>(request_url)
             .await?
         {
-            GatewayResponse::Data(data) => Ok(data),
-            GatewayResponse::StarknetError(starknet_err) => {
+            RawFieldElementResponse::Data(data) => Ok(data),
+            RawFieldElementResponse::StarknetError(starknet_err) => {
                 Err(ProviderError::StarknetError(starknet_err))
             }
         }
@@ -529,6 +529,15 @@ mod tests {
     fn test_estimate_fee_deser() {
         serde_json::from_str::<GatewayResponse<FeeEstimate>>(include_str!(
             "../test-data/estimate_fee/1_success.txt"
+        ))
+        .unwrap();
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_get_storage_at_deser() {
+        serde_json::from_str::<RawFieldElementResponse>(include_str!(
+            "../test-data/get_storage_at/1_empty.txt"
         ))
         .unwrap();
     }
