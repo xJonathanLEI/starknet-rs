@@ -223,6 +223,32 @@ impl std::ops::Neg for FieldElement {
     }
 }
 
+impl std::ops::Rem<FieldElement> for FieldElement {
+    type Output = FieldElement;
+
+    fn rem(self, rhs: FieldElement) -> Self::Output {
+        if self.inner < rhs.inner {
+            return self;
+        }
+
+        let lhs: U256 = (&self).into();
+        let rhs: U256 = (&rhs).into();
+        let div_result = lhs.div_rem(&rhs);
+
+        if div_result.is_some().into() {
+            let (_, rem) = div_result.unwrap();
+
+            // It's safe to unwrap here since `rem` is never out of range
+            FieldElement {
+                inner: Fp256::<FrParameters>::from_repr(u256_to_biginteger256(&rem)).unwrap(),
+            }
+        } else {
+            // TODO: add `checked_rem` for panic-less use
+            panic!("division by zero");
+        }
+    }
+}
+
 impl Debug for FieldElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("FieldElement")
@@ -509,6 +535,20 @@ mod tests {
             assert_eq!(
                 FieldElement::from_dec_str(item[0]).unwrap()
                     * FieldElement::from_dec_str(item[1]).unwrap(),
+                FieldElement::from_dec_str(item[2]).unwrap()
+            );
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_remainder() {
+        let remainders = [["123456", "100", "56"], ["7", "3", "1"], ["3", "6", "3"]];
+
+        for item in remainders.iter() {
+            assert_eq!(
+                FieldElement::from_dec_str(item[0]).unwrap()
+                    % FieldElement::from_dec_str(item[1]).unwrap(),
                 FieldElement::from_dec_str(item[2]).unwrap()
             );
         }
