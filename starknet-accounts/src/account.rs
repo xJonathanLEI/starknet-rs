@@ -24,7 +24,8 @@ pub trait AccountCall {
     fn max_fee(self, max_fee: FieldElement) -> Self;
 }
 
-#[async_trait(?Send)]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait Account: Sized {
     type GetNonceError: Error + Send;
     type EstimateFeeError: Error + Send;
@@ -39,19 +40,19 @@ pub trait Account: Sized {
 
     async fn estimate_fee<C>(&self, call: &C) -> Result<FeeEstimate, Self::EstimateFeeError>
     where
-        C: AccountCall;
+        C: AccountCall + Sync;
 
     async fn send_transaction<C>(
         &self,
         call: &C,
     ) -> Result<AddTransactionResult, Self::SendTransactionError>
     where
-        C: AccountCall;
+        C: AccountCall + Sync;
 }
 
 impl<'a, A> AttachedAccountCall<'a, A>
 where
-    A: Account,
+    A: Account + Sync,
 {
     pub async fn estimate_fee(&self) -> Result<FeeEstimate, A::EstimateFeeError> {
         self.account.estimate_fee(self).await

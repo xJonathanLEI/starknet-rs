@@ -150,7 +150,8 @@ where
     }
 }
 
-#[async_trait(?Send)]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl<P, S> Account for SingleOwnerAccount<P, S>
 where
     P: Provider + Sync + Send,
@@ -200,7 +201,7 @@ where
 
     async fn estimate_fee<C>(&self, call: &C) -> Result<FeeEstimate, Self::EstimateFeeError>
     where
-        C: AccountCall,
+        C: AccountCall + Sync,
     {
         self.estimate_fee_for_calls(call.get_calls(), call.get_nonce().as_ref())
             .await
@@ -211,7 +212,7 @@ where
         call: &C,
     ) -> Result<AddTransactionResult, Self::SendTransactionError>
     where
-        C: AccountCall,
+        C: AccountCall + Sync,
     {
         let nonce = self.get_nonce_for_call(call).await?;
         let max_fee = match call.get_max_fee() {
