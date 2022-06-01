@@ -1,10 +1,19 @@
 use crate::types::FieldElement;
 
 use sha3::{Digest, Keccak256};
+use starknet_crypto::pedersen_hash;
 use thiserror::Error;
 
 const DEFAULT_ENTRY_POINT_NAME: &str = "__default__";
 const DEFAULT_L1_ENTRY_POINT_NAME: &str = "__l1_default__";
+
+// 2 ** 251 - 256
+const ADDR_BOUND: FieldElement = FieldElement::from_mont([
+    18446743986131443745,
+    160989183,
+    18446744073709255680,
+    576459263475590224,
+]);
 
 #[derive(Debug, Error)]
 #[error("the provided name contains non-ASCII characters: {name}")]
@@ -43,6 +52,22 @@ pub fn get_selector_from_name(func_name: &str) -> Result<FieldElement, NonAsciiN
         } else {
             Err(NonAsciiNameError { name: func_name })
         }
+    }
+}
+
+pub fn get_storage_var_address<'a>(
+    var_name: &'a str,
+    args: &[FieldElement],
+) -> Result<FieldElement, NonAsciiNameError<'a>> {
+    let var_name_bytes = var_name.as_bytes();
+    if var_name_bytes.is_ascii() {
+        let mut res = starknet_keccak(var_name_bytes);
+        for arg in args.iter() {
+            res = pedersen_hash(&res, arg);
+        }
+        Ok(res % ADDR_BOUND)
+    } else {
+        Err(NonAsciiNameError { name: var_name })
     }
 }
 
@@ -125,6 +150,36 @@ mod tests {
             Err(_) => {}
             _ => panic!("Should throw error on non-ASCII name"),
         };
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_get_storage_var_address() {
+        // Generated from `cairo-lang`
+        let var_name = "balance";
+        let expected_addr = FieldElement::from_hex_be(
+            "0x0206f38f7e4f15e87567361213c28f235cccdaa1d7fd34c9db1dfe9489c6a091",
+        )
+        .unwrap();
+
+        let addr = get_storage_var_address(var_name, &[]).unwrap();
+
+        assert_eq!(addr, expected_addr);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_get_storage_var_address_with_args() {
+        // Generated from `cairo-lang`
+        let var_name = "balanceOf";
+        let expected_addr = FieldElement::from_hex_be(
+            "0x07de334d65aa93d9185729b424025918b18892418c85b802775d1f0d2be30a1d",
+        )
+        .unwrap();
+
+        let addr = get_storage_var_address(var_name, &[1234u64.into()]).unwrap();
+
+        assert_eq!(addr, expected_addr);
     }
 
     #[test]
