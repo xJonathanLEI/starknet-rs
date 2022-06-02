@@ -29,6 +29,14 @@ pub enum CairoShortStringToFeltError {
     StringTooLong,
 }
 
+#[derive(Debug, Error)]
+pub enum ParseCairoShortStringError {
+    #[error("field element value out of range")]
+    ValueOutOfRange,
+    #[error("unexpected null terminator")]
+    UnexpectedNullTerminator,
+}
+
 /// A variant of eth-keccak that computes a value that fits in a StarkNet field element.
 pub fn starknet_keccak(data: &[u8]) -> FieldElement {
     let mut hasher = Keccak256::new();
@@ -87,6 +95,30 @@ pub fn cairo_short_string_to_felt(str: &str) -> Result<FieldElement, CairoShortS
 
     // The conversion will never fail
     Ok(FieldElement::from_bytes_be(&buffer).unwrap())
+}
+
+/// Converts [FieldElement] to Cairo short string.
+pub fn parse_cairo_short_string(felt: &FieldElement) -> Result<String, ParseCairoShortStringError> {
+    if felt == &FieldElement::ZERO {
+        return Ok(String::new());
+    }
+
+    let be_bytes = felt.to_bytes_be();
+    if be_bytes[0] > 0 {
+        return Err(ParseCairoShortStringError::ValueOutOfRange);
+    }
+
+    let mut buffer = String::with_capacity(31);
+    for byte in be_bytes.into_iter() {
+        if byte == 0u8 {
+            if !buffer.is_empty() {
+                return Err(ParseCairoShortStringError::UnexpectedNullTerminator);
+            }
+        } else {
+            buffer.push(byte as char)
+        }
+    }
+    Ok(buffer)
 }
 
 #[cfg(test)]
@@ -219,6 +251,56 @@ mod tests {
         assert!(matches!(
             cairo_short_string_to_felt("🦀"),
             Err(CairoShortStringToFeltError::NonAsciiCharacter)
+        ));
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_parse_cairo_short_string() {
+        let data = [
+            (
+                "abcdefghijklmnopqrstuvwxyz",
+                "156490583352162063278528710879425690470022892627113539022649722",
+            ),
+            (
+                "1234567890123456789012345678901",
+                "86921973946889608444641514252360676678984087116218318142845213717418291249",
+            ),
+        ];
+
+        for (str, felt_dec) in data.into_iter() {
+            assert_eq!(
+                parse_cairo_short_string(&FieldElement::from_dec_str(felt_dec).unwrap()).unwrap(),
+                str
+            );
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_parse_cairo_short_string_too_long() {
+        assert!(matches!(
+            parse_cairo_short_string(
+                &FieldElement::from_hex_be(
+                    "0x0111111111111111111111111111111111111111111111111111111111111111"
+                )
+                .unwrap()
+            ),
+            Err(ParseCairoShortStringError::ValueOutOfRange)
+        ));
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_parse_cairo_short_string_unexpected_null() {
+        assert!(matches!(
+            parse_cairo_short_string(
+                &FieldElement::from_hex_be(
+                    "0x0011111111111111111111111111111111111111111111111111111111110011"
+                )
+                .unwrap()
+            ),
+            Err(ParseCairoShortStringError::UnexpectedNullTerminator)
         ));
     }
 }
