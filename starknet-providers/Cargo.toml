@@ -17,7 +17,7 @@ starknet-core = { version = "0.1.0", path = "../starknet-core" }
 async-trait = "0.1.52"
 auto_impl = "0.5.0"
 url = "2.2.2"
-reqwest = { version = "0.11.8" }
+reqwest = { version = "0.11.8", default-features = false, features = ["rustls-tls"] }
 thiserror = "1.0.30"
 serde = "1.0.133"
 serde_json = "1.0.74"
