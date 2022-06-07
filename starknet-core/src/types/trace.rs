@@ -16,6 +16,14 @@ pub struct TransactionTrace {
     pub signature: Vec<FieldElement>,
 }
 
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(test, serde(deny_unknown_fields))]
+pub enum CallType {
+    Call,
+    Delegate,
+}
+
 /// A lean version of CallInfo class, containing merely the information relevant for the user.
 #[serde_as]
 #[derive(Debug, Deserialize)]
@@ -25,13 +33,16 @@ pub struct FunctionInvocation {
     pub caller_address: FieldElement,
     #[serde_as(as = "UfeHex")]
     pub contract_address: FieldElement,
+    #[serde_as(as = "Vec<UfeHex>")]
+    pub calldata: Vec<FieldElement>,
+    pub call_type: Option<CallType>,
+    #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
-    pub code_address: Option<FieldElement>,
+    pub class_hash: Option<FieldElement>,
+    #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
     pub selector: Option<FieldElement>,
     pub entry_point_type: Option<EntryPointType>,
-    #[serde_as(as = "Vec<UfeHex>")]
-    pub calldata: Vec<FieldElement>,
     #[serde_as(as = "Vec<UfeHex>")]
     pub result: Vec<FieldElement>,
     pub execution_resources: ExecutionResources,
