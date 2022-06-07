@@ -315,6 +315,26 @@ impl Provider for SequencerGatewayProvider {
         }
     }
 
+    async fn get_class_by_hash(
+        &self,
+        class_hash: FieldElement,
+    ) -> Result<ContractArtifact, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("get_class_by_hash");
+        request_url
+            .query_pairs_mut()
+            .append_pair("classHash", &format!("{:#x}", class_hash));
+
+        match self
+            .send_get_request::<GatewayResponse<ContractArtifact>>(request_url)
+            .await?
+        {
+            GatewayResponse::Data(artifact) => Ok(artifact),
+            GatewayResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+
     async fn get_storage_at(
         &self,
         contract_address: FieldElement,
@@ -544,6 +564,8 @@ fn append_block_id(url: &mut Url, block_identifier: BlockId) {
 
 #[cfg(test)]
 mod tests {
+    use starknet_core::types::StarknetErrorCode;
+
     use super::*;
 
     #[test]
@@ -571,5 +593,33 @@ mod tests {
             "../test-data/get_full_contract/1_code.txt"
         ))
         .unwrap();
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_get_class_by_hash_deser_success() {
+        match serde_json::from_str::<GatewayResponse<ContractArtifact>>(include_str!(
+            "../test-data/get_class_by_hash/1_success.txt"
+        ))
+        .unwrap()
+        {
+            GatewayResponse::Data(_) => {}
+            _ => panic!("Unexpected result"),
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_get_class_by_hash_deser_not_declared() {
+        match serde_json::from_str::<GatewayResponse<ContractArtifact>>(include_str!(
+            "../test-data/get_class_by_hash/2_not_declared.txt"
+        ))
+        .unwrap()
+        {
+            GatewayResponse::StarknetError(err) => {
+                assert_eq!(err.code, StarknetErrorCode::UndeclaredClass);
+            }
+            _ => panic!("Unexpected result"),
+        }
     }
 }

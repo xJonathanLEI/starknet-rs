@@ -96,3 +96,9 @@ curl -o ./estimate_fee/1_success.txt "https://alpha4.starknet.io/feeder_gateway/
 
 # ./get_storage_at/1_empty.txt
 curl -o ./get_storage_at/1_empty.txt "https://alpha4.starknet.io/feeder_gateway/get_storage_at?contractAddress=0x1&key=2"
+
+# ./get_class_by_hash/1_success.txt
+curl -o ./get_class_by_hash/1_success.txt "https://alpha4.starknet.io/feeder_gateway/get_class_by_hash?classHash=0x051ad5a4a7944af79eb7bb7993f7f801c19ce0faaf855e6a17549b100c698122"
+
+# ./get_class_by_hash/2_not_declared.txt
+curl -o ./get_class_by_hash/2_not_declared.txt "https://alpha4.starknet.io/feeder_gateway/get_class_by_hash?classHash=0x111111111111111111111111"
