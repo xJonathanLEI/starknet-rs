@@ -76,6 +76,9 @@ curl -o ./get_transaction_trace/1_with_messages.txt "https://alpha4.starknet.io/
 # ./get_transaction_trace/2_with_events.txt
 curl -o ./get_transaction_trace/2_with_events.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_trace?transactionHash=0x688e434a1636c30d0c161f766b99b4bfb143208d859149859941905e94cb022"
 
+# ./get_transaction_trace/3_with_call_type.txt
+curl -o ./get_transaction_trace/3_with_call_type.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_trace?transactionHash=0x4afe0ec31686c150ec8ca315823ae239e7150db43352fb65c9feb423ef23516"
+
 # ./estimate_fee/1_success.txt
 curl -o ./estimate_fee/1_success.txt "https://alpha4.starknet.io/feeder_gateway/estimate_fee" \
     -X POST \
