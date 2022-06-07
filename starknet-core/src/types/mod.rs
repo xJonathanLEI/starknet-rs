@@ -6,8 +6,8 @@ pub use block::{Block, BlockId};
 
 mod transaction;
 pub use transaction::{
-    DeployTransaction, EntryPointType, InvokeFunctionTransaction, TransactionFailureReason,
-    TransactionInfo, TransactionStatusInfo, TransactionType,
+    DeclareTransaction, DeployTransaction, EntryPointType, InvokeFunctionTransaction,
+    TransactionFailureReason, TransactionInfo, TransactionStatusInfo, TransactionType,
 };
 
 mod transaction_receipt;
@@ -34,8 +34,9 @@ pub use call_contract::CallContractResult;
 mod transaction_request;
 pub use transaction_request::{
     AddTransactionResult, AddTransactionResultCode, ContractDefinition,
-    DeployTransaction as DeployTransactionRequest, EntryPoint, EntryPointsByType,
-    InvokeFunctionTransaction as InvokeFunctionTransactionRequest, TransactionRequest,
+    DeclareTransaction as DeclareTransactionRequest, DeployTransaction as DeployTransactionRequest,
+    EntryPoint, EntryPointsByType, InvokeFunctionTransaction as InvokeFunctionTransactionRequest,
+    TransactionRequest,
 };
 
 pub use starknet_ff::*;

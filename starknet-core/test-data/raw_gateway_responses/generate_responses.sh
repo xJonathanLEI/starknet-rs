@@ -19,6 +19,9 @@ curl -o ./get_block/5_with_class_hash_and_actual_fee.txt "https://alpha4.starkne
 # ./get_block/6_with_sequencer_address.txt
 curl -o ./get_block/6_with_sequencer_address.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=183471"
 
+# ./get_block/7_with_declare_tx.txt
+curl -o ./get_block/7_with_declare_tx.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=232491"
+
 # ./get_code/1_code.txt
 curl -o ./get_code/1_code.txt "https://alpha4.starknet.io/feeder_gateway/get_code?contractAddress=0x05ffd28b3ff2eecd6da0fa64c90e928a9f46f1563976a4fe1770ab48ee43506a"
 
@@ -36,6 +39,9 @@ curl -o ./get_transaction/3_not_received.txt "https://alpha4.starknet.io/feeder_
 
 # ./get_transaction/4_failure.txt
 curl -o ./get_transaction/4_failure.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction?transactionHash=0x533d327336f28b973c7f06f7abf15af7f8fd5a1bd4e1991397ae59e49a59885"
+
+# ./get_transaction/5_declare.txt
+curl -o ./get_transaction/5_declare.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction?transactionHash=0x6943a2586593262662f04bfd45e4a144f18c80353a4129b854443b79197c0cc"
 
 # ./get_transaction_receipt/1_accepted.txt
 curl -o ./get_transaction_receipt/1_accepted.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_receipt?transactionHash=0x7cb73f737a8ea0c5c94d7799c2d01a47c81f4cb34287408741264d3f09655da"
