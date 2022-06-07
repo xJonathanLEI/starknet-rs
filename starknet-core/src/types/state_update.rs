@@ -44,7 +44,7 @@ pub struct DeployedContract {
     #[serde_as(as = "UfeHex")]
     pub address: FieldElement,
     #[serde_as(as = "UfeHex")]
-    pub contract_hash: FieldElement,
+    pub class_hash: FieldElement,
 }
 
 #[cfg(test)]
@@ -92,7 +92,7 @@ mod tests {
             .unwrap()
         );
         assert_eq!(
-            deployed_contract.contract_hash,
+            deployed_contract.class_hash,
             FieldElement::from_hex_be(
                 "02c3348ad109f7f3967df6494b3c48741d61675d9a7915b265aa7101a631dc33"
             )

@@ -41,11 +41,8 @@ pub struct ConfirmedReceipt {
     pub l1_to_l2_consumed_message: Option<L1ToL2Message>,
     pub l2_to_l1_messages: Vec<L2ToL1Message>,
     pub events: Vec<Event>,
-    // This field is marked optional because it's missing from old blocks. Drop `Option` once it's
-    // resolved.
-    #[serde(default)]
-    #[serde_as(as = "Option<UfeHex>")]
-    pub actual_fee: Option<FieldElement>,
+    #[serde_as(as = "UfeHex")]
+    pub actual_fee: FieldElement,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]

@@ -141,35 +141,6 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_block_deser_new_attributes_0_8_1() {
-        // This block contains new fields introduced in StarkNet v0.8.1
-        let new_block: Block = serde_json::from_str(include_str!(
-            "../../test-data/raw_gateway_responses/get_block/5_with_class_hash_and_actual_fee.txt"
-        ))
-        .unwrap();
-        match &new_block.transactions[43] {
-            TransactionType::Deploy(transaction) => {
-                assert!(transaction.class_hash.is_some());
-            }
-            _ => panic!("Unexpected transaction type"),
-        }
-        assert!(&new_block.transaction_receipts[0].actual_fee.is_some());
-
-        let old_block: Block = serde_json::from_str(include_str!(
-            "../../test-data/raw_gateway_responses/get_block/2_with_messages.txt"
-        ))
-        .unwrap();
-        match &old_block.transactions[2] {
-            TransactionType::Deploy(transaction) => {
-                assert!(transaction.class_hash.is_none());
-            }
-            _ => panic!("Unexpected transaction type"),
-        }
-        assert!(&old_block.transaction_receipts[0].actual_fee.is_none());
-    }
-
-    #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_new_attributes_0_8_2() {
         // This block contains new fields introduced in StarkNet v0.8.2
         let new_block: Block = serde_json::from_str(include_str!(
