@@ -46,6 +46,10 @@ pub enum FromByteSliceError {
 #[error("number out of range")]
 pub struct FromByteArrayError;
 
+#[derive(Debug, thiserror::Error)]
+#[error("field element value out of range")]
+pub struct ValueOutOfRangeError;
+
 struct InnerDebug<'a>(pub &'a FieldElement);
 
 impl FieldElement {
@@ -373,6 +377,33 @@ impl<'de> Deserialize<'de> for FieldElement {
     }
 }
 
+impl From<u8> for FieldElement {
+    fn from(value: u8) -> Self {
+        Self {
+            inner: Fp256::<FrParameters>::from_repr(BigInteger256::new([value as u64, 0, 0, 0]))
+                .unwrap(),
+        }
+    }
+}
+
+impl From<u16> for FieldElement {
+    fn from(value: u16) -> Self {
+        Self {
+            inner: Fp256::<FrParameters>::from_repr(BigInteger256::new([value as u64, 0, 0, 0]))
+                .unwrap(),
+        }
+    }
+}
+
+impl From<u32> for FieldElement {
+    fn from(value: u32) -> Self {
+        Self {
+            inner: Fp256::<FrParameters>::from_repr(BigInteger256::new([value as u64, 0, 0, 0]))
+                .unwrap(),
+        }
+    }
+}
+
 impl From<u64> for FieldElement {
     fn from(value: u64) -> Self {
         Self {
@@ -386,6 +417,58 @@ impl From<usize> for FieldElement {
         Self {
             inner: Fp256::<FrParameters>::from_repr(BigInteger256::new([value as u64, 0, 0, 0]))
                 .unwrap(),
+        }
+    }
+}
+
+impl TryFrom<FieldElement> for u8 {
+    type Error = ValueOutOfRangeError;
+
+    fn try_from(value: FieldElement) -> Result<Self, Self::Error> {
+        let repr = value.inner.into_repr().0;
+        if repr[0] > u8::MAX as u64 || repr[1] > 0 || repr[2] > 0 || repr[3] > 0 {
+            Err(ValueOutOfRangeError)
+        } else {
+            Ok(repr[0] as u8)
+        }
+    }
+}
+
+impl TryFrom<FieldElement> for u16 {
+    type Error = ValueOutOfRangeError;
+
+    fn try_from(value: FieldElement) -> Result<Self, Self::Error> {
+        let repr = value.inner.into_repr().0;
+        if repr[0] > u16::MAX as u64 || repr[1] > 0 || repr[2] > 0 || repr[3] > 0 {
+            Err(ValueOutOfRangeError)
+        } else {
+            Ok(repr[0] as u16)
+        }
+    }
+}
+
+impl TryFrom<FieldElement> for u32 {
+    type Error = ValueOutOfRangeError;
+
+    fn try_from(value: FieldElement) -> Result<Self, Self::Error> {
+        let repr = value.inner.into_repr().0;
+        if repr[0] > u32::MAX as u64 || repr[1] > 0 || repr[2] > 0 || repr[3] > 0 {
+            Err(ValueOutOfRangeError)
+        } else {
+            Ok(repr[0] as u32)
+        }
+    }
+}
+
+impl TryFrom<FieldElement> for u64 {
+    type Error = ValueOutOfRangeError;
+
+    fn try_from(value: FieldElement) -> Result<Self, Self::Error> {
+        let repr = value.inner.into_repr().0;
+        if repr[1] > 0 || repr[2] > 0 || repr[3] > 0 {
+            Err(ValueOutOfRangeError)
+        } else {
+            Ok(repr[0])
         }
     }
 }
@@ -552,5 +635,19 @@ mod tests {
                 FieldElement::from_dec_str(item[2]).unwrap()
             );
         }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_to_primitives() {
+        let fe_256: FieldElement = 256u16.into();
+
+        if u8::try_from(fe_256).is_ok() {
+            panic!("invalid conversion");
+        }
+
+        assert_eq!(u16::try_from(fe_256).unwrap(), 256u16);
+        assert_eq!(u32::try_from(fe_256).unwrap(), 256u32);
+        assert_eq!(u64::try_from(fe_256).unwrap(), 256u64);
     }
 }
