@@ -1,6 +1,6 @@
 [package]
 name = "starknet"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Jonathan LEI <me@xjonathan.dev>"]
 license = "MIT OR Apache-2.0"
 edition = "2021"
@@ -27,8 +27,8 @@ members = [
 ]
 
 [dependencies]
-starknet-core = { version = "0.1.0", path = "./starknet-core" }
-starknet-providers = { version = "0.1.0", path = "./starknet-providers" }
+starknet-core = { version = "0.2.0", path = "./starknet-core" }
+starknet-providers = { version = "0.2.0", path = "./starknet-providers" }
 starknet-contract = { version = "0.1.0", path = "./starknet-contract" }
 starknet-signers = { version = "0.1.0", path = "./starknet-signers" }
 starknet-accounts = { version = "0.1.0", path = "./starknet-accounts" }

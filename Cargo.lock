@@ -1571,7 +1571,7 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 
 [[package]]
 name = "starknet"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "serde_json",
  "starknet-accounts",
@@ -1611,7 +1611,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "base64",
  "ethereum-types",
@@ -1663,7 +1663,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-providers"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "async-trait",
  "auto_impl",
