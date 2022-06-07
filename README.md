@@ -55,6 +55,8 @@ Examples can be found in the [examples folder](./examples):
 
    Make sure your account has some L2 Goerli ETH to pay for the transaction fee. You can use [this faucet](https://faucet.goerli.starknet.io/) to fund your account.
 
+4. [Declare contract on `alpha-goerli` testnet](./examples/declare_contract.rs)
+
 ## License
 
 Licensed under either of
