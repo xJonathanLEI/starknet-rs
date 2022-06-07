@@ -143,7 +143,7 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn fuck() {
+    fn test_get_class_by_hash_deser() {
         serde_json::from_str::<ContractArtifact>(include_str!(
             "../../test-data/raw_gateway_responses/get_class_by_hash/1_success.txt"
         ))
