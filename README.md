@@ -15,7 +15,14 @@
 
 ## Adding starknet-rs to your project
 
-Note that the [crates.io version](https://crates.io/crates/starknet) is currently outdated, and you're advised to use it from GitHub directly instead:
+To use the crate from [crates.io](https://crates.io/crates/starknet), add the following to your `Cargo.toml` file:
+
+```toml
+[dependencies]
+starknet = "0.2.0"
+```
+
+Note that the [crates.io version](https://crates.io/crates/starknet) might be outdated. You may want to use the library directly from GitHub for all the latest features and fixes:
 
 ```toml
 [dependencies]
