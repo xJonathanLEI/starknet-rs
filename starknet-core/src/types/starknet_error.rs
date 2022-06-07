@@ -15,7 +15,7 @@ impl std::fmt::Display for Error {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 #[cfg_attr(test, serde(deny_unknown_fields))]
 pub enum ErrorCode {
     #[serde(rename = "StarknetErrorCode.BLOCK_NOT_FOUND")]
@@ -32,4 +32,6 @@ pub enum ErrorCode {
     UninitializedContract,
     #[serde(rename = "StarkErrorCode.MALFORMED_REQUEST")]
     MalformedRequest,
+    #[serde(rename = "StarknetErrorCode.UNDECLARED_CLASS")]
+    UndeclaredClass,
 }
