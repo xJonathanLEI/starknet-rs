@@ -1,8 +1,9 @@
 use flate2::{write::GzEncoder, Compression};
 use rand::{prelude::StdRng, RngCore, SeedableRng};
 use starknet_core::types::{
-    AbiEntry, AddTransactionResult, ContractArtifact, ContractDefinition, DeployTransactionRequest,
-    EntryPointsByType, FieldElement, TransactionRequest,
+    AbiEntry, AddTransactionResult, ContractArtifact, ContractDefinition,
+    DeclareTransactionRequest, DeployTransactionRequest, EntryPointsByType, FieldElement,
+    TransactionRequest,
 };
 use starknet_providers::Provider;
 use std::io::Write;
@@ -70,6 +71,25 @@ impl<P: Provider> Factory<P> {
                         abi: Some(self.abi.clone()),
                     },
                     constructor_calldata,
+                }),
+                token,
+            )
+            .await
+    }
+
+    pub async fn declare(&self, token: Option<String>) -> Result<AddTransactionResult, P::Error> {
+        self.provider
+            .add_transaction(
+                TransactionRequest::Declare(DeclareTransactionRequest {
+                    contract_class: ContractDefinition {
+                        program: self.compressed_program.clone(),
+                        entry_points_by_type: self.entry_points_by_type.clone(),
+                        abi: Some(self.abi.clone()),
+                    },
+                    sender_address: FieldElement::ONE,
+                    max_fee: FieldElement::ZERO,
+                    signature: vec![],
+                    nonce: FieldElement::ZERO,
                 }),
                 token,
             )
