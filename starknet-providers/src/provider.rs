@@ -51,6 +51,12 @@ pub trait Provider {
         block_identifier: BlockId,
     ) -> Result<ContractArtifact, Self::Error>;
 
+    async fn get_class_hash_at(
+        &self,
+        contract_address: FieldElement,
+        block_identifier: BlockId,
+    ) -> Result<FieldElement, Self::Error>;
+
     async fn get_storage_at(
         &self,
         contract_address: FieldElement,

@@ -293,6 +293,28 @@ impl Provider for SequencerGatewayProvider {
         }
     }
 
+    async fn get_class_hash_at(
+        &self,
+        contract_address: FieldElement,
+        block_identifier: BlockId,
+    ) -> Result<FieldElement, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("get_class_hash_at");
+        request_url
+            .query_pairs_mut()
+            .append_pair("contractAddress", &format!("{:#x}", contract_address));
+        append_block_id(&mut request_url, block_identifier);
+
+        match self
+            .send_get_request::<RawFieldElementResponse>(request_url)
+            .await?
+        {
+            RawFieldElementResponse::Data(hash) => Ok(hash),
+            RawFieldElementResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+
     async fn get_storage_at(
         &self,
         contract_address: FieldElement,
