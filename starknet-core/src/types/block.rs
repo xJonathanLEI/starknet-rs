@@ -155,4 +155,20 @@ mod tests {
         .unwrap();
         assert!(old_block.sequencer_address.is_none());
     }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_block_deser_with_declare_tx() {
+        let raw =
+            include_str!("../../test-data/raw_gateway_responses/get_block/7_with_declare_tx.txt");
+
+        let block: Block = serde_json::from_str(raw).unwrap();
+
+        let tx = match &block.transactions[26] {
+            TransactionType::Declare(tx) => tx,
+            _ => panic!("Unexpected tx type"),
+        };
+
+        assert_eq!(tx.sender_address, FieldElement::ONE);
+    }
 }

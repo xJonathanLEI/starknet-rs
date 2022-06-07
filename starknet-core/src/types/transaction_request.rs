@@ -19,6 +19,9 @@ pub struct AddTransactionResult {
     #[serde(default)]
     #[serde_as(as = "UfeHexOption")]
     pub address: Option<FieldElement>,
+    #[serde(default)]
+    #[serde_as(as = "UfeHexOption")]
+    pub class_hash: Option<FieldElement>,
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
@@ -31,8 +34,26 @@ pub enum AddTransactionResultCode {
 #[derive(Debug, Serialize)]
 #[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TransactionRequest {
+    Declare(DeclareTransaction),
     Deploy(DeployTransaction),
     InvokeFunction(InvokeFunctionTransaction),
+}
+
+#[serde_as]
+#[derive(Debug, Serialize)]
+pub struct DeclareTransaction {
+    pub contract_class: ContractDefinition,
+    /// The address of the account contract sending the declaration transaction.
+    #[serde_as(as = "UfeHex")]
+    pub sender_address: FieldElement,
+    /// The maximal fee to be paid in Wei for declaring a contract class.
+    #[serde_as(as = "UfeHex")]
+    pub max_fee: FieldElement,
+    /// Additional information given by the caller that represents the signature of the transaction.
+    pub signature: Vec<FieldElement>,
+    /// A sequential integer used to distinguish between transactions and order them.
+    #[serde_as(as = "UfeHex")]
+    pub nonce: FieldElement,
 }
 
 #[serde_as]
