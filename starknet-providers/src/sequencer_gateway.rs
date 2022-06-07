@@ -541,4 +541,13 @@ mod tests {
         ))
         .unwrap();
     }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_get_full_contract_deser() {
+        serde_json::from_str::<GatewayResponse<ContractArtifact>>(include_str!(
+            "../test-data/get_full_contract/1_code.txt"
+        ))
+        .unwrap();
+    }
 }
