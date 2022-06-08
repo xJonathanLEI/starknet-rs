@@ -2,7 +2,7 @@
 pub use ethereum_types::Address as L1Address;
 
 mod block;
-pub use block::{Block, BlockId};
+pub use block::{Block, BlockId, BlockStatus};
 
 mod transaction;
 pub use transaction::{
