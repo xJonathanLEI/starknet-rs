@@ -1580,6 +1580,7 @@ dependencies = [
  "starknet-providers",
  "starknet-signers",
  "tokio",
+ "url",
 ]
 
 [[package]]

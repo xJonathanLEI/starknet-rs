@@ -64,6 +64,8 @@ Examples can be found in the [examples folder](./examples):
 
 4. [Declare contract on `alpha-goerli` testnet](./examples/declare_contract.rs)
 
+5. [Query the latest block number with JSON-RPC](./examples/jsonrpc.rs)
+
 ## License
 
 Licensed under either of
