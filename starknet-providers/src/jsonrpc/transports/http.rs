@@ -26,7 +26,11 @@ impl HttpTransport {
 impl JsonRpcTransport for HttpTransport {
     type Error = reqwest::Error;
 
-    async fn send_request<P, R>(&self, method: JsonRpcMethod, params: P) -> Result<R, Self::Error>
+    async fn send_request<P, R>(
+        &self,
+        method: JsonRpcMethod,
+        params: P,
+    ) -> Result<JsonRpcResponse<R>, Self::Error>
     where
         P: Serialize + Send,
         R: DeserializeOwned,
@@ -38,8 +42,6 @@ impl JsonRpcTransport for HttpTransport {
             params,
         });
         let response = request.send().await?;
-
-        let body: JsonRpcResponse<R> = response.json().await?;
-        Ok(body.result)
+        response.json().await
     }
 }

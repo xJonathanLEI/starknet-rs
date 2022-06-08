@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use auto_impl::auto_impl;
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::jsonrpc::JsonRpcMethod;
+use crate::jsonrpc::{JsonRpcMethod, JsonRpcResponse};
 
 mod http;
 pub use http::HttpTransport;
@@ -13,7 +13,11 @@ pub use http::HttpTransport;
 pub trait JsonRpcTransport {
     type Error;
 
-    async fn send_request<P, R>(&self, method: JsonRpcMethod, params: P) -> Result<R, Self::Error>
+    async fn send_request<P, R>(
+        &self,
+        method: JsonRpcMethod,
+        params: P,
+    ) -> Result<JsonRpcResponse<R>, Self::Error>
     where
         P: Serialize + Send,
         R: DeserializeOwned;
