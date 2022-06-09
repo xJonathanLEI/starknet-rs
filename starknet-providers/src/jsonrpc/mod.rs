@@ -21,6 +21,8 @@ pub struct JsonRpcClient<T> {
 pub enum JsonRpcMethod {
     #[serde(rename = "starknet_blockNumber")]
     BlockNumber,
+    #[serde(rename = "starknet_chainId")]
+    ChainId,
     #[serde(rename = "starknet_call")]
     Call,
 }
@@ -59,6 +61,10 @@ struct JsonRpcRequest<T> {
 
 #[serde_as]
 #[derive(Deserialize)]
+struct Felt(#[serde_as(as = "UfeHex")] pub FieldElement);
+
+#[serde_as]
+#[derive(Deserialize)]
 struct FeltArray(#[serde_as(as = "Vec<UfeHex>")] pub Vec<FieldElement>);
 
 impl<T> JsonRpcClient<T> {
@@ -74,6 +80,14 @@ where
     /// Get the most recent accepted block number
     pub async fn block_number(&self) -> Result<u64, JsonRpcClientError<T::Error>> {
         self.send_request(JsonRpcMethod::BlockNumber, ()).await
+    }
+
+    /// Return the currently configured StarkNet chain id
+    pub async fn chain_id(&self) -> Result<FieldElement, JsonRpcClientError<T::Error>> {
+        Ok(self
+            .send_request::<_, Felt>(JsonRpcMethod::ChainId, ())
+            .await?
+            .0)
     }
 
     /// Call a starknet function without creating a StarkNet transaction

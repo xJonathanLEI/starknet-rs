@@ -20,6 +20,14 @@ async fn jsonrpc_block_number() {
 }
 
 #[tokio::test]
+async fn jsonrpc_chain_id() {
+    let rpc_client = create_jsonrpc_client();
+
+    let chain_id = rpc_client.chain_id().await.unwrap();
+    assert!(chain_id > FieldElement::ZERO);
+}
+
+#[tokio::test]
 async fn jsonrpc_call() {
     let rpc_client = create_jsonrpc_client();
 
