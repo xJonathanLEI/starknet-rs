@@ -43,6 +43,8 @@ pub enum JsonRpcMethod {
     ChainId,
     #[serde(rename = "starknet_syncing")]
     Syncing,
+    #[serde(rename = "starknet_getEvents")]
+    GetEvents,
     #[serde(rename = "starknet_call")]
     Call,
 }
@@ -94,6 +96,14 @@ struct Felt(#[serde_as(as = "UfeHex")] pub FieldElement);
 #[serde_as]
 #[derive(Serialize, Deserialize)]
 struct FeltArray(#[serde_as(as = "Vec<UfeHex>")] pub Vec<FieldElement>);
+
+#[derive(Serialize)]
+struct EventFilterWithPage {
+    #[serde(flatten)]
+    filter: EventFilter,
+    page_size: u64,
+    page_number: u64,
+}
 
 impl<T> JsonRpcClient<T> {
     pub fn new(transport: T) -> Self {
@@ -311,6 +321,24 @@ where
     /// Returns an object about the sync status, or false if the node is not synching
     pub async fn syncing(&self) -> Result<SyncStatusType, JsonRpcClientError<T::Error>> {
         self.send_request(JsonRpcMethod::Syncing, ()).await
+    }
+
+    /// Returns all events matching the given filter
+    pub async fn get_events(
+        &self,
+        filter: EventFilter,
+        page_size: u64,
+        page_number: u64,
+    ) -> Result<EventsPage, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetEvents,
+            [serde_json::to_value(EventFilterWithPage {
+                filter,
+                page_size,
+                page_number,
+            })?],
+        )
+        .await
     }
 
     /// Call a starknet function without creating a StarkNet transaction

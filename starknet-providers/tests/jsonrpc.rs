@@ -3,7 +3,7 @@ use starknet_core::{
     utils::{get_selector_from_name, get_storage_var_address},
 };
 use starknet_providers::jsonrpc::{
-    models::{BlockHashOrTag, BlockNumOrTag, BlockTag, FunctionCall, SyncStatusType},
+    models::{BlockHashOrTag, BlockNumOrTag, BlockTag, EventFilter, FunctionCall, SyncStatusType},
     HttpTransport, JsonRpcClient, JsonRpcClientError,
 };
 use url::Url;
@@ -244,6 +244,27 @@ async fn jsonrpc_syncing() {
     if let SyncStatusType::Syncing(sync_status) = syncing {
         assert!(sync_status.highest_block_num > 0);
     }
+}
+
+#[tokio::test]
+async fn jsonrpc_get_events() {
+    let rpc_client = create_jsonrpc_client();
+
+    let events = rpc_client
+        .get_events(
+            EventFilter {
+                from_block: Some(234500),
+                to_block: None,
+                address: None,
+                keys: None,
+            },
+            20,
+            10,
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(events.events.len(), 20);
 }
 
 #[tokio::test]
