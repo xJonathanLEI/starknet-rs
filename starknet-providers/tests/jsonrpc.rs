@@ -143,6 +143,26 @@ async fn jsonrpc_get_transaction_by_hash_non_existent_tx() {
 }
 
 #[tokio::test]
+async fn jsonrpc_get_transaction_by_block_hash_and_index() {
+    let rpc_client = create_jsonrpc_client();
+
+    let tx = rpc_client
+        .get_transaction_by_block_hash_and_index(
+            &BlockHashOrTag::Hash(
+                FieldElement::from_hex_be(
+                    "04d893935543cc0a39d1ce1597695e0fc02f9512781e0b23f41bbb01b0c6b5f1",
+                )
+                .unwrap(),
+            ),
+            0,
+        )
+        .await
+        .unwrap();
+
+    assert!(tx.entry_point_selector.is_some());
+}
+
+#[tokio::test]
 async fn jsonrpc_block_number() {
     let rpc_client = create_jsonrpc_client();
 
