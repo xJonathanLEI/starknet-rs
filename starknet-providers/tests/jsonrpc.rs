@@ -15,6 +15,39 @@ fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
 }
 
 #[tokio::test]
+async fn jsonrpc_get_block_by_hash() {
+    let rpc_client = create_jsonrpc_client();
+
+    let block = rpc_client
+        .get_block_by_hash(&BlockHashOrTag::Tag(BlockTag::Latest))
+        .await
+        .unwrap();
+    assert!(block.metadata.block_number > 0);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_block_by_hash_with_txns() {
+    let rpc_client = create_jsonrpc_client();
+
+    let block = rpc_client
+        .get_block_by_hash_with_txns(&BlockHashOrTag::Tag(BlockTag::Latest))
+        .await
+        .unwrap();
+    assert!(block.metadata.block_number > 0);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_block_by_hash_with_receipts() {
+    let rpc_client = create_jsonrpc_client();
+
+    let block = rpc_client
+        .get_block_by_hash_with_receipts(&BlockHashOrTag::Tag(BlockTag::Latest))
+        .await
+        .unwrap();
+    assert!(block.metadata.block_number > 0);
+}
+
+#[tokio::test]
 async fn jsonrpc_get_storage_at() {
     let rpc_client = create_jsonrpc_client();
 
