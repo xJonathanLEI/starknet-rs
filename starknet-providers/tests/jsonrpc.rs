@@ -1,6 +1,6 @@
 use starknet_core::{types::FieldElement, utils::get_selector_from_name};
 use starknet_providers::jsonrpc::{
-    models::{BlockHashOrTag, BlockTag, FunctionCall},
+    models::{BlockHashOrTag, BlockTag, FunctionCall, SyncStatusType},
     HttpTransport, JsonRpcClient,
 };
 use url::Url;
@@ -25,6 +25,16 @@ async fn jsonrpc_chain_id() {
 
     let chain_id = rpc_client.chain_id().await.unwrap();
     assert!(chain_id > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_syncing() {
+    let rpc_client = create_jsonrpc_client();
+
+    let syncing = rpc_client.syncing().await.unwrap();
+    if let SyncStatusType::Syncing(sync_status) = syncing {
+        assert!(sync_status.highest_block_num > 0);
+    }
 }
 
 #[tokio::test]

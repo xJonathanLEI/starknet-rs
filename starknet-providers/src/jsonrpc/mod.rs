@@ -23,6 +23,8 @@ pub enum JsonRpcMethod {
     BlockNumber,
     #[serde(rename = "starknet_chainId")]
     ChainId,
+    #[serde(rename = "starknet_syncing")]
+    Syncing,
     #[serde(rename = "starknet_call")]
     Call,
 }
@@ -88,6 +90,11 @@ where
             .send_request::<_, Felt>(JsonRpcMethod::ChainId, ())
             .await?
             .0)
+    }
+
+    /// Returns an object about the sync status, or false if the node is not synching
+    pub async fn syncing(&self) -> Result<SyncStatusType, JsonRpcClientError<T::Error>> {
+        self.send_request(JsonRpcMethod::Syncing, ()).await
     }
 
     /// Call a starknet function without creating a StarkNet transaction
