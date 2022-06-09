@@ -3,7 +3,7 @@ use starknet_core::{
     utils::{get_selector_from_name, get_storage_var_address},
 };
 use starknet_providers::jsonrpc::{
-    models::{BlockHashOrTag, BlockTag, FunctionCall, SyncStatusType},
+    models::{BlockHashOrTag, BlockNumOrTag, BlockTag, FunctionCall, SyncStatusType},
     HttpTransport, JsonRpcClient,
 };
 use url::Url;
@@ -42,6 +42,39 @@ async fn jsonrpc_get_block_by_hash_with_receipts() {
 
     let block = rpc_client
         .get_block_by_hash_with_receipts(&BlockHashOrTag::Tag(BlockTag::Latest))
+        .await
+        .unwrap();
+    assert!(block.metadata.block_number > 0);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_block_by_number() {
+    let rpc_client = create_jsonrpc_client();
+
+    let block = rpc_client
+        .get_block_by_number(&BlockNumOrTag::Number(234469))
+        .await
+        .unwrap();
+    assert!(block.metadata.block_number > 0);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_block_by_number_with_txns() {
+    let rpc_client = create_jsonrpc_client();
+
+    let block = rpc_client
+        .get_block_by_number_with_txns(&BlockNumOrTag::Number(234469))
+        .await
+        .unwrap();
+    assert!(block.metadata.block_number > 0);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_block_by_number_with_receipts() {
+    let rpc_client = create_jsonrpc_client();
+
+    let block = rpc_client
+        .get_block_by_number_with_receipts(&BlockNumOrTag::Number(234469))
         .await
         .unwrap();
     assert!(block.metadata.block_number > 0);

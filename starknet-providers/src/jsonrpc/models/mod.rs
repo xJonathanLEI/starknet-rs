@@ -62,6 +62,15 @@ pub enum BlockHashOrTag {
     Tag(BlockTag),
 }
 
+/// Block number or tag
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum BlockNumOrTag {
+    Number(u64),
+    Tag(BlockTag),
+}
+
 /// A tag specifying a dynamic reference to a block
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
