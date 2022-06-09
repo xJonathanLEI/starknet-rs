@@ -19,6 +19,10 @@ pub struct JsonRpcClient<T> {
 
 #[derive(Debug, Serialize)]
 pub enum JsonRpcMethod {
+    #[serde(rename = "starknet_getBlockByHash")]
+    GetBlockByHash,
+    #[serde(rename = "starknet_getBlockByNumber")]
+    GetBlockByNumber,
     #[serde(rename = "starknet_getStorageAt")]
     GetStorageAt,
     #[serde(rename = "starknet_blockNumber")]
@@ -63,6 +67,14 @@ struct JsonRpcRequest<T> {
     params: T,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+enum BlockResponseScopeOptions {
+    TxnHash,
+    FullTxns,
+    FullTxnAndReceipts,
+}
+
 #[serde_as]
 #[derive(Serialize, Deserialize)]
 struct Felt(#[serde_as(as = "UfeHex")] pub FieldElement);
@@ -81,6 +93,96 @@ impl<T> JsonRpcClient<T>
 where
     T: JsonRpcTransport,
 {
+    /// Get block information given the block id
+    pub async fn get_block_by_hash(
+        &self,
+        block_hash: &BlockHashOrTag,
+    ) -> Result<Block, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetBlockByHash,
+            [
+                serde_json::to_value(block_hash)?,
+                serde_json::to_value(BlockResponseScopeOptions::TxnHash)?,
+            ],
+        )
+        .await
+    }
+
+    /// Get block information given the block id
+    pub async fn get_block_by_hash_with_txns(
+        &self,
+        block_hash: &BlockHashOrTag,
+    ) -> Result<BlockWithTxns, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetBlockByHash,
+            [
+                serde_json::to_value(block_hash)?,
+                serde_json::to_value(BlockResponseScopeOptions::FullTxns)?,
+            ],
+        )
+        .await
+    }
+
+    /// Get block information given the block id
+    pub async fn get_block_by_hash_with_receipts(
+        &self,
+        block_hash: &BlockHashOrTag,
+    ) -> Result<BlockWithReceipts, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetBlockByHash,
+            [
+                serde_json::to_value(block_hash)?,
+                serde_json::to_value(BlockResponseScopeOptions::FullTxnAndReceipts)?,
+            ],
+        )
+        .await
+    }
+
+    /// Get block information given the block number (its height)
+    pub async fn get_block_by_number(
+        &self,
+        block_number: &BlockNumOrTag,
+    ) -> Result<Block, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetBlockByNumber,
+            [
+                serde_json::to_value(block_number)?,
+                serde_json::to_value(BlockResponseScopeOptions::TxnHash)?,
+            ],
+        )
+        .await
+    }
+
+    /// Get block information given the block number (its height)
+    pub async fn get_block_by_number_with_txns(
+        &self,
+        block_number: &BlockNumOrTag,
+    ) -> Result<BlockWithTxns, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetBlockByNumber,
+            [
+                serde_json::to_value(block_number)?,
+                serde_json::to_value(BlockResponseScopeOptions::FullTxns)?,
+            ],
+        )
+        .await
+    }
+
+    /// Get block information given the block number (its height)
+    pub async fn get_block_by_number_with_receipts(
+        &self,
+        block_number: &BlockNumOrTag,
+    ) -> Result<BlockWithReceipts, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetBlockByNumber,
+            [
+                serde_json::to_value(block_number)?,
+                serde_json::to_value(BlockResponseScopeOptions::FullTxnAndReceipts)?,
+            ],
+        )
+        .await
+    }
+
     /// Get the value of the storage at the given address and key
     pub async fn get_storage_at(
         &self,
