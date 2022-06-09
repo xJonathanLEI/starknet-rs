@@ -163,6 +163,18 @@ async fn jsonrpc_get_transaction_by_block_hash_and_index() {
 }
 
 #[tokio::test]
+async fn jsonrpc_get_transaction_by_block_number_and_index() {
+    let rpc_client = create_jsonrpc_client();
+
+    let tx = rpc_client
+        .get_transaction_by_block_number_and_index(&BlockNumOrTag::Number(234500), 0)
+        .await
+        .unwrap();
+
+    assert!(tx.entry_point_selector.is_some());
+}
+
+#[tokio::test]
 async fn jsonrpc_block_number() {
     let rpc_client = create_jsonrpc_client();
 
