@@ -4,7 +4,7 @@ use starknet_core::{
 };
 use starknet_providers::jsonrpc::{
     models::{BlockHashOrTag, BlockNumOrTag, BlockTag, FunctionCall, SyncStatusType},
-    HttpTransport, JsonRpcClient,
+    HttpTransport, JsonRpcClient, JsonRpcClientError,
 };
 use url::Url;
 
@@ -105,6 +105,41 @@ async fn jsonrpc_get_storage_at() {
         .unwrap();
 
     assert!(eth_balance > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_transaction_by_hash() {
+    let rpc_client = create_jsonrpc_client();
+
+    let tx = rpc_client
+        .get_transaction_by_hash(
+            FieldElement::from_hex_be(
+                "05b08d06a7f6422881d6461175f325844d179ca9018dbab5e92dc34e5c176ff1",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert!(tx.entry_point_selector.is_some());
+}
+
+#[tokio::test]
+async fn jsonrpc_get_transaction_by_hash_non_existent_tx() {
+    let rpc_client = create_jsonrpc_client();
+
+    let err = rpc_client
+        .get_transaction_by_hash(FieldElement::from_hex_be("1234").unwrap())
+        .await
+        .unwrap_err();
+
+    match err {
+        JsonRpcClientError::RpcError(err) => {
+            // INVALID_TXN_HASH
+            assert_eq!(err.code, 25);
+        }
+        _ => panic!("Unexpected error"),
+    }
 }
 
 #[tokio::test]

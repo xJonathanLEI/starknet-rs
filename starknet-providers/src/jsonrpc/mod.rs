@@ -25,6 +25,8 @@ pub enum JsonRpcMethod {
     GetBlockByNumber,
     #[serde(rename = "starknet_getStorageAt")]
     GetStorageAt,
+    #[serde(rename = "starknet_getTransactionByHash")]
+    GetTransactionByHash,
     #[serde(rename = "starknet_blockNumber")]
     BlockNumber,
     #[serde(rename = "starknet_chainId")]
@@ -201,6 +203,18 @@ where
             )
             .await?
             .0)
+    }
+
+    /// Get the details and status of a submitted transaction
+    pub async fn get_transaction_by_hash(
+        &self,
+        transaction_hash: FieldElement,
+    ) -> Result<Transaction, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetTransactionByHash,
+            [serde_json::to_value(Felt(transaction_hash))?],
+        )
+        .await
     }
 
     /// Get the most recent accepted block number
