@@ -31,6 +31,8 @@ pub enum JsonRpcMethod {
     GetTransactionByBlockHashAndIndex,
     #[serde(rename = "starknet_getTransactionByBlockNumberAndIndex")]
     GetTransactionByBlockNumberAndIndex,
+    #[serde(rename = "starknet_getTransactionReceipt")]
+    GetTransactionReceipt,
     #[serde(rename = "starknet_blockNumber")]
     BlockNumber,
     #[serde(rename = "starknet_chainId")]
@@ -249,6 +251,18 @@ where
                 serde_json::to_value(block_number)?,
                 serde_json::to_value(index)?,
             ],
+        )
+        .await
+    }
+
+    /// Get the details of a transaction by a given block number and index
+    pub async fn get_transaction_receipt(
+        &self,
+        transaction_hash: FieldElement,
+    ) -> Result<TransactionReceipt, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetTransactionReceipt,
+            [serde_json::to_value(Felt(transaction_hash))?],
         )
         .await
     }

@@ -175,6 +175,23 @@ async fn jsonrpc_get_transaction_by_block_number_and_index() {
 }
 
 #[tokio::test]
+async fn jsonrpc_get_transaction_receipt() {
+    let rpc_client = create_jsonrpc_client();
+
+    let tx = rpc_client
+        .get_transaction_receipt(
+            FieldElement::from_hex_be(
+                "05b08d06a7f6422881d6461175f325844d179ca9018dbab5e92dc34e5c176ff1",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert!(tx.actual_fee > FieldElement::ZERO);
+}
+
+#[tokio::test]
 async fn jsonrpc_block_number() {
     let rpc_client = create_jsonrpc_client();
 
