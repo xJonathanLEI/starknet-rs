@@ -1,4 +1,7 @@
-use starknet_core::{types::FieldElement, utils::get_selector_from_name};
+use starknet_core::{
+    types::FieldElement,
+    utils::{get_selector_from_name, get_storage_var_address},
+};
 use starknet_providers::jsonrpc::{
     models::{BlockHashOrTag, BlockTag, FunctionCall, SyncStatusType},
     HttpTransport, JsonRpcClient,
@@ -9,6 +12,33 @@ fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     JsonRpcClient::new(HttpTransport::new(
         Url::parse("https://starknet-goerli.cartridge.gg/").unwrap(),
     ))
+}
+
+#[tokio::test]
+async fn jsonrpc_get_storage_at() {
+    let rpc_client = create_jsonrpc_client();
+
+    // Checks L2 ETH balance via storage taking advantage of implementation detail
+    let eth_balance = rpc_client
+        .get_storage_at(
+            FieldElement::from_hex_be(
+                "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+            )
+            .unwrap(),
+            get_storage_var_address(
+                "ERC20_balances",
+                &[FieldElement::from_hex_be(
+                    "01352dd0ac2a462cb53e4f125169b28f13bd6199091a9815c444dcae83056bbc",
+                )
+                .unwrap()],
+            )
+            .unwrap(),
+            &BlockHashOrTag::Tag(BlockTag::Latest),
+        )
+        .await
+        .unwrap();
+
+    assert!(eth_balance > FieldElement::ZERO);
 }
 
 #[tokio::test]

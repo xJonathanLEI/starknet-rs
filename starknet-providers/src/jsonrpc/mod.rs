@@ -19,6 +19,8 @@ pub struct JsonRpcClient<T> {
 
 #[derive(Debug, Serialize)]
 pub enum JsonRpcMethod {
+    #[serde(rename = "starknet_getStorageAt")]
+    GetStorageAt,
     #[serde(rename = "starknet_blockNumber")]
     BlockNumber,
     #[serde(rename = "starknet_chainId")]
@@ -62,11 +64,11 @@ struct JsonRpcRequest<T> {
 }
 
 #[serde_as]
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct Felt(#[serde_as(as = "UfeHex")] pub FieldElement);
 
 #[serde_as]
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct FeltArray(#[serde_as(as = "Vec<UfeHex>")] pub Vec<FieldElement>);
 
 impl<T> JsonRpcClient<T> {
@@ -79,6 +81,26 @@ impl<T> JsonRpcClient<T>
 where
     T: JsonRpcTransport,
 {
+    /// Get the value of the storage at the given address and key
+    pub async fn get_storage_at(
+        &self,
+        contract_address: FieldElement,
+        key: FieldElement,
+        block_hash: &BlockHashOrTag,
+    ) -> Result<FieldElement, JsonRpcClientError<T::Error>> {
+        Ok(self
+            .send_request::<_, Felt>(
+                JsonRpcMethod::GetStorageAt,
+                [
+                    serde_json::to_value(Felt(contract_address))?,
+                    serde_json::to_value(Felt(key))?,
+                    serde_json::to_value(block_hash)?,
+                ],
+            )
+            .await?
+            .0)
+    }
+
     /// Get the most recent accepted block number
     pub async fn block_number(&self) -> Result<u64, JsonRpcClientError<T::Error>> {
         self.send_request(JsonRpcMethod::BlockNumber, ()).await
