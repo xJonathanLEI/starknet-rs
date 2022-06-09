@@ -178,7 +178,7 @@ async fn jsonrpc_get_transaction_by_block_number_and_index() {
 async fn jsonrpc_get_transaction_receipt() {
     let rpc_client = create_jsonrpc_client();
 
-    let tx = rpc_client
+    let receipt = rpc_client
         .get_transaction_receipt(
             FieldElement::from_hex_be(
                 "05b08d06a7f6422881d6461175f325844d179ca9018dbab5e92dc34e5c176ff1",
@@ -188,7 +188,24 @@ async fn jsonrpc_get_transaction_receipt() {
         .await
         .unwrap();
 
-    assert!(tx.actual_fee > FieldElement::ZERO);
+    assert!(receipt.actual_fee > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_block_transaction_count_by_hash() {
+    let rpc_client = create_jsonrpc_client();
+
+    let tx_count = rpc_client
+        .get_block_transaction_count_by_hash(&BlockHashOrTag::Hash(
+            FieldElement::from_hex_be(
+                "0ef4773e814cf100e0535fe5ddffcb8d1d966fc81a9cdf9ca94b2672e130334",
+            )
+            .unwrap(),
+        ))
+        .await
+        .unwrap();
+
+    assert_eq!(tx_count, 45);
 }
 
 #[tokio::test]
