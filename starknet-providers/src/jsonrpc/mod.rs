@@ -31,12 +31,20 @@ pub enum JsonRpcMethod {
     GetTransactionByBlockHashAndIndex,
     #[serde(rename = "starknet_getTransactionByBlockNumberAndIndex")]
     GetTransactionByBlockNumberAndIndex,
+    #[serde(rename = "starknet_getTransactionReceipt")]
+    GetTransactionReceipt,
+    #[serde(rename = "starknet_getBlockTransactionCountByHash")]
+    GetBlockTransactionCountByHash,
+    #[serde(rename = "starknet_getBlockTransactionCountByNumber")]
+    GetBlockTransactionCountByNumber,
     #[serde(rename = "starknet_blockNumber")]
     BlockNumber,
     #[serde(rename = "starknet_chainId")]
     ChainId,
     #[serde(rename = "starknet_syncing")]
     Syncing,
+    #[serde(rename = "starknet_getEvents")]
+    GetEvents,
     #[serde(rename = "starknet_call")]
     Call,
 }
@@ -88,6 +96,14 @@ struct Felt(#[serde_as(as = "UfeHex")] pub FieldElement);
 #[serde_as]
 #[derive(Serialize, Deserialize)]
 struct FeltArray(#[serde_as(as = "Vec<UfeHex>")] pub Vec<FieldElement>);
+
+#[derive(Serialize)]
+struct EventFilterWithPage {
+    #[serde(flatten)]
+    filter: EventFilter,
+    page_size: u64,
+    page_number: u64,
+}
 
 impl<T> JsonRpcClient<T> {
     pub fn new(transport: T) -> Self {
@@ -253,6 +269,42 @@ where
         .await
     }
 
+    /// Get the details of a transaction by a given block number and index
+    pub async fn get_transaction_receipt(
+        &self,
+        transaction_hash: FieldElement,
+    ) -> Result<TransactionReceipt, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetTransactionReceipt,
+            [serde_json::to_value(Felt(transaction_hash))?],
+        )
+        .await
+    }
+
+    /// Get the number of transactions in a block given a block hash
+    pub async fn get_block_transaction_count_by_hash(
+        &self,
+        block_hash: &BlockHashOrTag,
+    ) -> Result<u64, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetBlockTransactionCountByHash,
+            [serde_json::to_value(block_hash)?],
+        )
+        .await
+    }
+
+    /// Get the number of transactions in a block given a block number (height)
+    pub async fn get_block_transaction_count_by_number(
+        &self,
+        block_number: &BlockNumOrTag,
+    ) -> Result<u64, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetBlockTransactionCountByNumber,
+            [serde_json::to_value(block_number)?],
+        )
+        .await
+    }
+
     /// Get the most recent accepted block number
     pub async fn block_number(&self) -> Result<u64, JsonRpcClientError<T::Error>> {
         self.send_request(JsonRpcMethod::BlockNumber, ()).await
@@ -269,6 +321,24 @@ where
     /// Returns an object about the sync status, or false if the node is not synching
     pub async fn syncing(&self) -> Result<SyncStatusType, JsonRpcClientError<T::Error>> {
         self.send_request(JsonRpcMethod::Syncing, ()).await
+    }
+
+    /// Returns all events matching the given filter
+    pub async fn get_events(
+        &self,
+        filter: EventFilter,
+        page_size: u64,
+        page_number: u64,
+    ) -> Result<EventsPage, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetEvents,
+            [serde_json::to_value(EventFilterWithPage {
+                filter,
+                page_size,
+                page_number,
+            })?],
+        )
+        .await
     }
 
     /// Call a starknet function without creating a StarkNet transaction

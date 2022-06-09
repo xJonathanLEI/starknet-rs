@@ -9,6 +9,32 @@ mod serde_impls;
 
 pub use starknet_core::types::L1Address as EthAddress;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventsPage {
+    pub events: Vec<EmittedEvent>,
+    /// The returned page number
+    pub page_number: u64,
+    /// A flag indicating whether this is the end of the stream of events
+    pub is_last_page: bool,
+}
+
+/// An event emitted as a result of transaction execution
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmittedEvent {
+    /// The hash of the block in which the event was emitted
+    #[serde_as(as = "UfeHex")]
+    pub block_hash: FieldElement,
+    /// The number of the block in which the event was emitted
+    pub block_number: u64,
+    /// The transaction that emitted the event
+    #[serde_as(as = "UfeHex")]
+    pub transaction_hash: FieldElement,
+    /// The event information
+    #[serde(flatten)]
+    pub event: Event,
+}
+
 /// A StarkNet event
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -51,6 +77,23 @@ pub struct FunctionCall {
     /// The parameters passed to the function
     #[serde_as(as = "Vec<UfeHex>")]
     pub calldata: Vec<FieldElement>,
+}
+
+/// An event filter/query
+#[serde_as]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct EventFilter {
+    #[serde(rename = "fromBlock", skip_serializing_if = "Option::is_none")]
+    pub from_block: Option<u64>,
+    #[serde(rename = "toBlock", skip_serializing_if = "Option::is_none")]
+    pub to_block: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub address: Option<FieldElement>,
+    /// The values used to filter the events
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde_as(as = "Option<Vec<UfeHex>>")]
+    pub keys: Option<Vec<FieldElement>>,
 }
 
 /// Block hash or tag

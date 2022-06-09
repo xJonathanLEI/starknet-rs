@@ -3,7 +3,7 @@ use starknet_core::{
     utils::{get_selector_from_name, get_storage_var_address},
 };
 use starknet_providers::jsonrpc::{
-    models::{BlockHashOrTag, BlockNumOrTag, BlockTag, FunctionCall, SyncStatusType},
+    models::{BlockHashOrTag, BlockNumOrTag, BlockTag, EventFilter, FunctionCall, SyncStatusType},
     HttpTransport, JsonRpcClient, JsonRpcClientError,
 };
 use url::Url;
@@ -175,6 +175,52 @@ async fn jsonrpc_get_transaction_by_block_number_and_index() {
 }
 
 #[tokio::test]
+async fn jsonrpc_get_transaction_receipt() {
+    let rpc_client = create_jsonrpc_client();
+
+    let receipt = rpc_client
+        .get_transaction_receipt(
+            FieldElement::from_hex_be(
+                "05b08d06a7f6422881d6461175f325844d179ca9018dbab5e92dc34e5c176ff1",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert!(receipt.actual_fee > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_block_transaction_count_by_hash() {
+    let rpc_client = create_jsonrpc_client();
+
+    let tx_count = rpc_client
+        .get_block_transaction_count_by_hash(&BlockHashOrTag::Hash(
+            FieldElement::from_hex_be(
+                "0ef4773e814cf100e0535fe5ddffcb8d1d966fc81a9cdf9ca94b2672e130334",
+            )
+            .unwrap(),
+        ))
+        .await
+        .unwrap();
+
+    assert_eq!(tx_count, 45);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_block_transaction_count_by_number() {
+    let rpc_client = create_jsonrpc_client();
+
+    let tx_count = rpc_client
+        .get_block_transaction_count_by_number(&BlockNumOrTag::Number(234519))
+        .await
+        .unwrap();
+
+    assert_eq!(tx_count, 45);
+}
+
+#[tokio::test]
 async fn jsonrpc_block_number() {
     let rpc_client = create_jsonrpc_client();
 
@@ -198,6 +244,27 @@ async fn jsonrpc_syncing() {
     if let SyncStatusType::Syncing(sync_status) = syncing {
         assert!(sync_status.highest_block_num > 0);
     }
+}
+
+#[tokio::test]
+async fn jsonrpc_get_events() {
+    let rpc_client = create_jsonrpc_client();
+
+    let events = rpc_client
+        .get_events(
+            EventFilter {
+                from_block: Some(234500),
+                to_block: None,
+                address: None,
+                keys: None,
+            },
+            20,
+            10,
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(events.events.len(), 20);
 }
 
 #[tokio::test]
