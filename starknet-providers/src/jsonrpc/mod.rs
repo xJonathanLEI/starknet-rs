@@ -35,6 +35,8 @@ pub enum JsonRpcMethod {
     GetTransactionReceipt,
     #[serde(rename = "starknet_getBlockTransactionCountByHash")]
     GetBlockTransactionCountByHash,
+    #[serde(rename = "starknet_getBlockTransactionCountByNumber")]
+    GetBlockTransactionCountByNumber,
     #[serde(rename = "starknet_blockNumber")]
     BlockNumber,
     #[serde(rename = "starknet_chainId")]
@@ -277,6 +279,18 @@ where
         self.send_request(
             JsonRpcMethod::GetBlockTransactionCountByHash,
             [serde_json::to_value(block_hash)?],
+        )
+        .await
+    }
+
+    /// Get the number of transactions in a block given a block number (height)
+    pub async fn get_block_transaction_count_by_number(
+        &self,
+        block_number: &BlockNumOrTag,
+    ) -> Result<u64, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetBlockTransactionCountByNumber,
+            [serde_json::to_value(block_number)?],
         )
         .await
     }

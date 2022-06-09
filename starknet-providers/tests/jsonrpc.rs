@@ -209,6 +209,18 @@ async fn jsonrpc_get_block_transaction_count_by_hash() {
 }
 
 #[tokio::test]
+async fn jsonrpc_get_block_transaction_count_by_number() {
+    let rpc_client = create_jsonrpc_client();
+
+    let tx_count = rpc_client
+        .get_block_transaction_count_by_number(&BlockNumOrTag::Number(234519))
+        .await
+        .unwrap();
+
+    assert_eq!(tx_count, 45);
+}
+
+#[tokio::test]
 async fn jsonrpc_block_number() {
     let rpc_client = create_jsonrpc_client();
 
