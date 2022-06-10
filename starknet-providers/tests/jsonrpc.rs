@@ -292,3 +292,28 @@ async fn jsonrpc_call() {
 
     assert!(eth_balance[0] > FieldElement::ZERO);
 }
+
+#[tokio::test]
+async fn jsonrpc_add_invoke_transaction() {
+    let rpc_client = create_jsonrpc_client();
+
+    // This is an invalid made-up transaction but the sequencer will happily accept it anyways
+    let add_tx_result = rpc_client
+        .add_invoke_transaction(
+            &FunctionCall {
+                contract_address: FieldElement::from_hex_be(
+                    "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+                )
+                .unwrap(),
+                entry_point_selector: get_selector_from_name("__execute__").unwrap(),
+                calldata: vec![FieldElement::from_hex_be("1234").unwrap()],
+            },
+            vec![],
+            FieldElement::ONE,
+            FieldElement::ZERO,
+        )
+        .await
+        .unwrap();
+
+    assert!(add_tx_result.transaction_hash > FieldElement::ZERO);
+}

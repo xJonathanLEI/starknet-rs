@@ -316,3 +316,10 @@ pub enum TransactionStatus {
     AcceptedOnL1,
     Rejected,
 }
+
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InvokeTransactionResult {
+    #[serde_as(as = "UfeHex")]
+    pub transaction_hash: FieldElement,
+}

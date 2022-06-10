@@ -47,6 +47,8 @@ pub enum JsonRpcMethod {
     GetEvents,
     #[serde(rename = "starknet_call")]
     Call,
+    #[serde(rename = "starknet_addInvokeTransaction")]
+    AddInvokeTransaction,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -357,6 +359,26 @@ where
             )
             .await?
             .0)
+    }
+
+    /// Submit a new transaction to be added to the chain
+    pub async fn add_invoke_transaction(
+        &self,
+        function_invocation: &FunctionCall,
+        signature: Vec<FieldElement>,
+        max_fee: FieldElement,
+        version: FieldElement,
+    ) -> Result<InvokeTransactionResult, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::AddInvokeTransaction,
+            [
+                serde_json::to_value(function_invocation)?,
+                serde_json::to_value(FeltArray(signature))?,
+                serde_json::to_value(Felt(max_fee))?,
+                serde_json::to_value(Felt(version))?,
+            ],
+        )
+        .await
     }
 
     async fn send_request<P, R>(
