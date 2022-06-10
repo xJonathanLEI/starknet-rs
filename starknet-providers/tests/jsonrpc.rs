@@ -1,9 +1,15 @@
+use std::io::Write;
+
+use flate2::{write::GzEncoder, Compression};
 use starknet_core::{
-    types::FieldElement,
+    types::{ContractArtifact, FieldElement},
     utils::{get_selector_from_name, get_storage_var_address},
 };
 use starknet_providers::jsonrpc::{
-    models::{BlockHashOrTag, BlockNumOrTag, BlockTag, EventFilter, FunctionCall, SyncStatusType},
+    models::{
+        BlockHashOrTag, BlockNumOrTag, BlockTag, ContractClass, ContractEntryPoint,
+        EntryPointsByType, EventFilter, FunctionCall, SyncStatusType,
+    },
     HttpTransport, JsonRpcClient, JsonRpcClientError,
 };
 use url::Url;
@@ -12,6 +18,52 @@ fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     JsonRpcClient::new(HttpTransport::new(
         Url::parse("https://starknet-goerli.cartridge.gg/").unwrap(),
     ))
+}
+
+fn create_contract_class() -> ContractClass {
+    let artifact = serde_json::from_str::<ContractArtifact>(include_str!(
+        "../../starknet-core/test-data/contracts/artifacts/oz_account.txt"
+    ))
+    .unwrap();
+
+    let program_json = serde_json::to_string(&artifact.program).unwrap();
+    let mut gzip_encoder = GzEncoder::new(Vec::new(), Compression::best());
+    gzip_encoder.write_all(program_json.as_bytes()).unwrap();
+    let compressed_program = gzip_encoder.finish().unwrap();
+
+    ContractClass {
+        program: compressed_program,
+        entry_points_by_type: EntryPointsByType {
+            constructor: artifact
+                .entry_points_by_type
+                .constructor
+                .into_iter()
+                .map(|item| ContractEntryPoint {
+                    offset: item.offset.try_into().unwrap(),
+                    selector: item.selector,
+                })
+                .collect(),
+            external: artifact
+                .entry_points_by_type
+                .external
+                .into_iter()
+                .map(|item| ContractEntryPoint {
+                    offset: item.offset.try_into().unwrap(),
+                    selector: item.selector,
+                })
+                .collect(),
+            l1_handler: artifact
+                .entry_points_by_type
+                .l1_handler
+                .into_iter()
+                .map(|item| ContractEntryPoint {
+                    offset: item.offset.try_into().unwrap(),
+                    selector: item.selector,
+                })
+                .collect(),
+        },
+        abi: artifact.abi,
+    }
 }
 
 #[tokio::test]
@@ -316,4 +368,16 @@ async fn jsonrpc_add_invoke_transaction() {
         .unwrap();
 
     assert!(add_tx_result.transaction_hash > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_add_declare_transaction() {
+    let rpc_client = create_jsonrpc_client();
+
+    let add_tx_result = rpc_client
+        .add_declare_transaction(&create_contract_class(), FieldElement::ZERO)
+        .await
+        .unwrap();
+
+    assert!(add_tx_result.class_hash > FieldElement::ZERO);
 }

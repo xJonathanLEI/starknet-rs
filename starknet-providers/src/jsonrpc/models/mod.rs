@@ -1,13 +1,15 @@
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use starknet_core::{serde::unsigned_field_element::UfeHex, types::FieldElement};
+use starknet_core::{
+    serde::{byte_array::base64::serialize as serialize_as_base64, unsigned_field_element::UfeHex},
+    types::FieldElement,
+};
 
-use crate::jsonrpc::models::serde_impls::NumAsHex;
+pub use starknet_core::types::{AbiEntry, L1Address as EthAddress};
 
 // Not exposed by design
 mod serde_impls;
-
-pub use starknet_core::types::L1Address as EthAddress;
+use serde_impls::NumAsHex;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventsPage {
@@ -77,6 +79,39 @@ pub struct FunctionCall {
     /// The parameters passed to the function
     #[serde_as(as = "Vec<UfeHex>")]
     pub calldata: Vec<FieldElement>,
+}
+
+/// The definition of a StarkNet contract class
+#[derive(Debug, Clone, Serialize)]
+pub struct ContractClass {
+    /// A base64 representation of the compressed program code
+    #[serde(serialize_with = "serialize_as_base64")]
+    pub program: Vec<u8>,
+    pub entry_points_by_type: EntryPointsByType,
+    /// **WARNING**: This field is NON-STANDARD but required by `pathfinder`:
+    ///
+    /// https://github.com/eqlabs/pathfinder/issues/369
+    pub abi: Vec<AbiEntry>,
+}
+
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub struct EntryPointsByType {
+    pub constructor: Vec<ContractEntryPoint>,
+    pub external: Vec<ContractEntryPoint>,
+    pub l1_handler: Vec<ContractEntryPoint>,
+}
+
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContractEntryPoint {
+    /// The offset of the entry point in the program
+    #[serde_as(as = "NumAsHex")]
+    pub offset: u64,
+    /// A unique identifier of the entry point (function) in the program
+    #[serde_as(as = "UfeHex")]
+    pub selector: FieldElement,
 }
 
 /// An event filter/query
@@ -320,6 +355,18 @@ pub enum TransactionStatus {
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InvokeTransactionResult {
+    /// The hash of the invoke transaction
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
+}
+
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeclareTransactionResult {
+    /// The hash of the declare transaction
+    #[serde_as(as = "UfeHex")]
+    pub transaction_hash: FieldElement,
+    /// The hash of the declared class
+    #[serde_as(as = "UfeHex")]
+    pub class_hash: FieldElement,
 }
