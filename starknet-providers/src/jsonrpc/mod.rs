@@ -51,6 +51,8 @@ pub enum JsonRpcMethod {
     AddInvokeTransaction,
     #[serde(rename = "starknet_addDeclareTransaction")]
     AddDeclareTransaction,
+    #[serde(rename = "starknet_addDeployTransaction")]
+    AddDeployTransaction,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -394,6 +396,24 @@ where
             [
                 serde_json::to_value(contract_class)?,
                 serde_json::to_value(Felt(version))?,
+            ],
+        )
+        .await
+    }
+
+    /// Submit a new deploy contract transaction
+    pub async fn add_deploy_transaction(
+        &self,
+        contract_address_salt: FieldElement,
+        constructor_calldata: Vec<FieldElement>,
+        contract_definition: &ContractClass,
+    ) -> Result<DeployTransactionResult, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::AddDeployTransaction,
+            [
+                serde_json::to_value(Felt(contract_address_salt))?,
+                serde_json::to_value(FeltArray(constructor_calldata))?,
+                serde_json::to_value(contract_definition)?,
             ],
         )
         .await

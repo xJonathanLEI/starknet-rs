@@ -381,3 +381,21 @@ async fn jsonrpc_add_declare_transaction() {
 
     assert!(add_tx_result.class_hash > FieldElement::ZERO);
 }
+
+#[tokio::test]
+async fn jsonrpc_add_deploy_transaction() {
+    let rpc_client = create_jsonrpc_client();
+
+    let add_tx_result = rpc_client
+        .add_deploy_transaction(
+            FieldElement::ONE,
+            // We can't test constructor calldata yet due to a bug on `pathfinder`:
+            // https://github.com/eqlabs/pathfinder/issues/370
+            vec![],
+            &create_contract_class(),
+        )
+        .await
+        .unwrap();
+
+    assert!(add_tx_result.contract_address > FieldElement::ZERO);
+}

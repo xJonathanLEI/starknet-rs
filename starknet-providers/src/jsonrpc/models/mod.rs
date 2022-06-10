@@ -370,3 +370,14 @@ pub struct DeclareTransactionResult {
     #[serde_as(as = "UfeHex")]
     pub class_hash: FieldElement,
 }
+
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeployTransactionResult {
+    /// The hash of the deploy transaction
+    #[serde_as(as = "UfeHex")]
+    pub transaction_hash: FieldElement,
+    /// The address of the new contract
+    #[serde_as(as = "UfeHex")]
+    pub contract_address: FieldElement,
+}
