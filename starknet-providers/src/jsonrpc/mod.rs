@@ -47,6 +47,12 @@ pub enum JsonRpcMethod {
     GetEvents,
     #[serde(rename = "starknet_call")]
     Call,
+    #[serde(rename = "starknet_addInvokeTransaction")]
+    AddInvokeTransaction,
+    #[serde(rename = "starknet_addDeclareTransaction")]
+    AddDeclareTransaction,
+    #[serde(rename = "starknet_addDeployTransaction")]
+    AddDeployTransaction,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -357,6 +363,60 @@ where
             )
             .await?
             .0)
+    }
+
+    /// Submit a new transaction to be added to the chain
+    pub async fn add_invoke_transaction(
+        &self,
+        function_invocation: &FunctionCall,
+        signature: Vec<FieldElement>,
+        max_fee: FieldElement,
+        version: FieldElement,
+    ) -> Result<InvokeTransactionResult, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::AddInvokeTransaction,
+            [
+                serde_json::to_value(function_invocation)?,
+                serde_json::to_value(FeltArray(signature))?,
+                serde_json::to_value(Felt(max_fee))?,
+                serde_json::to_value(Felt(version))?,
+            ],
+        )
+        .await
+    }
+
+    /// Submit a new transaction to be added to the chain
+    pub async fn add_declare_transaction(
+        &self,
+        contract_class: &ContractClass,
+        version: FieldElement,
+    ) -> Result<DeclareTransactionResult, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::AddDeclareTransaction,
+            [
+                serde_json::to_value(contract_class)?,
+                serde_json::to_value(Felt(version))?,
+            ],
+        )
+        .await
+    }
+
+    /// Submit a new deploy contract transaction
+    pub async fn add_deploy_transaction(
+        &self,
+        contract_address_salt: FieldElement,
+        constructor_calldata: Vec<FieldElement>,
+        contract_definition: &ContractClass,
+    ) -> Result<DeployTransactionResult, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::AddDeployTransaction,
+            [
+                serde_json::to_value(Felt(contract_address_salt))?,
+                serde_json::to_value(FeltArray(constructor_calldata))?,
+                serde_json::to_value(contract_definition)?,
+            ],
+        )
+        .await
     }
 
     async fn send_request<P, R>(
