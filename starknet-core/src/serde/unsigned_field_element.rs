@@ -14,7 +14,7 @@ impl SerializeAs<FieldElement> for UfeHex {
     where
         S: Serializer,
     {
-        serializer.serialize_str(&format!("{:#064x}", value))
+        serializer.serialize_str(&format!("{:#x}", value))
     }
 }
 
