@@ -348,16 +348,19 @@ where
     }
 
     /// Call a starknet function without creating a StarkNet transaction
-    pub async fn call(
+    pub async fn call<R>(
         &self,
-        request: &FunctionCall,
+        request: R,
         block_hash: &BlockHashOrTag,
-    ) -> Result<Vec<FieldElement>, JsonRpcClientError<T::Error>> {
+    ) -> Result<Vec<FieldElement>, JsonRpcClientError<T::Error>>
+    where
+        R: AsRef<FunctionCall>,
+    {
         Ok(self
             .send_request::<_, FeltArray>(
                 JsonRpcMethod::Call,
                 [
-                    serde_json::to_value(request)?,
+                    serde_json::to_value(request.as_ref())?,
                     serde_json::to_value(block_hash)?,
                 ],
             )
