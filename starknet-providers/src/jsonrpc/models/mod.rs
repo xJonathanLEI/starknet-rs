@@ -381,3 +381,9 @@ pub struct DeployTransactionResult {
     #[serde_as(as = "UfeHex")]
     pub contract_address: FieldElement,
 }
+
+impl AsRef<FunctionCall> for FunctionCall {
+    fn as_ref(&self) -> &FunctionCall {
+        self
+    }
+}
