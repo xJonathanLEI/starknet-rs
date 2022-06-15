@@ -114,3 +114,7 @@ jobs:
       - name: Run starknet-signers tests
         run: |
           (cd ./starknet-signers && wasm-pack test --node)
+
+      - name: Run starknet-macros tests
+        run: |
+          (cd ./starknet-macros && wasm-pack test --node)
