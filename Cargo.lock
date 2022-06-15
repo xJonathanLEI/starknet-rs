@@ -1577,6 +1577,7 @@ dependencies = [
  "starknet-accounts",
  "starknet-contract",
  "starknet-core",
+ "starknet-macros",
  "starknet-providers",
  "starknet-signers",
  "tokio",
@@ -1660,6 +1661,14 @@ dependencies = [
  "serde",
  "thiserror",
  "wasm-bindgen-test",
+]
+
+[[package]]
+name = "starknet-macros"
+version = "0.1.0"
+dependencies = [
+ "starknet-core",
+ "syn",
 ]
 
 [[package]]

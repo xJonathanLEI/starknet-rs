@@ -49,6 +49,7 @@ This workspace contains the following crates:
 - `starknet-signers`: StarkNet signer implementations
 - `starknet-accounts`: Types for handling StarkNet account abstraction
 - `starknet-ff`: StarkNet field element type
+- `starknet-macros`: Useful macros for using the `starknet` crates
 
 ## Example
 

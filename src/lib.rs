@@ -37,6 +37,10 @@
 //! ## `accounts`
 //!
 //! Contains types for using account abstraction on StarkNet.
+//!
+//! ## `macros`
+//!
+//! Contains procedural macros useful for this crate.
 
 #[doc = include_str!("../assets/CORE_README.md")]
 pub mod core {
@@ -61,4 +65,9 @@ pub mod signers {
 #[doc = include_str!("../assets/ACCOUNTS_README.md")]
 pub mod accounts {
     pub use starknet_accounts::*;
+}
+
+#[doc = include_str!("../assets/MACROS_README.md")]
+pub mod macros {
+    pub use starknet_macros::*;
 }

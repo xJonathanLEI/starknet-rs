@@ -166,6 +166,11 @@ impl FieldElement {
         buffer
     }
 
+    /// Transforms [FieldElement] into its Montgomery representation
+    pub const fn into_mont(self) -> [u64; 4] {
+        self.inner.0 .0
+    }
+
     pub fn invert(&self) -> Option<FieldElement> {
         self.inner.inverse().map(|inner| Self { inner })
     }
