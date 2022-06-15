@@ -16,7 +16,7 @@ use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     JsonRpcClient::new(HttpTransport::new(
-        Url::parse("https://starknet-goerli.cartridge.gg/").unwrap(),
+        Url::parse("https://starknet-goerli.rpc.zklend.com/").unwrap(),
     ))
 }
 
