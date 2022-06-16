@@ -179,6 +179,26 @@ impl FieldElement {
         self.inner.sqrt().map(|inner| Self { inner })
     }
 
+    /// Performs a floor division. It's not implemented as the `Div` trait on purpose to
+    /// distinguish from the "felt division".
+    pub fn floor_div(&self, rhs: FieldElement) -> FieldElement {
+        let lhs: U256 = self.into();
+        let rhs: U256 = (&rhs).into();
+        let div_result = lhs.div_rem(&rhs);
+
+        if div_result.is_some().into() {
+            let (quotient, _) = div_result.unwrap();
+
+            // It's safe to unwrap here since `rem` is never out of range
+            FieldElement {
+                inner: Fp256::<FrParameters>::from_repr(u256_to_biginteger256(&quotient)).unwrap(),
+            }
+        } else {
+            // TODO: add `checked_floor_div` for panic-less use
+            panic!("division by zero");
+        }
+    }
+
     /// For internal use only. The input must be of length [U256_BYTE_COUNT].
     fn from_byte_slice(bytes: &[u8]) -> Option<Self> {
         let mut bits = [false; U256_BYTE_COUNT * 8];
@@ -637,6 +657,21 @@ mod tests {
             assert_eq!(
                 FieldElement::from_dec_str(item[0]).unwrap()
                     % FieldElement::from_dec_str(item[1]).unwrap(),
+                FieldElement::from_dec_str(item[2]).unwrap()
+            );
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_floor_division() {
+        let quotients = [["123456", "100", "1234"], ["7", "3", "2"], ["3", "6", "0"]];
+
+        for item in quotients.iter() {
+            assert_eq!(
+                FieldElement::from_dec_str(item[0])
+                    .unwrap()
+                    .floor_div(FieldElement::from_dec_str(item[1]).unwrap()),
                 FieldElement::from_dec_str(item[2]).unwrap()
             );
         }
