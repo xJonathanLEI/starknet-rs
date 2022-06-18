@@ -14,8 +14,10 @@ keywords = ["ethereum", "starknet", "web3"]
 
 [dependencies]
 ark-ff = "0.3.0"
+bigdecimal = "0.3.0"
 crypto-bigint = "0.3.2"
 hex = "0.4.3"
+num-bigint = "0.4.3"
 serde = "1.0.133"
 thiserror = "1.0.30"
 

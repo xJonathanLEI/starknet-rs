@@ -3,7 +3,9 @@
 use crate::fr::FrParameters;
 
 use ark_ff::{fields::Fp256, BigInteger, BigInteger256, Field, PrimeField, SquareRootField};
+use bigdecimal::BigDecimal;
 use crypto_bigint::{CheckedAdd, CheckedMul, Zero, U256};
+use num_bigint::{BigInt, Sign};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Display, LowerHex, UpperHex};
 
@@ -144,6 +146,14 @@ impl FieldElement {
     /// * `bytes`: The byte array in **big endian** format
     pub fn from_bytes_be(bytes: &[u8; 32]) -> Result<Self, FromByteArrayError> {
         Self::from_byte_slice(bytes).ok_or(FromByteArrayError)
+    }
+
+    /// Interprets the field element as a decimal number of a certain decimal places.
+    pub fn to_big_decimal<D: Into<i64>>(&self, decimals: D) -> BigDecimal {
+        BigDecimal::new(
+            BigInt::from_bytes_be(Sign::Plus, &self.to_bytes_be()),
+            decimals.into(),
+        )
     }
 
     /// Transforms [FieldElement] into little endian bit representation.
@@ -537,6 +547,8 @@ fn u256_to_u64_array(num: &U256) -> [u64; 4] {
 
 #[cfg(test)]
 mod tests {
+    use bigdecimal::Num;
+
     use super::*;
 
     #[test]
@@ -689,5 +701,36 @@ mod tests {
         assert_eq!(u16::try_from(fe_256).unwrap(), 256u16);
         assert_eq!(u32::try_from(fe_256).unwrap(), 256u32);
         assert_eq!(u64::try_from(fe_256).unwrap(), 256u64);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_to_big_decimal() {
+        let nums = [
+            (
+                "134500",
+                5,
+                BigDecimal::from_str_radix("1.345", 10).unwrap(),
+            ),
+            (
+                "134500",
+                0,
+                BigDecimal::from_str_radix("134500", 10).unwrap(),
+            ),
+            (
+                "134500",
+                10,
+                BigDecimal::from_str_radix("0.00001345", 10).unwrap(),
+            ),
+        ];
+
+        for num in nums.into_iter() {
+            assert_eq!(
+                FieldElement::from_dec_str(num.0)
+                    .unwrap()
+                    .to_big_decimal(num.1),
+                num.2
+            );
+        }
     }
 }
