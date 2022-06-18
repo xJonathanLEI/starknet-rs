@@ -12,10 +12,15 @@ StarkNet field element type
 """
 keywords = ["ethereum", "starknet", "web3"]
 
+[package.metadata.docs.rs]
+all-features = true
+
 [dependencies]
 ark-ff = "0.3.0"
+bigdecimal = { version = "0.3.0", optional = true }
 crypto-bigint = "0.3.2"
 hex = "0.4.3"
+num-bigint = { version = "0.4.3", optional = true }
 serde = "1.0.133"
 thiserror = "1.0.30"
 
@@ -24,3 +29,7 @@ getrandom = { version = "0.2.3", features = ["js"] }
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3.29"
+
+[features]
+default = ["bigdecimal"]
+bigdecimal = ["dep:bigdecimal", "dep:num-bigint"]

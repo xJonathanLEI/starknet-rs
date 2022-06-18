@@ -146,6 +146,17 @@ impl FieldElement {
         Self::from_byte_slice(bytes).ok_or(FromByteArrayError)
     }
 
+    /// Interprets the field element as a decimal number of a certain decimal places.
+    #[cfg(feature = "bigdecimal")]
+    pub fn to_big_decimal<D: Into<i64>>(&self, decimals: D) -> bigdecimal::BigDecimal {
+        use num_bigint::{BigInt, Sign};
+
+        bigdecimal::BigDecimal::new(
+            BigInt::from_bytes_be(Sign::Plus, &self.to_bytes_be()),
+            decimals.into(),
+        )
+    }
+
     /// Transforms [FieldElement] into little endian bit representation.
     pub fn to_bits_le(self) -> [bool; 256] {
         let mut bits = [false; 256];
@@ -689,5 +700,39 @@ mod tests {
         assert_eq!(u16::try_from(fe_256).unwrap(), 256u16);
         assert_eq!(u32::try_from(fe_256).unwrap(), 256u32);
         assert_eq!(u64::try_from(fe_256).unwrap(), 256u64);
+    }
+
+    #[test]
+    #[cfg(feature = "bigdecimal")]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_to_big_decimal() {
+        use bigdecimal::{BigDecimal, Num};
+
+        let nums = [
+            (
+                "134500",
+                5,
+                BigDecimal::from_str_radix("1.345", 10).unwrap(),
+            ),
+            (
+                "134500",
+                0,
+                BigDecimal::from_str_radix("134500", 10).unwrap(),
+            ),
+            (
+                "134500",
+                10,
+                BigDecimal::from_str_radix("0.00001345", 10).unwrap(),
+            ),
+        ];
+
+        for num in nums.into_iter() {
+            assert_eq!(
+                FieldElement::from_dec_str(num.0)
+                    .unwrap()
+                    .to_big_decimal(num.1),
+                num.2
+            );
+        }
     }
 }

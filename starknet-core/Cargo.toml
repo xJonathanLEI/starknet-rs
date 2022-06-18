@@ -12,9 +12,12 @@ Core structures for the starknet crate
 """
 keywords = ["ethereum", "starknet", "web3"]
 
+[package.metadata.docs.rs]
+all-features = true
+
 [dependencies]
 starknet-crypto = { version = "0.1.0", path = "../starknet-crypto" }
-starknet-ff = { version = "0.1.0", path = "../starknet-ff" }
+starknet-ff = { version = "0.1.0", path = "../starknet-ff", default-features = false }
 base64 = "0.13.0"
 ethereum-types = "0.12.1"
 hex = "0.4.3"
@@ -26,3 +29,7 @@ thiserror = "1.0.30"
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3.29"
+
+[features]
+default = ["bigdecimal"]
+bigdecimal = ["starknet-ff/bigdecimal"]
