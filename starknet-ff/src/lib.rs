@@ -3,9 +3,7 @@
 use crate::fr::FrParameters;
 
 use ark_ff::{fields::Fp256, BigInteger, BigInteger256, Field, PrimeField, SquareRootField};
-use bigdecimal::BigDecimal;
 use crypto_bigint::{CheckedAdd, CheckedMul, Zero, U256};
-use num_bigint::{BigInt, Sign};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Display, LowerHex, UpperHex};
 
@@ -149,8 +147,11 @@ impl FieldElement {
     }
 
     /// Interprets the field element as a decimal number of a certain decimal places.
-    pub fn to_big_decimal<D: Into<i64>>(&self, decimals: D) -> BigDecimal {
-        BigDecimal::new(
+    #[cfg(feature = "bigdecimal")]
+    pub fn to_big_decimal<D: Into<i64>>(&self, decimals: D) -> bigdecimal::BigDecimal {
+        use num_bigint::{BigInt, Sign};
+
+        bigdecimal::BigDecimal::new(
             BigInt::from_bytes_be(Sign::Plus, &self.to_bytes_be()),
             decimals.into(),
         )
@@ -547,8 +548,6 @@ fn u256_to_u64_array(num: &U256) -> [u64; 4] {
 
 #[cfg(test)]
 mod tests {
-    use bigdecimal::Num;
-
     use super::*;
 
     #[test]
@@ -704,8 +703,11 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "bigdecimal")]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_to_big_decimal() {
+        use bigdecimal::{BigDecimal, Num};
+
         let nums = [
             (
                 "134500",
