@@ -20,6 +20,28 @@ pub fn selector(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
+pub fn felt(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as LitStr);
+
+    let str_value = input.value();
+
+    let felt_value = if str_value.starts_with("0x") {
+        FieldElement::from_hex_be(&str_value).expect("invalid FieldElement value")
+    } else {
+        FieldElement::from_dec_str(&str_value).expect("invalid FieldElement value")
+    };
+
+    let felt_raw = felt_value.into_mont();
+
+    format!(
+        "::starknet::core::types::FieldElement::from_mont([{}, {}, {}, {}])",
+        felt_raw[0], felt_raw[1], felt_raw[2], felt_raw[3],
+    )
+    .parse()
+    .unwrap()
+}
+
+#[proc_macro]
 pub fn felt_dec(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as LitStr);
 
