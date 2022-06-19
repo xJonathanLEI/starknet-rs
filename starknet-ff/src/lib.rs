@@ -5,7 +5,10 @@ use crate::fr::FrParameters;
 use ark_ff::{fields::Fp256, BigInteger, BigInteger256, Field, PrimeField, SquareRootField};
 use crypto_bigint::{CheckedAdd, CheckedMul, Zero, U256};
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Display, LowerHex, UpperHex};
+use std::{
+    fmt::{Debug, Display, LowerHex, UpperHex},
+    str::FromStr,
+};
 
 mod fr;
 
@@ -17,19 +20,9 @@ pub struct FieldElement {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum FromDecStrError {
+pub enum FromStrError {
     #[error("invalid character")]
     InvalidCharacter,
-    #[error("number out of range")]
-    OutOfRange,
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum FromHexError {
-    #[error("invalid character")]
-    InvalidCharacter,
-    #[error("invalid length")]
-    InvalidLength,
     #[error("number out of range")]
     OutOfRange,
 }
@@ -74,21 +67,21 @@ impl FieldElement {
         }
     }
 
-    pub fn from_dec_str(value: &str) -> Result<Self, FromDecStrError> {
+    pub fn from_dec_str(value: &str) -> Result<Self, FromStrError> {
         // Ported from:
         //   https://github.com/paritytech/parity-common/blob/b37d0b312d39fa47c61c4430b30ca87d90e45a08/uint/src/uint.rs#L599
 
         let mut res = U256::ZERO;
         for b in value.bytes().map(|b| b.wrapping_sub(b'0')) {
             if b > 9 {
-                return Err(FromDecStrError::InvalidCharacter);
+                return Err(FromStrError::InvalidCharacter);
             }
             let r = {
                 let product = res.checked_mul(&U256::from_u8(10));
                 if product.is_some().into() {
                     product.unwrap()
                 } else {
-                    return Err(FromDecStrError::OutOfRange);
+                    return Err(FromStrError::OutOfRange);
                 }
             };
             let r = {
@@ -96,7 +89,7 @@ impl FieldElement {
                 if sum.is_some().into() {
                     sum.unwrap()
                 } else {
-                    return Err(FromDecStrError::OutOfRange);
+                    return Err(FromStrError::OutOfRange);
                 }
             };
             res = r;
@@ -104,10 +97,10 @@ impl FieldElement {
 
         Fp256::<FrParameters>::from_repr(u256_to_biginteger256(&res))
             .map(|inner| Self { inner })
-            .ok_or(FromDecStrError::OutOfRange)
+            .ok_or(FromStrError::OutOfRange)
     }
 
-    pub fn from_hex_be(value: &str) -> Result<Self, FromHexError> {
+    pub fn from_hex_be(value: &str) -> Result<Self, FromStrError> {
         let value = value.trim_start_matches("0x");
 
         let hex_chars_len = value.len();
@@ -115,7 +108,7 @@ impl FieldElement {
 
         let parsed_bytes: [u8; U256_BYTE_COUNT] = if hex_chars_len == expected_hex_length {
             let mut buffer = [0u8; U256_BYTE_COUNT];
-            hex::decode_to_slice(value, &mut buffer).map_err(|_| FromHexError::InvalidCharacter)?;
+            hex::decode_to_slice(value, &mut buffer).map_err(|_| FromStrError::InvalidCharacter)?;
             buffer
         } else if hex_chars_len < expected_hex_length {
             let mut padded_hex = str::repeat("0", expected_hex_length - hex_chars_len);
@@ -123,15 +116,15 @@ impl FieldElement {
 
             let mut buffer = [0u8; U256_BYTE_COUNT];
             hex::decode_to_slice(&padded_hex, &mut buffer)
-                .map_err(|_| FromHexError::InvalidCharacter)?;
+                .map_err(|_| FromStrError::InvalidCharacter)?;
             buffer
         } else {
-            return Err(FromHexError::InvalidLength);
+            return Err(FromStrError::OutOfRange);
         };
 
         match Self::from_bytes_be(&parsed_bytes) {
             Ok(value) => Ok(value),
-            Err(_) => Err(FromHexError::OutOfRange),
+            Err(_) => Err(FromStrError::OutOfRange),
         }
     }
 
@@ -457,6 +450,18 @@ impl From<usize> for FieldElement {
     }
 }
 
+impl FromStr for FieldElement {
+    type Err = FromStrError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.starts_with("0x") {
+            FieldElement::from_hex_be(s)
+        } else {
+            FieldElement::from_dec_str(s)
+        }
+    }
+}
+
 impl TryFrom<FieldElement> for u8 {
     type Error = ValueOutOfRangeError;
 
@@ -732,6 +737,22 @@ mod tests {
                     .unwrap()
                     .to_big_decimal(num.1),
                 num.2
+            );
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_from_str() {
+        let nums = [
+            ("134500", "0x20d64"),
+            ("9999999999999999", "0x2386f26fc0ffff"),
+        ];
+
+        for num in nums.into_iter() {
+            assert_eq!(
+                num.0.parse::<FieldElement>().unwrap(),
+                num.1.parse::<FieldElement>().unwrap(),
             );
         }
     }
