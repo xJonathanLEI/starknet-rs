@@ -36,6 +36,7 @@ pub struct Function {
     pub name: String,
     pub inputs: Vec<Input>,
     pub outputs: Vec<Output>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub state_mutability: Option<String>,
 }
 
