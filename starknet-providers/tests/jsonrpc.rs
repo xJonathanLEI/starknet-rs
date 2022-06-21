@@ -389,9 +389,7 @@ async fn jsonrpc_add_deploy_transaction() {
     let add_tx_result = rpc_client
         .add_deploy_transaction(
             FieldElement::ONE,
-            // We can't test constructor calldata yet due to a bug on `pathfinder`:
-            // https://github.com/eqlabs/pathfinder/issues/370
-            vec![],
+            vec![FieldElement::ONE],
             &create_contract_class(),
         )
         .await
