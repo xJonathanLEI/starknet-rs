@@ -5,7 +5,7 @@ use starknet_core::{
     types::FieldElement,
 };
 
-pub use starknet_core::types::{AbiEntry, L1Address as EthAddress};
+pub use starknet_core::types::L1Address as EthAddress;
 
 // Not exposed by design
 mod serde_impls;
@@ -88,10 +88,6 @@ pub struct ContractClass {
     #[serde(serialize_with = "serialize_as_base64")]
     pub program: Vec<u8>,
     pub entry_points_by_type: EntryPointsByType,
-    /// **WARNING**: This field is NON-STANDARD but required by `pathfinder`:
-    ///
-    /// https://github.com/eqlabs/pathfinder/issues/369
-    pub abi: Vec<AbiEntry>,
 }
 
 #[serde_as]

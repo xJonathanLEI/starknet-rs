@@ -62,7 +62,6 @@ fn create_contract_class() -> ContractClass {
                 })
                 .collect(),
         },
-        abi: artifact.abi,
     }
 }
 
