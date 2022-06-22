@@ -218,6 +218,12 @@ impl FieldElement {
     }
 }
 
+impl Default for FieldElement {
+    fn default() -> Self {
+        Self::ZERO
+    }
+}
+
 impl std::ops::Add<FieldElement> for FieldElement {
     type Output = FieldElement;
 
@@ -554,6 +560,12 @@ fn u256_to_u64_array(num: &U256) -> [u64; 4] {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_default_value() {
+        assert_eq!(FieldElement::default(), FieldElement::ZERO)
+    }
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
