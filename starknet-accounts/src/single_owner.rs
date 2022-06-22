@@ -161,6 +161,10 @@ where
     type EstimateFeeError = TransactionError<P::Error, S::SignError>;
     type SendTransactionError = TransactionError<P::Error, S::SignError>;
 
+    fn address(&self) -> FieldElement {
+        self.address
+    }
+
     async fn get_nonce(
         &self,
         block_identifier: BlockId,

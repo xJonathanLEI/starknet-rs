@@ -31,6 +31,8 @@ pub trait Account: Sized {
     type EstimateFeeError: Error + Send;
     type SendTransactionError: Error + Send;
 
+    fn address(&self) -> FieldElement;
+
     async fn get_nonce(
         &self,
         block_identifier: BlockId,
