@@ -288,6 +288,34 @@ impl std::ops::Rem<FieldElement> for FieldElement {
     }
 }
 
+impl std::ops::BitAnd<FieldElement> for FieldElement {
+    type Output = FieldElement;
+
+    fn bitand(self, rhs: FieldElement) -> Self::Output {
+        let lhs: U256 = (&self).into();
+        let rhs: U256 = (&rhs).into();
+
+        // It's safe to unwrap here since the result is never out of range
+        FieldElement {
+            inner: Fp256::<FrParameters>::from_repr(u256_to_biginteger256(&(lhs & rhs))).unwrap(),
+        }
+    }
+}
+
+impl std::ops::BitOr<FieldElement> for FieldElement {
+    type Output = FieldElement;
+
+    fn bitor(self, rhs: FieldElement) -> Self::Output {
+        let lhs: U256 = (&self).into();
+        let rhs: U256 = (&rhs).into();
+
+        // It's safe to unwrap here since the result is never out of range
+        FieldElement {
+            inner: Fp256::<FrParameters>::from_repr(u256_to_biginteger256(&(lhs | rhs))).unwrap(),
+        }
+    }
+}
+
 impl Debug for FieldElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("FieldElement")
@@ -687,6 +715,30 @@ mod tests {
                     % FieldElement::from_dec_str(item[1]).unwrap(),
                 FieldElement::from_dec_str(item[2]).unwrap()
             );
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_bitwise_and() {
+        let operands = [[123456_u64, 567890], [613221132151, 4523451]];
+
+        for item in operands.iter() {
+            let lhs: FieldElement = item[0].into();
+            let rhs: FieldElement = item[1].into();
+            assert_eq!(lhs & rhs, (item[0] & item[1]).into());
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_bitwise_or() {
+        let operands = [[123456_u64, 567890], [613221132151, 4523451]];
+
+        for item in operands.iter() {
+            let lhs: FieldElement = item[0].into();
+            let rhs: FieldElement = item[1].into();
+            assert_eq!(lhs | rhs, (item[0] | item[1]).into());
         }
     }
 
