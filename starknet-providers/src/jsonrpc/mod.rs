@@ -35,6 +35,8 @@ pub enum JsonRpcMethod {
     GetTransactionReceipt,
     #[serde(rename = "starknet_getClass")]
     GetClass,
+    #[serde(rename = "starknet_getClassHashAt")]
+    GetClassHashAt,
     #[serde(rename = "starknet_getBlockTransactionCountByHash")]
     GetBlockTransactionCountByHash,
     #[serde(rename = "starknet_getBlockTransactionCountByNumber")]
@@ -299,6 +301,20 @@ where
             [serde_json::to_value(Felt(class_hash))?],
         )
         .await
+    }
+
+    /// Get the contract class hash for the contract deployed at the given address
+    pub async fn get_class_hash_at(
+        &self,
+        contract_address: FieldElement,
+    ) -> Result<FieldElement, JsonRpcClientError<T::Error>> {
+        Ok(self
+            .send_request::<_, Felt>(
+                JsonRpcMethod::GetClassHashAt,
+                [serde_json::to_value(Felt(contract_address))?],
+            )
+            .await?
+            .0)
     }
 
     /// Get the number of transactions in a block given a block hash

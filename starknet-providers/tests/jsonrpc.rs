@@ -260,6 +260,29 @@ async fn jsonrpc_get_class() {
 }
 
 #[tokio::test]
+async fn jsonrpc_get_class_hash_at() {
+    let rpc_client = create_jsonrpc_client();
+
+    let class_hash = rpc_client
+        .get_class_hash_at(
+            FieldElement::from_hex_be(
+                "06b3dab9c563083e7e74d9a7ab7649f7af4564cfef397f8e44233a1feffc7049",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(
+        class_hash,
+        FieldElement::from_hex_be(
+            "025ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918"
+        )
+        .unwrap()
+    );
+}
+
+#[tokio::test]
 async fn jsonrpc_get_block_transaction_count_by_hash() {
     let rpc_client = create_jsonrpc_client();
 
