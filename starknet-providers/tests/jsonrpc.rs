@@ -7,7 +7,7 @@ use starknet_core::{
 };
 use starknet_providers::jsonrpc::{
     models::{
-        BlockHashOrTag, BlockNumOrTag, BlockTag, ContractClass, ContractEntryPoint,
+        BlockHashOrTag, BlockNumOrTag, BlockTag, CompressedContractClass, ContractEntryPoint,
         EntryPointsByType, EventFilter, FunctionCall, SyncStatusType,
     },
     HttpTransport, JsonRpcClient, JsonRpcClientError,
@@ -20,7 +20,7 @@ fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     ))
 }
 
-fn create_contract_class() -> ContractClass {
+fn create_contract_class() -> CompressedContractClass {
     let artifact = serde_json::from_str::<ContractArtifact>(include_str!(
         "../../starknet-core/test-data/contracts/artifacts/oz_account.txt"
     ))
@@ -31,7 +31,7 @@ fn create_contract_class() -> ContractClass {
     gzip_encoder.write_all(program_json.as_bytes()).unwrap();
     let compressed_program = gzip_encoder.finish().unwrap();
 
-    ContractClass {
+    CompressedContractClass {
         program: compressed_program,
         entry_points_by_type: EntryPointsByType {
             constructor: artifact
@@ -240,6 +240,23 @@ async fn jsonrpc_get_transaction_receipt() {
         .unwrap();
 
     assert!(receipt.actual_fee > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_class() {
+    let rpc_client = create_jsonrpc_client();
+
+    let class = rpc_client
+        .get_class(
+            FieldElement::from_hex_be(
+                "025ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert!(!class.program.is_empty());
 }
 
 #[tokio::test]

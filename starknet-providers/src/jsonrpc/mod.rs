@@ -33,6 +33,8 @@ pub enum JsonRpcMethod {
     GetTransactionByBlockNumberAndIndex,
     #[serde(rename = "starknet_getTransactionReceipt")]
     GetTransactionReceipt,
+    #[serde(rename = "starknet_getClass")]
+    GetClass,
     #[serde(rename = "starknet_getBlockTransactionCountByHash")]
     GetBlockTransactionCountByHash,
     #[serde(rename = "starknet_getBlockTransactionCountByNumber")]
@@ -287,6 +289,18 @@ where
         .await
     }
 
+    /// Get the contract class definition associated with the given hash
+    pub async fn get_class(
+        &self,
+        class_hash: FieldElement,
+    ) -> Result<ContractClass, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetClass,
+            [serde_json::to_value(Felt(class_hash))?],
+        )
+        .await
+    }
+
     /// Get the number of transactions in a block given a block hash
     pub async fn get_block_transaction_count_by_hash(
         &self,
@@ -391,7 +405,7 @@ where
     /// Submit a new transaction to be added to the chain
     pub async fn add_declare_transaction(
         &self,
-        contract_class: &ContractClass,
+        contract_class: &CompressedContractClass,
         version: FieldElement,
     ) -> Result<DeclareTransactionResult, JsonRpcClientError<T::Error>> {
         self.send_request(
@@ -409,7 +423,7 @@ where
         &self,
         contract_address_salt: FieldElement,
         constructor_calldata: Vec<FieldElement>,
-        contract_definition: &ContractClass,
+        contract_definition: &CompressedContractClass,
     ) -> Result<DeployTransactionResult, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::AddDeployTransaction,
