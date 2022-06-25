@@ -53,6 +53,8 @@ pub enum JsonRpcMethod {
     GetEvents,
     #[serde(rename = "starknet_call")]
     Call,
+    #[serde(rename = "starknet_estimateFee")]
+    EstimateFee,
     #[serde(rename = "starknet_addInvokeTransaction")]
     AddInvokeTransaction,
     #[serde(rename = "starknet_addDeclareTransaction")]
@@ -410,6 +412,25 @@ where
             )
             .await?
             .0)
+    }
+
+    /// Estimate the fee for a given StarkNet transaction
+    pub async fn estimate_fee<R>(
+        &self,
+        request: R,
+        block_hash: &BlockHashOrTag,
+    ) -> Result<FeeEstimate, JsonRpcClientError<T::Error>>
+    where
+        R: AsRef<FunctionCall>,
+    {
+        self.send_request(
+            JsonRpcMethod::EstimateFee,
+            [
+                serde_json::to_value(request.as_ref())?,
+                serde_json::to_value(block_hash)?,
+            ],
+        )
+        .await
     }
 
     /// Submit a new transaction to be added to the chain

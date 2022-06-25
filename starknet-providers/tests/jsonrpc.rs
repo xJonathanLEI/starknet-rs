@@ -402,6 +402,35 @@ async fn jsonrpc_call() {
 }
 
 #[tokio::test]
+async fn jsonrpc_estimate_fee() {
+    let rpc_client = create_jsonrpc_client();
+
+    // Same as `jsonrpc_call`
+    let estimate = rpc_client
+        .estimate_fee(
+            &FunctionCall {
+                contract_address: FieldElement::from_hex_be(
+                    "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+                )
+                .unwrap(),
+                entry_point_selector: get_selector_from_name("balanceOf").unwrap(),
+                calldata: vec![FieldElement::from_hex_be(
+                    "01352dd0ac2a462cb53e4f125169b28f13bd6199091a9815c444dcae83056bbc",
+                )
+                .unwrap()],
+            },
+            &BlockHashOrTag::Tag(BlockTag::Latest),
+        )
+        .await
+        .unwrap();
+
+    // There seems to be a bug in `gas_comsumed` causing it to be zero:
+    //   https://github.com/eqlabs/pathfinder/issues/412
+    assert!(estimate.gas_price > FieldElement::ZERO);
+    assert!(estimate.overall_fee > FieldElement::ZERO);
+}
+
+#[tokio::test]
 async fn jsonrpc_add_invoke_transaction() {
     let rpc_client = create_jsonrpc_client();
 

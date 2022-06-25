@@ -362,6 +362,20 @@ pub enum TransactionStatus {
 
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FeeEstimate {
+    /// The Ethereum gas cost of the transaction
+    #[serde_as(as = "UfeHex")]
+    pub gas_consumed: FieldElement,
+    /// The gas price (in gwei) that was used in the cost estimation
+    #[serde_as(as = "UfeHex")]
+    pub gas_price: FieldElement,
+    /// The estimated fee for the transaction (in gwei), product of gas_consumed and gas_price
+    #[serde_as(as = "UfeHex")]
+    pub overall_fee: FieldElement,
+}
+
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InvokeTransactionResult {
     /// The hash of the invoke transaction
     #[serde_as(as = "UfeHex")]
