@@ -283,6 +283,23 @@ async fn jsonrpc_get_class_hash_at() {
 }
 
 #[tokio::test]
+async fn jsonrpc_get_class_at() {
+    let rpc_client = create_jsonrpc_client();
+
+    let class = rpc_client
+        .get_class_at(
+            FieldElement::from_hex_be(
+                "06b3dab9c563083e7e74d9a7ab7649f7af4564cfef397f8e44233a1feffc7049",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert!(!class.program.is_empty());
+}
+
+#[tokio::test]
 async fn jsonrpc_get_block_transaction_count_by_hash() {
     let rpc_client = create_jsonrpc_client();
 
