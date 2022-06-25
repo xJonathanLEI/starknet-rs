@@ -83,10 +83,22 @@ pub struct FunctionCall {
 
 /// The definition of a StarkNet contract class
 #[derive(Debug, Clone, Serialize)]
-pub struct ContractClass {
+pub struct CompressedContractClass {
     /// A base64 representation of the compressed program code
     #[serde(serialize_with = "serialize_as_base64")]
     pub program: Vec<u8>,
+    pub entry_points_by_type: EntryPointsByType,
+}
+
+/// The definition of a StarkNet contract class
+#[serde_as]
+#[derive(Debug, Clone, Deserialize)]
+pub struct ContractClass {
+    /// A base64 representation of the compressed program code
+    #[serde_as(as = "Vec<UfeHex>")]
+    // NOTE: the spec claims this field should be a base64 string, but the `pathfinder`
+    // implementation for `starknet_getClass` returns a `FieldElement` array instead
+    pub program: Vec<FieldElement>,
     pub entry_points_by_type: EntryPointsByType,
 }
 
@@ -346,6 +358,20 @@ pub enum TransactionStatus {
     AcceptedOnL2,
     AcceptedOnL1,
     Rejected,
+}
+
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FeeEstimate {
+    /// The Ethereum gas cost of the transaction
+    #[serde_as(as = "UfeHex")]
+    pub gas_consumed: FieldElement,
+    /// The gas price (in gwei) that was used in the cost estimation
+    #[serde_as(as = "UfeHex")]
+    pub gas_price: FieldElement,
+    /// The estimated fee for the transaction (in gwei), product of gas_consumed and gas_price
+    #[serde_as(as = "UfeHex")]
+    pub overall_fee: FieldElement,
 }
 
 #[serde_as]

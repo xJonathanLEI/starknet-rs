@@ -7,7 +7,7 @@ use starknet_core::{
 };
 use starknet_providers::jsonrpc::{
     models::{
-        BlockHashOrTag, BlockNumOrTag, BlockTag, ContractClass, ContractEntryPoint,
+        BlockHashOrTag, BlockNumOrTag, BlockTag, CompressedContractClass, ContractEntryPoint,
         EntryPointsByType, EventFilter, FunctionCall, SyncStatusType,
     },
     HttpTransport, JsonRpcClient, JsonRpcClientError,
@@ -20,7 +20,7 @@ fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     ))
 }
 
-fn create_contract_class() -> ContractClass {
+fn create_contract_class() -> CompressedContractClass {
     let artifact = serde_json::from_str::<ContractArtifact>(include_str!(
         "../../starknet-core/test-data/contracts/artifacts/oz_account.txt"
     ))
@@ -31,7 +31,7 @@ fn create_contract_class() -> ContractClass {
     gzip_encoder.write_all(program_json.as_bytes()).unwrap();
     let compressed_program = gzip_encoder.finish().unwrap();
 
-    ContractClass {
+    CompressedContractClass {
         program: compressed_program,
         entry_points_by_type: EntryPointsByType {
             constructor: artifact
@@ -243,6 +243,63 @@ async fn jsonrpc_get_transaction_receipt() {
 }
 
 #[tokio::test]
+async fn jsonrpc_get_class() {
+    let rpc_client = create_jsonrpc_client();
+
+    let class = rpc_client
+        .get_class(
+            FieldElement::from_hex_be(
+                "025ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert!(!class.program.is_empty());
+}
+
+#[tokio::test]
+async fn jsonrpc_get_class_hash_at() {
+    let rpc_client = create_jsonrpc_client();
+
+    let class_hash = rpc_client
+        .get_class_hash_at(
+            FieldElement::from_hex_be(
+                "06b3dab9c563083e7e74d9a7ab7649f7af4564cfef397f8e44233a1feffc7049",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(
+        class_hash,
+        FieldElement::from_hex_be(
+            "025ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918"
+        )
+        .unwrap()
+    );
+}
+
+#[tokio::test]
+async fn jsonrpc_get_class_at() {
+    let rpc_client = create_jsonrpc_client();
+
+    let class = rpc_client
+        .get_class_at(
+            FieldElement::from_hex_be(
+                "06b3dab9c563083e7e74d9a7ab7649f7af4564cfef397f8e44233a1feffc7049",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert!(!class.program.is_empty());
+}
+
+#[tokio::test]
 async fn jsonrpc_get_block_transaction_count_by_hash() {
     let rpc_client = create_jsonrpc_client();
 
@@ -342,6 +399,35 @@ async fn jsonrpc_call() {
         .unwrap();
 
     assert!(eth_balance[0] > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_estimate_fee() {
+    let rpc_client = create_jsonrpc_client();
+
+    // Same as `jsonrpc_call`
+    let estimate = rpc_client
+        .estimate_fee(
+            &FunctionCall {
+                contract_address: FieldElement::from_hex_be(
+                    "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+                )
+                .unwrap(),
+                entry_point_selector: get_selector_from_name("balanceOf").unwrap(),
+                calldata: vec![FieldElement::from_hex_be(
+                    "01352dd0ac2a462cb53e4f125169b28f13bd6199091a9815c444dcae83056bbc",
+                )
+                .unwrap()],
+            },
+            &BlockHashOrTag::Tag(BlockTag::Latest),
+        )
+        .await
+        .unwrap();
+
+    // There seems to be a bug in `gas_comsumed` causing it to be zero:
+    //   https://github.com/eqlabs/pathfinder/issues/412
+    assert!(estimate.gas_price > FieldElement::ZERO);
+    assert!(estimate.overall_fee > FieldElement::ZERO);
 }
 
 #[tokio::test]
