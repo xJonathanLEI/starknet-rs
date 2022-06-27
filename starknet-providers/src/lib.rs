@@ -4,6 +4,8 @@ mod provider;
 pub use provider::Provider;
 
 mod sequencer_gateway;
-pub use sequencer_gateway::SequencerGatewayProvider;
+pub use sequencer_gateway::{
+    ProviderError as SequencerGatewayProviderError, SequencerGatewayProvider,
+};
 
 pub mod jsonrpc;
