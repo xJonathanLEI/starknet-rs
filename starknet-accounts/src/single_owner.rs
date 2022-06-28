@@ -161,14 +161,20 @@ where
     type EstimateFeeError = TransactionError<P::Error, S::SignError>;
     type SendTransactionError = TransactionError<P::Error, S::SignError>;
     type Provider = P;
+    type Signer = S;
 
     fn address(&self) -> FieldElement {
         self.address
     }
 
-    fn provider(&self) -> P {
+    fn provider(&self) -> Self::Provider {
         self.provider.clone()
     }
+
+    fn signer(&self) -> Self::Signer {
+        self.signer.clone()
+    }
+
     async fn get_nonce(
         &self,
         block_identifier: BlockId,
