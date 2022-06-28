@@ -17,6 +17,7 @@ use starknet_core::{
 use thiserror::Error;
 use url::Url;
 
+#[derive(Clone)]
 pub struct SequencerGatewayProvider {
     client: Client,
     gateway_url: Url,
