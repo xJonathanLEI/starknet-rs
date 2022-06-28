@@ -32,7 +32,7 @@ pub trait Account: Sized {
     type GetNonceError: Error + Send;
     type EstimateFeeError: Error + Send;
     type SendTransactionError: Error + Send;
-    type Provider: Provider + Send + Sync;
+    type Provider: Provider;
     type Signer: Signer;
 
     fn address(&self) -> FieldElement;
