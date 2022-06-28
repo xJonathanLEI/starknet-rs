@@ -35,7 +35,7 @@ const SELECTOR_EXECUTE: FieldElement = FieldElement::from_mont([
 pub struct SingleOwnerAccount<P, S>
 where
     P: Provider + Send,
-    S: Signer + Send,
+    S: Signer + Send + Clone,
 {
     provider: P,
     #[allow(unused)]
@@ -64,8 +64,8 @@ pub enum TransactionError<P, S> {
 
 impl<P, S> SingleOwnerAccount<P, S>
 where
-    P: Provider + Sync + Send,
-    S: Signer + Sync + Send,
+    P: Provider + Sync + Send + Clone,
+    S: Signer + Sync + Send + Clone,
 {
     pub fn new(provider: P, signer: S, address: FieldElement, chain_id: FieldElement) -> Self {
         Self {
@@ -154,17 +154,21 @@ where
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl<P, S> Account for SingleOwnerAccount<P, S>
 where
-    P: Provider + Sync + Send,
-    S: Signer + Sync + Send,
+    P: Provider + Sync + Send + Clone,
+    S: Signer + Sync + Send + Clone,
 {
     type GetNonceError = GetNonceError<P::Error>;
     type EstimateFeeError = TransactionError<P::Error, S::SignError>;
     type SendTransactionError = TransactionError<P::Error, S::SignError>;
+    type Provider = P;
 
     fn address(&self) -> FieldElement {
         self.address
     }
 
+    fn provider(&self) -> P {
+        self.provider.clone()
+    }
     async fn get_nonce(
         &self,
         block_identifier: BlockId,

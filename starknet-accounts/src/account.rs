@@ -2,6 +2,7 @@ use crate::Call;
 
 use async_trait::async_trait;
 use starknet_core::types::{AddTransactionResult, BlockId, FeeEstimate, FieldElement};
+use starknet_providers::Provider;
 use std::error::Error;
 
 #[derive(Debug)]
@@ -30,8 +31,11 @@ pub trait Account: Sized {
     type GetNonceError: Error + Send;
     type EstimateFeeError: Error + Send;
     type SendTransactionError: Error + Send;
+    type Provider: Provider + Send + Sync;
 
     fn address(&self) -> FieldElement;
+
+    fn provider(&self) -> Self::Provider;
 
     async fn get_nonce(
         &self,
