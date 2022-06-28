@@ -35,7 +35,7 @@ const SELECTOR_EXECUTE: FieldElement = FieldElement::from_mont([
 pub struct SingleOwnerAccount<P, S>
 where
     P: Provider + Send,
-    S: Signer + Send + Clone,
+    S: Signer + Send,
 {
     provider: P,
     #[allow(unused)]
