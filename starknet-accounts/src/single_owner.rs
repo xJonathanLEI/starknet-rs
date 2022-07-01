@@ -76,6 +76,22 @@ where
         }
     }
 
+    pub fn provider(&self) -> &P {
+        &self.provider
+    }
+
+    pub fn signer(&self) -> &S {
+        &self.signer
+    }
+
+    pub fn address(&self) -> FieldElement {
+        self.address
+    }
+
+    pub fn chain_id(&self) -> FieldElement {
+        self.chain_id
+    }
+
     async fn generate_invoke_request(
         &self,
         calls: &[Call],
