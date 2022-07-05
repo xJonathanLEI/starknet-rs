@@ -456,7 +456,7 @@ where
     /// Submit a new transaction to be added to the chain
     pub async fn add_declare_transaction(
         &self,
-        contract_class: &CompressedContractClass,
+        contract_class: &ContractClass,
         version: FieldElement,
     ) -> Result<DeclareTransactionResult, JsonRpcClientError<T::Error>> {
         self.send_request(
@@ -474,7 +474,7 @@ where
         &self,
         contract_address_salt: FieldElement,
         constructor_calldata: Vec<FieldElement>,
-        contract_definition: &CompressedContractClass,
+        contract_definition: &ContractClass,
     ) -> Result<DeployTransactionResult, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::AddDeployTransaction,
