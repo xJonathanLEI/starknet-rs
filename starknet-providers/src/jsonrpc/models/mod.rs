@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use starknet_core::{
-    serde::{byte_array::base64::serialize as serialize_as_base64, unsigned_field_element::UfeHex},
+    serde::{byte_array::base64, unsigned_field_element::UfeHex},
     types::FieldElement,
 };
 
@@ -82,23 +82,11 @@ pub struct FunctionCall {
 }
 
 /// The definition of a StarkNet contract class
-#[derive(Debug, Clone, Serialize)]
-pub struct CompressedContractClass {
-    /// A base64 representation of the compressed program code
-    #[serde(serialize_with = "serialize_as_base64")]
-    pub program: Vec<u8>,
-    pub entry_points_by_type: EntryPointsByType,
-}
-
-/// The definition of a StarkNet contract class
-#[serde_as]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContractClass {
     /// A base64 representation of the compressed program code
-    #[serde_as(as = "Vec<UfeHex>")]
-    // NOTE: the spec claims this field should be a base64 string, but the `pathfinder`
-    // implementation for `starknet_getClass` returns a `FieldElement` array instead
-    pub program: Vec<FieldElement>,
+    #[serde(with = "base64")]
+    pub program: Vec<u8>,
     pub entry_points_by_type: EntryPointsByType,
 }
 

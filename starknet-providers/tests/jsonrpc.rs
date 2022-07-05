@@ -7,7 +7,7 @@ use starknet_core::{
 };
 use starknet_providers::jsonrpc::{
     models::{
-        BlockHashOrTag, BlockNumOrTag, BlockTag, CompressedContractClass, ContractEntryPoint,
+        BlockHashOrTag, BlockNumOrTag, BlockTag, ContractClass, ContractEntryPoint,
         EntryPointsByType, EventFilter, FunctionCall, SyncStatusType,
     },
     HttpTransport, JsonRpcClient, JsonRpcClientError,
@@ -20,7 +20,7 @@ fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     ))
 }
 
-fn create_contract_class() -> CompressedContractClass {
+fn create_contract_class() -> ContractClass {
     let artifact = serde_json::from_str::<ContractArtifact>(include_str!(
         "../../starknet-core/test-data/contracts/artifacts/oz_account.txt"
     ))
@@ -31,7 +31,7 @@ fn create_contract_class() -> CompressedContractClass {
     gzip_encoder.write_all(program_json.as_bytes()).unwrap();
     let compressed_program = gzip_encoder.finish().unwrap();
 
-    CompressedContractClass {
+    ContractClass {
         program: compressed_program,
         entry_points_by_type: EntryPointsByType {
             constructor: artifact
