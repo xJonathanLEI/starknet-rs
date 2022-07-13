@@ -67,6 +67,8 @@ Examples can be found in the [examples folder](./examples):
 
 5. [Query the latest block number with JSON-RPC](./examples/jsonrpc.rs)
 
+6. [Call a contract view function via sequencer gateway](./examples/sequencer_erc20_balance.rs)
+
 ## License
 
 Licensed under either of
