@@ -16,10 +16,8 @@ const ADDR_BOUND: FieldElement = FieldElement::from_mont([
 ]);
 
 #[derive(Debug, Error)]
-#[error("the provided name contains non-ASCII characters: {name}")]
-pub struct NonAsciiNameError<'a> {
-    pub name: &'a str,
-}
+#[error("the provided name contains non-ASCII characters")]
+pub struct NonAsciiNameError;
 
 #[derive(Debug, Error)]
 pub enum CairoShortStringToFeltError {
@@ -58,15 +56,15 @@ pub fn get_selector_from_name(func_name: &str) -> Result<FieldElement, NonAsciiN
         if name_bytes.is_ascii() {
             Ok(starknet_keccak(name_bytes))
         } else {
-            Err(NonAsciiNameError { name: func_name })
+            Err(NonAsciiNameError)
         }
     }
 }
 
-pub fn get_storage_var_address<'a>(
-    var_name: &'a str,
+pub fn get_storage_var_address(
+    var_name: &str,
     args: &[FieldElement],
-) -> Result<FieldElement, NonAsciiNameError<'a>> {
+) -> Result<FieldElement, NonAsciiNameError> {
     let var_name_bytes = var_name.as_bytes();
     if var_name_bytes.is_ascii() {
         let mut res = starknet_keccak(var_name_bytes);
@@ -75,7 +73,7 @@ pub fn get_storage_var_address<'a>(
         }
         Ok(res % ADDR_BOUND)
     } else {
-        Err(NonAsciiNameError { name: var_name })
+        Err(NonAsciiNameError)
     }
 }
 
