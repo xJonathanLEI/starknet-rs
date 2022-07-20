@@ -74,7 +74,7 @@ async fn can_estimate_fee() {
         .await
         .unwrap();
 
-    assert!(fee_estimate.amount > 0);
+    assert!(fee_estimate.overall_fee > 0);
 }
 
 #[tokio::test]
