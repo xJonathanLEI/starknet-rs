@@ -3,7 +3,7 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize)]
 #[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct FeeEstimate {
-    pub amount: u64,
+    pub overall_fee: u64,
     pub unit: FeeUnit,
 }
 

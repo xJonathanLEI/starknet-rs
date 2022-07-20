@@ -243,7 +243,7 @@ where
                     .await?;
 
                 // Adds 10% fee buffer
-                (fee_estimate.amount * 11 / 10).into()
+                (fee_estimate.overall_fee * 11 / 10).into()
             }
         };
 
