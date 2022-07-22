@@ -5,6 +5,13 @@ use serde::Deserialize;
 use serde_with::serde_as;
 use starknet_crypto::FieldElement;
 
+#[serde_as]
+#[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
+pub struct BlockTraces {
+    pub traces: Vec<TransactionTraceWithHash>,
+}
+
 /// Represents the trace of a StarkNet transaction execution, including internal calls.
 #[serde_as]
 #[derive(Debug, Deserialize)]
@@ -14,6 +21,16 @@ pub struct TransactionTrace {
     pub function_invocation: FunctionInvocation,
     #[serde_as(as = "Vec<UfeHex>")]
     pub signature: Vec<FieldElement>,
+}
+
+#[serde_as]
+#[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
+pub struct TransactionTraceWithHash {
+    #[serde(flatten)]
+    pub trace: TransactionTrace,
+    #[serde_as(as = "UfeHex")]
+    pub transaction_hash: FieldElement,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
@@ -79,6 +96,15 @@ pub struct OrderedL2ToL1MessageResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_block_traces_deser() {
+        serde_json::from_str::<BlockTraces>(include_str!(
+            "../../test-data/raw_gateway_responses/get_block_traces/1_success.txt"
+        ))
+        .unwrap();
+    }
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]

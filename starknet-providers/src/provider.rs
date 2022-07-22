@@ -1,9 +1,9 @@
 use async_trait::async_trait;
 use auto_impl::auto_impl;
 use starknet_core::types::{
-    AddTransactionResult, Block, BlockId, CallContractResult, ContractAddresses, ContractArtifact,
-    ContractCode, FeeEstimate, FieldElement, InvokeFunctionTransactionRequest, StateUpdate,
-    TransactionInfo, TransactionReceipt, TransactionRequest, TransactionStatusInfo,
+    AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult, ContractAddresses,
+    ContractArtifact, ContractCode, FeeEstimate, FieldElement, InvokeFunctionTransactionRequest,
+    StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest, TransactionStatusInfo,
     TransactionTrace,
 };
 use std::error::Error;
@@ -35,6 +35,9 @@ pub trait Provider {
     ) -> Result<FeeEstimate, Self::Error>;
 
     async fn get_block(&self, block_identifier: BlockId) -> Result<Block, Self::Error>;
+
+    async fn get_block_traces(&self, block_identifier: BlockId)
+        -> Result<BlockTraces, Self::Error>;
 
     async fn get_state_update(&self, block_identifier: BlockId)
         -> Result<StateUpdate, Self::Error>;
