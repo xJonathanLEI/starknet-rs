@@ -1,1 +1,1 @@
-{"amount": 9229050116902, "unit": "wei"}
+{"overall_fee": 7493000059944, "unit": "wei", "gas_price": 1000000008, "gas_usage": 7493}

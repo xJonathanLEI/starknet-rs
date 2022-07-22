@@ -22,6 +22,9 @@ curl -o ./get_block/6_with_sequencer_address.txt "https://alpha4.starknet.io/fee
 # ./get_block/7_with_declare_tx.txt
 curl -o ./get_block/7_with_declare_tx.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=232491"
 
+# ./get_block/8_with_starknet_version.txt
+curl -o ./get_block/8_with_starknet_version.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=273155"
+
 # ./get_code/1_code.txt
 curl -o ./get_code/1_code.txt "https://alpha4.starknet.io/feeder_gateway/get_code?contractAddress=0x05ffd28b3ff2eecd6da0fa64c90e928a9f46f1563976a4fe1770ab48ee43506a"
 
@@ -69,6 +72,9 @@ curl -o ./get_state_update/1_success.txt "https://alpha4.starknet.io/feeder_gate
 
 # ./get_state_update/2_pending_block.txt (non-deterministic)
 curl -o ./get_state_update/2_pending_block.txt "https://alpha4.starknet.io/feeder_gateway/get_state_update?blockNumber=pending"
+
+# ./get_state_update/3_with_declarations.txt
+curl -o ./get_state_update/3_with_declarations.txt "https://alpha4.starknet.io/feeder_gateway/get_state_update?blockNumber=267588"
 
 # ./get_full_contract/1_code.txt
 curl -o ./get_full_contract/1_code.txt "https://alpha4.starknet.io/feeder_gateway/get_full_contract?contractAddress=0x05ffd28b3ff2eecd6da0fa64c90e928a9f46f1563976a4fe1770ab48ee43506a"
