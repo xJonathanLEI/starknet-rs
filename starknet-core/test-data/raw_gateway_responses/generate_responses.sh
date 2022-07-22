@@ -114,3 +114,6 @@ curl -o ./get_class_by_hash/1_success.txt "https://alpha4.starknet.io/feeder_gat
 
 # ./get_class_by_hash/2_not_declared.txt
 curl -o ./get_class_by_hash/2_not_declared.txt "https://alpha4.starknet.io/feeder_gateway/get_class_by_hash?classHash=0x111111111111111111111111"
+
+# ./get_block_traces/1_success.txt
+curl -o ./get_block_traces/1_success.txt "https://alpha4.starknet.io/feeder_gateway/get_block_traces?blockNumber=267588"

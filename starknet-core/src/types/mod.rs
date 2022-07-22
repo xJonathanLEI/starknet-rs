@@ -51,4 +51,4 @@ mod fee;
 pub use fee::{FeeEstimate, FeeUnit};
 
 pub mod trace;
-pub use trace::TransactionTrace;
+pub use trace::{BlockTraces, TransactionTrace};
