@@ -52,6 +52,8 @@ pub struct Block {
     pub gas_price: FieldElement,
     pub transactions: Vec<TransactionType>,
     pub transaction_receipts: Vec<ConfirmedTransactionReceipt>,
+    // Field marked optional as old blocks don't include it yet. Drop optional once resolved.
+    pub starknet_version: Option<String>,
 }
 
 #[cfg(test)]
@@ -154,6 +156,23 @@ mod tests {
         ))
         .unwrap();
         assert!(old_block.sequencer_address.is_none());
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_block_deser_new_attributes_0_9_1() {
+        // This block contains new fields introduced in StarkNet v0.9.1
+        let new_block: Block = serde_json::from_str(include_str!(
+            "../../test-data/raw_gateway_responses/get_block/8_with_starknet_version.txt"
+        ))
+        .unwrap();
+        assert!(new_block.starknet_version.is_some());
+
+        let old_block: Block = serde_json::from_str(include_str!(
+            "../../test-data/raw_gateway_responses/get_block/2_with_messages.txt"
+        ))
+        .unwrap();
+        assert!(old_block.starknet_version.is_none());
     }
 
     #[test]
