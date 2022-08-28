@@ -233,15 +233,19 @@ where
         .await
     }
 
-    /// Get the contract class hash for the contract deployed at the given address
+    /// Get the contract class hash in the given block for the contract deployed at the given address
     pub async fn get_class_hash_at(
         &self,
+        block_id: &BlockId,
         contract_address: FieldElement,
     ) -> Result<FieldElement, JsonRpcClientError<T::Error>> {
         Ok(self
             .send_request::<_, Felt>(
                 JsonRpcMethod::GetClassHashAt,
-                [serde_json::to_value(Felt(contract_address))?],
+                [
+                    serde_json::to_value(block_id)?,
+                    serde_json::to_value(Felt(contract_address))?,
+                ],
             )
             .await?
             .0)
