@@ -12,6 +12,89 @@ mod serde_impls;
 use serde_impls::NumAsHex;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum MaybePendingBlockWithTxHashes {
+    Block(BlockWithTxHashes),
+    PendingBlock(PendingBlockWithTxHashes),
+}
+
+/// Block hash, number or tag
+#[derive(Debug, Clone)]
+pub enum BlockId {
+    Hash(FieldElement),
+    Number(u64),
+    Tag(BlockTag),
+}
+
+/// A tag specifying a dynamic reference to a block
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BlockTag {
+    Latest,
+    Pending,
+}
+
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BlockHeader {
+    #[serde_as(as = "UfeHex")]
+    pub block_hash: FieldElement,
+    /// The hash of this block's parent
+    #[serde_as(as = "UfeHex")]
+    pub parent_hash: FieldElement,
+    /// The block number (its height)
+    pub block_number: u64,
+    /// The new global state root
+    #[serde_as(as = "UfeHex")]
+    pub new_root: FieldElement,
+    /// The time in which the block was created, encoded in Unix time
+    pub timestamp: u64,
+    /// The StarkNet identity of the sequencer submitting this block
+    #[serde_as(as = "UfeHex")]
+    pub sequencer_address: FieldElement,
+}
+
+/// The block object
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BlockWithTxHashes {
+    pub status: BlockStatus,
+    #[serde(flatten)]
+    pub header: BlockHeader,
+    /// The hashes of the transactions included in this block
+    #[serde_as(as = "Vec<UfeHex>")]
+    pub transactions: Vec<FieldElement>,
+}
+
+/// The dynamic block being constructed by the sequencer. Note that this object will be deprecated
+/// upon decentralization.
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PendingBlockWithTxHashes {
+    /// The hashes of the transactions included in this block
+    #[serde_as(as = "Vec<UfeHex>")]
+    pub transactions: Vec<FieldElement>,
+    /// The time in which the block was created, encoded in Unix time
+    pub timestamp: u64,
+    /// The StarkNet identity of the sequencer submitting this block
+    #[serde_as(as = "UfeHex")]
+    pub sequencer_address: FieldElement,
+    /// The hash of this block's parent
+    #[serde_as(as = "UfeHex")]
+    pub parent_hash: FieldElement,
+}
+
+/// The status of the block
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum BlockStatus {
+    Pending,
+    AcceptedOnL2,
+    AcceptedOnL1,
+    Rejected,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventsPage {
     pub events: Vec<EmittedEvent>,
     /// The returned page number
@@ -123,16 +206,6 @@ pub struct EventFilter {
 pub enum BlockHashOrTag {
     Hash(#[serde_as(as = "UfeHex")] FieldElement),
     Tag(BlockTag),
-}
-
-/// A tag specifying a dynamic reference to a block
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum BlockTag {
-    Latest,
-    // The current spec doesn't allow `pending` but is probably inaccurate:
-    //   https://github.com/starkware-libs/starknet-specs/blob/bcce12075ef4cde19fc62b47ed2162292e0ed70d/api/starknet_api_openrpc.json#L821-L828
-    Pending,
 }
 
 #[derive(Debug, Clone)]
@@ -284,6 +357,36 @@ pub struct DeployTransactionResult {
     /// The address of the new contract
     #[serde_as(as = "UfeHex")]
     pub contract_address: FieldElement,
+}
+
+impl Serialize for BlockId {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct BlockHash {
+            #[serde_as(as = "UfeHex")]
+            block_hash: FieldElement,
+        }
+
+        #[derive(Serialize)]
+        struct BlockNumber {
+            block_number: u64,
+        }
+
+        match self {
+            Self::Hash(hash) => BlockHash::serialize(&BlockHash { block_hash: *hash }, serializer),
+            Self::Number(number) => BlockNumber::serialize(
+                &BlockNumber {
+                    block_number: *number,
+                },
+                serializer,
+            ),
+            Self::Tag(tag) => BlockTag::serialize(tag, serializer),
+        }
+    }
 }
 
 impl AsRef<FunctionCall> for FunctionCall {

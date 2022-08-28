@@ -7,8 +7,8 @@ use starknet_core::{
 };
 use starknet_providers::jsonrpc::{
     models::{
-        BlockHashOrTag, BlockTag, ContractClass, ContractEntryPoint, EntryPointsByType,
-        EventFilter, FunctionCall, SyncStatusType,
+        BlockHashOrTag, BlockId, BlockTag, ContractClass, ContractEntryPoint, EntryPointsByType,
+        EventFilter, FunctionCall, MaybePendingBlockWithTxHashes, SyncStatusType,
     },
     HttpTransport, JsonRpcClient, JsonRpcClientError,
 };
@@ -63,6 +63,23 @@ fn create_contract_class() -> ContractClass {
                 .collect(),
         },
     }
+}
+
+#[tokio::test]
+async fn jsonrpc_get_block_with_tx_hashes() {
+    let rpc_client = create_jsonrpc_client();
+
+    let block = rpc_client
+        .get_block_with_tx_hashes(&BlockId::Tag(BlockTag::Latest))
+        .await
+        .unwrap();
+
+    let block = match block {
+        MaybePendingBlockWithTxHashes::Block(block) => block,
+        _ => panic!("unexpected block response type"),
+    };
+
+    assert!(block.header.block_number > 0);
 }
 
 #[tokio::test]
