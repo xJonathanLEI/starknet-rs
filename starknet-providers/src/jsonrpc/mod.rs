@@ -39,6 +39,12 @@ pub enum JsonRpcMethod {
     GetClassHashAt,
     #[serde(rename = "starknet_getClassAt")]
     GetClassAt,
+    #[serde(rename = "starknet_getBlockTransactionCount")]
+    GetBlockTransactionCount,
+    #[serde(rename = "starknet_call")]
+    Call,
+    #[serde(rename = "starknet_estimateFee")]
+    EstimateFee,
     #[serde(rename = "starknet_blockNumber")]
     BlockNumber,
     #[serde(rename = "starknet_blockHashAndNumber")]
@@ -51,12 +57,6 @@ pub enum JsonRpcMethod {
     Syncing,
     #[serde(rename = "starknet_getEvents")]
     GetEvents,
-    #[serde(rename = "starknet_getBlockTransactionCount")]
-    GetBlockTransactionCount,
-    #[serde(rename = "starknet_call")]
-    Call,
-    #[serde(rename = "starknet_estimateFee")]
-    EstimateFee,
     #[serde(rename = "starknet_getNonce")]
     GetNonce,
     #[serde(rename = "starknet_addInvokeTransaction")]
@@ -267,58 +267,6 @@ where
         .await
     }
 
-    /// Get the most recent accepted block number
-    pub async fn block_number(&self) -> Result<u64, JsonRpcClientError<T::Error>> {
-        self.send_request(JsonRpcMethod::BlockNumber, ()).await
-    }
-
-    /// Get the most recent accepted block hash and number
-    pub async fn block_hash_and_number(
-        &self,
-    ) -> Result<BlockHashAndNumber, JsonRpcClientError<T::Error>> {
-        self.send_request(JsonRpcMethod::BlockHashAndNumber, ())
-            .await
-    }
-
-    /// Return the currently configured StarkNet chain id
-    pub async fn chain_id(&self) -> Result<FieldElement, JsonRpcClientError<T::Error>> {
-        Ok(self
-            .send_request::<_, Felt>(JsonRpcMethod::ChainId, ())
-            .await?
-            .0)
-    }
-
-    /// Returns the transactions in the transaction pool, recognized by this sequencer
-    pub async fn pending_transactions(
-        &self,
-    ) -> Result<Vec<Transaction>, JsonRpcClientError<T::Error>> {
-        self.send_request(JsonRpcMethod::PendingTransactions, ())
-            .await
-    }
-
-    /// Returns an object about the sync status, or false if the node is not synching
-    pub async fn syncing(&self) -> Result<SyncStatusType, JsonRpcClientError<T::Error>> {
-        self.send_request(JsonRpcMethod::Syncing, ()).await
-    }
-
-    /// Returns all events matching the given filter
-    pub async fn get_events(
-        &self,
-        filter: EventFilter,
-        page_size: u64,
-        page_number: u64,
-    ) -> Result<EventsPage, JsonRpcClientError<T::Error>> {
-        self.send_request(
-            JsonRpcMethod::GetEvents,
-            [serde_json::to_value(EventFilterWithPage {
-                filter,
-                page_size,
-                page_number,
-            })?],
-        )
-        .await
-    }
-
     /// Get the number of transactions in a block given a block id
     pub async fn get_block_transaction_count(
         &self,
@@ -367,6 +315,58 @@ where
                 serde_json::to_value(request.as_ref())?,
                 serde_json::to_value(block_id)?,
             ],
+        )
+        .await
+    }
+
+    /// Get the most recent accepted block number
+    pub async fn block_number(&self) -> Result<u64, JsonRpcClientError<T::Error>> {
+        self.send_request(JsonRpcMethod::BlockNumber, ()).await
+    }
+
+    /// Get the most recent accepted block hash and number
+    pub async fn block_hash_and_number(
+        &self,
+    ) -> Result<BlockHashAndNumber, JsonRpcClientError<T::Error>> {
+        self.send_request(JsonRpcMethod::BlockHashAndNumber, ())
+            .await
+    }
+
+    /// Return the currently configured StarkNet chain id
+    pub async fn chain_id(&self) -> Result<FieldElement, JsonRpcClientError<T::Error>> {
+        Ok(self
+            .send_request::<_, Felt>(JsonRpcMethod::ChainId, ())
+            .await?
+            .0)
+    }
+
+    /// Returns the transactions in the transaction pool, recognized by this sequencer
+    pub async fn pending_transactions(
+        &self,
+    ) -> Result<Vec<Transaction>, JsonRpcClientError<T::Error>> {
+        self.send_request(JsonRpcMethod::PendingTransactions, ())
+            .await
+    }
+
+    /// Returns an object about the sync status, or false if the node is not synching
+    pub async fn syncing(&self) -> Result<SyncStatusType, JsonRpcClientError<T::Error>> {
+        self.send_request(JsonRpcMethod::Syncing, ()).await
+    }
+
+    /// Returns all events matching the given filter
+    pub async fn get_events(
+        &self,
+        filter: EventFilter,
+        page_size: u64,
+        page_number: u64,
+    ) -> Result<EventsPage, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetEvents,
+            [serde_json::to_value(EventFilterWithPage {
+                filter,
+                page_size,
+                page_number,
+            })?],
         )
         .await
     }

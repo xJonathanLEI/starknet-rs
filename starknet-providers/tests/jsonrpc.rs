@@ -273,70 +273,6 @@ async fn jsonrpc_get_class_at() {
 }
 
 #[tokio::test]
-async fn jsonrpc_block_number() {
-    let rpc_client = create_jsonrpc_client();
-
-    let block_number = rpc_client.block_number().await.unwrap();
-    assert!(block_number > 0);
-}
-
-#[tokio::test]
-async fn jsonrpc_block_hash_and_number() {
-    let rpc_client = create_jsonrpc_client();
-
-    let id = rpc_client.block_hash_and_number().await.unwrap();
-
-    assert!(id.block_hash > FieldElement::ZERO);
-    assert!(id.block_number > 0);
-}
-
-#[tokio::test]
-async fn jsonrpc_chain_id() {
-    let rpc_client = create_jsonrpc_client();
-
-    let chain_id = rpc_client.chain_id().await.unwrap();
-    assert!(chain_id > FieldElement::ZERO);
-}
-
-#[tokio::test]
-async fn jsonrpc_pending_transactions() {
-    let rpc_client = create_jsonrpc_client();
-
-    rpc_client.pending_transactions().await.unwrap();
-}
-
-#[tokio::test]
-async fn jsonrpc_syncing() {
-    let rpc_client = create_jsonrpc_client();
-
-    let syncing = rpc_client.syncing().await.unwrap();
-    if let SyncStatusType::Syncing(sync_status) = syncing {
-        assert!(sync_status.highest_block_num > 0);
-    }
-}
-
-#[tokio::test]
-async fn jsonrpc_get_events() {
-    let rpc_client = create_jsonrpc_client();
-
-    let events = rpc_client
-        .get_events(
-            EventFilter {
-                from_block: Some(BlockId::Number(234500)),
-                to_block: None,
-                address: None,
-                keys: None,
-            },
-            20,
-            10,
-        )
-        .await
-        .unwrap();
-
-    assert_eq!(events.events.len(), 20);
-}
-
-#[tokio::test]
 async fn jsonrpc_get_block_transaction_count() {
     let rpc_client = create_jsonrpc_client();
 
@@ -401,6 +337,70 @@ async fn jsonrpc_estimate_fee() {
     //   https://github.com/eqlabs/pathfinder/issues/412
     assert!(estimate.gas_price > FieldElement::ZERO);
     assert!(estimate.overall_fee > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_block_number() {
+    let rpc_client = create_jsonrpc_client();
+
+    let block_number = rpc_client.block_number().await.unwrap();
+    assert!(block_number > 0);
+}
+
+#[tokio::test]
+async fn jsonrpc_block_hash_and_number() {
+    let rpc_client = create_jsonrpc_client();
+
+    let id = rpc_client.block_hash_and_number().await.unwrap();
+
+    assert!(id.block_hash > FieldElement::ZERO);
+    assert!(id.block_number > 0);
+}
+
+#[tokio::test]
+async fn jsonrpc_chain_id() {
+    let rpc_client = create_jsonrpc_client();
+
+    let chain_id = rpc_client.chain_id().await.unwrap();
+    assert!(chain_id > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_pending_transactions() {
+    let rpc_client = create_jsonrpc_client();
+
+    rpc_client.pending_transactions().await.unwrap();
+}
+
+#[tokio::test]
+async fn jsonrpc_syncing() {
+    let rpc_client = create_jsonrpc_client();
+
+    let syncing = rpc_client.syncing().await.unwrap();
+    if let SyncStatusType::Syncing(sync_status) = syncing {
+        assert!(sync_status.highest_block_num > 0);
+    }
+}
+
+#[tokio::test]
+async fn jsonrpc_get_events() {
+    let rpc_client = create_jsonrpc_client();
+
+    let events = rpc_client
+        .get_events(
+            EventFilter {
+                from_block: Some(BlockId::Number(234500)),
+                to_block: None,
+                address: None,
+                keys: None,
+            },
+            20,
+            10,
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(events.events.len(), 20);
 }
 
 #[tokio::test]
