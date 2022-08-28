@@ -7,8 +7,8 @@ use starknet_core::{
 };
 use starknet_providers::jsonrpc::{
     models::{
-        BlockHashOrTag, BlockNumOrTag, BlockTag, ContractClass, ContractEntryPoint,
-        EntryPointsByType, EventFilter, FunctionCall, SyncStatusType,
+        BlockHashOrTag, BlockTag, ContractClass, ContractEntryPoint, EntryPointsByType,
+        EventFilter, FunctionCall, SyncStatusType,
     },
     HttpTransport, JsonRpcClient, JsonRpcClientError,
 };
@@ -63,72 +63,6 @@ fn create_contract_class() -> ContractClass {
                 .collect(),
         },
     }
-}
-
-#[tokio::test]
-async fn jsonrpc_get_block_by_hash() {
-    let rpc_client = create_jsonrpc_client();
-
-    let block = rpc_client
-        .get_block_by_hash(&BlockHashOrTag::Tag(BlockTag::Latest))
-        .await
-        .unwrap();
-    assert!(block.metadata.block_number > 0);
-}
-
-#[tokio::test]
-async fn jsonrpc_get_block_by_hash_with_txns() {
-    let rpc_client = create_jsonrpc_client();
-
-    let block = rpc_client
-        .get_block_by_hash_with_txns(&BlockHashOrTag::Tag(BlockTag::Latest))
-        .await
-        .unwrap();
-    assert!(block.metadata.block_number > 0);
-}
-
-#[tokio::test]
-async fn jsonrpc_get_block_by_hash_with_receipts() {
-    let rpc_client = create_jsonrpc_client();
-
-    let block = rpc_client
-        .get_block_by_hash_with_receipts(&BlockHashOrTag::Tag(BlockTag::Latest))
-        .await
-        .unwrap();
-    assert!(block.metadata.block_number > 0);
-}
-
-#[tokio::test]
-async fn jsonrpc_get_block_by_number() {
-    let rpc_client = create_jsonrpc_client();
-
-    let block = rpc_client
-        .get_block_by_number(&BlockNumOrTag::Number(234469))
-        .await
-        .unwrap();
-    assert!(block.metadata.block_number > 0);
-}
-
-#[tokio::test]
-async fn jsonrpc_get_block_by_number_with_txns() {
-    let rpc_client = create_jsonrpc_client();
-
-    let block = rpc_client
-        .get_block_by_number_with_txns(&BlockNumOrTag::Number(234469))
-        .await
-        .unwrap();
-    assert!(block.metadata.block_number > 0);
-}
-
-#[tokio::test]
-async fn jsonrpc_get_block_by_number_with_receipts() {
-    let rpc_client = create_jsonrpc_client();
-
-    let block = rpc_client
-        .get_block_by_number_with_receipts(&BlockNumOrTag::Number(234469))
-        .await
-        .unwrap();
-    assert!(block.metadata.block_number > 0);
 }
 
 #[tokio::test]
@@ -191,38 +125,6 @@ async fn jsonrpc_get_transaction_by_hash_non_existent_tx() {
         }
         _ => panic!("Unexpected error"),
     }
-}
-
-#[tokio::test]
-async fn jsonrpc_get_transaction_by_block_hash_and_index() {
-    let rpc_client = create_jsonrpc_client();
-
-    let tx = rpc_client
-        .get_transaction_by_block_hash_and_index(
-            &BlockHashOrTag::Hash(
-                FieldElement::from_hex_be(
-                    "04d893935543cc0a39d1ce1597695e0fc02f9512781e0b23f41bbb01b0c6b5f1",
-                )
-                .unwrap(),
-            ),
-            0,
-        )
-        .await
-        .unwrap();
-
-    assert!(tx.entry_point_selector.is_some());
-}
-
-#[tokio::test]
-async fn jsonrpc_get_transaction_by_block_number_and_index() {
-    let rpc_client = create_jsonrpc_client();
-
-    let tx = rpc_client
-        .get_transaction_by_block_number_and_index(&BlockNumOrTag::Number(234500), 0)
-        .await
-        .unwrap();
-
-    assert!(tx.entry_point_selector.is_some());
 }
 
 #[tokio::test]
@@ -297,35 +199,6 @@ async fn jsonrpc_get_class_at() {
         .unwrap();
 
     assert!(!class.program.is_empty());
-}
-
-#[tokio::test]
-async fn jsonrpc_get_block_transaction_count_by_hash() {
-    let rpc_client = create_jsonrpc_client();
-
-    let tx_count = rpc_client
-        .get_block_transaction_count_by_hash(&BlockHashOrTag::Hash(
-            FieldElement::from_hex_be(
-                "0ef4773e814cf100e0535fe5ddffcb8d1d966fc81a9cdf9ca94b2672e130334",
-            )
-            .unwrap(),
-        ))
-        .await
-        .unwrap();
-
-    assert_eq!(tx_count, 45);
-}
-
-#[tokio::test]
-async fn jsonrpc_get_block_transaction_count_by_number() {
-    let rpc_client = create_jsonrpc_client();
-
-    let tx_count = rpc_client
-        .get_block_transaction_count_by_number(&BlockNumOrTag::Number(234519))
-        .await
-        .unwrap();
-
-    assert_eq!(tx_count, 45);
 }
 
 #[tokio::test]
