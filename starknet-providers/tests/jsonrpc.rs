@@ -318,6 +318,18 @@ async fn jsonrpc_get_events() {
 }
 
 #[tokio::test]
+async fn jsonrpc_get_block_transaction_count() {
+    let rpc_client = create_jsonrpc_client();
+
+    let count = rpc_client
+        .get_block_transaction_count(&BlockId::Number(20_000))
+        .await
+        .unwrap();
+
+    assert_eq!(count, 4);
+}
+
+#[tokio::test]
 async fn jsonrpc_call() {
     let rpc_client = create_jsonrpc_client();
 

@@ -47,6 +47,8 @@ pub enum JsonRpcMethod {
     Syncing,
     #[serde(rename = "starknet_getEvents")]
     GetEvents,
+    #[serde(rename = "starknet_getBlockTransactionCount")]
+    GetBlockTransactionCount,
     #[serde(rename = "starknet_call")]
     Call,
     #[serde(rename = "starknet_estimateFee")]
@@ -283,6 +285,18 @@ where
                 page_size,
                 page_number,
             })?],
+        )
+        .await
+    }
+
+    /// Get the number of transactions in a block given a block id
+    pub async fn get_block_transaction_count(
+        &self,
+        block_id: &BlockId,
+    ) -> Result<u64, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetBlockTransactionCount,
+            [serde_json::to_value(block_id)?],
         )
         .await
     }
