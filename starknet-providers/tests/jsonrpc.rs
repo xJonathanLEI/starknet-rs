@@ -366,7 +366,7 @@ async fn jsonrpc_call() {
                 )
                 .unwrap()],
             },
-            &BlockHashOrTag::Tag(BlockTag::Latest),
+            &BlockId::Tag(BlockTag::Latest),
         )
         .await
         .unwrap();

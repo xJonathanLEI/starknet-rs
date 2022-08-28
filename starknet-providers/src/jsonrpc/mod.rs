@@ -335,7 +335,7 @@ where
     pub async fn call<R>(
         &self,
         request: R,
-        block_hash: &BlockHashOrTag,
+        block_id: &BlockId,
     ) -> Result<Vec<FieldElement>, JsonRpcClientError<T::Error>>
     where
         R: AsRef<FunctionCall>,
@@ -345,7 +345,7 @@ where
                 JsonRpcMethod::Call,
                 [
                     serde_json::to_value(request.as_ref())?,
-                    serde_json::to_value(block_hash)?,
+                    serde_json::to_value(block_id)?,
                 ],
             )
             .await?
