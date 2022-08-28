@@ -45,6 +45,8 @@ pub enum JsonRpcMethod {
     BlockHashAndNumber,
     #[serde(rename = "starknet_chainId")]
     ChainId,
+    #[serde(rename = "starknet_pendingTransactions")]
+    PendingTransactions,
     #[serde(rename = "starknet_syncing")]
     Syncing,
     #[serde(rename = "starknet_getEvents")]
@@ -276,6 +278,14 @@ where
             .send_request::<_, Felt>(JsonRpcMethod::ChainId, ())
             .await?
             .0)
+    }
+
+    /// Returns the transactions in the transaction pool, recognized by this sequencer
+    pub async fn pending_transactions(
+        &self,
+    ) -> Result<Vec<Transaction>, JsonRpcClientError<T::Error>> {
+        self.send_request(JsonRpcMethod::PendingTransactions, ())
+            .await
     }
 
     /// Returns an object about the sync status, or false if the node is not synching

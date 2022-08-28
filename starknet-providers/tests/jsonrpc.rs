@@ -297,6 +297,13 @@ async fn jsonrpc_chain_id() {
 }
 
 #[tokio::test]
+async fn jsonrpc_pending_transactions() {
+    let rpc_client = create_jsonrpc_client();
+
+    rpc_client.pending_transactions().await.unwrap();
+}
+
+#[tokio::test]
 async fn jsonrpc_syncing() {
     let rpc_client = create_jsonrpc_client();
 
