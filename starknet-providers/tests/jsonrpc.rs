@@ -260,6 +260,7 @@ async fn jsonrpc_get_class_at() {
 
     let class = rpc_client
         .get_class_at(
+            &BlockId::Tag(BlockTag::Latest),
             FieldElement::from_hex_be(
                 "06b3dab9c563083e7e74d9a7ab7649f7af4564cfef397f8e44233a1feffc7049",
             )

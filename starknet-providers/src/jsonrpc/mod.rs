@@ -251,14 +251,18 @@ where
             .0)
     }
 
-    /// Get the contract class definition at the given address
+    /// Get the contract class definition in the given block at the given address
     pub async fn get_class_at(
         &self,
+        block_id: &BlockId,
         contract_address: FieldElement,
     ) -> Result<ContractClass, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::GetClassAt,
-            [serde_json::to_value(Felt(contract_address))?],
+            [
+                serde_json::to_value(block_id)?,
+                serde_json::to_value(Felt(contract_address))?,
+            ],
         )
         .await
     }
