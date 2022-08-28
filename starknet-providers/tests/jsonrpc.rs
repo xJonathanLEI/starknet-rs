@@ -385,6 +385,23 @@ async fn jsonrpc_estimate_fee() {
 }
 
 #[tokio::test]
+async fn jsonrpc_get_nonce() {
+    let rpc_client = create_jsonrpc_client();
+
+    let nonce = rpc_client
+        .get_nonce(
+            FieldElement::from_hex_be(
+                "0661d341c2ba6f3c2b277e54d507e4b49b0c4d8973ac7366a035d0d3e8bdec47",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(nonce, FieldElement::ZERO);
+}
+
+#[tokio::test]
 async fn jsonrpc_add_invoke_transaction() {
     let rpc_client = create_jsonrpc_client();
 

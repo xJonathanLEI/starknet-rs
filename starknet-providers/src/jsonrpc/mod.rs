@@ -53,6 +53,8 @@ pub enum JsonRpcMethod {
     Call,
     #[serde(rename = "starknet_estimateFee")]
     EstimateFee,
+    #[serde(rename = "starknet_getNonce")]
+    GetNonce,
     #[serde(rename = "starknet_addInvokeTransaction")]
     AddInvokeTransaction,
     #[serde(rename = "starknet_addDeclareTransaction")]
@@ -339,6 +341,20 @@ where
             ],
         )
         .await
+    }
+
+    /// Get the latest nonce associated with the given address
+    pub async fn get_nonce(
+        &self,
+        contract_address: FieldElement,
+    ) -> Result<FieldElement, JsonRpcClientError<T::Error>> {
+        Ok(self
+            .send_request::<_, Felt>(
+                JsonRpcMethod::GetNonce,
+                [serde_json::to_value(Felt(contract_address))?],
+            )
+            .await?
+            .0)
     }
 
     /// Submit a new transaction to be added to the chain
