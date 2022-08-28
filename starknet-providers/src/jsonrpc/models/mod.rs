@@ -386,15 +386,6 @@ pub struct EventFilter {
     pub keys: Option<Vec<FieldElement>>,
 }
 
-/// Block hash or tag
-#[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum BlockHashOrTag {
-    Hash(#[serde_as(as = "UfeHex")] FieldElement),
-    Tag(BlockTag),
-}
-
 #[derive(Debug, Clone)]
 pub enum SyncStatusType {
     Syncing(SyncStatus),
@@ -481,6 +472,7 @@ pub enum TransactionStatus {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FeeEstimate {
     /// The Ethereum gas cost of the transaction
+    /// (see https://docs.starknet.io/docs/Fees/fee-mechanism for more info)
     #[serde_as(as = "UfeHex")]
     pub gas_consumed: FieldElement,
     /// The gas price (in gwei) that was used in the cost estimation

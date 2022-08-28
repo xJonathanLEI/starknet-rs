@@ -7,9 +7,9 @@ use starknet_core::{
 };
 use starknet_providers::jsonrpc::{
     models::{
-        BlockHashOrTag, BlockId, BlockTag, ContractClass, ContractEntryPoint, EntryPointsByType,
-        EventFilter, FunctionCall, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
-        SyncStatusType, Transaction,
+        BlockId, BlockTag, ContractClass, ContractEntryPoint, EntryPointsByType, EventFilter,
+        FunctionCall, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, SyncStatusType,
+        Transaction,
     },
     HttpTransport, JsonRpcClient, JsonRpcClientError,
 };
@@ -392,7 +392,7 @@ async fn jsonrpc_estimate_fee() {
                 )
                 .unwrap()],
             },
-            &BlockHashOrTag::Tag(BlockTag::Latest),
+            &BlockId::Tag(BlockTag::Latest),
         )
         .await
         .unwrap();

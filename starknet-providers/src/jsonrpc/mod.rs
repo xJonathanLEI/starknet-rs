@@ -356,7 +356,7 @@ where
     pub async fn estimate_fee<R>(
         &self,
         request: R,
-        block_hash: &BlockHashOrTag,
+        block_id: &BlockId,
     ) -> Result<FeeEstimate, JsonRpcClientError<T::Error>>
     where
         R: AsRef<FunctionCall>,
@@ -365,7 +365,7 @@ where
             JsonRpcMethod::EstimateFee,
             [
                 serde_json::to_value(request.as_ref())?,
-                serde_json::to_value(block_hash)?,
+                serde_json::to_value(block_id)?,
             ],
         )
         .await
