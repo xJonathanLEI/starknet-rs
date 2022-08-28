@@ -8,7 +8,8 @@ use starknet_core::{
 use starknet_providers::jsonrpc::{
     models::{
         BlockHashOrTag, BlockId, BlockTag, ContractClass, ContractEntryPoint, EntryPointsByType,
-        EventFilter, FunctionCall, MaybePendingBlockWithTxHashes, SyncStatusType,
+        EventFilter, FunctionCall, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
+        SyncStatusType, Transaction,
     },
     HttpTransport, JsonRpcClient, JsonRpcClientError,
 };
@@ -83,6 +84,23 @@ async fn jsonrpc_get_block_with_tx_hashes() {
 }
 
 #[tokio::test]
+async fn jsonrpc_get_block_with_txs() {
+    let rpc_client = create_jsonrpc_client();
+
+    let block = rpc_client
+        .get_block_with_txs(&BlockId::Tag(BlockTag::Latest))
+        .await
+        .unwrap();
+
+    let block = match block {
+        MaybePendingBlockWithTxs::Block(block) => block,
+        _ => panic!("unexpected block response type"),
+    };
+
+    assert!(block.header.block_number > 0);
+}
+
+#[tokio::test]
 async fn jsonrpc_get_storage_at() {
     let rpc_client = create_jsonrpc_client();
 
@@ -123,7 +141,12 @@ async fn jsonrpc_get_transaction_by_hash() {
         .await
         .unwrap();
 
-    assert!(tx.entry_point_selector.is_some());
+    let tx = match tx {
+        Transaction::Invoke(tx) => tx,
+        _ => panic!("unexpected tx response type"),
+    };
+
+    assert!(tx.function_call.entry_point_selector > FieldElement::ZERO);
 }
 
 #[tokio::test]

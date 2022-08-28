@@ -18,6 +18,13 @@ pub enum MaybePendingBlockWithTxHashes {
     PendingBlock(PendingBlockWithTxHashes),
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum MaybePendingBlockWithTxs {
+    Block(BlockWithTxs),
+    PendingBlock(PendingBlockWithTxs),
+}
+
 /// Block hash, number or tag
 #[derive(Debug, Clone)]
 pub enum BlockId {
@@ -66,6 +73,17 @@ pub struct BlockWithTxHashes {
     pub transactions: Vec<FieldElement>,
 }
 
+/// The block object
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BlockWithTxs {
+    pub status: BlockStatus,
+    #[serde(flatten)]
+    pub header: BlockHeader,
+    /// The transactions in this block
+    pub transactions: Vec<Transaction>,
+}
+
 /// The dynamic block being constructed by the sequencer. Note that this object will be deprecated
 /// upon decentralization.
 #[serde_as]
@@ -84,6 +102,103 @@ pub struct PendingBlockWithTxHashes {
     pub parent_hash: FieldElement,
 }
 
+/// The dynamic block being constructed by the sequencer. Note that this object will be deprecated
+/// upon decentralization.
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PendingBlockWithTxs {
+    /// The transactions in this block
+    pub transactions: Vec<Transaction>,
+    /// The time in which the block was created, encoded in Unix time
+    pub timestamp: u64,
+    /// The StarkNet identity of the sequencer submitting this block
+    #[serde_as(as = "UfeHex")]
+    pub sequencer_address: FieldElement,
+    /// The hash of this block's parent
+    #[serde_as(as = "UfeHex")]
+    pub parent_hash: FieldElement,
+}
+
+/// Transaction (`TXN`)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum Transaction {
+    Invoke(InvokeTransaction),
+    Declare(DeclareTransaction),
+    Deploy(DeployTransaction),
+}
+
+/// Common properties for a transaction receipt (`COMMON_TXN_PROPERTIES`)
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransactionMeta {
+    /// The hash identifying the transaction
+    #[serde_as(as = "UfeHex")]
+    pub transaction_hash: FieldElement,
+    /// The maximal fee that can be charged for including the transaction
+    #[serde_as(as = "UfeHex")]
+    pub max_fee: FieldElement,
+    /// Version of the transaction scheme
+    #[serde_as(as = "NumAsHex")]
+    pub version: u64,
+    #[serde_as(as = "Vec<UfeHex>")]
+    pub signature: Vec<FieldElement>,
+    #[serde_as(as = "UfeHex")]
+    pub nonce: FieldElement,
+}
+
+/// Declare Contract Transaction (`DECLARE_TXN`)
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeclareTransaction {
+    #[serde(flatten)]
+    pub meta: TransactionMeta,
+    /// The hash of the declared class
+    #[serde_as(as = "UfeHex")]
+    pub class_hash: FieldElement,
+    /// The address of the account contract sending the declaration transaction
+    #[serde_as(as = "UfeHex")]
+    pub sender_address: FieldElement,
+}
+
+/// Deploy Contract Transaction (`DEPLOY_TXN`)
+///
+/// The structure of a deploy transaction. Note that this transaction type is deprecated and will no
+/// longer be supported in future versions.
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeployTransaction {
+    /// The hash identifying the transaction
+    #[serde_as(as = "UfeHex")]
+    pub transaction_hash: FieldElement,
+    /// The hash of the deployed contract's class
+    #[serde_as(as = "UfeHex")]
+    pub class_hash: FieldElement,
+    /// Version of the transaction scheme
+    #[serde_as(as = "NumAsHex")]
+    pub version: u64,
+    /// The address of the deployed contract
+    #[serde_as(as = "UfeHex")]
+    pub contract_address: FieldElement,
+    /// The salt for the address of the deployed contract
+    #[serde_as(as = "UfeHex")]
+    pub contract_address_salt: FieldElement,
+    /// The parameters passed to the constructor
+    #[serde_as(as = "Vec<UfeHex>")]
+    pub constructor_calldata: Vec<FieldElement>,
+}
+
+/// Invoke Contract Transaction (`INVOKE_TXN`)
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InvokeTransaction {
+    #[serde(flatten)]
+    pub meta: TransactionMeta,
+    /// The function the transaction invokes
+    #[serde(flatten)]
+    pub function_call: FunctionCall,
+}
+
 /// The status of the block
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -92,6 +207,19 @@ pub enum BlockStatus {
     AcceptedOnL2,
     AcceptedOnL1,
     Rejected,
+}
+
+/// Function call information
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FunctionCall {
+    #[serde_as(as = "UfeHex")]
+    pub contract_address: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub entry_point_selector: FieldElement,
+    /// The parameters passed to the function
+    #[serde_as(as = "Vec<UfeHex>")]
+    pub calldata: Vec<FieldElement>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -138,19 +266,6 @@ pub struct EventContent {
     pub keys: Vec<FieldElement>,
     #[serde_as(as = "Vec<UfeHex>")]
     pub data: Vec<FieldElement>,
-}
-
-/// Function call information
-#[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FunctionCall {
-    #[serde_as(as = "UfeHex")]
-    pub contract_address: FieldElement,
-    #[serde_as(as = "UfeHex")]
-    pub entry_point_selector: FieldElement,
-    /// The parameters passed to the function
-    #[serde_as(as = "Vec<UfeHex>")]
-    pub calldata: Vec<FieldElement>,
 }
 
 /// The definition of a StarkNet contract class
@@ -236,31 +351,6 @@ pub struct SyncStatus {
     /// The number (height) of the estimated highest block to be synchronized
     #[serde_as(as = "NumAsHex")]
     pub highest_block_num: u64,
-}
-
-// Manually porting the `FunctionCall` fields here instead of flattening like the specification
-// suggests because `entry_point_selector` and `calldata` can be `None` for non-invoke transactions
-#[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Transaction {
-    #[serde_as(as = "UfeHex")]
-    pub contract_address: FieldElement,
-    // None for deploy txs
-    #[serde(default)]
-    #[serde_as(as = "Option<UfeHex>")]
-    pub entry_point_selector: Option<FieldElement>,
-    // None for deploy txs
-    #[serde(default)]
-    #[serde_as(as = "Option<Vec<UfeHex>>")]
-    pub calldata: Option<Vec<FieldElement>>,
-    /// The hash identifying the transaction
-    #[serde_as(as = "UfeHex")]
-    pub txn_hash: FieldElement,
-    /// The maximal fee that can be charged for including the transaction (None for non-invoke
-    /// transactions).
-    #[serde(default)]
-    #[serde_as(as = "Option<UfeHex>")]
-    pub max_fee: Option<FieldElement>,
 }
 
 #[serde_as]

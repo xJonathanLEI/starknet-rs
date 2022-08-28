@@ -21,6 +21,8 @@ pub struct JsonRpcClient<T> {
 pub enum JsonRpcMethod {
     #[serde(rename = "starknet_getBlockWithTxHashes")]
     GetBlockWithTxHashes,
+    #[serde(rename = "starknet_getBlockWithTxs")]
+    GetBlockWithTxs,
     #[serde(rename = "starknet_getStorageAt")]
     GetStorageAt,
     #[serde(rename = "starknet_getTransactionByHash")]
@@ -118,6 +120,18 @@ where
     ) -> Result<MaybePendingBlockWithTxHashes, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::GetBlockWithTxHashes,
+            [serde_json::to_value(block_id)?],
+        )
+        .await
+    }
+
+    /// Get block information with full transactions given the block id
+    pub async fn get_block_with_txs(
+        &self,
+        block_id: &BlockId,
+    ) -> Result<MaybePendingBlockWithTxs, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetBlockWithTxs,
             [serde_json::to_value(block_id)?],
         )
         .await
