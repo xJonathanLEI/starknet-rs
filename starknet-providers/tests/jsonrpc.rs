@@ -279,6 +279,16 @@ async fn jsonrpc_block_number() {
 }
 
 #[tokio::test]
+async fn jsonrpc_block_hash_and_number() {
+    let rpc_client = create_jsonrpc_client();
+
+    let id = rpc_client.block_hash_and_number().await.unwrap();
+
+    assert!(id.block_hash > FieldElement::ZERO);
+    assert!(id.block_number > 0);
+}
+
+#[tokio::test]
 async fn jsonrpc_chain_id() {
     let rpc_client = create_jsonrpc_client();
 

@@ -493,6 +493,14 @@ pub struct FeeEstimate {
 
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BlockHashAndNumber {
+    #[serde_as(as = "UfeHex")]
+    pub block_hash: FieldElement,
+    pub block_number: u64,
+}
+
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InvokeTransactionResult {
     /// The hash of the invoke transaction
     #[serde_as(as = "UfeHex")]

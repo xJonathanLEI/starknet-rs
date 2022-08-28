@@ -41,6 +41,8 @@ pub enum JsonRpcMethod {
     GetClassAt,
     #[serde(rename = "starknet_blockNumber")]
     BlockNumber,
+    #[serde(rename = "starknet_blockHashAndNumber")]
+    BlockHashAndNumber,
     #[serde(rename = "starknet_chainId")]
     ChainId,
     #[serde(rename = "starknet_syncing")]
@@ -258,6 +260,14 @@ where
     /// Get the most recent accepted block number
     pub async fn block_number(&self) -> Result<u64, JsonRpcClientError<T::Error>> {
         self.send_request(JsonRpcMethod::BlockNumber, ()).await
+    }
+
+    /// Get the most recent accepted block hash and number
+    pub async fn block_hash_and_number(
+        &self,
+    ) -> Result<BlockHashAndNumber, JsonRpcClientError<T::Error>> {
+        self.send_request(JsonRpcMethod::BlockHashAndNumber, ())
+            .await
     }
 
     /// Return the currently configured StarkNet chain id
