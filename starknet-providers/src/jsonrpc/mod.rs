@@ -29,6 +29,8 @@ pub enum JsonRpcMethod {
     GetStorageAt,
     #[serde(rename = "starknet_getTransactionByHash")]
     GetTransactionByHash,
+    #[serde(rename = "starknet_getTransactionByBlockIdAndIndex")]
+    GetTransactionByBlockIdAndIndex,
     #[serde(rename = "starknet_getTransactionReceipt")]
     GetTransactionReceipt,
     #[serde(rename = "starknet_getClass")]
@@ -179,6 +181,22 @@ where
         self.send_request(
             JsonRpcMethod::GetTransactionByHash,
             [serde_json::to_value(Felt(transaction_hash))?],
+        )
+        .await
+    }
+
+    /// Get the details of a transaction by a given block id and index
+    pub async fn get_transaction_by_block_id_and_index(
+        &self,
+        block_id: &BlockId,
+        index: u64,
+    ) -> Result<Transaction, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetTransactionByBlockIdAndIndex,
+            [
+                serde_json::to_value(block_id)?,
+                serde_json::to_value(index)?,
+            ],
         )
         .await
     }
