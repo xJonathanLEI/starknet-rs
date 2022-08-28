@@ -23,6 +23,8 @@ pub enum JsonRpcMethod {
     GetBlockWithTxHashes,
     #[serde(rename = "starknet_getBlockWithTxs")]
     GetBlockWithTxs,
+    #[serde(rename = "starknet_getStateUpdate")]
+    GetStateUpdate,
     #[serde(rename = "starknet_getStorageAt")]
     GetStorageAt,
     #[serde(rename = "starknet_getTransactionByHash")]
@@ -132,6 +134,18 @@ where
     ) -> Result<MaybePendingBlockWithTxs, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::GetBlockWithTxs,
+            [serde_json::to_value(block_id)?],
+        )
+        .await
+    }
+
+    /// Get the information about the result of executing the requested block
+    pub async fn get_state_update(
+        &self,
+        block_id: &BlockId,
+    ) -> Result<StateUpdate, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::GetStateUpdate,
             [serde_json::to_value(block_id)?],
         )
         .await

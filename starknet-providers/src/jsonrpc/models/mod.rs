@@ -43,6 +43,42 @@ pub enum BlockTag {
 
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StateUpdate {
+    #[serde_as(as = "UfeHex")]
+    pub block_hash: FieldElement,
+    /// The new global state root
+    #[serde_as(as = "UfeHex")]
+    pub new_root: FieldElement,
+    /// The previous global state root
+    #[serde_as(as = "UfeHex")]
+    pub old_root: FieldElement,
+    /// The change in state applied in this block, given as a mapping of addresses to the new values
+    /// and/or new contracts
+    pub state_diff: StateDiff,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StateDiff {
+    pub storage_diffs: Vec<StorageDiffItem>,
+    pub declared_contracts: Vec<DeclaredContractItem>,
+    pub deployed_contracts: Vec<DeployedContractItem>,
+    pub nonces: Vec<NonceUpdate>,
+}
+
+/// The updated nonce per contract address
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NonceUpdate {
+    /// The address of the contract
+    #[serde_as(as = "UfeHex")]
+    pub contract_address: FieldElement,
+    /// The nonce for the given address at the end of the block
+    #[serde_as(as = "UfeHex")]
+    pub nonce: FieldElement,
+}
+
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlockHeader {
     #[serde_as(as = "UfeHex")]
     pub block_hash: FieldElement,
@@ -117,6 +153,42 @@ pub struct PendingBlockWithTxs {
     /// The hash of this block's parent
     #[serde_as(as = "UfeHex")]
     pub parent_hash: FieldElement,
+}
+
+/// A new contract declared as part of the new state
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeclaredContractItem {
+    /// The hash of the contract code
+    #[serde_as(as = "UfeHex")]
+    pub class_hash: FieldElement,
+}
+
+/// A new contract deployed as part of the new state
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeployedContractItem {
+    /// The address of the contract
+    #[serde_as(as = "UfeHex")]
+    pub address: FieldElement,
+    /// The hash of the contract code
+    #[serde_as(as = "UfeHex")]
+    pub class_hash: FieldElement,
+}
+
+/// A change in a single storage item
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDiffItem {
+    /// The contract address for which the state changed
+    #[serde_as(as = "UfeHex")]
+    pub address: FieldElement,
+    /// The key of the changed value
+    #[serde_as(as = "UfeHex")]
+    pub key: FieldElement,
+    /// The new value applied to the given address
+    #[serde_as(as = "UfeHex")]
+    pub value: FieldElement,
 }
 
 /// Transaction (`TXN`)

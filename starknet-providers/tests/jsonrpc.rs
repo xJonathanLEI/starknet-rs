@@ -101,6 +101,18 @@ async fn jsonrpc_get_block_with_txs() {
 }
 
 #[tokio::test]
+async fn jsonrpc_get_state_update() {
+    let rpc_client = create_jsonrpc_client();
+
+    let state_update = rpc_client
+        .get_state_update(&BlockId::Tag(BlockTag::Latest))
+        .await
+        .unwrap();
+
+    assert!(state_update.new_root > FieldElement::ZERO);
+}
+
+#[tokio::test]
 async fn jsonrpc_get_storage_at() {
     let rpc_client = create_jsonrpc_client();
 
