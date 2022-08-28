@@ -166,7 +166,7 @@ where
         &self,
         contract_address: FieldElement,
         key: FieldElement,
-        block_hash: &BlockHashOrTag,
+        block_id: &BlockId,
     ) -> Result<FieldElement, JsonRpcClientError<T::Error>> {
         Ok(self
             .send_request::<_, Felt>(
@@ -174,7 +174,7 @@ where
                 [
                     serde_json::to_value(Felt(contract_address))?,
                     serde_json::to_value(Felt(key))?,
-                    serde_json::to_value(block_hash)?,
+                    serde_json::to_value(block_id)?,
                 ],
             )
             .await?

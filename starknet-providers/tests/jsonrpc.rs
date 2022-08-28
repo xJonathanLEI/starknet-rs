@@ -131,7 +131,7 @@ async fn jsonrpc_get_storage_at() {
                 .unwrap()],
             )
             .unwrap(),
-            &BlockHashOrTag::Tag(BlockTag::Latest),
+            &BlockId::Tag(BlockTag::Latest),
         )
         .await
         .unwrap();
