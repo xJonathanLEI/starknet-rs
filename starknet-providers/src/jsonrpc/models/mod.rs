@@ -296,6 +296,7 @@ pub struct FunctionCall {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventsPage {
+    /// Matching events
     pub events: Vec<EmittedEvent>,
     /// The returned page number
     pub page_number: u64,
@@ -371,12 +372,16 @@ pub struct ContractEntryPoint {
 
 /// An event filter/query
 #[serde_as]
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize)]
 pub struct EventFilter {
+    // Using `fromBlock` instead of `from_block` for now due to pathfinder bug:
+    //   https://github.com/eqlabs/pathfinder/issues/536
     #[serde(rename = "fromBlock", skip_serializing_if = "Option::is_none")]
-    pub from_block: Option<u64>,
+    pub from_block: Option<BlockId>,
+    // Using `toBlock` instead of `to_block` for now due to pathfinder bug:
+    //   https://github.com/eqlabs/pathfinder/issues/536
     #[serde(rename = "toBlock", skip_serializing_if = "Option::is_none")]
-    pub to_block: Option<u64>,
+    pub to_block: Option<BlockId>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[serde_as(as = "Option<UfeHex>")]
     pub address: Option<FieldElement>,

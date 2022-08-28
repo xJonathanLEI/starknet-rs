@@ -322,7 +322,7 @@ async fn jsonrpc_get_events() {
     let events = rpc_client
         .get_events(
             EventFilter {
-                from_block: Some(234500),
+                from_block: Some(BlockId::Number(234500)),
                 to_block: None,
                 address: None,
                 keys: None,
