@@ -8,8 +8,8 @@ use starknet_core::{
 use starknet_providers::jsonrpc::{
     models::{
         BlockId, BlockTag, ContractClass, ContractEntryPoint, EntryPointsByType, EventFilter,
-        FunctionCall, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, SyncStatusType,
-        Transaction,
+        FunctionCall, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
+        MaybePendingTransactionReceipt, SyncStatusType, Transaction, TransactionReceipt,
     },
     HttpTransport, JsonRpcClient, JsonRpcClientError,
 };
@@ -210,7 +210,12 @@ async fn jsonrpc_get_transaction_receipt() {
         .await
         .unwrap();
 
-    assert!(receipt.actual_fee > FieldElement::ZERO);
+    let receipt = match receipt {
+        MaybePendingTransactionReceipt::Receipt(TransactionReceipt::Invoke(receipt)) => receipt,
+        _ => panic!("unexpected receipt response type"),
+    };
+
+    assert!(receipt.meta.actual_fee > FieldElement::ZERO);
 }
 
 #[tokio::test]

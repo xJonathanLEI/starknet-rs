@@ -213,7 +213,7 @@ where
     pub async fn get_transaction_receipt(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<TransactionReceipt, JsonRpcClientError<T::Error>> {
+    ) -> Result<MaybePendingTransactionReceipt, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::GetTransactionReceipt,
             [serde_json::to_value(Felt(transaction_hash))?],

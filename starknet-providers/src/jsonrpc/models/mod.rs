@@ -25,6 +25,13 @@ pub enum MaybePendingBlockWithTxs {
     PendingBlock(PendingBlockWithTxs),
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum MaybePendingTransactionReceipt {
+    Receipt(TransactionReceipt),
+    PendingReceipt(PendingTransactionReceipt),
+}
+
 /// Block hash, number or tag
 #[derive(Debug, Clone)]
 pub enum BlockId {
@@ -200,7 +207,7 @@ pub enum Transaction {
     Deploy(DeployTransaction),
 }
 
-/// Common properties for a transaction receipt (`COMMON_TXN_PROPERTIES`)
+/// The `COMMON_TXN_PROPERTIES` type in the specification
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionMeta {
@@ -269,6 +276,96 @@ pub struct InvokeTransaction {
     /// The function the transaction invokes
     #[serde(flatten)]
     pub function_call: FunctionCall,
+}
+
+/// Common properties for a transaction receipt (`COMMON_TXN_PROPERTIES`)
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransactionReceiptMeta {
+    /// The hash identifying the transaction
+    #[serde_as(as = "UfeHex")]
+    pub transaction_hash: FieldElement,
+    /// The fee that was charged by the sequencer
+    #[serde_as(as = "UfeHex")]
+    pub actual_fee: FieldElement,
+    pub status: TransactionStatus,
+    /// Extra information pertaining to the status
+    pub status_data: Option<String>,
+    #[serde_as(as = "UfeHex")]
+    pub block_hash: FieldElement,
+    pub block_number: u64,
+}
+
+/// Properties specific to invoke transaction (`INVOKE_TXN_RECEIPT_PROPERTIES`)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InvokeTransactionReceiptData {
+    pub messages_sent: Vec<MsgToL1>,
+    /// In case this transaction was an L1 handler, this is the original message that invoked it
+    pub l1_origin_message: Option<MsgToL2>,
+    /// The events emitted as part of this transaction
+    pub events: Vec<Event>,
+}
+
+/// Invoke transaction receipt
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InvokeTransactionReceipt {
+    #[serde(flatten)]
+    pub meta: TransactionReceiptMeta,
+    #[serde(flatten)]
+    pub data: InvokeTransactionReceiptData,
+}
+
+/// A special type that covers both `DECLARE_TXN_RECEIPT` and `DEPLOY_TXN_RECEIPT` in the spec.
+/// This type exists because there's no way to distinguish between the 2 underlying types over the
+/// wire. The issue will be fixed in spec v0.2.0, upon which this type shall be removed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeclareOrDeployTransactionReceipt {
+    #[serde(flatten)]
+    pub meta: TransactionReceiptMeta,
+}
+
+/// The `TXN_RECEIPT` type in the specification, except without the `PENDING_TXN_RECEIPT` variant.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum TransactionReceipt {
+    Invoke(InvokeTransactionReceipt),
+    DeclareOrDeploy(DeclareOrDeployTransactionReceipt),
+}
+
+/// Common properties for a pending transaction receipt (`PENDING_COMMON_RECEIPT_PROPERTIES`)
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PendingTransactionReceiptMeta {
+    /// The hash identifying the transaction
+    #[serde_as(as = "UfeHex")]
+    pub transaction_hash: FieldElement,
+    /// The fee that was charged by the sequencer
+    #[serde_as(as = "UfeHex")]
+    pub actual_fee: FieldElement,
+}
+
+/// Pending invoke transaction receipt
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PendingInvokeTransactionReceipt {
+    #[serde(flatten)]
+    pub meta: PendingTransactionReceiptMeta,
+    #[serde(flatten)]
+    pub data: InvokeTransactionReceiptData,
+}
+
+/// Used for deploy and declare transaction receipts
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PendingDeclareOrDeployTransactionReceipt {
+    #[serde(flatten)]
+    pub meta: PendingTransactionReceiptMeta,
+}
+
+/// The `PENDING_TXN_RECEIPT` type in the specification
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum PendingTransactionReceipt {
+    Invoke(PendingInvokeTransactionReceipt),
+    DeclareOrDeploy(PendingDeclareOrDeployTransactionReceipt),
 }
 
 /// The status of the block
@@ -423,25 +520,6 @@ pub struct SyncStatus {
 
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransactionReceipt {
-    /// The hash identifying the transaction
-    #[serde_as(as = "UfeHex")]
-    pub txn_hash: FieldElement,
-    /// The fee that was charged by the sequencer
-    #[serde_as(as = "UfeHex")]
-    pub actual_fee: FieldElement,
-    pub status: TransactionStatus,
-    /// Extra information pertaining to the status
-    pub status_data: String,
-    pub messages_sent: Vec<MsgToL1>,
-    /// In case this transaction was an L1 handler, this is the original message that invoked it
-    pub l1_origin_message: Option<MsgToL2>,
-    /// The events emitted as part of this transaction
-    pub events: Vec<Event>,
-}
-
-#[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MsgToL1 {
     /// The target L1 address the message is sent to
     #[serde_as(as = "UfeHex")]
@@ -465,8 +543,6 @@ pub struct MsgToL2 {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TransactionStatus {
-    Unknown,
-    Received,
     Pending,
     AcceptedOnL2,
     AcceptedOnL1,
