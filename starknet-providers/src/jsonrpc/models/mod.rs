@@ -32,6 +32,64 @@ pub enum MaybePendingTransactionReceipt {
     PendingReceipt(PendingTransactionReceipt),
 }
 
+/// An event emitted as a result of transaction execution
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmittedEvent {
+    /// The hash of the block in which the event was emitted
+    #[serde_as(as = "UfeHex")]
+    pub block_hash: FieldElement,
+    /// The number of the block in which the event was emitted
+    pub block_number: u64,
+    /// The transaction that emitted the event
+    #[serde_as(as = "UfeHex")]
+    pub transaction_hash: FieldElement,
+    /// The event information
+    #[serde(flatten)]
+    pub event: Event,
+}
+
+/// A StarkNet event
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Event {
+    #[serde_as(as = "UfeHex")]
+    pub from_address: FieldElement,
+    #[serde(flatten)]
+    pub content: EventContent,
+}
+
+/// The content of an event
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventContent {
+    #[serde_as(as = "Vec<UfeHex>")]
+    pub keys: Vec<FieldElement>,
+    #[serde_as(as = "Vec<UfeHex>")]
+    pub data: Vec<FieldElement>,
+}
+
+/// An event filter/query
+#[serde_as]
+#[derive(Debug, Clone, Default, Serialize)]
+pub struct EventFilter {
+    // Using `fromBlock` instead of `from_block` for now due to pathfinder bug:
+    //   https://github.com/eqlabs/pathfinder/issues/536
+    #[serde(rename = "fromBlock", skip_serializing_if = "Option::is_none")]
+    pub from_block: Option<BlockId>,
+    // Using `toBlock` instead of `to_block` for now due to pathfinder bug:
+    //   https://github.com/eqlabs/pathfinder/issues/536
+    #[serde(rename = "toBlock", skip_serializing_if = "Option::is_none")]
+    pub to_block: Option<BlockId>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub address: Option<FieldElement>,
+    /// The values used to filter the events
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde_as(as = "Option<Vec<UfeHex>>")]
+    pub keys: Option<Vec<FieldElement>>,
+}
+
 /// Block hash, number or tag
 #[derive(Debug, Clone)]
 pub enum BlockId {
@@ -46,6 +104,36 @@ pub enum BlockId {
 pub enum BlockTag {
     Latest,
     Pending,
+}
+
+#[derive(Debug, Clone)]
+pub enum SyncStatusType {
+    Syncing(SyncStatus),
+    NotSyncing,
+}
+
+/// An object describing the node synchronization status
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SyncStatus {
+    /// The hash of the block from which the sync started
+    #[serde_as(as = "UfeHex")]
+    pub starting_block_hash: FieldElement,
+    /// The number (height) of the block from which the sync started
+    #[serde_as(as = "NumAsHex")]
+    pub starting_block_num: u64,
+    /// The hash of the current block being synchronized
+    #[serde_as(as = "UfeHex")]
+    pub current_block_hash: FieldElement,
+    /// The number (height) of the current block being synchronized
+    #[serde_as(as = "NumAsHex")]
+    pub current_block_num: u64,
+    /// The hash of the estimated highest block to be synchronized
+    #[serde_as(as = "UfeHex")]
+    pub highest_block_hash: FieldElement,
+    /// The number (height) of the estimated highest block to be synchronized
+    #[serde_as(as = "NumAsHex")]
+    pub highest_block_num: u64,
 }
 
 #[serde_as]
@@ -368,156 +456,6 @@ pub enum PendingTransactionReceipt {
     DeclareOrDeploy(PendingDeclareOrDeployTransactionReceipt),
 }
 
-/// The status of the block
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum BlockStatus {
-    Pending,
-    AcceptedOnL2,
-    AcceptedOnL1,
-    Rejected,
-}
-
-/// Function call information
-#[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FunctionCall {
-    #[serde_as(as = "UfeHex")]
-    pub contract_address: FieldElement,
-    #[serde_as(as = "UfeHex")]
-    pub entry_point_selector: FieldElement,
-    /// The parameters passed to the function
-    #[serde_as(as = "Vec<UfeHex>")]
-    pub calldata: Vec<FieldElement>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventsPage {
-    /// Matching events
-    pub events: Vec<EmittedEvent>,
-    /// The returned page number
-    pub page_number: u64,
-    /// A flag indicating whether this is the end of the stream of events
-    pub is_last_page: bool,
-}
-
-/// An event emitted as a result of transaction execution
-#[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EmittedEvent {
-    /// The hash of the block in which the event was emitted
-    #[serde_as(as = "UfeHex")]
-    pub block_hash: FieldElement,
-    /// The number of the block in which the event was emitted
-    pub block_number: u64,
-    /// The transaction that emitted the event
-    #[serde_as(as = "UfeHex")]
-    pub transaction_hash: FieldElement,
-    /// The event information
-    #[serde(flatten)]
-    pub event: Event,
-}
-
-/// A StarkNet event
-#[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Event {
-    #[serde_as(as = "UfeHex")]
-    pub from_address: FieldElement,
-    #[serde(flatten)]
-    pub content: EventContent,
-}
-
-/// The content of an event
-#[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventContent {
-    #[serde_as(as = "Vec<UfeHex>")]
-    pub keys: Vec<FieldElement>,
-    #[serde_as(as = "Vec<UfeHex>")]
-    pub data: Vec<FieldElement>,
-}
-
-/// The definition of a StarkNet contract class
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContractClass {
-    /// A base64 representation of the compressed program code
-    #[serde(with = "base64")]
-    pub program: Vec<u8>,
-    pub entry_points_by_type: EntryPointsByType,
-}
-
-#[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub struct EntryPointsByType {
-    pub constructor: Vec<ContractEntryPoint>,
-    pub external: Vec<ContractEntryPoint>,
-    pub l1_handler: Vec<ContractEntryPoint>,
-}
-
-#[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContractEntryPoint {
-    /// The offset of the entry point in the program
-    #[serde_as(as = "NumAsHex")]
-    pub offset: u64,
-    /// A unique identifier of the entry point (function) in the program
-    #[serde_as(as = "UfeHex")]
-    pub selector: FieldElement,
-}
-
-/// An event filter/query
-#[serde_as]
-#[derive(Debug, Clone, Default, Serialize)]
-pub struct EventFilter {
-    // Using `fromBlock` instead of `from_block` for now due to pathfinder bug:
-    //   https://github.com/eqlabs/pathfinder/issues/536
-    #[serde(rename = "fromBlock", skip_serializing_if = "Option::is_none")]
-    pub from_block: Option<BlockId>,
-    // Using `toBlock` instead of `to_block` for now due to pathfinder bug:
-    //   https://github.com/eqlabs/pathfinder/issues/536
-    #[serde(rename = "toBlock", skip_serializing_if = "Option::is_none")]
-    pub to_block: Option<BlockId>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[serde_as(as = "Option<UfeHex>")]
-    pub address: Option<FieldElement>,
-    /// The values used to filter the events
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[serde_as(as = "Option<Vec<UfeHex>>")]
-    pub keys: Option<Vec<FieldElement>>,
-}
-
-#[derive(Debug, Clone)]
-pub enum SyncStatusType {
-    Syncing(SyncStatus),
-    NotSyncing,
-}
-
-/// An object describing the node synchronization status
-#[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SyncStatus {
-    /// The hash of the block from which the sync started
-    #[serde_as(as = "UfeHex")]
-    pub starting_block_hash: FieldElement,
-    /// The number (height) of the block from which the sync started
-    #[serde_as(as = "NumAsHex")]
-    pub starting_block_num: u64,
-    /// The hash of the current block being synchronized
-    #[serde_as(as = "UfeHex")]
-    pub current_block_hash: FieldElement,
-    /// The number (height) of the current block being synchronized
-    #[serde_as(as = "NumAsHex")]
-    pub current_block_num: u64,
-    /// The hash of the estimated highest block to be synchronized
-    #[serde_as(as = "UfeHex")]
-    pub highest_block_hash: FieldElement,
-    /// The number (height) of the estimated highest block to be synchronized
-    #[serde_as(as = "NumAsHex")]
-    pub highest_block_num: u64,
-}
-
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MsgToL1 {
@@ -549,6 +487,58 @@ pub enum TransactionStatus {
     Rejected,
 }
 
+/// The status of the block
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum BlockStatus {
+    Pending,
+    AcceptedOnL2,
+    AcceptedOnL1,
+    Rejected,
+}
+
+/// Function call information
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FunctionCall {
+    #[serde_as(as = "UfeHex")]
+    pub contract_address: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub entry_point_selector: FieldElement,
+    /// The parameters passed to the function
+    #[serde_as(as = "Vec<UfeHex>")]
+    pub calldata: Vec<FieldElement>,
+}
+
+/// The definition of a StarkNet contract class
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContractClass {
+    /// A base64 representation of the compressed program code
+    #[serde(with = "base64")]
+    pub program: Vec<u8>,
+    pub entry_points_by_type: EntryPointsByType,
+}
+
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub struct EntryPointsByType {
+    pub constructor: Vec<ContractEntryPoint>,
+    pub external: Vec<ContractEntryPoint>,
+    pub l1_handler: Vec<ContractEntryPoint>,
+}
+
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContractEntryPoint {
+    /// The offset of the entry point in the program
+    #[serde_as(as = "NumAsHex")]
+    pub offset: u64,
+    /// A unique identifier of the entry point (function) in the program
+    #[serde_as(as = "UfeHex")]
+    pub selector: FieldElement,
+}
+
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FeeEstimate {
@@ -562,6 +552,16 @@ pub struct FeeEstimate {
     /// The estimated fee for the transaction (in gwei), product of gas_consumed and gas_price
     #[serde_as(as = "UfeHex")]
     pub overall_fee: FieldElement,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventsPage {
+    /// Matching events
+    pub events: Vec<EmittedEvent>,
+    /// The returned page number
+    pub page_number: u64,
+    /// A flag indicating whether this is the end of the stream of events
+    pub is_last_page: bool,
 }
 
 #[serde_as]
