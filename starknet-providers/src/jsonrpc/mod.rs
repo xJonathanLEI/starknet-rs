@@ -19,18 +19,18 @@ pub struct JsonRpcClient<T> {
 
 #[derive(Debug, Serialize)]
 pub enum JsonRpcMethod {
-    #[serde(rename = "starknet_getBlockByHash")]
-    GetBlockByHash,
-    #[serde(rename = "starknet_getBlockByNumber")]
-    GetBlockByNumber,
+    #[serde(rename = "starknet_getBlockWithTxHashes")]
+    GetBlockWithTxHashes,
+    #[serde(rename = "starknet_getBlockWithTxs")]
+    GetBlockWithTxs,
+    #[serde(rename = "starknet_getStateUpdate")]
+    GetStateUpdate,
     #[serde(rename = "starknet_getStorageAt")]
     GetStorageAt,
     #[serde(rename = "starknet_getTransactionByHash")]
     GetTransactionByHash,
-    #[serde(rename = "starknet_getTransactionByBlockHashAndIndex")]
-    GetTransactionByBlockHashAndIndex,
-    #[serde(rename = "starknet_getTransactionByBlockNumberAndIndex")]
-    GetTransactionByBlockNumberAndIndex,
+    #[serde(rename = "starknet_getTransactionByBlockIdAndIndex")]
+    GetTransactionByBlockIdAndIndex,
     #[serde(rename = "starknet_getTransactionReceipt")]
     GetTransactionReceipt,
     #[serde(rename = "starknet_getClass")]
@@ -39,22 +39,26 @@ pub enum JsonRpcMethod {
     GetClassHashAt,
     #[serde(rename = "starknet_getClassAt")]
     GetClassAt,
-    #[serde(rename = "starknet_getBlockTransactionCountByHash")]
-    GetBlockTransactionCountByHash,
-    #[serde(rename = "starknet_getBlockTransactionCountByNumber")]
-    GetBlockTransactionCountByNumber,
-    #[serde(rename = "starknet_blockNumber")]
-    BlockNumber,
-    #[serde(rename = "starknet_chainId")]
-    ChainId,
-    #[serde(rename = "starknet_syncing")]
-    Syncing,
-    #[serde(rename = "starknet_getEvents")]
-    GetEvents,
+    #[serde(rename = "starknet_getBlockTransactionCount")]
+    GetBlockTransactionCount,
     #[serde(rename = "starknet_call")]
     Call,
     #[serde(rename = "starknet_estimateFee")]
     EstimateFee,
+    #[serde(rename = "starknet_blockNumber")]
+    BlockNumber,
+    #[serde(rename = "starknet_blockHashAndNumber")]
+    BlockHashAndNumber,
+    #[serde(rename = "starknet_chainId")]
+    ChainId,
+    #[serde(rename = "starknet_pendingTransactions")]
+    PendingTransactions,
+    #[serde(rename = "starknet_syncing")]
+    Syncing,
+    #[serde(rename = "starknet_getEvents")]
+    GetEvents,
+    #[serde(rename = "starknet_getNonce")]
+    GetNonce,
     #[serde(rename = "starknet_addInvokeTransaction")]
     AddInvokeTransaction,
     #[serde(rename = "starknet_addDeclareTransaction")]
@@ -95,14 +99,6 @@ struct JsonRpcRequest<T> {
     params: T,
 }
 
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-enum BlockResponseScopeOptions {
-    TxnHash,
-    FullTxns,
-    FullTxnAndReceipts,
-}
-
 #[serde_as]
 #[derive(Serialize, Deserialize)]
 struct Felt(#[serde_as(as = "UfeHex")] pub FieldElement);
@@ -129,92 +125,38 @@ impl<T> JsonRpcClient<T>
 where
     T: JsonRpcTransport,
 {
-    /// Get block information given the block id
-    pub async fn get_block_by_hash(
+    /// Get block information with transaction hashes given the block id
+    pub async fn get_block_with_tx_hashes(
         &self,
-        block_hash: &BlockHashOrTag,
-    ) -> Result<Block, JsonRpcClientError<T::Error>> {
+        block_id: &BlockId,
+    ) -> Result<MaybePendingBlockWithTxHashes, JsonRpcClientError<T::Error>> {
         self.send_request(
-            JsonRpcMethod::GetBlockByHash,
-            [
-                serde_json::to_value(block_hash)?,
-                serde_json::to_value(BlockResponseScopeOptions::TxnHash)?,
-            ],
+            JsonRpcMethod::GetBlockWithTxHashes,
+            [serde_json::to_value(block_id)?],
         )
         .await
     }
 
-    /// Get block information given the block id
-    pub async fn get_block_by_hash_with_txns(
+    /// Get block information with full transactions given the block id
+    pub async fn get_block_with_txs(
         &self,
-        block_hash: &BlockHashOrTag,
-    ) -> Result<BlockWithTxns, JsonRpcClientError<T::Error>> {
+        block_id: &BlockId,
+    ) -> Result<MaybePendingBlockWithTxs, JsonRpcClientError<T::Error>> {
         self.send_request(
-            JsonRpcMethod::GetBlockByHash,
-            [
-                serde_json::to_value(block_hash)?,
-                serde_json::to_value(BlockResponseScopeOptions::FullTxns)?,
-            ],
+            JsonRpcMethod::GetBlockWithTxs,
+            [serde_json::to_value(block_id)?],
         )
         .await
     }
 
-    /// Get block information given the block id
-    pub async fn get_block_by_hash_with_receipts(
+    /// Get the information about the result of executing the requested block
+    pub async fn get_state_update(
         &self,
-        block_hash: &BlockHashOrTag,
-    ) -> Result<BlockWithReceipts, JsonRpcClientError<T::Error>> {
+        block_id: &BlockId,
+    ) -> Result<StateUpdate, JsonRpcClientError<T::Error>> {
         self.send_request(
-            JsonRpcMethod::GetBlockByHash,
-            [
-                serde_json::to_value(block_hash)?,
-                serde_json::to_value(BlockResponseScopeOptions::FullTxnAndReceipts)?,
-            ],
-        )
-        .await
-    }
-
-    /// Get block information given the block number (its height)
-    pub async fn get_block_by_number(
-        &self,
-        block_number: &BlockNumOrTag,
-    ) -> Result<Block, JsonRpcClientError<T::Error>> {
-        self.send_request(
-            JsonRpcMethod::GetBlockByNumber,
-            [
-                serde_json::to_value(block_number)?,
-                serde_json::to_value(BlockResponseScopeOptions::TxnHash)?,
-            ],
-        )
-        .await
-    }
-
-    /// Get block information given the block number (its height)
-    pub async fn get_block_by_number_with_txns(
-        &self,
-        block_number: &BlockNumOrTag,
-    ) -> Result<BlockWithTxns, JsonRpcClientError<T::Error>> {
-        self.send_request(
-            JsonRpcMethod::GetBlockByNumber,
-            [
-                serde_json::to_value(block_number)?,
-                serde_json::to_value(BlockResponseScopeOptions::FullTxns)?,
-            ],
-        )
-        .await
-    }
-
-    /// Get block information given the block number (its height)
-    pub async fn get_block_by_number_with_receipts(
-        &self,
-        block_number: &BlockNumOrTag,
-    ) -> Result<BlockWithReceipts, JsonRpcClientError<T::Error>> {
-        self.send_request(
-            JsonRpcMethod::GetBlockByNumber,
-            [
-                serde_json::to_value(block_number)?,
-                serde_json::to_value(BlockResponseScopeOptions::FullTxnAndReceipts)?,
-            ],
+            JsonRpcMethod::GetStateUpdate,
+            [serde_json::to_value(block_id)?],
         )
         .await
     }
@@ -224,7 +166,7 @@ where
         &self,
         contract_address: FieldElement,
         key: FieldElement,
-        block_hash: &BlockHashOrTag,
+        block_id: &BlockId,
     ) -> Result<FieldElement, JsonRpcClientError<T::Error>> {
         Ok(self
             .send_request::<_, Felt>(
@@ -232,7 +174,7 @@ where
                 [
                     serde_json::to_value(Felt(contract_address))?,
                     serde_json::to_value(Felt(key))?,
-                    serde_json::to_value(block_hash)?,
+                    serde_json::to_value(block_id)?,
                 ],
             )
             .await?
@@ -251,32 +193,16 @@ where
         .await
     }
 
-    /// Get the details of a transaction by a given block hash and index
-    pub async fn get_transaction_by_block_hash_and_index(
+    /// Get the details of a transaction by a given block id and index
+    pub async fn get_transaction_by_block_id_and_index(
         &self,
-        block_hash: &BlockHashOrTag,
+        block_id: &BlockId,
         index: u64,
     ) -> Result<Transaction, JsonRpcClientError<T::Error>> {
         self.send_request(
-            JsonRpcMethod::GetTransactionByBlockHashAndIndex,
+            JsonRpcMethod::GetTransactionByBlockIdAndIndex,
             [
-                serde_json::to_value(block_hash)?,
-                serde_json::to_value(index)?,
-            ],
-        )
-        .await
-    }
-
-    /// Get the details of a transaction by a given block number and index
-    pub async fn get_transaction_by_block_number_and_index(
-        &self,
-        block_number: &BlockNumOrTag,
-        index: u64,
-    ) -> Result<Transaction, JsonRpcClientError<T::Error>> {
-        self.send_request(
-            JsonRpcMethod::GetTransactionByBlockNumberAndIndex,
-            [
-                serde_json::to_value(block_number)?,
+                serde_json::to_value(block_id)?,
                 serde_json::to_value(index)?,
             ],
         )
@@ -287,7 +213,7 @@ where
     pub async fn get_transaction_receipt(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<TransactionReceipt, JsonRpcClientError<T::Error>> {
+    ) -> Result<MaybePendingTransactionReceipt, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::GetTransactionReceipt,
             [serde_json::to_value(Felt(transaction_hash))?],
@@ -307,52 +233,88 @@ where
         .await
     }
 
-    /// Get the contract class hash for the contract deployed at the given address
+    /// Get the contract class hash in the given block for the contract deployed at the given address
     pub async fn get_class_hash_at(
         &self,
+        block_id: &BlockId,
         contract_address: FieldElement,
     ) -> Result<FieldElement, JsonRpcClientError<T::Error>> {
         Ok(self
             .send_request::<_, Felt>(
                 JsonRpcMethod::GetClassHashAt,
-                [serde_json::to_value(Felt(contract_address))?],
+                [
+                    serde_json::to_value(block_id)?,
+                    serde_json::to_value(Felt(contract_address))?,
+                ],
             )
             .await?
             .0)
     }
 
-    /// Get the contract class definition at the given address
+    /// Get the contract class definition in the given block at the given address
     pub async fn get_class_at(
         &self,
+        block_id: &BlockId,
         contract_address: FieldElement,
     ) -> Result<ContractClass, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::GetClassAt,
-            [serde_json::to_value(Felt(contract_address))?],
+            [
+                serde_json::to_value(block_id)?,
+                serde_json::to_value(Felt(contract_address))?,
+            ],
         )
         .await
     }
 
-    /// Get the number of transactions in a block given a block hash
-    pub async fn get_block_transaction_count_by_hash(
+    /// Get the number of transactions in a block given a block id
+    pub async fn get_block_transaction_count(
         &self,
-        block_hash: &BlockHashOrTag,
+        block_id: &BlockId,
     ) -> Result<u64, JsonRpcClientError<T::Error>> {
         self.send_request(
-            JsonRpcMethod::GetBlockTransactionCountByHash,
-            [serde_json::to_value(block_hash)?],
+            JsonRpcMethod::GetBlockTransactionCount,
+            [serde_json::to_value(block_id)?],
         )
         .await
     }
 
-    /// Get the number of transactions in a block given a block number (height)
-    pub async fn get_block_transaction_count_by_number(
+    /// Call a starknet function without creating a StarkNet transaction
+    pub async fn call<R>(
         &self,
-        block_number: &BlockNumOrTag,
-    ) -> Result<u64, JsonRpcClientError<T::Error>> {
+        request: R,
+        block_id: &BlockId,
+    ) -> Result<Vec<FieldElement>, JsonRpcClientError<T::Error>>
+    where
+        R: AsRef<FunctionCall>,
+    {
+        Ok(self
+            .send_request::<_, FeltArray>(
+                JsonRpcMethod::Call,
+                [
+                    serde_json::to_value(request.as_ref())?,
+                    serde_json::to_value(block_id)?,
+                ],
+            )
+            .await?
+            .0)
+    }
+
+    /// Estimate the fee for a given StarkNet transaction
+    pub async fn estimate_fee<R>(
+        &self,
+        request: R,
+        block_id: &BlockId,
+    ) -> Result<FeeEstimate, JsonRpcClientError<T::Error>>
+    where
+        R: AsRef<FunctionCall>,
+    {
         self.send_request(
-            JsonRpcMethod::GetBlockTransactionCountByNumber,
-            [serde_json::to_value(block_number)?],
+            JsonRpcMethod::EstimateFee,
+            [
+                serde_json::to_value(request.as_ref())?,
+                serde_json::to_value(block_id)?,
+            ],
         )
         .await
     }
@@ -362,12 +324,28 @@ where
         self.send_request(JsonRpcMethod::BlockNumber, ()).await
     }
 
+    /// Get the most recent accepted block hash and number
+    pub async fn block_hash_and_number(
+        &self,
+    ) -> Result<BlockHashAndNumber, JsonRpcClientError<T::Error>> {
+        self.send_request(JsonRpcMethod::BlockHashAndNumber, ())
+            .await
+    }
+
     /// Return the currently configured StarkNet chain id
     pub async fn chain_id(&self) -> Result<FieldElement, JsonRpcClientError<T::Error>> {
         Ok(self
             .send_request::<_, Felt>(JsonRpcMethod::ChainId, ())
             .await?
             .0)
+    }
+
+    /// Returns the transactions in the transaction pool, recognized by this sequencer
+    pub async fn pending_transactions(
+        &self,
+    ) -> Result<Vec<Transaction>, JsonRpcClientError<T::Error>> {
+        self.send_request(JsonRpcMethod::PendingTransactions, ())
+            .await
     }
 
     /// Returns an object about the sync status, or false if the node is not synching
@@ -393,44 +371,18 @@ where
         .await
     }
 
-    /// Call a starknet function without creating a StarkNet transaction
-    pub async fn call<R>(
+    /// Get the latest nonce associated with the given address
+    pub async fn get_nonce(
         &self,
-        request: R,
-        block_hash: &BlockHashOrTag,
-    ) -> Result<Vec<FieldElement>, JsonRpcClientError<T::Error>>
-    where
-        R: AsRef<FunctionCall>,
-    {
+        contract_address: FieldElement,
+    ) -> Result<FieldElement, JsonRpcClientError<T::Error>> {
         Ok(self
-            .send_request::<_, FeltArray>(
-                JsonRpcMethod::Call,
-                [
-                    serde_json::to_value(request.as_ref())?,
-                    serde_json::to_value(block_hash)?,
-                ],
+            .send_request::<_, Felt>(
+                JsonRpcMethod::GetNonce,
+                [serde_json::to_value(Felt(contract_address))?],
             )
             .await?
             .0)
-    }
-
-    /// Estimate the fee for a given StarkNet transaction
-    pub async fn estimate_fee<R>(
-        &self,
-        request: R,
-        block_hash: &BlockHashOrTag,
-    ) -> Result<FeeEstimate, JsonRpcClientError<T::Error>>
-    where
-        R: AsRef<FunctionCall>,
-    {
-        self.send_request(
-            JsonRpcMethod::EstimateFee,
-            [
-                serde_json::to_value(request.as_ref())?,
-                serde_json::to_value(block_hash)?,
-            ],
-        )
-        .await
     }
 
     /// Submit a new transaction to be added to the chain
