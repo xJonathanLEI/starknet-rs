@@ -94,6 +94,7 @@ pub struct L1ToL2Message {
     pub selector: FieldElement,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub payload: Vec<FieldElement>,
+    #[serde(default)]
     #[serde_as(deserialize_as = "Option<UfeHex>")]
     pub nonce: Option<FieldElement>,
 }
