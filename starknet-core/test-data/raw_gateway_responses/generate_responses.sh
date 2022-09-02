@@ -25,6 +25,9 @@ curl -o ./get_block/7_with_declare_tx.txt "https://alpha4.starknet.io/feeder_gat
 # ./get_block/8_with_starknet_version.txt
 curl -o ./get_block/8_with_starknet_version.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=273155"
 
+# ./get_block/9_with_messages_without_nonce.txt
+curl -o ./get_block/9_with_messages_without_nonce.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=1564"
+
 # ./get_code/1_code.txt
 curl -o ./get_code/1_code.txt "https://alpha4.starknet.io/feeder_gateway/get_code?contractAddress=0x05ffd28b3ff2eecd6da0fa64c90e928a9f46f1563976a4fe1770ab48ee43506a"
 
