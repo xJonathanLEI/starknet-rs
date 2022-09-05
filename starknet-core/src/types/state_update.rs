@@ -27,6 +27,9 @@ pub struct StateDiff {
     pub deployed_contracts: Vec<DeployedContract>,
     #[serde_as(as = "Vec<UfeHex>")]
     pub declared_contracts: Vec<FieldElement>,
+    #[serde(default)]
+    #[serde_as(as = "HashMap<UfeHex, UfeHex>")]
+    pub nonces: HashMap<FieldElement, FieldElement>,
 }
 
 #[serde_as]

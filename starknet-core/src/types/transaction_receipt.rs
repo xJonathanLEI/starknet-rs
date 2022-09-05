@@ -17,6 +17,7 @@ pub struct Receipt {
     pub block_hash: Option<FieldElement>,
     pub block_number: Option<u64>,
     pub events: Vec<Event>,
+    #[serde(default)]
     pub execution_resources: Option<ExecutionResources>,
     pub l1_to_l2_consumed_message: Option<L1ToL2Message>,
     pub l2_to_l1_messages: Vec<L2ToL1Message>,
@@ -37,7 +38,8 @@ pub struct ConfirmedReceipt {
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
     pub transaction_index: u64,
-    pub execution_resources: ExecutionResources,
+    #[serde(default)]
+    pub execution_resources: Option<ExecutionResources>,
     pub l1_to_l2_consumed_message: Option<L1ToL2Message>,
     pub l2_to_l1_messages: Vec<L2ToL1Message>,
     pub events: Vec<Event>,

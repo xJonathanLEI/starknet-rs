@@ -19,6 +19,12 @@ pub struct BlockTraces {
 pub struct TransactionTrace {
     /// An object describing the invocation of a specific function.
     pub function_invocation: FunctionInvocation,
+    /// An object describing the invocation of a fee transfer.
+    #[serde(default)]
+    pub fee_transfer_invocation: Option<FunctionInvocation>,
+    /// An object describing the invocation of validation.
+    #[serde(default)]
+    pub validate_invocation: Option<FunctionInvocation>,
     #[serde_as(as = "Vec<UfeHex>")]
     pub signature: Vec<FieldElement>,
 }

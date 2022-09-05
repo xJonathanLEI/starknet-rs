@@ -93,7 +93,7 @@ mod tests {
             panic!("Did not deserialize Transaction::InvokeFunction properly");
         }
         let receipt = &block.transaction_receipts[0];
-        assert_eq!(receipt.execution_resources.n_steps, 68);
+        assert_eq!(receipt.execution_resources.as_ref().unwrap().n_steps, 68);
     }
 
     #[test]
@@ -209,5 +209,41 @@ mod tests {
         };
 
         assert_eq!(tx.sender_address, FieldElement::ONE);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_block_deser_with_l1_handler() {
+        let raw =
+            include_str!("../../test-data/raw_gateway_responses/get_block/10_with_l1_handler.txt");
+
+        let block: Block = serde_json::from_str(raw).unwrap();
+
+        let tx = match &block.transactions[23] {
+            TransactionType::L1Handler(tx) => tx,
+            _ => panic!("Unexpected tx type"),
+        };
+
+        assert_eq!(
+            tx.contract_address,
+            FieldElement::from_hex_be(
+                "0x4a472fe795cc40e9dc838fe4f1608cb91bf027854d016675ec81e172a2e3599"
+            )
+            .unwrap()
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_block_deser_without_execution_resources() {
+        let raw = include_str!(
+            "../../test-data/raw_gateway_responses/get_block/11_without_execution_resources.txt"
+        );
+
+        let block: Block = serde_json::from_str(raw).unwrap();
+
+        let receipt = &block.transaction_receipts[17];
+
+        assert!(receipt.execution_resources.is_none());
     }
 }
