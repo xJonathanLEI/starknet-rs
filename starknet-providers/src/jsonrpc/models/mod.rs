@@ -293,6 +293,7 @@ pub enum Transaction {
     Invoke(InvokeTransaction),
     Declare(DeclareTransaction),
     Deploy(DeployTransaction),
+    L1Handler(L1HandlerTransaction),
 }
 
 /// The `COMMON_TXN_PROPERTIES` type in the specification
@@ -312,6 +313,24 @@ pub struct TransactionMeta {
     pub signature: Vec<FieldElement>,
     #[serde_as(as = "UfeHex")]
     pub nonce: FieldElement,
+}
+
+/// A call to an l1_handler on an L2 contract induced by a message from L1
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct L1HandlerTransaction {
+    /// The hash identifying the transaction
+    #[serde_as(as = "UfeHex")]
+    pub transaction_hash: FieldElement,
+    /// Version of the transaction scheme
+    #[serde_as(as = "NumAsHex")]
+    pub version: u64,
+    /// The L1->L2 message nonce field of the SN Core L1 contract at the time the transaction was
+    /// sent
+    #[serde_as(as = "NumAsHex")]
+    pub nonce: u64,
+    #[serde(flatten)]
+    pub function_call: FunctionCall,
 }
 
 /// Declare Contract Transaction (`DECLARE_TXN`)
