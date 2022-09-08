@@ -16,6 +16,7 @@ pub enum TransactionType {
     Declare(DeclareTransaction),
     Deploy(DeployTransaction),
     InvokeFunction(InvokeFunctionTransaction),
+    L1Handler(L1HandlerTransaction),
 }
 
 #[serde_as]
@@ -95,6 +96,8 @@ pub struct DeployTransaction {
     pub class_hash: FieldElement,
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub version: FieldElement,
 }
 
 #[serde_as]
@@ -114,6 +117,29 @@ pub struct InvokeFunctionTransaction {
     pub transaction_hash: FieldElement,
     #[serde_as(as = "UfeHex")]
     pub max_fee: FieldElement,
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub nonce: Option<FieldElement>,
+    #[serde_as(as = "UfeHex")]
+    pub version: FieldElement,
+}
+
+#[serde_as]
+#[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
+pub struct L1HandlerTransaction {
+    #[serde_as(as = "UfeHex")]
+    pub contract_address: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub entry_point_selector: FieldElement,
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
+    pub calldata: Vec<FieldElement>,
+    #[serde_as(as = "UfeHex")]
+    pub transaction_hash: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub nonce: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub version: FieldElement,
 }
 
 #[cfg(test)]

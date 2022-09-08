@@ -19,6 +19,12 @@ pub struct BlockTraces {
 pub struct TransactionTrace {
     /// An object describing the invocation of a specific function.
     pub function_invocation: FunctionInvocation,
+    /// An object describing the invocation of a fee transfer.
+    #[serde(default)]
+    pub fee_transfer_invocation: Option<FunctionInvocation>,
+    /// An object describing the invocation of validation.
+    #[serde(default)]
+    pub validate_invocation: Option<FunctionInvocation>,
     #[serde_as(as = "Vec<UfeHex>")]
     pub signature: Vec<FieldElement>,
 }
@@ -122,6 +128,17 @@ mod tests {
             "../../test-data/raw_gateway_responses/get_transaction_trace/2_with_events.txt"
         ))
         .unwrap();
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_trace_deser_with_validation() {
+        let trace = serde_json::from_str::<TransactionTrace>(include_str!(
+            "../../test-data/raw_gateway_responses/get_transaction_trace/4_with_validation.txt"
+        ))
+        .unwrap();
+
+        assert!(trace.validate_invocation.is_some());
     }
 
     #[test]
