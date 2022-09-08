@@ -132,6 +132,17 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_trace_deser_with_validation() {
+        let trace = serde_json::from_str::<TransactionTrace>(include_str!(
+            "../../test-data/raw_gateway_responses/get_transaction_trace/4_with_validation.txt"
+        ))
+        .unwrap();
+
+        assert!(trace.validate_invocation.is_some());
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_trace_deser_new_attributes_0_9_0() {
         // This tx contains new fields introduced in StarkNet v0.9.0
         let new_tx: TransactionTrace = serde_json::from_str(include_str!(

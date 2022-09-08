@@ -104,4 +104,15 @@ mod tests {
             .unwrap()
         );
     }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_state_update_deser_with_nonce_changes() {
+        let raw = include_str!(
+            "../../test-data/raw_gateway_responses/get_state_update/4_with_nonce_changes.txt"
+        );
+
+        let state_update: StateUpdate = serde_json::from_str(raw).unwrap();
+        assert_eq!(state_update.state_diff.nonces.len(), 1);
+    }
 }

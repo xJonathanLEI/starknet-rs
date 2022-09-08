@@ -96,9 +96,8 @@ pub struct DeployTransaction {
     pub class_hash: FieldElement,
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
-    #[serde(default)]
-    #[serde_as(as = "Option<UfeHex>")]
-    pub version: Option<FieldElement>,
+    #[serde_as(as = "UfeHex")]
+    pub version: FieldElement,
 }
 
 #[serde_as]
@@ -121,9 +120,8 @@ pub struct InvokeFunctionTransaction {
     #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
     pub nonce: Option<FieldElement>,
-    #[serde(default)]
-    #[serde_as(as = "Option<UfeHex>")]
-    pub version: Option<FieldElement>,
+    #[serde_as(as = "UfeHex")]
+    pub version: FieldElement,
 }
 
 #[serde_as]
@@ -140,9 +138,8 @@ pub struct L1HandlerTransaction {
     pub transaction_hash: FieldElement,
     #[serde_as(as = "UfeHex")]
     pub nonce: FieldElement,
-    #[serde(default)]
-    #[serde_as(as = "Option<UfeHex>")]
-    pub version: Option<FieldElement>,
+    #[serde_as(as = "UfeHex")]
+    pub version: FieldElement,
 }
 
 #[cfg(test)]
