@@ -39,6 +39,15 @@ pub enum TransactionRequest {
     InvokeFunction(InvokeFunctionTransaction),
 }
 
+/// Represents a transaction in the StarkNet network that is originated from an action of an
+/// account.
+#[derive(Debug, Serialize)]
+#[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum AccountTransaction {
+    Declare(DeclareTransaction),
+    InvokeFunction(InvokeFunctionTransaction),
+}
+
 /// Represents a contract function call in the StarkNet network.
 #[serde_as]
 #[derive(Debug, Serialize)]

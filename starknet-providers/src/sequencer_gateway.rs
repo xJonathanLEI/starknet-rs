@@ -8,10 +8,10 @@ use serde_with::serde_as;
 use starknet_core::{
     serde::unsigned_field_element::UfeHex,
     types::{
-        AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult, CallFunction,
-        ContractAddresses, ContractArtifact, ContractCode, FeeEstimate, FieldElement,
-        InvokeFunctionTransactionRequest, StarknetError, StateUpdate, TransactionInfo,
-        TransactionReceipt, TransactionRequest, TransactionStatusInfo, TransactionTrace,
+        AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
+        CallFunction, ContractAddresses, ContractArtifact, ContractCode, FeeEstimate, FieldElement,
+        StarknetError, StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest,
+        TransactionStatusInfo, TransactionTrace,
     },
 };
 use thiserror::Error;
@@ -199,13 +199,13 @@ impl Provider for SequencerGatewayProvider {
 
     async fn estimate_fee(
         &self,
-        invoke_tx: InvokeFunctionTransactionRequest,
+        tx: AccountTransaction,
         block_identifier: BlockId,
     ) -> Result<FeeEstimate, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("estimate_fee");
         append_block_id(&mut request_url, block_identifier);
 
-        match self.send_post_request(request_url, &invoke_tx).await? {
+        match self.send_post_request(request_url, &tx).await? {
             GatewayResponse::Data(data) => Ok(data),
             GatewayResponse::StarknetError(starknet_err) => {
                 Err(ProviderError::StarknetError(starknet_err))
