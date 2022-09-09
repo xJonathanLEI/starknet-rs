@@ -1,5 +1,5 @@
 use starknet::{
-    core::types::{BlockId, FieldElement, InvokeFunctionTransactionRequest},
+    core::types::{BlockId, CallFunction, FieldElement},
     macros::{felt, selector},
     providers::{Provider, SequencerGatewayProvider},
 };
@@ -12,15 +12,13 @@ async fn main() {
 
     let call_result = provider
         .call_contract(
-            InvokeFunctionTransactionRequest {
+            CallFunction {
                 contract_address: tst_token_address,
                 entry_point_selector: selector!("balanceOf"),
                 calldata: vec![FieldElement::from_hex_be(
                     "YOUR_ACCOUNT_CONTRACT_ADDRESS_IN_HEX_HERE",
                 )
                 .unwrap()],
-                signature: vec![],
-                max_fee: FieldElement::ZERO,
             },
             BlockId::Latest,
         )

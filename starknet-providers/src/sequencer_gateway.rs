@@ -8,8 +8,8 @@ use serde_with::serde_as;
 use starknet_core::{
     serde::unsigned_field_element::UfeHex,
     types::{
-        AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult, ContractAddresses,
-        ContractArtifact, ContractCode, FeeEstimate, FieldElement,
+        AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult, CallFunction,
+        ContractAddresses, ContractArtifact, ContractCode, FeeEstimate, FieldElement,
         InvokeFunctionTransactionRequest, StarknetError, StateUpdate, TransactionInfo,
         TransactionReceipt, TransactionRequest, TransactionStatusInfo, TransactionTrace,
     },
@@ -183,13 +183,13 @@ impl Provider for SequencerGatewayProvider {
 
     async fn call_contract(
         &self,
-        invoke_tx: InvokeFunctionTransactionRequest,
+        call_function: CallFunction,
         block_identifier: BlockId,
     ) -> Result<CallContractResult, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("call_contract");
         append_block_id(&mut request_url, block_identifier);
 
-        match self.send_post_request(request_url, &invoke_tx).await? {
+        match self.send_post_request(request_url, &call_function).await? {
             GatewayResponse::Data(data) => Ok(data),
             GatewayResponse::StarknetError(starknet_err) => {
                 Err(ProviderError::StarknetError(starknet_err))
