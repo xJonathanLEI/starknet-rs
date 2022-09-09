@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use auto_impl::auto_impl;
 use starknet_core::types::{
-    AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult, ContractAddresses,
-    ContractArtifact, ContractCode, FeeEstimate, FieldElement, InvokeFunctionTransactionRequest,
+    AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
+    CallFunction, ContractAddresses, ContractArtifact, ContractCode, FeeEstimate, FieldElement,
     StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest, TransactionStatusInfo,
     TransactionTrace,
 };
@@ -24,13 +24,13 @@ pub trait Provider {
 
     async fn call_contract(
         &self,
-        invoke_tx: InvokeFunctionTransactionRequest,
+        call_function: CallFunction,
         block_identifier: BlockId,
     ) -> Result<CallContractResult, Self::Error>;
 
     async fn estimate_fee(
         &self,
-        invoke_tx: InvokeFunctionTransactionRequest,
+        tx: AccountTransaction,
         block_identifier: BlockId,
     ) -> Result<FeeEstimate, Self::Error>;
 

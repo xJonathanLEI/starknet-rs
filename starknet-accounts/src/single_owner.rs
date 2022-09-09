@@ -7,8 +7,8 @@ use async_trait::async_trait;
 use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
-        AddTransactionResult, BlockId, FeeEstimate, FieldElement, InvokeFunctionTransactionRequest,
-        TransactionRequest,
+        AccountTransaction, AddTransactionResult, BlockId, CallFunction, FeeEstimate, FieldElement,
+        InvokeFunctionTransactionRequest, TransactionRequest,
     },
     utils::get_selector_from_name,
 };
@@ -160,7 +160,10 @@ where
             .await
             .map_err(TransactionError::SignerError)?;
         self.provider
-            .estimate_fee(estimate_fee_request, BlockId::Latest)
+            .estimate_fee(
+                AccountTransaction::InvokeFunction(estimate_fee_request),
+                BlockId::Latest,
+            )
             .await
             .map_err(TransactionError::ProviderError)
     }
@@ -188,12 +191,10 @@ where
         let call_result = self
             .provider
             .call_contract(
-                InvokeFunctionTransactionRequest {
+                CallFunction {
                     contract_address: self.address,
                     entry_point_selector: get_selector_from_name("get_nonce").unwrap(),
                     calldata: vec![],
-                    signature: vec![],
-                    max_fee: FieldElement::ZERO,
                 },
                 block_identifier,
             )

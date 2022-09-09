@@ -34,10 +34,10 @@ pub use call_contract::CallContractResult;
 
 mod transaction_request;
 pub use transaction_request::{
-    AddTransactionResult, AddTransactionResultCode, ContractDefinition,
-    DeclareTransaction as DeclareTransactionRequest, DeployTransaction as DeployTransactionRequest,
-    EntryPoint, EntryPointsByType, InvokeFunctionTransaction as InvokeFunctionTransactionRequest,
-    TransactionRequest,
+    AccountTransaction, AddTransactionResult, AddTransactionResultCode, CallFunction,
+    ContractDefinition, DeclareTransaction as DeclareTransactionRequest,
+    DeployTransaction as DeployTransactionRequest, EntryPoint, EntryPointsByType,
+    InvokeFunctionTransaction as InvokeFunctionTransactionRequest, TransactionRequest,
 };
 
 pub use starknet_ff::*;
