@@ -14,7 +14,8 @@ pub use transaction::{
 mod transaction_receipt;
 pub use transaction_receipt::{
     BuiltinInstanceCounter, ConfirmedReceipt as ConfirmedTransactionReceipt, Event,
-    ExecutionResources, L2ToL1Message, Receipt as TransactionReceipt, TransactionStatus,
+    ExecutionResources, L1ToL2Message, L2ToL1Message, Receipt as TransactionReceipt,
+    TransactionStatus,
 };
 
 mod starknet_error;
