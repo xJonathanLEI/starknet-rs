@@ -9,9 +9,9 @@ use starknet_core::{
     serde::unsigned_field_element::UfeHex,
     types::{
         AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
-        CallFunction, ContractAddresses, ContractArtifact, ContractCode, FeeEstimate, FieldElement,
-        StarknetError, StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest,
-        TransactionStatusInfo, TransactionTrace,
+        CallFunction, CallL1Handler, ContractAddresses, ContractArtifact, ContractCode,
+        FeeEstimate, FieldElement, StarknetError, StateUpdate, TransactionInfo, TransactionReceipt,
+        TransactionRequest, TransactionSimulationInfo, TransactionStatusInfo, TransactionTrace,
     },
 };
 use thiserror::Error;
@@ -213,6 +213,41 @@ impl Provider for SequencerGatewayProvider {
         }
     }
 
+    async fn estimate_message_fee(
+        &self,
+        call_l1_handler: CallL1Handler,
+        block_identifier: BlockId,
+    ) -> Result<FeeEstimate, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("estimate_message_fee");
+        append_block_id(&mut request_url, block_identifier);
+
+        match self
+            .send_post_request(request_url, &call_l1_handler)
+            .await?
+        {
+            GatewayResponse::Data(data) => Ok(data),
+            GatewayResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+
+    async fn simulate_transaction(
+        &self,
+        tx: AccountTransaction,
+        block_identifier: BlockId,
+    ) -> Result<TransactionSimulationInfo, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("simulate_transaction");
+        append_block_id(&mut request_url, block_identifier);
+
+        match self.send_post_request(request_url, &tx).await? {
+            GatewayResponse::Data(data) => Ok(data),
+            GatewayResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+
     async fn get_block(&self, block_identifier: BlockId) -> Result<Block, Self::Error> {
         let mut request_url = self.extend_feeder_gateway_url("get_block");
         append_block_id(&mut request_url, block_identifier);
@@ -365,6 +400,28 @@ impl Provider for SequencerGatewayProvider {
             .query_pairs_mut()
             .append_pair("contractAddress", &format!("{:#x}", contract_address))
             .append_pair("key", &key.to_string());
+        append_block_id(&mut request_url, block_identifier);
+
+        match self
+            .send_get_request::<RawFieldElementResponse>(request_url)
+            .await?
+        {
+            RawFieldElementResponse::Data(data) => Ok(data),
+            RawFieldElementResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+
+    async fn get_nonce(
+        &self,
+        contract_address: FieldElement,
+        block_identifier: BlockId,
+    ) -> Result<FieldElement, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("get_nonce");
+        request_url
+            .query_pairs_mut()
+            .append_pair("contractAddress", &format!("{:#x}", contract_address));
         append_block_id(&mut request_url, block_identifier);
 
         match self

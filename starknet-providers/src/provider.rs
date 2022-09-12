@@ -2,9 +2,9 @@ use async_trait::async_trait;
 use auto_impl::auto_impl;
 use starknet_core::types::{
     AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
-    CallFunction, ContractAddresses, ContractArtifact, ContractCode, FeeEstimate, FieldElement,
-    StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest, TransactionStatusInfo,
-    TransactionTrace,
+    CallFunction, CallL1Handler, ContractAddresses, ContractArtifact, ContractCode, FeeEstimate,
+    FieldElement, StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest,
+    TransactionSimulationInfo, TransactionStatusInfo, TransactionTrace,
 };
 use std::error::Error;
 
@@ -33,6 +33,18 @@ pub trait Provider {
         tx: AccountTransaction,
         block_identifier: BlockId,
     ) -> Result<FeeEstimate, Self::Error>;
+
+    async fn estimate_message_fee(
+        &self,
+        call_l1_handler: CallL1Handler,
+        block_identifier: BlockId,
+    ) -> Result<FeeEstimate, Self::Error>;
+
+    async fn simulate_transaction(
+        &self,
+        tx: AccountTransaction,
+        block_identifier: BlockId,
+    ) -> Result<TransactionSimulationInfo, Self::Error>;
 
     async fn get_block(&self, block_identifier: BlockId) -> Result<Block, Self::Error>;
 
@@ -69,6 +81,12 @@ pub trait Provider {
         &self,
         contract_address: FieldElement,
         key: FieldElement,
+        block_identifier: BlockId,
+    ) -> Result<FieldElement, Self::Error>;
+
+    async fn get_nonce(
+        &self,
+        contract_address: FieldElement,
         block_identifier: BlockId,
     ) -> Result<FieldElement, Self::Error>;
 

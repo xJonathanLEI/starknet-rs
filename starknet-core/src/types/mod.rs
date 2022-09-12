@@ -36,7 +36,7 @@ pub use call_contract::CallContractResult;
 mod transaction_request;
 pub use transaction_request::{
     AccountTransaction, AddTransactionResult, AddTransactionResultCode, CallFunction,
-    ContractDefinition, DeclareTransaction as DeclareTransactionRequest,
+    CallL1Handler, ContractDefinition, DeclareTransaction as DeclareTransactionRequest,
     DeployTransaction as DeployTransactionRequest, EntryPoint, EntryPointsByType,
     InvokeFunctionTransaction as InvokeFunctionTransactionRequest, TransactionRequest,
 };
@@ -50,7 +50,7 @@ pub mod contract_artifact;
 pub use contract_artifact::ContractArtifact;
 
 mod fee;
-pub use fee::{FeeEstimate, FeeUnit};
+pub use fee::{FeeEstimate, FeeUnit, TransactionSimulationInfo};
 
 pub mod trace;
 pub use trace::{BlockTraces, TransactionTrace};

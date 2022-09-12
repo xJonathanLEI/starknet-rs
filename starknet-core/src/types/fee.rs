@@ -1,5 +1,7 @@
 use serde::Deserialize;
 
+use super::TransactionTrace;
+
 #[derive(Debug, Deserialize)]
 #[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct FeeEstimate {
@@ -7,6 +9,14 @@ pub struct FeeEstimate {
     pub unit: FeeUnit,
     pub gas_price: u64,
     pub gas_usage: u64,
+}
+
+/// Represents the information regarding a StarkNet transaction's simulation.
+#[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
+pub struct TransactionSimulationInfo {
+    pub trace: TransactionTrace,
+    pub fee_estimation: FeeEstimate,
 }
 
 #[derive(Debug, Deserialize)]

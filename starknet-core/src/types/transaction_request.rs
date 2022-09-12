@@ -3,10 +3,10 @@ use super::{
         byte_array::base64::serialize as base64_ser,
         unsigned_field_element::{UfeHex, UfeHexOption},
     },
-    AbiEntry, FieldElement,
+    AbiEntry, FieldElement, L1Address,
 };
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
 use serde_with::serde_as;
 
 #[serde_as]
@@ -57,6 +57,21 @@ pub struct CallFunction {
     #[serde_as(as = "UfeHex")]
     pub entry_point_selector: FieldElement,
     pub calldata: Vec<FieldElement>,
+}
+
+/// Represents an L1 handler call in the StarkNet network.
+#[serde_as]
+#[derive(Debug, Serialize)]
+pub struct CallL1Handler {
+    // The sequencer excepts the address in decimal representation
+    #[serde(serialize_with = "l1_addr_as_dec")]
+    pub from_address: L1Address,
+    #[serde_as(as = "UfeHex")]
+    pub to_address: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub entry_point_selector: FieldElement,
+    #[serde_as(as = "Vec<UfeHex>")]
+    pub payload: Vec<FieldElement>,
 }
 
 #[serde_as]
@@ -124,4 +139,17 @@ pub struct EntryPoint {
     pub selector: FieldElement,
     #[serde_as(as = "UfeHex")]
     pub offset: FieldElement,
+}
+
+fn l1_addr_as_dec<S>(value: &L1Address, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let mut buffer = [0u8; 32];
+    buffer[12..].copy_from_slice(&value.0);
+
+    // Unwrapping is safe here as it's never out of range
+    let addr_in_felt = FieldElement::from_bytes_be(&buffer).unwrap();
+
+    serializer.serialize_str(&addr_in_felt.to_string())
 }
