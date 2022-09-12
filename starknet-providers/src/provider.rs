@@ -2,9 +2,9 @@ use async_trait::async_trait;
 use auto_impl::auto_impl;
 use starknet_core::types::{
     AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
-    CallFunction, ContractAddresses, ContractArtifact, ContractCode, FeeEstimate, FieldElement,
-    StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest, TransactionStatusInfo,
-    TransactionTrace,
+    CallFunction, CallL1Handler, ContractAddresses, ContractArtifact, ContractCode, FeeEstimate,
+    FieldElement, StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest,
+    TransactionStatusInfo, TransactionTrace,
 };
 use std::error::Error;
 
@@ -31,6 +31,12 @@ pub trait Provider {
     async fn estimate_fee(
         &self,
         tx: AccountTransaction,
+        block_identifier: BlockId,
+    ) -> Result<FeeEstimate, Self::Error>;
+
+    async fn estimate_message_fee(
+        &self,
+        call_l1_handler: CallL1Handler,
         block_identifier: BlockId,
     ) -> Result<FeeEstimate, Self::Error>;
 

@@ -9,9 +9,9 @@ use starknet_core::{
     serde::unsigned_field_element::UfeHex,
     types::{
         AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
-        CallFunction, ContractAddresses, ContractArtifact, ContractCode, FeeEstimate, FieldElement,
-        StarknetError, StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest,
-        TransactionStatusInfo, TransactionTrace,
+        CallFunction, CallL1Handler, ContractAddresses, ContractArtifact, ContractCode,
+        FeeEstimate, FieldElement, StarknetError, StateUpdate, TransactionInfo, TransactionReceipt,
+        TransactionRequest, TransactionStatusInfo, TransactionTrace,
     },
 };
 use thiserror::Error;
@@ -206,6 +206,25 @@ impl Provider for SequencerGatewayProvider {
         append_block_id(&mut request_url, block_identifier);
 
         match self.send_post_request(request_url, &tx).await? {
+            GatewayResponse::Data(data) => Ok(data),
+            GatewayResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+
+    async fn estimate_message_fee(
+        &self,
+        call_l1_handler: CallL1Handler,
+        block_identifier: BlockId,
+    ) -> Result<FeeEstimate, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("estimate_message_fee");
+        append_block_id(&mut request_url, block_identifier);
+
+        match self
+            .send_post_request(request_url, &call_l1_handler)
+            .await?
+        {
             GatewayResponse::Data(data) => Ok(data),
             GatewayResponse::StarknetError(starknet_err) => {
                 Err(ProviderError::StarknetError(starknet_err))

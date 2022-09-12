@@ -36,7 +36,7 @@ pub use call_contract::CallContractResult;
 mod transaction_request;
 pub use transaction_request::{
     AccountTransaction, AddTransactionResult, AddTransactionResultCode, CallFunction,
-    ContractDefinition, DeclareTransaction as DeclareTransactionRequest,
+    CallL1Handler, ContractDefinition, DeclareTransaction as DeclareTransactionRequest,
     DeployTransaction as DeployTransactionRequest, EntryPoint, EntryPointsByType,
     InvokeFunctionTransaction as InvokeFunctionTransactionRequest, TransactionRequest,
 };
