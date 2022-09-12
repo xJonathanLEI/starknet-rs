@@ -50,7 +50,7 @@ pub mod contract_artifact;
 pub use contract_artifact::ContractArtifact;
 
 mod fee;
-pub use fee::{FeeEstimate, FeeUnit};
+pub use fee::{FeeEstimate, FeeUnit, TransactionSimulationInfo};
 
 pub mod trace;
 pub use trace::{BlockTraces, TransactionTrace};

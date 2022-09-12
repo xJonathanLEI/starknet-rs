@@ -1,6 +1,9 @@
 use std::str::FromStr;
 
-use starknet_core::types::{BlockId, CallL1Handler, FieldElement, L1Address};
+use starknet_core::types::{
+    AccountTransaction, BlockId, CallL1Handler, FieldElement, InvokeFunctionTransactionRequest,
+    L1Address,
+};
 use starknet_providers::{Provider, SequencerGatewayProvider};
 
 fn create_sequencer_client() -> SequencerGatewayProvider {
@@ -45,4 +48,45 @@ async fn sequencer_goerli_can_estimate_message_fee() {
         .unwrap();
 
     assert!(estimate.gas_usage > 0);
+}
+
+#[tokio::test]
+async fn sequencer_goerli_can_simulate_transaction() {
+    let client = create_sequencer_client();
+
+    let simulation = client
+        .simulate_transaction(
+            AccountTransaction::InvokeFunction(InvokeFunctionTransactionRequest {
+                contract_address: FieldElement::from_hex_be(
+                    "0x07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
+                )
+                .unwrap(),
+                entry_point_selector: FieldElement::from_hex_be(
+                    "0x02f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+                )
+                .unwrap(),
+                calldata: vec![
+                    FieldElement::from_hex_be(
+                        "0x59b844bae1727516c6d5c40d2540f6f0a0eebc7eed2adf760515b45dbc20593",
+                    )
+                    .unwrap(),
+                    FieldElement::from_dec_str("1000000000000000000000").unwrap(),
+                    FieldElement::from_dec_str("0").unwrap(),
+                ],
+                signature: vec![],
+                max_fee: FieldElement::ZERO,
+            }),
+            BlockId::Latest,
+        )
+        .await
+        .unwrap();
+
+    assert!(
+        simulation
+            .trace
+            .function_invocation
+            .execution_resources
+            .n_steps
+            > 0
+    );
 }

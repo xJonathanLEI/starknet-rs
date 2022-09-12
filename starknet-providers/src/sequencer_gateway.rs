@@ -11,7 +11,7 @@ use starknet_core::{
         AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
         CallFunction, CallL1Handler, ContractAddresses, ContractArtifact, ContractCode,
         FeeEstimate, FieldElement, StarknetError, StateUpdate, TransactionInfo, TransactionReceipt,
-        TransactionRequest, TransactionStatusInfo, TransactionTrace,
+        TransactionRequest, TransactionSimulationInfo, TransactionStatusInfo, TransactionTrace,
     },
 };
 use thiserror::Error;
@@ -225,6 +225,22 @@ impl Provider for SequencerGatewayProvider {
             .send_post_request(request_url, &call_l1_handler)
             .await?
         {
+            GatewayResponse::Data(data) => Ok(data),
+            GatewayResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+
+    async fn simulate_transaction(
+        &self,
+        tx: AccountTransaction,
+        block_identifier: BlockId,
+    ) -> Result<TransactionSimulationInfo, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("simulate_transaction");
+        append_block_id(&mut request_url, block_identifier);
+
+        match self.send_post_request(request_url, &tx).await? {
             GatewayResponse::Data(data) => Ok(data),
             GatewayResponse::StarknetError(starknet_err) => {
                 Err(ProviderError::StarknetError(starknet_err))

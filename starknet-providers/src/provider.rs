@@ -4,7 +4,7 @@ use starknet_core::types::{
     AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
     CallFunction, CallL1Handler, ContractAddresses, ContractArtifact, ContractCode, FeeEstimate,
     FieldElement, StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest,
-    TransactionStatusInfo, TransactionTrace,
+    TransactionSimulationInfo, TransactionStatusInfo, TransactionTrace,
 };
 use std::error::Error;
 
@@ -39,6 +39,12 @@ pub trait Provider {
         call_l1_handler: CallL1Handler,
         block_identifier: BlockId,
     ) -> Result<FeeEstimate, Self::Error>;
+
+    async fn simulate_transaction(
+        &self,
+        tx: AccountTransaction,
+        block_identifier: BlockId,
+    ) -> Result<TransactionSimulationInfo, Self::Error>;
 
     async fn get_block(&self, block_identifier: BlockId) -> Result<Block, Self::Error>;
 
