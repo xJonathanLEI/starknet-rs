@@ -413,6 +413,28 @@ impl Provider for SequencerGatewayProvider {
         }
     }
 
+    async fn get_nonce(
+        &self,
+        contract_address: FieldElement,
+        block_identifier: BlockId,
+    ) -> Result<FieldElement, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("get_nonce");
+        request_url
+            .query_pairs_mut()
+            .append_pair("contractAddress", &format!("{:#x}", contract_address));
+        append_block_id(&mut request_url, block_identifier);
+
+        match self
+            .send_get_request::<RawFieldElementResponse>(request_url)
+            .await?
+        {
+            RawFieldElementResponse::Data(data) => Ok(data),
+            RawFieldElementResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+
     async fn get_transaction_status(
         &self,
         transaction_hash: FieldElement,

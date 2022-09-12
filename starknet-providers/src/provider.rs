@@ -84,6 +84,12 @@ pub trait Provider {
         block_identifier: BlockId,
     ) -> Result<FieldElement, Self::Error>;
 
+    async fn get_nonce(
+        &self,
+        contract_address: FieldElement,
+        block_identifier: BlockId,
+    ) -> Result<FieldElement, Self::Error>;
+
     async fn get_transaction_status(
         &self,
         transaction_hash: FieldElement,

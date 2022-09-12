@@ -90,3 +90,21 @@ async fn sequencer_goerli_can_simulate_transaction() {
             > 0
     );
 }
+
+#[tokio::test]
+async fn sequencer_goerli_can_get_nonce() {
+    let client = create_sequencer_client();
+
+    let nonce = client
+        .get_nonce(
+            FieldElement::from_hex_be(
+                "0x0577abc3e3ab491af6fdc1e185b71a6d04f7e71a525f9f57c19fc36ed0655a39",
+            )
+            .unwrap(),
+            BlockId::Latest,
+        )
+        .await
+        .unwrap();
+
+    assert!(nonce > FieldElement::ZERO);
+}
