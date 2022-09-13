@@ -9,11 +9,11 @@ compile () {
 }
 
 # Ugly hack to make contract artifacts compact
-sed -i "s/indent=4/separators=(',', ':')/g" /usr/local/lib/python3.7/site-packages/starkware/cairo/lang/compiler/cairo_compile.py
+sed -i "s/indent=4/separators=(',', ':')/g" /usr/local/lib/python3.9/site-packages/starkware/cairo/lang/compiler/cairo_compile.py
 
 # ./artifacts/event_example.txt
 compile "/contracts/EventExample.cairo" "/artifacts/event_example.txt"
 
 # ./artifacts/oz_account.txt
 cd /contracts/openzeppelin/src
-compile "/contracts/openzeppelin/src/openzeppelin/account/Account.cairo" "/artifacts/oz_account.txt" --account_contract
+compile "/contracts/openzeppelin/src/openzeppelin/account/presets/Account.cairo" "/artifacts/oz_account.txt" --account_contract

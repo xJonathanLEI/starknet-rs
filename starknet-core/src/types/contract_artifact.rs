@@ -21,6 +21,10 @@ pub struct Program {
     #[serde(skip_serializing)]
     pub attributes: Option<serde::de::IgnoredAny>, // Skipped since it's not used in deployment
     pub builtins: Vec<String>,
+    // This field was introduced in Cairo 0.10.0. By making it optional we're keeping compatibility
+    // with older artifacts. This decision should be reviewd in the future.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub compiler_version: Option<String>,
     #[serde_as(as = "Vec<UfeHex>")]
     pub data: Vec<FieldElement>,
     #[serde(skip_serializing)]

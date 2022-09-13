@@ -1,20 +1,19 @@
 %lang starknet
-%builtins range_check
 
-#
-# Events
-#
+//
+// Events
+//
 
 @event
-func initialized(arg : felt):
-end
+func initialized(arg: felt) {
+}
 
-#
-# Constructor
-#
+//
+// Constructor
+//
 
 @constructor
-func constructor{syscall_ptr : felt*, range_check_ptr}(arg : felt):
-    initialized.emit(arg=arg)
-    return ()
-end
+func constructor{syscall_ptr: felt*, range_check_ptr}(arg: felt) {
+    initialized.emit(arg=arg);
+    return ();
+}
