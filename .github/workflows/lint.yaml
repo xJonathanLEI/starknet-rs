@@ -45,4 +45,4 @@ jobs:
           cargo fmt --all -- --check
       - name: Run Clippy lints
         run: |
-          cargo clippy --all --all-targets
+          cargo clippy --all --all-targets -- -D warnings
