@@ -58,23 +58,65 @@ async fn sequencer_goerli_can_simulate_transaction() {
         .simulate_transaction(
             AccountTransaction::InvokeFunction(InvokeFunctionTransactionRequest {
                 contract_address: FieldElement::from_hex_be(
-                    "0x07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
-                )
-                .unwrap(),
-                entry_point_selector: FieldElement::from_hex_be(
-                    "0x02f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+                    "0x02643ad267d5f4035c57f33c4b521a539a0525f41ff8e885ce106b47a462ce5c",
                 )
                 .unwrap(),
                 calldata: vec![
                     FieldElement::from_hex_be(
-                        "0x59b844bae1727516c6d5c40d2540f6f0a0eebc7eed2adf760515b45dbc20593",
+                        "0x0000000000000000000000000000000000000000000000000000000000000001",
                     )
                     .unwrap(),
-                    FieldElement::from_dec_str("1000000000000000000000").unwrap(),
-                    FieldElement::from_dec_str("0").unwrap(),
+                    FieldElement::from_hex_be(
+                        "0x07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
+                    )
+                    .unwrap(),
+                    FieldElement::from_hex_be(
+                        "0x02f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+                    )
+                    .unwrap(),
+                    FieldElement::from_hex_be(
+                        "0x0000000000000000000000000000000000000000000000000000000000000000",
+                    )
+                    .unwrap(),
+                    FieldElement::from_hex_be(
+                        "0x0000000000000000000000000000000000000000000000000000000000000003",
+                    )
+                    .unwrap(),
+                    FieldElement::from_hex_be(
+                        "0x0000000000000000000000000000000000000000000000000000000000000003",
+                    )
+                    .unwrap(),
+                    FieldElement::from_hex_be(
+                        "0x02643ad267d5f4035c57f33c4b521a539a0525f41ff8e885ce106b47a462ce5c",
+                    )
+                    .unwrap(),
+                    FieldElement::from_hex_be(
+                        "0x00000000000000000000000000000000000000000000003635c9adc5dea00000",
+                    )
+                    .unwrap(),
+                    FieldElement::from_hex_be(
+                        "0x0000000000000000000000000000000000000000000000000000000000000000",
+                    )
+                    .unwrap(),
                 ],
-                signature: vec![],
-                max_fee: FieldElement::ZERO,
+                signature: vec![
+                    FieldElement::from_hex_be(
+                        "0x04404d064a487404a02b6eac3493938d4c5d4fc6fc44c5a573838790a3f0bd78",
+                    )
+                    .unwrap(),
+                    FieldElement::from_hex_be(
+                        "0x049cd4c19a92b4da46cc87f4a4f4b06dded9567db8bca8bf6279497777cf1fc2",
+                    )
+                    .unwrap(),
+                ],
+                max_fee: FieldElement::from_hex_be(
+                    "0x000000000000000000000000000000000000000000000000016345785d8a0000",
+                )
+                .unwrap(),
+                nonce: FieldElement::from_hex_be(
+                    "0x0000000000000000000000000000000000000000000000000000000000000000",
+                )
+                .unwrap(),
             }),
             BlockId::Latest,
         )

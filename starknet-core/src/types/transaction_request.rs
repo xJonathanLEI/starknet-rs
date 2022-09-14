@@ -74,43 +74,33 @@ pub struct CallL1Handler {
     pub payload: Vec<FieldElement>,
 }
 
-#[serde_as]
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub struct DeclareTransaction {
     pub contract_class: ContractDefinition,
     /// The address of the account contract sending the declaration transaction.
-    #[serde_as(as = "UfeHex")]
     pub sender_address: FieldElement,
     /// The maximal fee to be paid in Wei for declaring a contract class.
-    #[serde_as(as = "UfeHex")]
     pub max_fee: FieldElement,
     /// Additional information given by the caller that represents the signature of the transaction.
     pub signature: Vec<FieldElement>,
     /// A sequential integer used to distinguish between transactions and order them.
-    #[serde_as(as = "UfeHex")]
     pub nonce: FieldElement,
 }
 
-#[serde_as]
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub struct DeployTransaction {
     pub constructor_calldata: Vec<FieldElement>,
-    #[serde_as(as = "UfeHex")]
     pub contract_address_salt: FieldElement,
     pub contract_definition: ContractDefinition,
 }
 
-#[serde_as]
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub struct InvokeFunctionTransaction {
-    #[serde_as(as = "UfeHex")]
     pub contract_address: FieldElement,
-    #[serde_as(as = "UfeHex")]
-    pub entry_point_selector: FieldElement,
     pub calldata: Vec<FieldElement>,
     pub signature: Vec<FieldElement>,
-    #[serde_as(as = "UfeHex")]
     pub max_fee: FieldElement,
+    pub nonce: FieldElement,
 }
 
 #[derive(Debug, Serialize)]
@@ -139,6 +129,99 @@ pub struct EntryPoint {
     pub selector: FieldElement,
     #[serde_as(as = "UfeHex")]
     pub offset: FieldElement,
+}
+
+impl Serialize for DeclareTransaction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct Versioned<'a> {
+            #[serde_as(as = "UfeHex")]
+            version: FieldElement,
+            contract_class: &'a ContractDefinition,
+            #[serde_as(as = "UfeHex")]
+            sender_address: &'a FieldElement,
+            #[serde_as(as = "UfeHex")]
+            max_fee: &'a FieldElement,
+            signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            nonce: &'a FieldElement,
+        }
+
+        let versioned = Versioned {
+            version: FieldElement::ZERO,
+            contract_class: &self.contract_class,
+            sender_address: &self.sender_address,
+            max_fee: &self.max_fee,
+            signature: &self.signature,
+            nonce: &self.nonce,
+        };
+
+        Versioned::serialize(&versioned, serializer)
+    }
+}
+
+impl Serialize for DeployTransaction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct Versioned<'a> {
+            #[serde_as(as = "UfeHex")]
+            version: FieldElement,
+            constructor_calldata: &'a Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            contract_address_salt: &'a FieldElement,
+            contract_definition: &'a ContractDefinition,
+        }
+
+        let versioned = Versioned {
+            version: FieldElement::ZERO,
+            constructor_calldata: &self.constructor_calldata,
+            contract_address_salt: &self.contract_address_salt,
+            contract_definition: &self.contract_definition,
+        };
+
+        Versioned::serialize(&versioned, serializer)
+    }
+}
+
+impl Serialize for InvokeFunctionTransaction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct Versioned<'a> {
+            #[serde_as(as = "UfeHex")]
+            version: FieldElement,
+            #[serde_as(as = "UfeHex")]
+            contract_address: &'a FieldElement,
+            calldata: &'a Vec<FieldElement>,
+            signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            max_fee: &'a FieldElement,
+            #[serde_as(as = "UfeHex")]
+            nonce: &'a FieldElement,
+        }
+
+        let versioned = Versioned {
+            version: FieldElement::ONE,
+            contract_address: &self.contract_address,
+            calldata: &self.calldata,
+            signature: &self.signature,
+            max_fee: &self.max_fee,
+            nonce: &self.nonce,
+        };
+
+        Versioned::serialize(&versioned, serializer)
+    }
 }
 
 fn l1_addr_as_dec<S>(value: &L1Address, serializer: S) -> Result<S::Ok, S::Error>
