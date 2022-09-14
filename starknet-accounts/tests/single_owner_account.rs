@@ -17,7 +17,7 @@ async fn can_get_nonce() {
         .unwrap(),
     ));
     let address = FieldElement::from_hex_be(
-        "01352dd0ac2a462cb53e4f125169b28f13bd6199091a9815c444dcae83056bbc",
+        "02da37a17affbd2df4ede7120dae305ec36dfe94ec96a8c3f49bbf59f4e9a9fa",
     )
     .unwrap();
 
@@ -39,7 +39,7 @@ async fn can_estimate_fee() {
         .unwrap(),
     ));
     let address = FieldElement::from_hex_be(
-        "01352dd0ac2a462cb53e4f125169b28f13bd6199091a9815c444dcae83056bbc",
+        "02da37a17affbd2df4ede7120dae305ec36dfe94ec96a8c3f49bbf59f4e9a9fa",
     )
     .unwrap();
     let tst_token_address = FieldElement::from_hex_be(
@@ -94,7 +94,7 @@ async fn can_execute_tst_mint() {
         .unwrap(),
     ));
     let address = FieldElement::from_hex_be(
-        "01352dd0ac2a462cb53e4f125169b28f13bd6199091a9815c444dcae83056bbc",
+        "02da37a17affbd2df4ede7120dae305ec36dfe94ec96a8c3f49bbf59f4e9a9fa",
     )
     .unwrap();
     let tst_token_address = FieldElement::from_hex_be(

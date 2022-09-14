@@ -7,10 +7,9 @@ use async_trait::async_trait;
 use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
-        AccountTransaction, AddTransactionResult, BlockId, CallFunction, FeeEstimate, FieldElement,
+        AccountTransaction, AddTransactionResult, BlockId, FeeEstimate, FieldElement,
         InvokeFunctionTransactionRequest, TransactionRequest,
     },
-    utils::get_selector_from_name,
 };
 use starknet_providers::Provider;
 use starknet_signers::Signer;
@@ -21,14 +20,6 @@ const PREFIX_INVOKE: FieldElement = FieldElement::from_mont([
     18446744073709551615,
     18446744073709551615,
     513398556346534256,
-]);
-
-/// Selector for "__execute__"
-const SELECTOR_EXECUTE: FieldElement = FieldElement::from_mont([
-    12003533864240545316,
-    425026474450283495,
-    15935222606396478900,
-    305947032915839070,
 ]);
 
 #[derive(Debug, Clone)]
@@ -45,17 +36,7 @@ where
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum GetNonceError<P> {
-    #[error(transparent)]
-    ProviderError(P),
-    #[error("invalid response length. expected {expected} but got {actual}")]
-    InvalidResponseLength { expected: usize, actual: usize },
-}
-
-#[derive(Debug, thiserror::Error)]
 pub enum TransactionError<P, S> {
-    #[error(transparent)]
-    GetNonceError(GetNonceError<P>),
     #[error(transparent)]
     ProviderError(P),
     #[error(transparent)]
@@ -114,29 +95,29 @@ where
         for item in concated_calldata.into_iter() {
             execute_calldata.push(item); // calldata
         }
-        execute_calldata.push(nonce); // nonce
 
         let transaction_hash = compute_hash_on_elements(&[
             PREFIX_INVOKE,
-            FieldElement::ZERO, // version
+            FieldElement::ONE, // version
             self.address,
-            SELECTOR_EXECUTE,
+            FieldElement::ZERO, // entry_point_selector
             compute_hash_on_elements(&execute_calldata),
             max_fee,
             self.chain_id,
+            nonce,
         ]);
         let signature = self.signer.sign_hash(&transaction_hash).await?;
 
         Ok(InvokeFunctionTransactionRequest {
             contract_address: self.address,
-            entry_point_selector: SELECTOR_EXECUTE,
             calldata: execute_calldata,
             signature: vec![signature.r, signature.s],
             max_fee,
+            nonce,
         })
     }
 
-    async fn get_nonce_for_call<C>(&self, call: &C) -> Result<FieldElement, GetNonceError<P::Error>>
+    async fn get_nonce_for_call<C>(&self, call: &C) -> Result<FieldElement, P::Error>
     where
         C: AccountCall,
     {
@@ -153,7 +134,10 @@ where
     ) -> Result<FeeEstimate, TransactionError<P::Error, S::SignError>> {
         let nonce = match nonce {
             Some(value) => value.to_owned(),
-            None => self.get_nonce(BlockId::Latest).await?,
+            None => self
+                .get_nonce(BlockId::Latest)
+                .await
+                .map_err(TransactionError::ProviderError)?,
         };
         let estimate_fee_request = self
             .generate_invoke_request(calls, nonce, FieldElement::ZERO)
@@ -176,7 +160,7 @@ where
     P: Provider + Sync + Send,
     S: Signer + Sync + Send,
 {
-    type GetNonceError = GetNonceError<P::Error>;
+    type GetNonceError = P::Error;
     type EstimateFeeError = TransactionError<P::Error, S::SignError>;
     type SendTransactionError = TransactionError<P::Error, S::SignError>;
 
@@ -188,27 +172,9 @@ where
         &self,
         block_identifier: BlockId,
     ) -> Result<FieldElement, Self::GetNonceError> {
-        let call_result = self
-            .provider
-            .call_contract(
-                CallFunction {
-                    contract_address: self.address,
-                    entry_point_selector: get_selector_from_name("get_nonce").unwrap(),
-                    calldata: vec![],
-                },
-                block_identifier,
-            )
+        self.provider
+            .get_nonce(self.address, block_identifier)
             .await
-            .map_err(Self::GetNonceError::ProviderError)?;
-
-        if call_result.result.len() == 1 {
-            Ok(call_result.result[0])
-        } else {
-            Err(GetNonceError::InvalidResponseLength {
-                expected: 1,
-                actual: call_result.result.len(),
-            })
-        }
     }
 
     fn execute(&self, calls: &[Call]) -> AttachedAccountCall<Self> {
@@ -235,7 +201,10 @@ where
     where
         C: AccountCall + Sync,
     {
-        let nonce = self.get_nonce_for_call(call).await?;
+        let nonce = self
+            .get_nonce_for_call(call)
+            .await
+            .map_err(Self::SendTransactionError::ProviderError)?;
         let max_fee = match call.get_max_fee() {
             Some(value) => value.to_owned(),
             None => {
@@ -259,11 +228,5 @@ where
             )
             .await
             .map_err(Self::SendTransactionError::ProviderError)
-    }
-}
-
-impl<P, S> From<GetNonceError<P>> for TransactionError<P, S> {
-    fn from(value: GetNonceError<P>) -> Self {
-        Self::GetNonceError(value)
     }
 }

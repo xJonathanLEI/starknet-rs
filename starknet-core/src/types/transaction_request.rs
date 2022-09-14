@@ -97,10 +97,10 @@ pub struct DeployTransaction {
 #[derive(Debug)]
 pub struct InvokeFunctionTransaction {
     pub contract_address: FieldElement,
-    pub entry_point_selector: FieldElement,
     pub calldata: Vec<FieldElement>,
     pub signature: Vec<FieldElement>,
     pub max_fee: FieldElement,
+    pub nonce: FieldElement,
 }
 
 #[derive(Debug, Serialize)]
@@ -203,21 +203,21 @@ impl Serialize for InvokeFunctionTransaction {
             version: FieldElement,
             #[serde_as(as = "UfeHex")]
             contract_address: &'a FieldElement,
-            #[serde_as(as = "UfeHex")]
-            entry_point_selector: &'a FieldElement,
             calldata: &'a Vec<FieldElement>,
             signature: &'a Vec<FieldElement>,
             #[serde_as(as = "UfeHex")]
             max_fee: &'a FieldElement,
+            #[serde_as(as = "UfeHex")]
+            nonce: &'a FieldElement,
         }
 
         let versioned = Versioned {
-            version: FieldElement::ZERO,
+            version: FieldElement::ONE,
             contract_address: &self.contract_address,
-            entry_point_selector: &self.entry_point_selector,
             calldata: &self.calldata,
             signature: &self.signature,
             max_fee: &self.max_fee,
+            nonce: &self.nonce,
         };
 
         Versioned::serialize(&versioned, serializer)
