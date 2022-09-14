@@ -24,7 +24,7 @@ pub fn compute_hash_on_elements(data: &[FieldElement]) -> FieldElement {
     let mut current_hash = FieldElement::ZERO;
 
     for item in data.iter() {
-        current_hash = pedersen_hash(&current_hash, &(*item));
+        current_hash = pedersen_hash(&current_hash, item);
     }
 
     let data_len = FieldElement::from(data.len());

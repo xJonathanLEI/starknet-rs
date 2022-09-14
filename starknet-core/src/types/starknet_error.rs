@@ -15,7 +15,7 @@ impl std::fmt::Display for Error {
     }
 }
 
-#[derive(Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[cfg_attr(test, serde(deny_unknown_fields))]
 pub enum ErrorCode {
     #[serde(rename = "StarknetErrorCode.BLOCK_NOT_FOUND")]
