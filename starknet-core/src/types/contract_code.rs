@@ -1,6 +1,6 @@
 use super::{super::serde::unsigned_field_element::UfeHex, FieldElement};
 
-use serde::{de::Error as DeError, Deserialize, Serialize};
+use serde::{de::Error as DeError, Deserialize, Serialize, Serializer};
 use serde_with::serde_as;
 
 #[serde_as]
@@ -12,29 +12,27 @@ pub struct ContractCode {
     pub abi: Option<Vec<AbiEntry>>,
 }
 
-#[derive(Debug, Clone, Serialize)]
-#[serde(tag = "type", rename_all = "lowercase")]
+#[derive(Debug, Clone)]
 pub enum AbiEntry {
     Constructor(Constructor),
     Function(Function),
     Struct(Struct),
-    #[serde(rename = "l1_handler")]
     L1Handler(L1Handler),
     Event(Event),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Constructor {
-    pub name: String,
     pub inputs: Vec<Input>,
+    pub name: String,
     pub outputs: Vec<Output>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Function {
-    pub name: String,
     pub inputs: Vec<Input>,
+    pub name: String,
     pub outputs: Vec<Output>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub state_mutability: Option<String>,
@@ -42,23 +40,23 @@ pub struct Function {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Struct {
+    pub members: Vec<Member>,
     pub name: String,
     pub size: u64,
-    pub members: Vec<Member>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct L1Handler {
-    pub name: String,
     pub inputs: Vec<Input>,
+    pub name: String,
     pub outputs: Vec<Output>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Event {
-    pub name: String,
-    pub keys: Vec<()>, // Can't figure out what's in `keys`
     pub data: Vec<EventData>,
+    pub keys: Vec<()>, // Can't figure out what's in `keys`
+    pub name: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -88,6 +86,60 @@ pub struct Member {
     pub name: String,
     pub offset: u64,
     pub r#type: String,
+}
+
+// Manually implementing this so we can put `type` at the end:
+// https://github.com/xJonathanLEI/starknet-rs/issues/216
+impl Serialize for AbiEntry {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        #[derive(Serialize)]
+        struct TypedValue<'a, T> {
+            #[serde(flatten)]
+            value: &'a T,
+            r#type: &'static str,
+        }
+
+        match self {
+            Self::Constructor(value) => TypedValue::serialize(
+                &TypedValue {
+                    value: &value,
+                    r#type: "constructor",
+                },
+                serializer,
+            ),
+            Self::Function(value) => TypedValue::serialize(
+                &TypedValue {
+                    value: &value,
+                    r#type: "function",
+                },
+                serializer,
+            ),
+            Self::Struct(value) => TypedValue::serialize(
+                &TypedValue {
+                    value: &value,
+                    r#type: "struct",
+                },
+                serializer,
+            ),
+            Self::L1Handler(value) => TypedValue::serialize(
+                &TypedValue {
+                    value: &value,
+                    r#type: "l1_handler",
+                },
+                serializer,
+            ),
+            Self::Event(value) => TypedValue::serialize(
+                &TypedValue {
+                    value: &value,
+                    r#type: "event",
+                },
+                serializer,
+            ),
+        }
+    }
 }
 
 // We need to manually implement this because `arbitrary_precision` doesn't work with `tag`:
