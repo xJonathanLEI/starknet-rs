@@ -126,9 +126,9 @@ pub struct EntryPointsByType {
 #[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct EntryPoint {
     #[serde_as(as = "UfeHex")]
-    pub selector: FieldElement,
-    #[serde_as(as = "UfeHex")]
     pub offset: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub selector: FieldElement,
 }
 
 impl Serialize for DeclareTransaction {

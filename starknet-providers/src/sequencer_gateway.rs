@@ -67,8 +67,6 @@ impl SequencerGatewayProvider {
     }
 }
 
-#[derive(Deserialize)]
-#[serde(untagged)]
 enum GatewayResponse<D> {
     Data(D),
     StarknetError(StarknetError),
@@ -612,6 +610,29 @@ impl Provider for SequencerGatewayProvider {
                 Err(ProviderError::StarknetError(starknet_err))
             }
         }
+    }
+}
+
+// We need to manually implement this because `arbitrary_precision` doesn't work with `untagged`:
+//   https://github.com/serde-rs/serde/issues/1183
+impl<'de, T> Deserialize<'de> for GatewayResponse<T>
+where
+    T: DeserializeOwned,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let temp_value = serde_json::Value::deserialize(deserializer)?;
+        if let Ok(value) = T::deserialize(&temp_value) {
+            return Ok(GatewayResponse::Data(value));
+        }
+        if let Ok(value) = StarknetError::deserialize(&temp_value) {
+            return Ok(GatewayResponse::StarknetError(value));
+        }
+        Err(serde::de::Error::custom(
+            "data did not match any variant of enum GatewayResponse",
+        ))
     }
 }
 

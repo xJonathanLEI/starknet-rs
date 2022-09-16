@@ -2,7 +2,7 @@ use super::{
     super::serde::unsigned_field_element::UfeHex, AbiEntry, EntryPointsByType, FieldElement,
 };
 
-use serde::{Deserialize, Serialize};
+use serde::{ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer};
 use serde_with::serde_as;
 use std::collections::BTreeMap;
 
@@ -18,8 +18,8 @@ pub struct ContractArtifact {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Program {
-    #[serde(skip_serializing)]
-    pub attributes: Option<serde::de::IgnoredAny>, // Skipped since it's not used in deployment
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attributes: Option<Vec<Attribute>>,
     pub builtins: Vec<String>,
     // This field was introduced in Cairo 0.10.0. By making it optional we're keeping compatibility
     // with older artifacts. This decision should be reviewd in the future.
@@ -27,15 +27,37 @@ pub struct Program {
     pub compiler_version: Option<String>,
     #[serde_as(as = "Vec<UfeHex>")]
     pub data: Vec<FieldElement>,
-    #[serde(skip_serializing)]
-    pub debug_info: Option<serde::de::IgnoredAny>, // Skipped since it's not used in deployment
-    pub hints: BTreeMap<String, Vec<Hint>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub debug_info: Option<DebugInfo>,
+    pub hints: BTreeMap<u64, Vec<Hint>>,
     pub identifiers: BTreeMap<String, Identifier>,
     pub main_scope: String,
     // Impossible to use [FieldElement] here as by definition field elements are smaller
     // than prime
     pub prime: String,
     pub reference_manager: ReferenceManager,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Attribute {
+    pub accessible_scopes: Vec<String>,
+    pub end_pc: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub flow_tracking_data: Option<FlowTrackingData>,
+    pub name: String,
+    pub start_pc: u64,
+    pub value: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DebugInfo {
+    /// A partial map from file name to its content. Files that are not in the map, are assumed to
+    /// exist in the file system.
+    pub file_contents: BTreeMap<String, String>,
+    /// A map from (relative) PC to the location of the instruction
+    pub instruction_locations: BTreeMap<u64, InstructionLocation>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -78,6 +100,16 @@ pub struct ReferenceManager {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct InstructionLocation {
+    pub accessible_scopes: Vec<String>,
+    // This field is serialized as `null` instead of skipped
+    pub flow_tracking_data: Option<FlowTrackingData>,
+    pub hints: Vec<HintLocation>,
+    pub inst: Location,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct IdentifierMember {
     pub cairo_type: String,
     pub offset: u64,
@@ -100,9 +132,88 @@ pub struct FlowTrackingData {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct HintLocation {
+    pub location: Location,
+    /// The number of new lines following the "%{" symbol
+    pub n_prefix_newlines: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Location {
+    pub end_col: u64,
+    pub end_line: u64,
+    pub input_file: InputFile,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent_location: Option<ParentLocation>,
+    pub start_col: u64,
+    pub start_line: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ApTrackingData {
     pub group: u64,
     pub offset: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct InputFile {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filename: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+}
+
+#[derive(Debug)]
+pub struct ParentLocation {
+    pub location: Box<Location>,
+    pub remark: String,
+}
+
+impl Serialize for ParentLocation {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(2))?;
+        seq.serialize_element(&self.location)?;
+        seq.serialize_element(&self.remark)?;
+        seq.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for ParentLocation {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let temp_value = serde_json::Value::deserialize(deserializer)?;
+        if let serde_json::Value::Array(mut array) = temp_value {
+            if array.len() != 2 {
+                return Err(serde::de::Error::custom("length mismatch"));
+            }
+
+            let remark = array.pop().unwrap();
+            let remark = match remark {
+                serde_json::Value::String(remark) => remark,
+                _ => return Err(serde::de::Error::custom("unexpected value type")),
+            };
+
+            let location = array.pop().unwrap();
+            let location = Location::deserialize(location).map_err(|err| {
+                serde::de::Error::custom(format!("unable to deserialize Location: {}", err))
+            })?;
+
+            Ok(Self {
+                location: Box::new(location),
+                remark,
+            })
+        } else {
+            Err(serde::de::Error::custom("expected sequencer"))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -152,5 +263,20 @@ mod tests {
             "../../test-data/raw_gateway_responses/get_class_by_hash/1_success.txt"
         ))
         .unwrap();
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_artifact_json_equivalence() {
+        // Removes '\n' or "\r\n" at the end
+        let original_text = include_str!("../../test-data/contracts/artifacts/oz_account.txt");
+        let original_text = original_text
+            .trim_end_matches("\r\n")
+            .trim_end_matches('\n');
+
+        let artifact = serde_json::from_str::<ContractArtifact>(original_text).unwrap();
+        let serialized = serde_json::to_string(&artifact).unwrap();
+
+        assert_eq!(original_text, serialized);
     }
 }
