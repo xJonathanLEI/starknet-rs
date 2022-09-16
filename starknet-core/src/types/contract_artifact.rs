@@ -268,9 +268,11 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_artifact_json_equivalence() {
-        // Removes '\n' at the end
+        // Removes '\n' or "\r\n" at the end
         let original_text = include_str!("../../test-data/contracts/artifacts/oz_account.txt");
-        let original_text = &original_text[..(original_text.len() - 1)];
+        let original_text = original_text
+            .trim_end_matches("\r\n")
+            .trim_end_matches('\n');
 
         let artifact = serde_json::from_str::<ContractArtifact>(original_text).unwrap();
         let serialized = serde_json::to_string(&artifact).unwrap();
