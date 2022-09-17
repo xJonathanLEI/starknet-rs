@@ -1,10 +1,17 @@
 use super::{
-    super::serde::unsigned_field_element::UfeHex, AbiEntry, EntryPointsByType, FieldElement,
+    super::{
+        crypto::compute_hash_on_elements,
+        serde::{json::to_string_pythonic, unsigned_field_element::UfeHex},
+        utils::{cairo_short_string_to_felt, starknet_keccak},
+    },
+    AbiEntry, EntryPointsByType, FieldElement,
 };
 
 use serde::{ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer};
-use serde_with::serde_as;
+use serde_with::{serde_as, SerializeAs};
 use std::collections::BTreeMap;
+
+const API_VERSION: FieldElement = FieldElement::ZERO;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -12,6 +19,14 @@ pub struct ContractArtifact {
     pub abi: Vec<AbiEntry>,
     pub entry_points_by_type: EntryPointsByType,
     pub program: Program,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ComputeClassHashError {
+    #[error("invalid builtin name")]
+    InvalidBuiltinName,
+    #[error("json serialization error: {0}")]
+    Json(serde_json::Error),
 }
 
 #[serde_as]
@@ -27,7 +42,6 @@ pub struct Program {
     pub compiler_version: Option<String>,
     #[serde_as(as = "Vec<UfeHex>")]
     pub data: Vec<FieldElement>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub debug_info: Option<DebugInfo>,
     pub hints: BTreeMap<u64, Vec<Hint>>,
     pub identifiers: BTreeMap<String, Identifier>,
@@ -172,6 +186,86 @@ pub struct ParentLocation {
     pub remark: String,
 }
 
+struct ProgramForHintedHash;
+struct AttributeForHintedHash;
+
+impl ContractArtifact {
+    pub fn class_hash(&self) -> Result<FieldElement, ComputeClassHashError> {
+        let mut elements = vec![];
+
+        elements.push(API_VERSION);
+
+        // Hashes external entry points
+        elements.push({
+            let mut buffer = vec![];
+            for entrypoint in self.entry_points_by_type.external.iter() {
+                buffer.push(entrypoint.selector);
+                buffer.push(entrypoint.offset);
+            }
+            compute_hash_on_elements(&buffer)
+        });
+
+        // Hashes L1 handler entry points
+        elements.push({
+            let mut buffer = vec![];
+            for entrypoint in self.entry_points_by_type.l1_handler.iter() {
+                buffer.push(entrypoint.selector);
+                buffer.push(entrypoint.offset);
+            }
+            compute_hash_on_elements(&buffer)
+        });
+
+        // Hashes constructor entry points
+        elements.push({
+            let mut buffer = vec![];
+            for entrypoint in self.entry_points_by_type.constructor.iter() {
+                buffer.push(entrypoint.selector);
+                buffer.push(entrypoint.offset);
+            }
+            compute_hash_on_elements(&buffer)
+        });
+
+        // Hashes builtins
+        elements.push(compute_hash_on_elements(
+            &self
+                .program
+                .builtins
+                .iter()
+                .map(|item| cairo_short_string_to_felt(item))
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|_| ComputeClassHashError::InvalidBuiltinName)?,
+        ));
+
+        // Hashes hinted_class_hash
+        elements.push(self.hinted_class_hash()?);
+
+        // Hashes bytecode
+        elements.push(compute_hash_on_elements(&self.program.data));
+
+        Ok(compute_hash_on_elements(&elements))
+    }
+
+    pub fn hinted_class_hash(&self) -> Result<FieldElement, ComputeClassHashError> {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct ContractArtifactForHash<'a> {
+            abi: &'a Vec<AbiEntry>,
+            #[serde_as(as = "ProgramForHintedHash")]
+            program: &'a Program,
+        }
+
+        // TODO: handle adding extra whitespaces in pre-0.10.0 artifacts for backward compatibility
+
+        let serialized = to_string_pythonic(&ContractArtifactForHash {
+            abi: &self.abi,
+            program: &self.program,
+        })
+        .map_err(ComputeClassHashError::Json)?;
+
+        Ok(starknet_keccak(serialized.as_bytes()))
+    }
+}
+
 impl Serialize for ParentLocation {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -213,6 +307,86 @@ impl<'de> Deserialize<'de> for ParentLocation {
         } else {
             Err(serde::de::Error::custom("expected sequencer"))
         }
+    }
+}
+
+impl SerializeAs<Program> for ProgramForHintedHash {
+    fn serialize_as<S>(source: &Program, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct HashVo<'a> {
+            #[serde(skip_serializing_if = "should_skip_attributes_for_hinted_hash")]
+            #[serde_as(as = "Option<Vec<AttributeForHintedHash>>")]
+            attributes: &'a Option<Vec<Attribute>>,
+            builtins: &'a Vec<String>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            compiler_version: &'a Option<String>,
+            #[serde_as(as = "Vec<UfeHex>")]
+            data: &'a Vec<FieldElement>,
+            debug_info: &'a Option<DebugInfo>,
+            hints: &'a BTreeMap<u64, Vec<Hint>>,
+            identifiers: &'a BTreeMap<String, Identifier>,
+            main_scope: &'a String,
+            prime: &'a String,
+            reference_manager: &'a ReferenceManager,
+        }
+
+        HashVo::serialize(
+            &HashVo {
+                attributes: &source.attributes,
+                builtins: &source.builtins,
+                compiler_version: &source.compiler_version,
+                data: &source.data,
+                debug_info: &None,
+                hints: &source.hints,
+                identifiers: &source.identifiers,
+                main_scope: &source.main_scope,
+                prime: &source.prime,
+                reference_manager: &source.reference_manager,
+            },
+            serializer,
+        )
+    }
+}
+
+impl SerializeAs<Attribute> for AttributeForHintedHash {
+    fn serialize_as<S>(source: &Attribute, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        #[derive(Serialize)]
+        struct HashVo<'a> {
+            #[serde(skip_serializing_if = "Vec::is_empty")]
+            accessible_scopes: &'a Vec<String>,
+            end_pc: &'a u64,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            flow_tracking_data: &'a Option<FlowTrackingData>,
+            name: &'a String,
+            start_pc: &'a u64,
+            value: &'a String,
+        }
+
+        HashVo::serialize(
+            &HashVo {
+                accessible_scopes: &source.accessible_scopes,
+                end_pc: &source.end_pc,
+                flow_tracking_data: &source.flow_tracking_data,
+                name: &source.name,
+                start_pc: &source.start_pc,
+                value: &source.value,
+            },
+            serializer,
+        )
+    }
+}
+
+fn should_skip_attributes_for_hinted_hash(value: &Option<Vec<Attribute>>) -> bool {
+    match value {
+        Some(value) => value.is_empty(),
+        None => true,
     }
 }
 
@@ -263,6 +437,44 @@ mod tests {
             "../../test-data/raw_gateway_responses/get_class_by_hash/1_success.txt"
         ))
         .unwrap();
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_contract_class_hash() {
+        let artifact = serde_json::from_str::<ContractArtifact>(include_str!(
+            "../../test-data/contracts/artifacts/oz_account.txt"
+        ))
+        .unwrap();
+        let computed_hash = artifact.class_hash().unwrap();
+
+        // Generated with `cairo-lang` v0.10.0
+        // TODO: generate this inside Docker
+        let expected_hash = FieldElement::from_hex_be(
+            "0x0045d788d040561528a1ac1c05f8b1606dc726d88dfa857b66a98ff7d2fbe72a",
+        )
+        .unwrap();
+
+        assert_eq!(computed_hash, expected_hash);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_contract_hinted_class_hash() {
+        let artifact = serde_json::from_str::<ContractArtifact>(include_str!(
+            "../../test-data/contracts/artifacts/oz_account.txt"
+        ))
+        .unwrap();
+        let computed_hash = artifact.hinted_class_hash().unwrap();
+
+        // Generated with `cairo-lang` v0.10.0
+        // TODO: generate this inside Docker
+        let expected_hash = FieldElement::from_hex_be(
+            "0x015b7a3ec0098a3b60fa098dcb966892ad2531459f4910502d44c3adb5a4160e",
+        )
+        .unwrap();
+
+        assert_eq!(computed_hash, expected_hash);
     }
 
     #[test]
