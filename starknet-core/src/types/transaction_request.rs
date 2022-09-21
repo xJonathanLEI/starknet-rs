@@ -8,6 +8,7 @@ use super::{
 
 use serde::{Deserialize, Serialize, Serializer};
 use serde_with::serde_as;
+use std::sync::Arc;
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
@@ -76,7 +77,7 @@ pub struct CallL1Handler {
 
 #[derive(Debug)]
 pub struct DeclareTransaction {
-    pub contract_class: ContractDefinition,
+    pub contract_class: Arc<ContractDefinition>,
     /// The address of the account contract sending the declaration transaction.
     pub sender_address: FieldElement,
     /// The maximal fee to be paid in Wei for declaring a contract class.
@@ -152,7 +153,7 @@ impl Serialize for DeclareTransaction {
         }
 
         let versioned = Versioned {
-            version: FieldElement::ZERO,
+            version: FieldElement::ONE,
             contract_class: &self.contract_class,
             sender_address: &self.sender_address,
             max_fee: &self.max_fee,

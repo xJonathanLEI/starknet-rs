@@ -4,12 +4,13 @@ use super::{
         serde::{json::to_string_pythonic, unsigned_field_element::UfeHex},
         utils::{cairo_short_string_to_felt, starknet_keccak},
     },
-    AbiEntry, EntryPointsByType, FieldElement,
+    AbiEntry, ContractDefinition, EntryPointsByType, FieldElement,
 };
 
+use flate2::{write::GzEncoder, Compression};
 use serde::{ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer};
 use serde_with::{serde_as, SerializeAs};
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, io::Write};
 
 const API_VERSION: FieldElement = FieldElement::ZERO;
 
@@ -27,6 +28,14 @@ pub enum ComputeClassHashError {
     InvalidBuiltinName,
     #[error("json serialization error: {0}")]
     Json(serde_json::Error),
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum CompressProgramError {
+    #[error("json serialization error: {0}")]
+    Json(serde_json::Error),
+    #[error("compression io error: {0}")]
+    Io(std::io::Error),
 }
 
 #[serde_as]
@@ -263,6 +272,56 @@ impl ContractArtifact {
         .map_err(ComputeClassHashError::Json)?;
 
         Ok(starknet_keccak(serialized.as_bytes()))
+    }
+
+    pub fn compress(&self) -> Result<ContractDefinition, CompressProgramError> {
+        Ok(ContractDefinition {
+            program: self.program.compress()?,
+            entry_points_by_type: self.entry_points_by_type.clone(),
+            abi: Some(self.abi.clone()),
+        })
+    }
+}
+
+impl Program {
+    pub fn compress(&self) -> Result<Vec<u8>, CompressProgramError> {
+        #[serde_as]
+        #[derive(Serialize)]
+        pub struct ProgramWithoutDebugInfo<'a> {
+            #[serde(skip_serializing_if = "Option::is_none")]
+            attributes: &'a Option<Vec<Attribute>>,
+            builtins: &'a Vec<String>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            compiler_version: &'a Option<String>,
+            #[serde_as(as = "Vec<UfeHex>")]
+            data: &'a Vec<FieldElement>,
+            hints: &'a BTreeMap<u64, Vec<Hint>>,
+            identifiers: &'a BTreeMap<String, Identifier>,
+            main_scope: &'a String,
+            prime: &'a String,
+            reference_manager: &'a ReferenceManager,
+        }
+
+        let program_json = serde_json::to_string(&ProgramWithoutDebugInfo {
+            attributes: &self.attributes,
+            builtins: &self.builtins,
+            compiler_version: &self.compiler_version,
+            data: &self.data,
+            hints: &self.hints,
+            identifiers: &self.identifiers,
+            main_scope: &self.main_scope,
+            prime: &self.prime,
+            reference_manager: &self.reference_manager,
+        })
+        .map_err(CompressProgramError::Json)?;
+
+        // Use best compression level to optimize for payload size
+        let mut gzip_encoder = GzEncoder::new(Vec::new(), Compression::best());
+        gzip_encoder
+            .write_all(program_json.as_bytes())
+            .map_err(CompressProgramError::Io)?;
+
+        gzip_encoder.finish().map_err(CompressProgramError::Io)
     }
 }
 

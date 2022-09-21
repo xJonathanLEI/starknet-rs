@@ -1600,6 +1600,7 @@ name = "starknet-accounts"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "serde_json",
  "starknet-core",
  "starknet-providers",
  "starknet-signers",
@@ -1611,7 +1612,6 @@ dependencies = [
 name = "starknet-contract"
 version = "0.1.0"
 dependencies = [
- "flate2",
  "rand",
  "serde",
  "serde_json",
@@ -1628,6 +1628,7 @@ version = "0.2.0"
 dependencies = [
  "base64",
  "ethereum-types",
+ "flate2",
  "hex",
  "serde",
  "serde_json",

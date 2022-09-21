@@ -66,6 +66,8 @@ Examples can be found in the [examples folder](./examples):
 
 4. [Declare contract on `alpha-goerli` testnet](./examples/declare_contract.rs)
 
+   Declaring contracts without going through an account (and thus not paying fees) has been deprecated, so please make sure your account has enough L2 Goerli ETH for the fees.
+
 5. [Query the latest block number with JSON-RPC](./examples/jsonrpc.rs)
 
 6. [Call a contract view function via sequencer gateway](./examples/sequencer_erc20_balance.rs)
