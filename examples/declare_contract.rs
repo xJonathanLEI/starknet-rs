@@ -1,5 +1,13 @@
+use std::sync::Arc;
+
 use starknet::{
-    contract::ContractFactory, core::types::ContractArtifact, providers::SequencerGatewayProvider,
+    accounts::{Account, SingleOwnerAccount},
+    core::{
+        chain_id,
+        types::{ContractArtifact, FieldElement},
+    },
+    providers::SequencerGatewayProvider,
+    signers::{LocalWallet, SigningKey},
 };
 
 #[tokio::main]
@@ -8,15 +16,21 @@ async fn main() {
         serde_json::from_reader(std::fs::File::open("/path/to/contract/artifact.json").unwrap())
             .unwrap();
     let provider = SequencerGatewayProvider::starknet_alpha_goerli();
+    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
+        FieldElement::from_hex_be("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
+    ));
+    let address = FieldElement::from_hex_be("YOUR_ACCOUNT_CONTRACT_ADDRESS_IN_HEX_HERE").unwrap();
 
-    let contract_factory = ContractFactory::new(contract_artifact, provider).unwrap();
-    let declare_result = contract_factory
-        .declare(None)
+    let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
+
+    let result = account
+        .declare(
+            Arc::new(contract_artifact.compress().unwrap()),
+            contract_artifact.class_hash().unwrap(),
+        )
+        .send()
         .await
-        .expect("Unable to declare contract");
+        .unwrap();
 
-    println!(
-        "Contract class hash: {:#064x}",
-        declare_result.class_hash.expect("Missing class hash")
-    );
+    dbg!(result);
 }

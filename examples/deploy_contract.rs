@@ -11,7 +11,7 @@ async fn main() {
             .unwrap();
     let provider = SequencerGatewayProvider::starknet_alpha_goerli();
 
-    let contract_factory = ContractFactory::new(contract_artifact, provider).unwrap();
+    let contract_factory = ContractFactory::new(&contract_artifact, provider).unwrap();
     contract_factory
         .deploy(vec![FieldElement::from_dec_str("123456").unwrap()], None)
         .await

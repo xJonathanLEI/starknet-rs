@@ -1,5 +1,7 @@
 mod account;
-pub use account::{Account, AccountCall, AttachedAccountCall};
+pub use account::{
+    Account, AccountCall, AccountDeclaration, AttachedAccountCall, AttachedAccountDeclaration,
+};
 
 mod call;
 pub use call::Call;

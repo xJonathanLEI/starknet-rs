@@ -20,6 +20,7 @@ starknet-crypto = { version = "0.1.0", path = "../starknet-crypto" }
 starknet-ff = { version = "0.1.0", path = "../starknet-ff", default-features = false }
 base64 = "0.13.0"
 ethereum-types = "0.12.1"
+flate2 = "1.0.24"
 hex = "0.4.3"
 serde = { version = "1.0.133", features = ["derive"] }
 serde_json = { version = "1.0.74", features = ["arbitrary_precision"] }
