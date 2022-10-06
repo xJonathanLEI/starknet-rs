@@ -11,6 +11,7 @@ pub struct AttachedAccountCall<'a, A> {
     pub calls: Vec<Call>,
     pub nonce: Option<FieldElement>,
     pub max_fee: Option<FieldElement>,
+    pub fee_estimate_multiplier: f32,
     pub(crate) account: &'a A,
 }
 
@@ -20,6 +21,7 @@ pub struct AttachedAccountDeclaration<'a, A> {
     pub class_hash: FieldElement,
     pub nonce: Option<FieldElement>,
     pub max_fee: Option<FieldElement>,
+    pub fee_estimate_multiplier: f32,
     pub(crate) account: &'a A,
 }
 
@@ -33,6 +35,10 @@ pub trait AccountCall {
     fn get_max_fee(&self) -> &Option<FieldElement>;
 
     fn max_fee(self, max_fee: FieldElement) -> Self;
+
+    fn get_fee_estimate_multiplier(&self) -> f32;
+
+    fn fee_estimate_multiplier(self, fee_estimate_multiplier: f32) -> Self;
 }
 
 pub trait AccountDeclaration {
@@ -47,6 +53,10 @@ pub trait AccountDeclaration {
     fn get_max_fee(&self) -> &Option<FieldElement>;
 
     fn max_fee(self, max_fee: FieldElement) -> Self;
+
+    fn get_fee_estimate_multiplier(&self) -> f32;
+
+    fn fee_estimate_multiplier(self, fee_estimate_multiplier: f32) -> Self;
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
@@ -124,6 +134,7 @@ impl<'a, A> AccountCall for AttachedAccountCall<'a, A> {
             calls: self.calls,
             nonce: Some(nonce),
             max_fee: self.max_fee,
+            fee_estimate_multiplier: self.fee_estimate_multiplier,
             account: self.account,
         }
     }
@@ -137,6 +148,21 @@ impl<'a, A> AccountCall for AttachedAccountCall<'a, A> {
             calls: self.calls,
             nonce: self.nonce,
             max_fee: Some(max_fee),
+            fee_estimate_multiplier: self.fee_estimate_multiplier,
+            account: self.account,
+        }
+    }
+
+    fn get_fee_estimate_multiplier(&self) -> f32 {
+        self.fee_estimate_multiplier
+    }
+
+    fn fee_estimate_multiplier(self, fee_estimate_multiplier: f32) -> Self {
+        Self {
+            calls: self.calls,
+            nonce: self.nonce,
+            max_fee: self.max_fee,
+            fee_estimate_multiplier,
             account: self.account,
         }
     }
@@ -174,6 +200,7 @@ impl<'a, A> AccountDeclaration for AttachedAccountDeclaration<'a, A> {
             class_hash: self.class_hash,
             nonce: Some(nonce),
             max_fee: self.max_fee,
+            fee_estimate_multiplier: self.fee_estimate_multiplier,
             account: self.account,
         }
     }
@@ -188,6 +215,22 @@ impl<'a, A> AccountDeclaration for AttachedAccountDeclaration<'a, A> {
             class_hash: self.class_hash,
             nonce: self.nonce,
             max_fee: Some(max_fee),
+            fee_estimate_multiplier: self.fee_estimate_multiplier,
+            account: self.account,
+        }
+    }
+
+    fn get_fee_estimate_multiplier(&self) -> f32 {
+        self.fee_estimate_multiplier
+    }
+
+    fn fee_estimate_multiplier(self, fee_estimate_multiplier: f32) -> Self {
+        Self {
+            compressed_class: self.compressed_class,
+            class_hash: self.class_hash,
+            nonce: self.nonce,
+            max_fee: self.max_fee,
+            fee_estimate_multiplier,
             account: self.account,
         }
     }
