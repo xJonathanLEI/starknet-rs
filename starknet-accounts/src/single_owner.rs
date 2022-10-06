@@ -236,6 +236,7 @@ where
             calls: calls.to_vec(),
             nonce: None,
             max_fee: None,
+            fee_estimate_multiplier: 1.1,
             account: self,
         }
     }
@@ -250,6 +251,7 @@ where
             class_hash,
             nonce: None,
             max_fee: None,
+            fee_estimate_multiplier: 1.1,
             account: self,
         }
     }
@@ -298,8 +300,9 @@ where
                     .estimate_fee_for_calls(call.get_calls(), Some(&nonce))
                     .await?;
 
-                // Adds 10% fee buffer
-                (fee_estimate.overall_fee * 11 / 10).into()
+                ((fee_estimate.overall_fee as f64 * call.get_fee_estimate_multiplier() as f64)
+                    as u64)
+                    .into()
             }
         };
 
@@ -341,8 +344,9 @@ where
                     )
                     .await?;
 
-                // Adds 10% fee buffer
-                (fee_estimate.overall_fee * 11 / 10).into()
+                ((fee_estimate.overall_fee as f64
+                    * declaration.get_fee_estimate_multiplier() as f64) as u64)
+                    .into()
             }
         };
 
