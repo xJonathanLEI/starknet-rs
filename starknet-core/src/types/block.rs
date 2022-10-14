@@ -246,4 +246,21 @@ mod tests {
 
         assert!(receipt.execution_resources.is_none());
     }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_block_deser_l1_handler_without_nonce() {
+        let raw = include_str!(
+            "../../test-data/raw_gateway_responses/get_block/12_l1_handler_without_nonce.txt"
+        );
+
+        let block: Block = serde_json::from_str(raw).unwrap();
+
+        let tx = match &block.transactions[22] {
+            TransactionType::L1Handler(tx) => tx,
+            _ => panic!("Unexpected tx type"),
+        };
+
+        assert!(tx.nonce.is_none());
+    }
 }

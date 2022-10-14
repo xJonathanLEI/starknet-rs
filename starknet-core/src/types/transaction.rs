@@ -136,8 +136,9 @@ pub struct L1HandlerTransaction {
     pub calldata: Vec<FieldElement>,
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
-    #[serde_as(as = "UfeHex")]
-    pub nonce: FieldElement,
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub nonce: Option<FieldElement>,
     #[serde_as(as = "UfeHex")]
     pub version: FieldElement,
 }
