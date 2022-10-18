@@ -15,6 +15,7 @@ use serde_with::serde_as;
 pub enum TransactionType {
     Declare(DeclareTransaction),
     Deploy(DeployTransaction),
+    DeployAccount(DeployAccountTransaction),
     InvokeFunction(InvokeFunctionTransaction),
     L1Handler(L1HandlerTransaction),
 }
@@ -98,6 +99,30 @@ pub struct DeployTransaction {
     pub transaction_hash: FieldElement,
     #[serde_as(as = "UfeHex")]
     pub version: FieldElement,
+}
+
+#[serde_as]
+#[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
+pub struct DeployAccountTransaction {
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
+    pub constructor_calldata: Vec<FieldElement>,
+    #[serde_as(as = "UfeHex")]
+    pub contract_address: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub contract_address_salt: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub class_hash: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub transaction_hash: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub nonce: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub version: FieldElement,
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
+    pub signature: Vec<FieldElement>,
+    #[serde_as(as = "UfeHex")]
+    pub max_fee: FieldElement,
 }
 
 #[serde_as]

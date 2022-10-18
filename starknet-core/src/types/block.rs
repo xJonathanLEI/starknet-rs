@@ -281,4 +281,20 @@ mod tests {
         assert!(tx.entry_point_selector.is_none());
         assert!(tx.entry_point_type.is_none());
     }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_block_deser_with_deploy_account() {
+        let raw =
+            include_str!("../../test-data/raw_gateway_responses/get_block/14_deploy_account.txt");
+
+        let block: Block = serde_json::from_str(raw).unwrap();
+
+        let tx = match &block.transactions[43] {
+            TransactionType::DeployAccount(tx) => tx,
+            _ => panic!("Unexpected tx type"),
+        };
+
+        assert_eq!(tx.signature.len(), 2);
+    }
 }
