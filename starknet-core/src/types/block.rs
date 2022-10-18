@@ -87,7 +87,7 @@ mod tests {
             panic!("Did not deserialize Transaction::Deploy properly");
         }
         if let TransactionType::InvokeFunction(tx) = &block.transactions[1] {
-            assert_eq!(tx.entry_point_type, EntryPointType::External);
+            assert_eq!(tx.entry_point_type, Some(EntryPointType::External));
             assert_eq!(tx.calldata.len(), 7);
         } else {
             panic!("Did not deserialize Transaction::InvokeFunction properly");
@@ -262,5 +262,23 @@ mod tests {
         };
 
         assert!(tx.nonce.is_none());
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_block_deser_without_entry_point() {
+        let raw = include_str!(
+            "../../test-data/raw_gateway_responses/get_block/13_without_entry_point.txt"
+        );
+
+        let block: Block = serde_json::from_str(raw).unwrap();
+
+        let tx = match &block.transactions[16] {
+            TransactionType::InvokeFunction(tx) => tx,
+            _ => panic!("Unexpected tx type"),
+        };
+
+        assert!(tx.entry_point_selector.is_none());
+        assert!(tx.entry_point_type.is_none());
     }
 }
