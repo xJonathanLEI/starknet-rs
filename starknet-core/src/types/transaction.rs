@@ -15,6 +15,7 @@ use serde_with::serde_as;
 pub enum TransactionType {
     Declare(DeclareTransaction),
     Deploy(DeployTransaction),
+    DeployAccount(DeployAccountTransaction),
     InvokeFunction(InvokeFunctionTransaction),
     L1Handler(L1HandlerTransaction),
 }
@@ -103,12 +104,38 @@ pub struct DeployTransaction {
 #[serde_as]
 #[derive(Debug, Deserialize)]
 #[cfg_attr(test, serde(deny_unknown_fields))]
+pub struct DeployAccountTransaction {
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
+    pub constructor_calldata: Vec<FieldElement>,
+    #[serde_as(as = "UfeHex")]
+    pub contract_address: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub contract_address_salt: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub class_hash: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub transaction_hash: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub nonce: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub version: FieldElement,
+    #[serde_as(deserialize_as = "Vec<UfeHex>")]
+    pub signature: Vec<FieldElement>,
+    #[serde_as(as = "UfeHex")]
+    pub max_fee: FieldElement,
+}
+
+#[serde_as]
+#[derive(Debug, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct InvokeFunctionTransaction {
     #[serde_as(as = "UfeHex")]
     pub contract_address: FieldElement,
-    pub entry_point_type: EntryPointType,
-    #[serde_as(as = "UfeHex")]
-    pub entry_point_selector: FieldElement,
+    #[serde(default)]
+    pub entry_point_type: Option<EntryPointType>,
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub entry_point_selector: Option<FieldElement>,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub calldata: Vec<FieldElement>,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
@@ -157,7 +184,7 @@ mod tests {
         assert_eq!(tx.block_number, Some(39099));
         if let TransactionType::InvokeFunction(invoke) = tx.r#type.unwrap() {
             assert_eq!(invoke.signature.len(), 2);
-            assert_eq!(invoke.entry_point_type, EntryPointType::External);
+            assert_eq!(invoke.entry_point_type, Some(EntryPointType::External));
         } else {
             panic!("Did not deserialize TransactionType::InvokeFunction properly")
         }

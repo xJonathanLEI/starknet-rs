@@ -37,6 +37,12 @@ curl -o ./get_block/11_without_execution_resources.txt "https://alpha4.starknet.
 # ./get_block/12_l1_handler_without_nonce.txt
 curl -o ./get_block/12_l1_handler_without_nonce.txt "https://alpha-mainnet.starknet.io/feeder_gateway/get_block?blockNumber=192"
 
+# ./get_block/13_without_entry_point.txt
+curl -o ./get_block/13_without_entry_point.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=375873"
+
+# ./get_block/14_deploy_account.txt
+curl -o ./get_block/14_deploy_account.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=375919"
+
 # ./get_code/1_code.txt
 curl -o ./get_code/1_code.txt "https://alpha4.starknet.io/feeder_gateway/get_code?contractAddress=0x05ffd28b3ff2eecd6da0fa64c90e928a9f46f1563976a4fe1770ab48ee43506a"
 
