@@ -40,7 +40,7 @@ curl -o ./get_block/12_l1_handler_without_nonce.txt "https://alpha-mainnet.stark
 # ./get_block/13_without_entry_point.txt
 curl -o ./get_block/13_without_entry_point.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=375873"
 
-# ./get_block/13_deploy_account.txt
+# ./get_block/14_deploy_account.txt
 curl -o ./get_block/14_deploy_account.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=375919"
 
 # ./get_code/1_code.txt
