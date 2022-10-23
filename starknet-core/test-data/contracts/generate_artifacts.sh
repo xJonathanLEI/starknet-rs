@@ -9,4 +9,4 @@ docker run -it --rm \
     --env "USER_ID=$(id -u)" \
     --env "GROUP_ID=$(id -g)" \
     --entrypoint "/entry.sh" \
-    shardlabs/cairo-cli:0.10.0
+    shardlabs/cairo-cli:0.10.1
