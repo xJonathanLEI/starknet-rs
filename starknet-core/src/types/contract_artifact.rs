@@ -507,10 +507,10 @@ mod tests {
         .unwrap();
         let computed_hash = artifact.class_hash().unwrap();
 
-        // Generated with `cairo-lang` v0.10.0
+        // Generated with `cairo-lang` v0.10.1
         // TODO: generate this inside Docker
         let expected_hash = FieldElement::from_hex_be(
-            "0x0045d788d040561528a1ac1c05f8b1606dc726d88dfa857b66a98ff7d2fbe72a",
+            "0x05dc67c4a0bfc56ae1122e8f6d00fa60bf808b37d524ac606ae5f3ff35b5cdfd",
         )
         .unwrap();
 
@@ -526,10 +526,10 @@ mod tests {
         .unwrap();
         let computed_hash = artifact.hinted_class_hash().unwrap();
 
-        // Generated with `cairo-lang` v0.10.0
+        // Generated with `cairo-lang` v0.10.1
         // TODO: generate this inside Docker
         let expected_hash = FieldElement::from_hex_be(
-            "0x015b7a3ec0098a3b60fa098dcb966892ad2531459f4910502d44c3adb5a4160e",
+            "0x017355a064cb4815b7e522aa94b58361061ac7c5463ec1e10afe63bdbbeec292",
         )
         .unwrap();
 
