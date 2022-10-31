@@ -1,4 +1,4 @@
-use crate::types::FieldElement;
+use crate::{crypto::compute_hash_on_elements, types::FieldElement};
 
 use sha3::{Digest, Keccak256};
 use starknet_crypto::pedersen_hash;
@@ -13,6 +13,14 @@ const ADDR_BOUND: FieldElement = FieldElement::from_mont([
     160989183,
     18446744073709255680,
     576459263475590224,
+]);
+
+// Cairo string of "STARKNET_CONTRACT_ADDRESS"
+const CONTRACT_ADDRESS_PREFIX: FieldElement = FieldElement::from_mont([
+    3829237882463328880,
+    17289941567720117366,
+    8635008616843941496,
+    533439743893157637,
 ]);
 
 #[derive(Debug, Error)]
@@ -117,6 +125,21 @@ pub fn parse_cairo_short_string(felt: &FieldElement) -> Result<String, ParseCair
         }
     }
     Ok(buffer)
+}
+
+pub fn get_contract_address(
+    salt: FieldElement,
+    class_hash: FieldElement,
+    constructor_calldata: &[FieldElement],
+    deployer_address: FieldElement,
+) -> FieldElement {
+    compute_hash_on_elements(&[
+        CONTRACT_ADDRESS_PREFIX,
+        deployer_address,
+        salt,
+        class_hash,
+        compute_hash_on_elements(constructor_calldata),
+    ]) % ADDR_BOUND
 }
 
 #[cfg(test)]
@@ -300,5 +323,28 @@ mod tests {
             ),
             Err(ParseCairoShortStringError::UnexpectedNullTerminator)
         ));
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_get_contract_address() {
+        assert_eq!(
+            get_contract_address(
+                FieldElement::from_hex_be(
+                    "0x0018a7a329d1d85b621350f2b5fc9c64b2e57dfe708525f0aff2c90de1e5b9c8"
+                )
+                .unwrap(),
+                FieldElement::from_hex_be(
+                    "0x0750cd490a7cd1572411169eaa8be292325990d33c5d4733655fe6b926985062"
+                )
+                .unwrap(),
+                &[FieldElement::ONE],
+                FieldElement::ZERO
+            ),
+            FieldElement::from_hex_be(
+                "0x00da27ef7c3869c3a6cc6a0f7bf07a51c3e590825adba8a51cae27d815839eec"
+            )
+            .unwrap()
+        )
     }
 }
