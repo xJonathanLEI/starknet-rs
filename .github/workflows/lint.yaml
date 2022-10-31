@@ -20,6 +20,9 @@ jobs:
       - name: Install prettier
         run: |
           yarn global add prettier
+      - name: Install black
+        run: |
+          pip install git+https://github.com/psf/black
       - name: Check Markdown format
         run: |
           prettier --check "**/*.md"
@@ -40,6 +43,9 @@ jobs:
               fi
           done
           exit $EXIT_CODE;
+      - name: Check Python format
+        run: |
+          black --check .
       - name: Check Rust format
         run: |
           cargo fmt --all -- --check
