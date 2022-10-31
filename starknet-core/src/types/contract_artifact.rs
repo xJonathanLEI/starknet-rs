@@ -510,7 +510,7 @@ mod tests {
         // Generated with `cairo-lang` v0.10.1
         // TODO: generate this inside Docker
         let expected_hash = FieldElement::from_hex_be(
-            "0x05dc67c4a0bfc56ae1122e8f6d00fa60bf808b37d524ac606ae5f3ff35b5cdfd",
+            "0x0750cd490a7cd1572411169eaa8be292325990d33c5d4733655fe6b926985062",
         )
         .unwrap();
 
@@ -529,7 +529,7 @@ mod tests {
         // Generated with `cairo-lang` v0.10.1
         // TODO: generate this inside Docker
         let expected_hash = FieldElement::from_hex_be(
-            "0x017355a064cb4815b7e522aa94b58361061ac7c5463ec1e10afe63bdbbeec292",
+            "0x012eb310ae717e4c5bd90f1991b6498a1eb978fd96f27aa7e1d808ce77718f87",
         )
         .unwrap();
 
