@@ -19,6 +19,9 @@ sed -i "s/return structs\\.ContractClass/print(f\\\"  \\\\\\\"hinted_class_hash\
 # ./artifacts/event_example.txt
 compile "/contracts/EventExample.cairo" "/artifacts/event_example"
 
+# ./artifacts/deployable.txt
+compile "/contracts/Deployable.cairo" "/artifacts/deployable"
+
 # ./artifacts/oz_account.txt
 cd /contracts/openzeppelin/src
 compile "/contracts/openzeppelin/src/openzeppelin/account/presets/Account.cairo" "/artifacts/oz_account" --account_contract

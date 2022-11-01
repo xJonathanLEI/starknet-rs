@@ -38,6 +38,7 @@ pub enum TransactionRequest {
     Declare(DeclareTransaction),
     Deploy(DeployTransaction),
     InvokeFunction(InvokeFunctionTransaction),
+    DeployAccount(DeployAccountTransaction),
 }
 
 /// Represents a transaction in the StarkNet network that is originated from an action of an
@@ -47,6 +48,7 @@ pub enum TransactionRequest {
 pub enum AccountTransaction {
     Declare(DeclareTransaction),
     InvokeFunction(InvokeFunctionTransaction),
+    DeployAccount(DeployAccountTransaction),
 }
 
 /// Represents a contract function call in the StarkNet network.
@@ -101,6 +103,19 @@ pub struct InvokeFunctionTransaction {
     pub calldata: Vec<FieldElement>,
     pub signature: Vec<FieldElement>,
     pub max_fee: FieldElement,
+    pub nonce: FieldElement,
+}
+
+#[derive(Debug)]
+pub struct DeployAccountTransaction {
+    pub class_hash: FieldElement,
+    pub contract_address_salt: FieldElement,
+    pub constructor_calldata: Vec<FieldElement>,
+    // The maximal fee to be paid in Wei for executing the transaction.
+    pub max_fee: FieldElement,
+    // The signature of the transaction.
+    pub signature: Vec<FieldElement>,
+    // The nonce of the transaction.
     pub nonce: FieldElement,
 }
 
@@ -218,6 +233,42 @@ impl Serialize for InvokeFunctionTransaction {
             calldata: &self.calldata,
             signature: &self.signature,
             max_fee: &self.max_fee,
+            nonce: &self.nonce,
+        };
+
+        Versioned::serialize(&versioned, serializer)
+    }
+}
+
+impl Serialize for DeployAccountTransaction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct Versioned<'a> {
+            #[serde_as(as = "UfeHex")]
+            version: FieldElement,
+            #[serde_as(as = "UfeHex")]
+            class_hash: &'a FieldElement,
+            #[serde_as(as = "UfeHex")]
+            contract_address_salt: &'a FieldElement,
+            constructor_calldata: &'a Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            max_fee: &'a FieldElement,
+            signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            nonce: &'a FieldElement,
+        }
+
+        let versioned = Versioned {
+            version: FieldElement::ONE,
+            class_hash: &self.class_hash,
+            contract_address_salt: &self.contract_address_salt,
+            constructor_calldata: &self.constructor_calldata,
+            max_fee: &self.max_fee,
+            signature: &self.signature,
             nonce: &self.nonce,
         };
 
