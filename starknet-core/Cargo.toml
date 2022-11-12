@@ -28,9 +28,16 @@ serde_with = "1.12.0"
 sha3 = "0.10.0"
 thiserror = "1.0.30"
 
+[dev-dependencies]
+criterion = "0.3.5"
+
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3.29"
 
 [features]
 default = ["bigdecimal"]
 bigdecimal = ["starknet-ff/bigdecimal"]
+
+[[bench]]
+name = "class_hash"
+harness = false

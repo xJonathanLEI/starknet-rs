@@ -1627,6 +1627,7 @@ name = "starknet-core"
 version = "0.2.0"
 dependencies = [
  "base64",
+ "criterion",
  "ethereum-types",
  "flate2",
  "hex",
