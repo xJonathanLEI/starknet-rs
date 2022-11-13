@@ -57,6 +57,22 @@ impl FieldElement {
         576460752303422960,
     ]);
 
+    /// [FieldElement] constant that's equal to 2
+    pub const TWO: FieldElement = FieldElement::from_mont([
+        18446744073709551553,
+        18446744073709551615,
+        18446744073709551615,
+        576460752303422416,
+    ]);
+
+    /// [FieldElement] constant that's equal to 3
+    pub const THREE: FieldElement = FieldElement::from_mont([
+        18446744073709551521,
+        18446744073709551615,
+        18446744073709551615,
+        576460752303421872,
+    ]);
+
     /// Maximum value of [FieldElement]. Equals to 2^251 + 17 * 2^192.
     pub const MAX: FieldElement = FieldElement::from_mont([32, 0, 0, 544]);
 

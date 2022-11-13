@@ -1,10 +1,14 @@
-use crate::{ec_point::EcPoint, pedersen_params::CONSTANT_POINTS, FieldElement};
+use crate::{
+    ec_point::{EcPoint, ProjectivePoint},
+    pedersen_params::CONSTANT_POINTS,
+    FieldElement,
+};
 
-const SHIFT_POINT: EcPoint = CONSTANT_POINTS[0];
-const PEDERSEN_P0: EcPoint = CONSTANT_POINTS[2];
-const PEDERSEN_P1: EcPoint = CONSTANT_POINTS[250];
-const PEDERSEN_P2: EcPoint = CONSTANT_POINTS[254];
-const PEDERSEN_P3: EcPoint = CONSTANT_POINTS[502];
+const SHIFT_POINT: ProjectivePoint = ProjectivePoint::from_ec_point(&CONSTANT_POINTS[0]);
+const PEDERSEN_P0: ProjectivePoint = ProjectivePoint::from_ec_point(&CONSTANT_POINTS[2]);
+const PEDERSEN_P1: ProjectivePoint = ProjectivePoint::from_ec_point(&CONSTANT_POINTS[250]);
+const PEDERSEN_P2: ProjectivePoint = ProjectivePoint::from_ec_point(&CONSTANT_POINTS[254]);
+const PEDERSEN_P3: ProjectivePoint = ProjectivePoint::from_ec_point(&CONSTANT_POINTS[502]);
 
 /// Computes the Starkware version of the Pedersen hash of x and y. All inputs are little-endian.
 ///
@@ -13,25 +17,17 @@ const PEDERSEN_P3: EcPoint = CONSTANT_POINTS[502];
 /// * `x`: The x coordinate
 /// * `y`: The y coordinate
 pub fn pedersen_hash(x: &FieldElement, y: &FieldElement) -> FieldElement {
-    let mut result = SHIFT_POINT;
     let x = x.to_bits_le();
     let y = y.to_bits_le();
 
-    // Add a_low * P1
-    let tmp = PEDERSEN_P0.multiply(&x[..248]);
-    result = result.add(&tmp);
+    // Compute hash
+    let accumulator = SHIFT_POINT.add(&PEDERSEN_P0.multiply(&x[..248])); // Add a_low * P1
+    let accumulator = accumulator.add(&PEDERSEN_P1.multiply(&x[248..252])); // Add a_high * P2
+    let accumulator = accumulator.add(&PEDERSEN_P2.multiply(&y[..248])); // Add b_low * P3
+    let accumulator = accumulator.add(&PEDERSEN_P3.multiply(&y[248..252])); // Add b_high * P4
 
-    // Add a_high * P2
-    let tmp = PEDERSEN_P1.multiply(&x[248..252]);
-    result = result.add(&tmp);
-
-    // Add b_low * P3
-    let tmp = PEDERSEN_P2.multiply(&y[..248]);
-    result = result.add(&tmp);
-
-    // Add b_high * P4
-    let tmp = PEDERSEN_P3.multiply(&y[248..252]);
-    result = result.add(&tmp);
+    // Convert to affine
+    let result = EcPoint::from(&accumulator);
 
     // Return x-coordinate
     result.x
