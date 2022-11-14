@@ -21,10 +21,11 @@ pub fn pedersen_hash(x: &FieldElement, y: &FieldElement) -> FieldElement {
     let y = y.to_bits_le();
 
     // Compute hash
-    let accumulator = SHIFT_POINT.add(&PEDERSEN_P0.multiply(&x[..248])); // Add a_low * P1
-    let accumulator = accumulator.add(&PEDERSEN_P1.multiply(&x[248..252])); // Add a_high * P2
-    let accumulator = accumulator.add(&PEDERSEN_P2.multiply(&y[..248])); // Add b_low * P3
-    let accumulator = accumulator.add(&PEDERSEN_P3.multiply(&y[248..252])); // Add b_high * P4
+    let mut accumulator = SHIFT_POINT;
+    accumulator.add_assign(&PEDERSEN_P0.multiply(&x[..248])); // Add a_low * P1
+    accumulator.add_assign(&PEDERSEN_P1.multiply(&x[248..252])); // Add a_high * P2
+    accumulator.add_assign(&PEDERSEN_P2.multiply(&y[..248])); // Add b_low * P3
+    accumulator.add_assign(&PEDERSEN_P3.multiply(&y[248..252])); // Add b_high * P4
 
     // Convert to affine
     let result = EcPoint::from(&accumulator);
