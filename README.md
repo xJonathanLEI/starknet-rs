@@ -52,6 +52,10 @@ This workspace contains the following crates:
 - `starknet-ff`: StarkNet field element type
 - `starknet-macros`: Useful macros for using the `starknet` crates
 
+## WebAssembly
+
+`starknet-rs` can be used as a WebAssembly module. Check out [this example](./examples/starknet-wasm/).
+
 ## Example
 
 Examples can be found in the [examples folder](./examples):
