@@ -56,6 +56,15 @@ This workspace contains the following crates:
 
 `starknet-rs` can be used as a WebAssembly module. Check out [this example](./examples/starknet-wasm/).
 
+## Performance
+
+Benchmark results for native and WebAssembly targets are available for these crates:
+
+- [starknet-core](./starknet-core/)
+- [starknet-crypto](./starknet-crypto/)
+
+For instructions on running the benchmark yourself, check [here](./BENCHMARK.md).
+
 ## Example
 
 Examples can be found in the [examples folder](./examples):
