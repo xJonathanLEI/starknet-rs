@@ -37,9 +37,9 @@ impl EcPoint {
         }
     }
 
-    fn double(&self) -> EcPoint {
+    fn double_assign(&mut self) {
         if self.infinity {
-            return *self;
+            return;
         }
 
         // l = (3x^2+a)/2y with a=1 from stark curve
@@ -50,24 +50,29 @@ impl EcPoint {
         };
 
         let result_x = (lambda * lambda) - self.x - self.x;
-        let result_y = lambda * (self.x - result_x) - self.y;
-
-        EcPoint {
-            x: result_x,
-            y: result_y,
-            infinity: false,
-        }
+        self.y = lambda * (self.x - result_x) - self.y;
+        self.x = result_x;
     }
 
     pub fn add(&self, other: &EcPoint) -> EcPoint {
+        let mut copy = *self;
+        copy.add_assign(other);
+        copy
+    }
+
+    pub fn add_assign(&mut self, other: &EcPoint) {
         if other.infinity {
-            return *self;
+            return;
         }
         if self.infinity {
-            return *other;
+            self.x = other.x;
+            self.y = other.y;
+            self.infinity = other.infinity;
+            return;
         }
         if self.x == other.x {
-            return self.double();
+            self.double_assign();
+            return;
         }
 
         // l = (y2-y1)/(x2-x1)
@@ -78,17 +83,18 @@ impl EcPoint {
         };
 
         let result_x = (lambda * lambda) - self.x - other.x;
-        let result_y = lambda * (self.x - result_x) - self.y;
-
-        EcPoint {
-            x: result_x,
-            y: result_y,
-            infinity: false,
-        }
+        self.y = lambda * (self.x - result_x) - self.y;
+        self.x = result_x;
     }
 
     pub fn subtract(&self, other: &EcPoint) -> EcPoint {
-        self.add(&EcPoint {
+        let mut copy = *self;
+        copy.subtract_assign(other);
+        copy
+    }
+
+    pub fn subtract_assign(&mut self, other: &EcPoint) {
+        self.add_assign(&EcPoint {
             x: other.x,
             y: -other.y,
             infinity: other.infinity,
@@ -98,9 +104,9 @@ impl EcPoint {
     pub fn multiply(&self, bits: &[bool]) -> EcPoint {
         let mut product = EcPoint::identity();
         for b in bits.iter().rev() {
-            product = product.double();
+            product.double_assign();
             if *b {
-                product = product.add(self);
+                product.add_assign(self);
             }
         }
 
@@ -138,9 +144,9 @@ impl ProjectivePoint {
         }
     }
 
-    pub fn double(&self) -> ProjectivePoint {
+    pub fn double_assign(&mut self) {
         if self.infinity {
-            return *self;
+            return;
         }
 
         // t=3x^2+az^2 with a=1 from stark curve
@@ -155,25 +161,27 @@ impl ProjectivePoint {
         let y = t * (v - w) - FieldElement::TWO * uy * uy;
         let z = u * u * u;
 
-        ProjectivePoint {
-            x,
-            y,
-            z,
-            infinity: false,
-        }
+        self.x = x;
+        self.y = y;
+        self.z = z;
     }
 
-    pub fn add(&self, other: &ProjectivePoint) -> ProjectivePoint {
+    pub fn add_assign(&mut self, other: &ProjectivePoint) {
         if other.infinity {
-            return *self;
+            return;
         }
         if self.infinity {
-            return *other;
+            self.x = other.x;
+            self.y = other.y;
+            self.z = other.z;
+            self.infinity = other.infinity;
+            return;
         }
         let u0 = self.x * other.z;
         let u1 = other.x * self.z;
         if u0 == u1 {
-            return self.double();
+            self.double_assign();
+            return;
         }
 
         let t0 = self.y * other.z;
@@ -191,20 +199,17 @@ impl ProjectivePoint {
         let y = t * (u0 * u2 - w) - t0 * u3;
         let z = u3 * v;
 
-        ProjectivePoint {
-            x,
-            y,
-            z,
-            infinity: false,
-        }
+        self.x = x;
+        self.y = y;
+        self.z = z;
     }
 
     pub fn multiply(&self, bits: &[bool]) -> ProjectivePoint {
         let mut product = ProjectivePoint::identity();
         for b in bits.iter().rev() {
-            product = product.double();
+            product.double_assign();
             if *b {
-                product = product.add(self);
+                product.add_assign(self);
             }
         }
 
