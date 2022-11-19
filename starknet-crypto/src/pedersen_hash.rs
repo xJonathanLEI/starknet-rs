@@ -1,14 +1,11 @@
-use crate::{
-    ec_point::{EcPoint, ProjectivePoint},
-    pedersen_params::CONSTANT_POINTS,
-    FieldElement,
-};
+use starknet_curve::{curve_params, AffinePoint, ProjectivePoint};
+use starknet_ff::FieldElement;
 
-const SHIFT_POINT: ProjectivePoint = ProjectivePoint::from_ec_point(&CONSTANT_POINTS[0]);
-const PEDERSEN_P0: ProjectivePoint = ProjectivePoint::from_ec_point(&CONSTANT_POINTS[2]);
-const PEDERSEN_P1: ProjectivePoint = ProjectivePoint::from_ec_point(&CONSTANT_POINTS[250]);
-const PEDERSEN_P2: ProjectivePoint = ProjectivePoint::from_ec_point(&CONSTANT_POINTS[254]);
-const PEDERSEN_P3: ProjectivePoint = ProjectivePoint::from_ec_point(&CONSTANT_POINTS[502]);
+const SHIFT_POINT: ProjectivePoint = ProjectivePoint::from_affine_point(&curve_params::SHIFT_POINT);
+const PEDERSEN_P0: ProjectivePoint = ProjectivePoint::from_affine_point(&curve_params::PEDERSEN_P0);
+const PEDERSEN_P1: ProjectivePoint = ProjectivePoint::from_affine_point(&curve_params::PEDERSEN_P1);
+const PEDERSEN_P2: ProjectivePoint = ProjectivePoint::from_affine_point(&curve_params::PEDERSEN_P2);
+const PEDERSEN_P3: ProjectivePoint = ProjectivePoint::from_affine_point(&curve_params::PEDERSEN_P3);
 
 /// Computes the Starkware version of the Pedersen hash of x and y. All inputs are little-endian.
 ///
@@ -28,7 +25,7 @@ pub fn pedersen_hash(x: &FieldElement, y: &FieldElement) -> FieldElement {
     accumulator.add_assign(&PEDERSEN_P3.multiply(&y[248..252])); // Add b_high * P4
 
     // Convert to affine
-    let result = EcPoint::from(&accumulator);
+    let result = AffinePoint::from(&accumulator);
 
     // Return x-coordinate
     result.x

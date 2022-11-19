@@ -1524,10 +1524,18 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+ "starknet-curve",
  "starknet-ff",
  "thiserror",
  "wasm-bindgen-test",
  "zeroize",
+]
+
+[[package]]
+name = "starknet-curve"
+version = "0.1.0"
+dependencies = [
+ "starknet-ff",
 ]
 
 [[package]]

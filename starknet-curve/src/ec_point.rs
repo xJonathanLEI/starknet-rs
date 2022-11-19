@@ -1,11 +1,10 @@
-use crate::{
-    pedersen_params::{ALPHA, BETA},
-    FieldElement,
-};
+use starknet_ff::FieldElement;
+
+use crate::curve_params::{ALPHA, BETA};
 
 /// A point on an elliptic curve over [FieldElement].
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub struct EcPoint {
+pub struct AffinePoint {
     pub x: FieldElement,
     pub y: FieldElement,
     pub infinity: bool,
@@ -19,7 +18,7 @@ pub struct ProjectivePoint {
     pub infinity: bool,
 }
 
-impl EcPoint {
+impl AffinePoint {
     pub fn from_x(x: FieldElement) -> Self {
         let y_squared = x * x * x + ALPHA * x + BETA;
         Self {
@@ -29,7 +28,7 @@ impl EcPoint {
         }
     }
 
-    fn identity() -> EcPoint {
+    fn identity() -> AffinePoint {
         Self {
             x: FieldElement::ZERO,
             y: FieldElement::ZERO,
@@ -54,13 +53,13 @@ impl EcPoint {
         self.x = result_x;
     }
 
-    pub fn add(&self, other: &EcPoint) -> EcPoint {
+    pub fn add(&self, other: &AffinePoint) -> AffinePoint {
         let mut copy = *self;
         copy.add_assign(other);
         copy
     }
 
-    pub fn add_assign(&mut self, other: &EcPoint) {
+    pub fn add_assign(&mut self, other: &AffinePoint) {
         if other.infinity {
             return;
         }
@@ -87,22 +86,22 @@ impl EcPoint {
         self.x = result_x;
     }
 
-    pub fn subtract(&self, other: &EcPoint) -> EcPoint {
+    pub fn subtract(&self, other: &AffinePoint) -> AffinePoint {
         let mut copy = *self;
         copy.subtract_assign(other);
         copy
     }
 
-    pub fn subtract_assign(&mut self, other: &EcPoint) {
-        self.add_assign(&EcPoint {
+    pub fn subtract_assign(&mut self, other: &AffinePoint) {
+        self.add_assign(&AffinePoint {
             x: other.x,
             y: -other.y,
             infinity: other.infinity,
         })
     }
 
-    pub fn multiply(&self, bits: &[bool]) -> EcPoint {
-        let mut product = EcPoint::identity();
+    pub fn multiply(&self, bits: &[bool]) -> AffinePoint {
+        let mut product = AffinePoint::identity();
         for b in bits.iter().rev() {
             product.double_assign();
             if *b {
@@ -114,7 +113,7 @@ impl EcPoint {
     }
 }
 
-impl From<&ProjectivePoint> for EcPoint {
+impl From<&ProjectivePoint> for AffinePoint {
     fn from(p: &ProjectivePoint) -> Self {
         let zinv = p.z.invert().unwrap();
         Self {
@@ -126,7 +125,7 @@ impl From<&ProjectivePoint> for EcPoint {
 }
 
 impl ProjectivePoint {
-    pub const fn from_ec_point(p: &EcPoint) -> Self {
+    pub const fn from_affine_point(p: &AffinePoint) -> Self {
         Self {
             x: p.x,
             y: p.y,
@@ -217,8 +216,8 @@ impl ProjectivePoint {
     }
 }
 
-impl From<&EcPoint> for ProjectivePoint {
-    fn from(p: &EcPoint) -> Self {
-        Self::from_ec_point(p)
+impl From<&AffinePoint> for ProjectivePoint {
+    fn from(p: &AffinePoint) -> Self {
+        Self::from_affine_point(p)
     }
 }
