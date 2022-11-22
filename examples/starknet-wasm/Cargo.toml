@@ -19,7 +19,7 @@ crate-type = ["cdylib", "rlib"]
 default = ["console_error_panic_hook"]
 
 [dependencies]
-starknet-ff = { version = "0.1.0", path = "../../starknet-ff" }
-starknet-crypto = { version = "0.1.0", path = "../../starknet-crypto" }
+starknet-ff = { version = "0.2.0", path = "../../starknet-ff" }
+starknet-crypto = { version = "0.2.0", path = "../../starknet-crypto" }
 console_error_panic_hook = { version = "0.1.7", optional = true }
 wasm-bindgen = "0.2.79"
