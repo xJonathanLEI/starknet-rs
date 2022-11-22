@@ -1,6 +1,6 @@
 [package]
 name = "starknet-crypto"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Jonathan LEI <me@xjonathan.dev>"]
 license = "MIT OR Apache-2.0"
 edition = "2021"
@@ -15,7 +15,7 @@ keywords = ["ethereum", "starknet", "web3"]
 [dependencies]
 starknet-crypto-codegen = { version = "0.1.0", path = "../starknet-crypto-codegen" }
 starknet-curve = { version = "0.1.0", path = "../starknet-curve" }
-starknet-ff = { version = "0.1.0", path = "../starknet-ff" }
+starknet-ff = { version = "0.2.0", path = "../starknet-ff" }
 crypto-bigint = "0.3.2"
 hmac = "0.11.0"
 num-bigint = "0.4.3"
