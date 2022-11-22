@@ -1,11 +1,9 @@
 #![doc = include_str!("../README.md")]
 
-mod ec_point;
 mod ecdsa;
 mod error;
 mod fe_utils;
 mod pedersen_hash;
-mod pedersen_params;
 mod rfc6979;
 
 #[cfg(test)]

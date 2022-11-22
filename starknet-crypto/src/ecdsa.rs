@@ -1,7 +1,10 @@
+use starknet_curve::{
+    curve_params::{EC_ORDER, GENERATOR},
+    AffinePoint,
+};
+
 use crate::{
-    ec_point::EcPoint,
     fe_utils::{add_unbounded, bigint_mul_mod_floor, mod_inverse, mul_mod_floor},
-    pedersen_params::{CONSTANT_POINTS, EC_ORDER},
     FieldElement, SignError, VerifyError,
 };
 use std::fmt;
@@ -39,7 +42,7 @@ impl fmt::Display for Signature {
 ///
 /// * `private_key`: The private key
 pub fn get_public_key(private_key: &FieldElement) -> FieldElement {
-    CONSTANT_POINTS[1].multiply(&private_key.to_bits_le()).x
+    GENERATOR.multiply(&private_key.to_bits_le()).x
 }
 
 /// Computes ECDSA signature given a Stark private key and message hash.
@@ -61,9 +64,7 @@ pub fn sign(
         return Err(SignError::InvalidK);
     }
 
-    let generator = &CONSTANT_POINTS[1];
-
-    let r = generator.multiply(&k.to_bits_le()).x;
+    let r = GENERATOR.multiply(&k.to_bits_le()).x;
     if r == FieldElement::ZERO || r >= ELEMENT_UPPER_BOUND {
         return Err(SignError::InvalidK);
     }
@@ -104,9 +105,7 @@ pub fn verify(
         return Err(VerifyError::InvalidS);
     }
 
-    let full_public_key = EcPoint::from_x(*public_key);
-
-    let generator = &CONSTANT_POINTS[1];
+    let full_public_key = AffinePoint::from_x(*public_key);
 
     let w = mod_inverse(s, &EC_ORDER);
     if w == FieldElement::ZERO || w >= ELEMENT_UPPER_BOUND {
@@ -114,7 +113,7 @@ pub fn verify(
     }
 
     let zw = mul_mod_floor(message, &w, &EC_ORDER);
-    let zw_g = generator.multiply(&zw.to_bits_le());
+    let zw_g = GENERATOR.multiply(&zw.to_bits_le());
 
     let rw = mul_mod_floor(r, &w, &EC_ORDER);
     let rw_q = full_public_key.multiply(&rw.to_bits_le());
