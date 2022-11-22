@@ -55,7 +55,7 @@ fn push_points(
         let mut inner_point = outer_point;
         for _ in 1..(table_size + 1) {
             push_point(buf, &inner_point)?;
-            inner_point.add_assign(&outer_point);
+            inner_point += &outer_point;
         }
 
         // Shift outer point #bits times

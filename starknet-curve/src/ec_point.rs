@@ -52,65 +52,6 @@ impl AffinePoint {
         self.y = lambda * (self.x - result_x) - self.y;
         self.x = result_x;
     }
-
-    pub fn add(&self, other: &AffinePoint) -> AffinePoint {
-        let mut copy = *self;
-        copy.add_assign(other);
-        copy
-    }
-
-    pub fn add_assign(&mut self, other: &AffinePoint) {
-        if other.infinity {
-            return;
-        }
-        if self.infinity {
-            self.x = other.x;
-            self.y = other.y;
-            self.infinity = other.infinity;
-            return;
-        }
-        if self.x == other.x {
-            self.double_assign();
-            return;
-        }
-
-        // l = (y2-y1)/(x2-x1)
-        let lambda = {
-            let dividend = other.y - self.y;
-            let divisor_inv = (other.x - self.x).invert().unwrap();
-            dividend * divisor_inv
-        };
-
-        let result_x = (lambda * lambda) - self.x - other.x;
-        self.y = lambda * (self.x - result_x) - self.y;
-        self.x = result_x;
-    }
-
-    pub fn subtract(&self, other: &AffinePoint) -> AffinePoint {
-        let mut copy = *self;
-        copy.subtract_assign(other);
-        copy
-    }
-
-    pub fn subtract_assign(&mut self, other: &AffinePoint) {
-        self.add_assign(&AffinePoint {
-            x: other.x,
-            y: -other.y,
-            infinity: other.infinity,
-        })
-    }
-
-    pub fn multiply(&self, bits: &[bool]) -> AffinePoint {
-        let mut product = AffinePoint::identity();
-        for b in bits.iter().rev() {
-            product.double_assign();
-            if *b {
-                product.add_assign(self);
-            }
-        }
-
-        product
-    }
 }
 
 impl From<&ProjectivePoint> for AffinePoint {
@@ -121,6 +62,82 @@ impl From<&ProjectivePoint> for AffinePoint {
             y: p.y * zinv,
             infinity: false,
         }
+    }
+}
+
+impl std::ops::Add<&AffinePoint> for &AffinePoint {
+    type Output = AffinePoint;
+
+    fn add(self, rhs: &AffinePoint) -> Self::Output {
+        let mut copy = *self;
+        copy += rhs;
+        copy
+    }
+}
+
+impl std::ops::AddAssign<&AffinePoint> for AffinePoint {
+    fn add_assign(&mut self, rhs: &AffinePoint) {
+        if rhs.infinity {
+            return;
+        }
+        if self.infinity {
+            self.x = rhs.x;
+            self.y = rhs.y;
+            self.infinity = rhs.infinity;
+            return;
+        }
+        if self.x == rhs.x {
+            self.double_assign();
+            return;
+        }
+
+        // l = (y2-y1)/(x2-x1)
+        let lambda = {
+            let dividend = rhs.y - self.y;
+            let divisor_inv = (rhs.x - self.x).invert().unwrap();
+            dividend * divisor_inv
+        };
+
+        let result_x = (lambda * lambda) - self.x - rhs.x;
+        self.y = lambda * (self.x - result_x) - self.y;
+        self.x = result_x;
+    }
+}
+
+impl std::ops::Sub<&AffinePoint> for &AffinePoint {
+    type Output = AffinePoint;
+
+    fn sub(self, rhs: &AffinePoint) -> Self::Output {
+        let mut copy = *self;
+        copy -= rhs;
+        copy
+    }
+}
+
+impl std::ops::SubAssign<&AffinePoint> for AffinePoint {
+    fn sub_assign(&mut self, rhs: &AffinePoint) {
+        *self += &AffinePoint {
+            x: rhs.x,
+            y: -rhs.y,
+            infinity: rhs.infinity,
+        };
+    }
+}
+
+impl std::ops::Mul<&[bool]> for &AffinePoint {
+    type Output = AffinePoint;
+
+    #[allow(clippy::suspicious_arithmetic_impl)]
+    fn mul(self, rhs: &[bool]) -> Self::Output {
+        let mut product = AffinePoint::identity();
+        for b in rhs.iter().rev() {
+            product.double_assign();
+            if *b {
+                product += self;
+            }
+        }
+
+        product
     }
 }
 
@@ -164,60 +181,30 @@ impl ProjectivePoint {
         self.y = y;
         self.z = z;
     }
+}
 
-    pub fn add_assign(&mut self, other: &ProjectivePoint) {
-        if other.infinity {
-            return;
-        }
-        if self.infinity {
-            self.x = other.x;
-            self.y = other.y;
-            self.z = other.z;
-            self.infinity = other.infinity;
-            return;
-        }
-        let u0 = self.x * other.z;
-        let u1 = other.x * self.z;
-        if u0 == u1 {
-            self.double_assign();
-            return;
-        }
-
-        let t0 = self.y * other.z;
-        let t1 = other.y * self.z;
-        let t = t0 - t1;
-
-        let u = u0 - u1;
-        let u2 = u * u;
-
-        let v = self.z * other.z;
-        let w = t * t * v - u2 * (u0 + u1);
-        let u3 = u * u2;
-
-        let x = u * w;
-        let y = t * (u0 * u2 - w) - t0 * u3;
-        let z = u3 * v;
-
-        self.x = x;
-        self.y = y;
-        self.z = z;
+impl From<&AffinePoint> for ProjectivePoint {
+    fn from(p: &AffinePoint) -> Self {
+        Self::from_affine_point(p)
     }
+}
 
-    pub fn add_affine_assign(&mut self, other: &AffinePoint) {
-        if other.infinity {
+impl std::ops::AddAssign<&AffinePoint> for ProjectivePoint {
+    fn add_assign(&mut self, rhs: &AffinePoint) {
+        if rhs.infinity {
             return;
         }
         if self.infinity {
-            self.x = other.x;
-            self.y = other.y;
+            self.x = rhs.x;
+            self.y = rhs.y;
             self.z = FieldElement::ONE;
-            self.infinity = other.infinity;
+            self.infinity = rhs.infinity;
             return;
         }
         let u0 = self.x;
-        let u1 = other.x * self.z;
+        let u1 = rhs.x * self.z;
         let t0 = self.y;
-        let t1 = other.y * self.z;
+        let t1 = rhs.y * self.z;
         if u0 == u1 {
             if t0 != t1 {
                 self.infinity = true;
@@ -244,22 +231,61 @@ impl ProjectivePoint {
         self.y = y;
         self.z = z;
     }
+}
 
-    pub fn multiply(&self, bits: &[bool]) -> ProjectivePoint {
+impl std::ops::AddAssign<&ProjectivePoint> for ProjectivePoint {
+    fn add_assign(&mut self, rhs: &ProjectivePoint) {
+        if rhs.infinity {
+            return;
+        }
+        if self.infinity {
+            self.x = rhs.x;
+            self.y = rhs.y;
+            self.z = rhs.z;
+            self.infinity = rhs.infinity;
+            return;
+        }
+        let u0 = self.x * rhs.z;
+        let u1 = rhs.x * self.z;
+        if u0 == u1 {
+            self.double_assign();
+            return;
+        }
+
+        let t0 = self.y * rhs.z;
+        let t1 = rhs.y * self.z;
+        let t = t0 - t1;
+
+        let u = u0 - u1;
+        let u2 = u * u;
+
+        let v = self.z * rhs.z;
+        let w = t * t * v - u2 * (u0 + u1);
+        let u3 = u * u2;
+
+        let x = u * w;
+        let y = t * (u0 * u2 - w) - t0 * u3;
+        let z = u3 * v;
+
+        self.x = x;
+        self.y = y;
+        self.z = z;
+    }
+}
+
+impl std::ops::Mul<&[bool]> for &ProjectivePoint {
+    type Output = ProjectivePoint;
+
+    #[allow(clippy::suspicious_arithmetic_impl)]
+    fn mul(self, rhs: &[bool]) -> Self::Output {
         let mut product = ProjectivePoint::identity();
-        for b in bits.iter().rev() {
+        for b in rhs.iter().rev() {
             product.double_assign();
             if *b {
-                product.add_assign(self);
+                product += self;
             }
         }
 
         product
-    }
-}
-
-impl From<&AffinePoint> for ProjectivePoint {
-    fn from(p: &AffinePoint) -> Self {
-        Self::from_affine_point(p)
     }
 }
