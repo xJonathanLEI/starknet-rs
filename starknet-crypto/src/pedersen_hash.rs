@@ -24,7 +24,7 @@ pub fn pedersen_hash(x: &FieldElement, y: &FieldElement) -> FieldElement {
                 let offset = bools_to_usize_le(v);
                 if offset > 0 {
                     // Table lookup at 'offset-1' in table for chunk 'i'
-                    acc.add_affine_assign(&prep[i * table_size + offset - 1]);
+                    *acc += &prep[i * table_size + offset - 1];
                 }
             });
     };
