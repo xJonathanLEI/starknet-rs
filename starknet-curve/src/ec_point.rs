@@ -36,7 +36,7 @@ impl AffinePoint {
         }
     }
 
-    fn double_assign(&mut self) {
+    pub fn double_assign(&mut self) {
         if self.infinity {
             return;
         }
@@ -191,6 +191,48 @@ impl ProjectivePoint {
         let u2 = u * u;
 
         let v = self.z * other.z;
+        let w = t * t * v - u2 * (u0 + u1);
+        let u3 = u * u2;
+
+        let x = u * w;
+        let y = t * (u0 * u2 - w) - t0 * u3;
+        let z = u3 * v;
+
+        self.x = x;
+        self.y = y;
+        self.z = z;
+    }
+
+    pub fn add_affine_assign(&mut self, other: &AffinePoint) {
+        if other.infinity {
+            return;
+        }
+        if self.infinity {
+            self.x = other.x;
+            self.y = other.y;
+            self.z = FieldElement::ONE;
+            self.infinity = other.infinity;
+            return;
+        }
+        let u0 = self.x;
+        let u1 = other.x * self.z;
+        let t0 = self.y;
+        let t1 = other.y * self.z;
+        if u0 == u1 {
+            if t0 != t1 {
+                self.infinity = true;
+                return;
+            } else {
+                self.double_assign();
+                return;
+            }
+        }
+
+        let t = t0 - t1;
+        let u = u0 - u1;
+        let u2 = u * u;
+
+        let v = self.z;
         let w = t * t * v - u2 * (u0 + u1);
         let u3 = u * u2;
 
