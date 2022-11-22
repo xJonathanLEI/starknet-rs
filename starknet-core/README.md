@@ -11,7 +11,7 @@ For instructions on running the benchmarks yourself, check out [this page](../BE
 ### Native
 
 ```log
-class_hash              time:   [117.32 ms 117.55 ms 117.78 ms]
+class_hash              time:   [18.931 ms 18.943 ms 18.958 ms]
 ```
 
 ### WebAssembly
@@ -32,17 +32,17 @@ wasmer-js 0.4.1
 `wasmer` results:
 
 ```log
-class_hash              time:   [1.0280 s 1.0283 s 1.0287 s]
+class_hash              time:   [126.30 ms 126.47 ms 126.65 ms]
 ```
 
 `wasmtime` results:
 
 ```log
-class_hash              time:   [836.69 ms 839.33 ms 841.92 ms]
+class_hash              time:   [108.80 ms 109.02 ms 109.24 ms]
 ```
 
 Node.js results:
 
 ```log
-class_hash              time:   [900.73 ms 901.09 ms 901.47 ms]
+class_hash              time:   [113.77 ms 114.36 ms 115.07 ms]
 ```

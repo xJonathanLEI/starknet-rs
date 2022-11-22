@@ -13,6 +13,7 @@ Low-level cryptography utilities for StarkNet
 keywords = ["ethereum", "starknet", "web3"]
 
 [dependencies]
+starknet-crypto-codegen = { version = "0.1.0", path = "../starknet-crypto-codegen" }
 starknet-curve = { version = "0.1.0", path = "../starknet-curve" }
 starknet-ff = { version = "0.1.0", path = "../starknet-ff" }
 crypto-bigint = "0.3.2"

@@ -1524,11 +1524,21 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+ "starknet-crypto-codegen",
  "starknet-curve",
  "starknet-ff",
  "thiserror",
  "wasm-bindgen-test",
  "zeroize",
+]
+
+[[package]]
+name = "starknet-crypto-codegen"
+version = "0.1.0"
+dependencies = [
+ "starknet-curve",
+ "starknet-ff",
+ "syn",
 ]
 
 [[package]]

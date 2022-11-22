@@ -1,11 +1,9 @@
 use starknet_curve::{curve_params, AffinePoint, ProjectivePoint};
 use starknet_ff::FieldElement;
 
+use crate::pedersen_points::*;
+
 const SHIFT_POINT: ProjectivePoint = ProjectivePoint::from_affine_point(&curve_params::SHIFT_POINT);
-const PEDERSEN_P0: ProjectivePoint = ProjectivePoint::from_affine_point(&curve_params::PEDERSEN_P0);
-const PEDERSEN_P1: ProjectivePoint = ProjectivePoint::from_affine_point(&curve_params::PEDERSEN_P1);
-const PEDERSEN_P2: ProjectivePoint = ProjectivePoint::from_affine_point(&curve_params::PEDERSEN_P2);
-const PEDERSEN_P3: ProjectivePoint = ProjectivePoint::from_affine_point(&curve_params::PEDERSEN_P3);
 
 /// Computes the Starkware version of the Pedersen hash of x and y. All inputs are little-endian.
 ///
@@ -17,18 +15,43 @@ pub fn pedersen_hash(x: &FieldElement, y: &FieldElement) -> FieldElement {
     let x = x.to_bits_le();
     let y = y.to_bits_le();
 
+    // Preprocessed material is lookup-tables for each chunk of bits
+    let table_size = (1 << CURVE_CONSTS_BITS) - 1;
+    let add_points = |acc: &mut ProjectivePoint, bits: &[bool], prep: &[AffinePoint]| {
+        bits.chunks(CURVE_CONSTS_BITS)
+            .enumerate()
+            .for_each(|(i, v)| {
+                let offset = bools_to_usize_le(v);
+                if offset > 0 {
+                    // Table lookup at 'offset-1' in table for chunk 'i'
+                    acc.add_affine_assign(&prep[i * table_size + offset - 1]);
+                }
+            });
+    };
+
     // Compute hash
-    let mut accumulator = SHIFT_POINT;
-    accumulator.add_assign(&PEDERSEN_P0.multiply(&x[..248])); // Add a_low * P1
-    accumulator.add_assign(&PEDERSEN_P1.multiply(&x[248..252])); // Add a_high * P2
-    accumulator.add_assign(&PEDERSEN_P2.multiply(&y[..248])); // Add b_low * P3
-    accumulator.add_assign(&PEDERSEN_P3.multiply(&y[248..252])); // Add b_high * P4
+    let mut acc = SHIFT_POINT;
+    add_points(&mut acc, &x[..248], &CURVE_CONSTS_P0); // Add a_low * P1
+    add_points(&mut acc, &x[248..252], &CURVE_CONSTS_P1); // Add a_high * P2
+    add_points(&mut acc, &y[..248], &CURVE_CONSTS_P2); // Add b_low * P3
+    add_points(&mut acc, &y[248..252], &CURVE_CONSTS_P3); // Add b_high * P4
 
     // Convert to affine
-    let result = AffinePoint::from(&accumulator);
+    let result = AffinePoint::from(&acc);
 
     // Return x-coordinate
     result.x
+}
+
+#[inline]
+fn bools_to_usize_le(bools: &[bool]) -> usize {
+    let mut result: usize = 0;
+    for (ind, bit) in bools.iter().enumerate() {
+        if *bit {
+            result += 1 << ind;
+        }
+    }
+    result
 }
 
 #[cfg(test)]
