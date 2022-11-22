@@ -21,11 +21,11 @@ For instructions on running the benchmarks yourself, check out [this page](../BE
 ### Native
 
 ```log
-ecdsa_get_public_key    time:   [1.4756 ms 1.4761 ms 1.4765 ms]
-ecdsa_sign              time:   [1.4728 ms 1.4735 ms 1.4743 ms]
-ecdsa_verify            time:   [3.1314 ms 3.1331 ms 3.1348 ms]
-pedersen_hash           time:   [223.93 µs 224.41 µs 225.04 µs]
-rfc6979_generate_k      time:   [2.2909 µs 2.2922 µs 2.2935 µs]
+ecdsa_get_public_key    time:   [1.5350 ms 1.5461 ms 1.5629 ms]
+ecdsa_sign              time:   [1.5379 ms 1.5420 ms 1.5474 ms]
+ecdsa_verify            time:   [3.2405 ms 3.2443 ms 3.2487 ms]
+pedersen_hash           time:   [31.775 µs 31.988 µs 32.273 µs]
+rfc6979_generate_k      time:   [2.3819 µs 2.3904 µs 2.4020 µs]
 ```
 
 ### WebAssembly
@@ -46,31 +46,31 @@ wasmer-js 0.4.1
 `wasmer` results:
 
 ```log
-ecdsa_get_public_key    time:   [3.0703 ms 3.0806 ms 3.0914 ms]
-ecdsa_sign              time:   [3.1632 ms 3.1665 ms 3.1717 ms]
-ecdsa_verify            time:   [6.9936 ms 7.0168 ms 7.0426 ms]
-pedersen_hash           time:   [2.0007 ms 2.0076 ms 2.0145 ms]
-rfc6979_generate_k      time:   [12.197 µs 12.203 µs 12.210 µs]
+ecdsa_get_public_key    time:   [3.1780 ms 3.2041 ms 3.2374 ms]
+ecdsa_sign              time:   [3.2371 ms 3.2554 ms 3.2785 ms]
+ecdsa_verify            time:   [7.5052 ms 7.5168 ms 7.5297 ms]
+pedersen_hash           time:   [267.19 µs 268.74 µs 270.89 µs]
+rfc6979_generate_k      time:   [12.501 µs 12.512 µs 12.525 µs]
 ```
 
 `wasmtime` results:
 
 ```log
-ecdsa_get_public_key    time:   [2.8495 ms 2.8541 ms 2.8618 ms]
-ecdsa_sign              time:   [2.8797 ms 2.8814 ms 2.8832 ms]
-ecdsa_verify            time:   [6.7528 ms 6.7570 ms 6.7613 ms]
-pedersen_hash           time:   [1.6589 ms 1.6618 ms 1.6651 ms]
-rfc6979_generate_k      time:   [10.833 µs 10.839 µs 10.845 µs]
+ecdsa_get_public_key    time:   [2.9626 ms 2.9677 ms 2.9734 ms]
+ecdsa_sign              time:   [2.9489 ms 2.9603 ms 2.9730 ms]
+ecdsa_verify            time:   [6.8464 ms 6.8792 ms 6.9221 ms]
+pedersen_hash           time:   [220.62 µs 221.77 µs 223.72 µs]
+rfc6979_generate_k      time:   [11.263 µs 11.281 µs 11.304 µs]
 ```
 
 Node.js results:
 
 ```log
-ecdsa_get_public_key    time:   [2.6020 ms 2.6138 ms 2.6304 ms]
-ecdsa_sign              time:   [2.5616 ms 2.5654 ms 2.5697 ms]
-ecdsa_verify            time:   [6.2385 ms 6.2399 ms 6.2412 ms]
-pedersen_hash           time:   [1.7788 ms 1.7899 ms 1.8013 ms]
-rfc6979_generate_k      time:   [9.6454 µs 9.6483 µs 9.6514 µs]
+ecdsa_get_public_key    time:   [2.7033 ms 2.7220 ms 2.7461 ms]
+ecdsa_sign              time:   [2.7405 ms 2.7431 ms 2.7461 ms]
+ecdsa_verify            time:   [6.5923 ms 6.6322 ms 6.6816 ms]
+pedersen_hash           time:   [230.24 µs 230.84 µs 231.74 µs]
+rfc6979_generate_k      time:   [9.9566 µs 9.9891 µs 10.032 µs]
 ```
 
 ## Credits
