@@ -42,7 +42,7 @@ impl fmt::Display for Signature {
 ///
 /// * `private_key`: The private key
 pub fn get_public_key(private_key: &FieldElement) -> FieldElement {
-    GENERATOR.multiply(&private_key.to_bits_le()).x
+    (&GENERATOR * &private_key.to_bits_le()).x
 }
 
 /// Computes ECDSA signature given a Stark private key and message hash.
@@ -64,7 +64,7 @@ pub fn sign(
         return Err(SignError::InvalidK);
     }
 
-    let r = GENERATOR.multiply(&k.to_bits_le()).x;
+    let r = (&GENERATOR * &k.to_bits_le()).x;
     if r == FieldElement::ZERO || r >= ELEMENT_UPPER_BOUND {
         return Err(SignError::InvalidK);
     }
@@ -113,12 +113,12 @@ pub fn verify(
     }
 
     let zw = mul_mod_floor(message, &w, &EC_ORDER);
-    let zw_g = GENERATOR.multiply(&zw.to_bits_le());
+    let zw_g = &GENERATOR * &zw.to_bits_le();
 
     let rw = mul_mod_floor(r, &w, &EC_ORDER);
-    let rw_q = full_public_key.multiply(&rw.to_bits_le());
+    let rw_q = &full_public_key * &rw.to_bits_le();
 
-    Ok(zw_g.add(&rw_q).x == *r || zw_g.subtract(&rw_q).x == *r)
+    Ok((&zw_g + &rw_q).x == *r || (&zw_g - &rw_q).x == *r)
 }
 
 #[cfg(test)]
