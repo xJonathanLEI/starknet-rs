@@ -10,6 +10,14 @@ fn create_sequencer_client() -> SequencerGatewayProvider {
     SequencerGatewayProvider::starknet_alpha_goerli()
 }
 
+fn felt_hex(hex: &str) -> FieldElement {
+    FieldElement::from_hex_be(hex).unwrap()
+}
+
+fn felt_dec(dec: &str) -> FieldElement {
+    FieldElement::from_dec_str(dec).unwrap()
+}
+
 #[tokio::test]
 async fn sequencer_goerli_can_estimate_message_fee() {
     let client = create_sequencer_client();
@@ -149,4 +157,85 @@ async fn sequencer_goerli_can_get_nonce() {
         .unwrap();
 
     assert!(nonce > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn sequencer_goerli_can_bulk_estimate_fee() {
+    let client = create_sequencer_client();
+
+    // Two txs from the same account with nonce 0 and 1
+    let estimates = client
+        .estimate_fee_bulk(
+            &[
+                AccountTransaction::InvokeFunction(InvokeFunctionTransactionRequest {
+                    contract_address: felt_hex(
+                        "0x5b5e9f6f6fb7d2647d81a8b2c2b99cbc9cc9d03d705576d7061812324dca5c0",
+                    ),
+                    calldata: vec![
+                        felt_dec("1"),
+                        felt_dec(
+                    "3267429884791031784129188059026496191501564961518175231747906707757621165072"
+                ),
+                        felt_dec(
+                    "1329909728320632088402217562277154056711815095720684343816173432540100887380"
+                ),
+                        felt_dec("0"),
+                        felt_dec("3"),
+                        felt_dec("3"),
+                        felt_dec(
+                    "2582978326697182094925044915479529632446801760547577461724830811224889140672"
+                ),
+                        felt_dec("1000000000000000000000"),
+                        felt_dec("0"),
+                    ],
+                    signature: vec![
+                        felt_dec(
+                    "605417791026644483670811513828340231819682850475940872862750374884434792160"
+                ),
+                        felt_dec(
+                    "3227162751686940146996647969343636789208985440255179192147422777151505011910"
+                ),
+                    ],
+                    max_fee: felt_dec("0"),
+                    nonce: felt_dec("0"),
+                }),
+                AccountTransaction::InvokeFunction(InvokeFunctionTransactionRequest {
+                    contract_address: felt_hex(
+                        "0x5b5e9f6f6fb7d2647d81a8b2c2b99cbc9cc9d03d705576d7061812324dca5c0",
+                    ),
+                    calldata: vec![
+                        felt_dec("1"),
+                        felt_dec(
+                    "3267429884791031784129188059026496191501564961518175231747906707757621165072"
+                ),
+                        felt_dec(
+                    "1329909728320632088402217562277154056711815095720684343816173432540100887380"
+                ),
+                        felt_dec("0"),
+                        felt_dec("3"),
+                        felt_dec("3"),
+                        felt_dec(
+                    "2582978326697182094925044915479529632446801760547577461724830811224889140672"
+                ),
+                        felt_dec("2000000000000000000000"),
+                        felt_dec("0"),
+                    ],
+                    signature: vec![
+                        felt_dec(
+                    "2454731969569471949423549779477272094056061808345298145925675439909833863557"
+                ),
+                        felt_dec(
+                    "724612237028642548263407980387909582237336146127278825566903814475468042134"
+                ),
+                    ],
+                    max_fee: felt_dec("0"),
+                    nonce: felt_dec("1"),
+                }),
+            ],
+            BlockId::Latest,
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(estimates.len(), 2);
 }

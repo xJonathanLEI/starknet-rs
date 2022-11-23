@@ -218,6 +218,22 @@ impl Provider for SequencerGatewayProvider {
         }
     }
 
+    async fn estimate_fee_bulk(
+        &self,
+        txs: &[AccountTransaction],
+        block_identifier: BlockId,
+    ) -> Result<Vec<FeeEstimate>, Self::Error> {
+        let mut request_url = self.extend_feeder_gateway_url("estimate_fee_bulk");
+        append_block_id(&mut request_url, block_identifier);
+
+        match self.send_post_request(request_url, &txs).await? {
+            GatewayResponse::Data(data) => Ok(data),
+            GatewayResponse::StarknetError(starknet_err) => {
+                Err(ProviderError::StarknetError(starknet_err))
+            }
+        }
+    }
+
     async fn estimate_message_fee(
         &self,
         call_l1_handler: CallL1Handler,
@@ -677,6 +693,15 @@ mod tests {
     fn test_estimate_fee_deser() {
         serde_json::from_str::<GatewayResponse<FeeEstimate>>(include_str!(
             "../test-data/estimate_fee/1_success.txt"
+        ))
+        .unwrap();
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_estimate_fee_bulk_deser() {
+        serde_json::from_str::<GatewayResponse<Vec<FeeEstimate>>>(include_str!(
+            "../test-data/estimate_fee_bulk/1_success.txt"
         ))
         .unwrap();
     }
