@@ -34,6 +34,12 @@ pub trait Provider {
         block_identifier: BlockId,
     ) -> Result<FeeEstimate, Self::Error>;
 
+    async fn estimate_fee_bulk(
+        &self,
+        txs: &[AccountTransaction],
+        block_identifier: BlockId,
+    ) -> Result<Vec<FeeEstimate>, Self::Error>;
+
     async fn estimate_message_fee(
         &self,
         call_l1_handler: CallL1Handler,
