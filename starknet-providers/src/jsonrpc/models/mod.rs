@@ -73,13 +73,9 @@ pub struct EventContent {
 #[serde_as]
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct EventFilter {
-    // Using `fromBlock` instead of `from_block` for now due to pathfinder bug:
-    //   https://github.com/eqlabs/pathfinder/issues/536
-    #[serde(rename = "fromBlock", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub from_block: Option<BlockId>,
-    // Using `toBlock` instead of `to_block` for now due to pathfinder bug:
-    //   https://github.com/eqlabs/pathfinder/issues/536
-    #[serde(rename = "toBlock", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub to_block: Option<BlockId>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[serde_as(as = "Option<UfeHex>")]
@@ -152,10 +148,13 @@ pub struct StateUpdate {
     pub state_diff: StateDiff,
 }
 
+#[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StateDiff {
-    pub storage_diffs: Vec<StorageDiffItem>,
-    pub declared_contracts: Vec<DeclaredContractItem>,
+    pub storage_diffs: Vec<ContractStorageDiffItem>,
+    /// The hashes of a new contracts declared as part of the new state
+    #[serde_as(as = "Vec<UfeHex>")]
+    pub declared_contract_hashes: Vec<FieldElement>,
     pub deployed_contracts: Vec<DeployedContractItem>,
     pub nonces: Vec<NonceUpdate>,
 }
@@ -250,15 +249,6 @@ pub struct PendingBlockWithTxs {
     pub parent_hash: FieldElement,
 }
 
-/// A new contract declared as part of the new state
-#[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeclaredContractItem {
-    /// The hash of the contract code
-    #[serde_as(as = "UfeHex")]
-    pub class_hash: FieldElement,
-}
-
 /// A new contract deployed as part of the new state
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -271,13 +261,20 @@ pub struct DeployedContractItem {
     pub class_hash: FieldElement,
 }
 
-/// A change in a single storage item
+/// The changes in the storage per contract address
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDiffItem {
-    /// The contract address for which the state changed
+pub struct ContractStorageDiffItem {
+    /// The contract address for which the storage changed
     #[serde_as(as = "UfeHex")]
     pub address: FieldElement,
+    pub storage_entries: Vec<StorageEntry>,
+}
+
+/// The changes in the storage of the contract
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageEntry {
     /// The key of the changed value
     #[serde_as(as = "UfeHex")]
     pub key: FieldElement,
@@ -286,14 +283,15 @@ pub struct StorageDiffItem {
     pub value: FieldElement,
 }
 
-/// Transaction (`TXN`)
+/// Transaction (`TXN`) The transaction schema, as it appears inside a block
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
+#[serde(untagged)]
 pub enum Transaction {
     Invoke(InvokeTransaction),
     Declare(DeclareTransaction),
     Deploy(DeployTransaction),
     L1Handler(L1HandlerTransaction),
+    DeployAccount(DeployAccountTransaction),
 }
 
 /// The `COMMON_TXN_PROPERTIES` type in the specification
@@ -303,18 +301,20 @@ pub struct TransactionMeta {
     /// The hash identifying the transaction
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
-    /// The maximal fee that can be charged for including the transaction
-    #[serde_as(as = "UfeHex")]
-    pub max_fee: FieldElement,
-    /// Version of the transaction scheme
-    #[serde_as(as = "NumAsHex")]
-    pub version: u64,
-    #[serde_as(as = "Vec<UfeHex>")]
-    pub signature: Vec<FieldElement>,
-    #[serde_as(as = "UfeHex")]
-    pub nonce: FieldElement,
+    #[serde(flatten)]
+    pub common_properties: BroadcastedTransactionCommonProperties,
 }
 
+/// Deploys an account contract, charges fee from the pre-funded account addresses
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeployAccountTransaction {
+    #[serde(flatten)]
+    pub meta: TransactionMeta,
+    #[serde(flatten)]
+    pub deploy_properties: DeployAccountTransactionProperties,
+}
+
+/// l1-->l2 message transaction (`L1_HANDLER_TXN`)
 /// A call to an l1_handler on an L2 contract induced by a message from L1
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -325,6 +325,8 @@ pub struct L1HandlerTransaction {
     /// Version of the transaction scheme
     #[serde_as(as = "NumAsHex")]
     pub version: u64,
+    #[serde(rename = "type")]
+    pub transaction_type: TransactionType,
     /// The L1->L2 message nonce field of the SN Core L1 contract at the time the transaction was
     /// sent
     #[serde_as(as = "NumAsHex")]
@@ -360,32 +362,21 @@ pub struct DeployTransaction {
     /// The hash of the deployed contract's class
     #[serde_as(as = "UfeHex")]
     pub class_hash: FieldElement,
-    /// Version of the transaction scheme
-    #[serde_as(as = "NumAsHex")]
-    pub version: u64,
-    /// The address of the deployed contract
-    #[serde_as(as = "UfeHex")]
-    pub contract_address: FieldElement,
-    /// The salt for the address of the deployed contract
-    #[serde_as(as = "UfeHex")]
-    pub contract_address_salt: FieldElement,
-    /// The parameters passed to the constructor
-    #[serde_as(as = "Vec<UfeHex>")]
-    pub constructor_calldata: Vec<FieldElement>,
+    #[serde(flatten)]
+    pub deploy_transaction_properties: DeployTransactionProperties,
 }
 
-/// Invoke Contract Transaction (`INVOKE_TXN`)
+/// Initiate a transaction from an account (`INVOKE_TXN`)
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InvokeTransaction {
     #[serde(flatten)]
     pub meta: TransactionMeta,
-    /// The function the transaction invokes
     #[serde(flatten)]
-    pub function_call: FunctionCall,
+    pub invoke_transaction: InvokeTransactionVersion,
 }
 
-/// Common properties for a transaction receipt (`COMMON_TXN_PROPERTIES`)
+/// Common properties for a transaction receipt (`COMMON_RECEIPT_PROPERTIES`)
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionReceiptMeta {
@@ -396,47 +387,64 @@ pub struct TransactionReceiptMeta {
     #[serde_as(as = "UfeHex")]
     pub actual_fee: FieldElement,
     pub status: TransactionStatus,
-    /// Extra information pertaining to the status
-    pub status_data: Option<String>,
     #[serde_as(as = "UfeHex")]
     pub block_hash: FieldElement,
     pub block_number: u64,
-}
-
-/// Properties specific to invoke transaction (`INVOKE_TXN_RECEIPT_PROPERTIES`)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InvokeTransactionReceiptData {
+    #[serde(rename = "type")]
+    pub transaction_type: TransactionType,
     pub messages_sent: Vec<MsgToL1>,
-    /// In case this transaction was an L1 handler, this is the original message that invoked it
-    pub l1_origin_message: Option<MsgToL2>,
-    /// The events emitted as part of this transaction
     pub events: Vec<Event>,
 }
 
-/// Invoke transaction receipt
+/// Invoke transaction receipt (`INVOKE_TXN_RECEIPT`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InvokeTransactionReceipt {
     #[serde(flatten)]
     pub meta: TransactionReceiptMeta,
-    #[serde(flatten)]
-    pub data: InvokeTransactionReceiptData,
 }
 
-/// A special type that covers both `DECLARE_TXN_RECEIPT` and `DEPLOY_TXN_RECEIPT` in the spec.
-/// This type exists because there's no way to distinguish between the 2 underlying types over the
-/// wire. The issue will be fixed in spec v0.2.0, upon which this type shall be removed.
+/// Declare transaction receipt (`DECLARE_TXN_RECEIPT`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeclareOrDeployTransactionReceipt {
+pub struct DeclareTransactionReceipt {
     #[serde(flatten)]
     pub meta: TransactionReceiptMeta,
 }
 
-/// The `TXN_RECEIPT` type in the specification, except without the `PENDING_TXN_RECEIPT` variant.
+/// Deploy account transaction receipt (`DEPLOY_ACCOUNT_TXN_RECEIPT`)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeployAccountTransactionReceipt {
+    #[serde(flatten)]
+    pub meta: DeployTransactionReceipt,
+}
+
+/// Deploy transaction receipt (`DEPLOY_TXN_RECEIPT`)
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeployTransactionReceipt {
+    #[serde(flatten)]
+    pub meta: TransactionReceiptMeta,
+    /// The address of the deployed contract
+    #[serde_as(as = "UfeHex")]
+    pub contract_address: FieldElement,
+}
+
+/// receipt for l1 handler transaction (`L1_HANDLER_TXN_RECEIPT`)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct L1HandlerTransactionReceipt {
+    #[serde(flatten)]
+    pub meta: TransactionReceiptMeta,
+}
+
+/// (`TXN_RECEIPT`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum TransactionReceipt {
     Invoke(InvokeTransactionReceipt),
-    DeclareOrDeploy(DeclareOrDeployTransactionReceipt),
+    L1Handler(L1HandlerTransactionReceipt),
+    Declare(DeclareTransactionReceipt),
+    Deploy(DeployTransactionReceipt),
+    DeployAccount(DeployAccountTransactionReceipt),
+    PendingTransaction(PendingTransactionReceipt),
 }
 
 /// Common properties for a pending transaction receipt (`PENDING_COMMON_RECEIPT_PROPERTIES`)
@@ -449,30 +457,36 @@ pub struct PendingTransactionReceiptMeta {
     /// The fee that was charged by the sequencer
     #[serde_as(as = "UfeHex")]
     pub actual_fee: FieldElement,
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+    pub transaction_type: Option<TransactionType>,
+    pub messages_sent: Vec<MsgToL1>,
+    pub events: Vec<Event>,
 }
 
-/// Pending invoke transaction receipt
+/// Pending deploy transaction receipt
+#[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PendingInvokeTransactionReceipt {
+pub struct PendingDeployTransactionReceipt {
     #[serde(flatten)]
     pub meta: PendingTransactionReceiptMeta,
-    #[serde(flatten)]
-    pub data: InvokeTransactionReceiptData,
+    #[serde_as(as = "UfeHex")]
+    pub contract_address: FieldElement,
 }
 
 /// Used for deploy and declare transaction receipts
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PendingDeclareOrDeployTransactionReceipt {
-    #[serde(flatten)]
-    pub meta: PendingTransactionReceiptMeta,
-}
+// #[derive(Debug, Clone, Serialize, Deserialize)]
+// pub struct PendingDeclareOrDeployTransactionReceipt {
+//     #[serde(flatten)]
+//     pub meta: PendingTransactionReceiptMeta,
+// }
 
 /// The `PENDING_TXN_RECEIPT` type in the specification
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum PendingTransactionReceipt {
-    Invoke(PendingInvokeTransactionReceipt),
-    DeclareOrDeploy(PendingDeclareOrDeployTransactionReceipt),
+    Deploy(PendingDeployTransactionReceipt),
+    /// Used for pending invoke and declare transaction receipts
+    TransactionMeta(PendingTransactionReceiptMeta),
 }
 
 #[serde_as]
@@ -482,16 +496,6 @@ pub struct MsgToL1 {
     #[serde_as(as = "UfeHex")]
     pub to_address: FieldElement,
     /// The payload of the message
-    #[serde_as(as = "Vec<UfeHex>")]
-    pub payload: Vec<FieldElement>,
-}
-
-#[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MsgToL2 {
-    /// The originating L1 contract that sent the message
-    pub from_address: EthAddress,
-    /// The payload of the meesage. The call data to the L1 handler
     #[serde_as(as = "Vec<UfeHex>")]
     pub payload: Vec<FieldElement>,
 }
@@ -536,6 +540,9 @@ pub struct ContractClass {
     #[serde(with = "base64")]
     pub program: Vec<u8>,
     pub entry_points_by_type: EntryPointsByType,
+    // TODO: Check if this should be deserializable
+    #[serde(skip_deserializing, skip_serializing_if = "Option::is_none")]
+    pub abi: Option<ContractABI>,
 }
 
 #[serde_as]
@@ -577,10 +584,9 @@ pub struct FeeEstimate {
 pub struct EventsPage {
     /// Matching events
     pub events: Vec<EmittedEvent>,
-    /// The returned page number
-    pub page_number: u64,
-    /// A flag indicating whether this is the end of the stream of events
-    pub is_last_page: bool,
+    /// a pointer to the last element of the delivered page, use this token in a subsequent query to obtain the next page
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub continuation_token: Option<String>,
 }
 
 #[serde_as]
@@ -589,6 +595,215 @@ pub struct BlockHashAndNumber {
     #[serde_as(as = "UfeHex")]
     pub block_hash: FieldElement,
     pub block_number: u64,
+}
+
+/// BROADCASTED_TXN the transaction's representation when it's sent to the sequencer (but not yet in a block)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum BroadcastedTransaction {
+    Invoke(BroadcastedInvokeTransaction),
+    Declare(BroadcastedDeclareTransaction),
+    Deploy(BroadcastedDeployTransaction),
+    DeployAccount(BroadcastedDeployAccountTransaction),
+}
+
+/// (`BROADCASTED_INVOKE_TXN`) mempool representation of an invoke transaction
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BroadcastedInvokeTransaction {
+    #[serde(flatten)]
+    pub common_properties: BroadcastedTransactionCommonProperties,
+    #[serde(flatten)]
+    pub invoke_transaction: InvokeTransactionVersion,
+}
+
+/// BROADCASTED_DECLARE_TXN mempool representation of a declare transaction
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BroadcastedDeclareTransaction {
+    #[serde(flatten)]
+    pub common_properties: BroadcastedTransactionCommonProperties,
+    /// The class to be declared
+    pub contract_class: ContractClass,
+    /// The address of the account contract sending the declaration transaction
+    #[serde_as(as = "UfeHex")]
+    pub sender_address: FieldElement,
+}
+
+/// mempool representation of a deploy transaction ('BROADCASTED_DEPLOY_TXN')
+/// The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BroadcastedDeployTransaction {
+    /// The class of the contract that will be deployed
+    pub contract_class: ContractClass,
+    #[serde(flatten)]
+    pub deploy_properties: DeployTransactionProperties,
+}
+
+/// BROADCASTED_DEPLOY_ACCOUNT_TXN Mempool representation of a deploy account transaction
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BroadcastedDeployAccountTransaction {
+    #[serde(flatten)]
+    pub common_properties: BroadcastedTransactionCommonProperties,
+    #[serde(flatten)]
+    pub deploy_account_properties: DeployAccountTransactionProperties,
+}
+
+/// (`DEPLOY_TXN_PROPERTIES`)
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeployTransactionProperties {
+    /// Version of the transaction scheme
+    #[serde_as(as = "NumAsHex")]
+    pub version: u64,
+    #[serde(rename = "type")]
+    pub transaction_type: TransactionType,
+    /// The salt for the address of the deployed contract
+    #[serde_as(as = "UfeHex")]
+    pub contract_address_salt: FieldElement,
+    /// The parameters passed to the constructor
+    #[serde_as(as = "Vec<UfeHex>")]
+    pub constructor_calldata: Vec<FieldElement>,
+}
+/// DEPLOY_ACCOUNT_TXN_PROPERTIES
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeployAccountTransactionProperties {
+    /// The salt for the address of the deployed contract
+    #[serde_as(as = "UfeHex")]
+    pub contract_address_salt: FieldElement,
+    /// The parameters passed to the constructor
+    #[serde_as(as = "Vec<UfeHex>")]
+    pub constructor_calldata: Vec<FieldElement>,
+    /// The hash of the deployed contract's class
+    #[serde_as(as = "UfeHex")]
+    pub class_hash: FieldElement,
+}
+
+/// BROADCASTED_TXN_COMMON_PROPERTIES
+/// common properties of a transaction that is sent to the sequencer (but is not yet in a block)
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BroadcastedTransactionCommonProperties {
+    #[serde(rename = "type")]
+    pub transaction_type: TransactionType,
+    #[serde_as(as = "UfeHex")]
+    pub max_fee: FieldElement,
+    #[serde_as(as = "NumAsHex")]
+    pub version: u64,
+    #[serde_as(as = "Vec<UfeHex>")]
+    pub signature: Vec<FieldElement>,
+    #[serde_as(as = "UfeHex")]
+    pub nonce: FieldElement,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum InvokeTransactionVersion {
+    V0(FunctionCall),
+    V1(InvokeTransactionV1),
+}
+
+/// version 1 invoke transaction (`INVOKE_TXN_V1`)
+/// initiates a transaction from a given account
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InvokeTransactionV1 {
+    #[serde_as(as = "UfeHex")]
+    pub sender_address: FieldElement,
+    /// The data expected by the account's `execute` function (in most usecases, this includes the called contract address and a function selector)
+    #[serde_as(as = "Vec<UfeHex>")]
+    pub calldata: Vec<FieldElement>,
+}
+
+/// TXN_TYPE
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum TransactionType {
+    Declare,
+    Deploy,
+    DeployAccount,
+    Invoke,
+    L1Handler,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContractABI {
+    pub entries: Vec<ContractABIEntry>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ContractABIEntry {
+    Struct(StructABIEntry),
+    Event(EventABIEntry),
+    Function(FunctionABIEntry),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StructABIType {
+    Struct,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EventABIType {
+    Event,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FunctionABIType {
+    Function,
+    L1Handler,
+    Constructor,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StructABIEntry {
+    #[serde(rename = "type")]
+    pub abi_type: StructABIType,
+    /// The struct name
+    pub name: String,
+    pub size: u64,
+    pub members: Vec<StructMember>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StructMember {
+    #[serde(flatten)]
+    pub typed_param: TypedParameter,
+    /// offset of this property within the struct
+    pub offset: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventABIEntry {
+    #[serde(rename = "type")]
+    pub abi_type: EventABIType,
+    /// The event name
+    pub name: String,
+    pub keys: Vec<TypedParameter>,
+    pub data: Vec<TypedParameter>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FunctionABIEntry {
+    #[serde(rename = "type")]
+    pub abi_type: FunctionABIType,
+    /// The function name
+    pub name: String,
+    pub inputs: Vec<TypedParameter>,
+    pub outputs: Vec<TypedParameter>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TypedParameter {
+    /// The parameter's name
+    pub name: String,
+    /// The parameter's type
+    #[serde(rename = "type")]
+    pub parameter_type: String,
 }
 
 #[serde_as]

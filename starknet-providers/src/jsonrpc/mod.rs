@@ -111,8 +111,10 @@ struct FeltArray(#[serde_as(as = "Vec<UfeHex>")] pub Vec<FieldElement>);
 struct EventFilterWithPage {
     #[serde(flatten)]
     filter: EventFilter,
-    page_size: u64,
-    page_number: u64,
+    /// a pointer to the last element of the delivered page, use this token in a subsequent query to obtain the next page
+    #[serde(skip_serializing_if = "Option::is_none")]
+    continuation_token: Option<String>,
+    chunk_size: u64,
 }
 
 impl<T> JsonRpcClient<T> {
@@ -224,11 +226,15 @@ where
     /// Get the contract class definition associated with the given hash
     pub async fn get_class(
         &self,
+        block_id: &BlockId,
         class_hash: FieldElement,
     ) -> Result<ContractClass, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::GetClass,
-            [serde_json::to_value(Felt(class_hash))?],
+            [
+                serde_json::to_value(block_id)?,
+                serde_json::to_value(Felt(class_hash))?,
+            ],
         )
         .await
     }
@@ -301,18 +307,15 @@ where
     }
 
     /// Estimate the fee for a given StarkNet transaction
-    pub async fn estimate_fee<R>(
+    pub async fn estimate_fee(
         &self,
-        request: R,
+        request: &BroadcastedTransaction,
         block_id: &BlockId,
-    ) -> Result<FeeEstimate, JsonRpcClientError<T::Error>>
-    where
-        R: AsRef<FunctionCall>,
-    {
+    ) -> Result<FeeEstimate, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::EstimateFee,
             [
-                serde_json::to_value(request.as_ref())?,
+                serde_json::to_value(request)?,
                 serde_json::to_value(block_id)?,
             ],
         )
@@ -357,15 +360,15 @@ where
     pub async fn get_events(
         &self,
         filter: EventFilter,
-        page_size: u64,
-        page_number: u64,
+        continuation_token: Option<String>,
+        chunk_size: u64,
     ) -> Result<EventsPage, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::GetEvents,
             [serde_json::to_value(EventFilterWithPage {
                 filter,
-                page_size,
-                page_number,
+                continuation_token,
+                chunk_size,
             })?],
         )
         .await
@@ -374,12 +377,16 @@ where
     /// Get the latest nonce associated with the given address
     pub async fn get_nonce(
         &self,
+        block_id: &BlockId,
         contract_address: FieldElement,
     ) -> Result<FieldElement, JsonRpcClientError<T::Error>> {
         Ok(self
             .send_request::<_, Felt>(
                 JsonRpcMethod::GetNonce,
-                [serde_json::to_value(Felt(contract_address))?],
+                [
+                    serde_json::to_value(block_id)?,
+                    serde_json::to_value(Felt(contract_address))?,
+                ],
             )
             .await?
             .0)
@@ -388,19 +395,11 @@ where
     /// Submit a new transaction to be added to the chain
     pub async fn add_invoke_transaction(
         &self,
-        function_invocation: &FunctionCall,
-        signature: Vec<FieldElement>,
-        max_fee: FieldElement,
-        version: FieldElement,
+        invoke_transaction: BroadcastedInvokeTransaction,
     ) -> Result<InvokeTransactionResult, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::AddInvokeTransaction,
-            [
-                serde_json::to_value(function_invocation)?,
-                serde_json::to_value(FeltArray(signature))?,
-                serde_json::to_value(Felt(max_fee))?,
-                serde_json::to_value(Felt(version))?,
-            ],
+            [serde_json::to_value(invoke_transaction)?],
         )
         .await
     }
@@ -408,15 +407,11 @@ where
     /// Submit a new transaction to be added to the chain
     pub async fn add_declare_transaction(
         &self,
-        contract_class: &ContractClass,
-        version: FieldElement,
+        declare_transaction: &BroadcastedDeclareTransaction,
     ) -> Result<DeclareTransactionResult, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::AddDeclareTransaction,
-            [
-                serde_json::to_value(contract_class)?,
-                serde_json::to_value(Felt(version))?,
-            ],
+            [serde_json::to_value(declare_transaction)?],
         )
         .await
     }
@@ -424,17 +419,11 @@ where
     /// Submit a new deploy contract transaction
     pub async fn add_deploy_transaction(
         &self,
-        contract_address_salt: FieldElement,
-        constructor_calldata: Vec<FieldElement>,
-        contract_definition: &ContractClass,
+        deploy_transaction: &BroadcastedDeployTransaction,
     ) -> Result<DeployTransactionResult, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::AddDeployTransaction,
-            [
-                serde_json::to_value(Felt(contract_address_salt))?,
-                serde_json::to_value(FeltArray(constructor_calldata))?,
-                serde_json::to_value(contract_definition)?,
-            ],
+            [serde_json::to_value(deploy_transaction)?],
         )
         .await
     }
