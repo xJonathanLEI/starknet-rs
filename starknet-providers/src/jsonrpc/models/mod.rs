@@ -132,6 +132,7 @@ pub struct SyncStatus {
     pub highest_block_num: u64,
 }
 
+/// (`STATE_UPDATE`)
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StateUpdate {
@@ -143,16 +144,16 @@ pub struct StateUpdate {
     /// The previous global state root
     #[serde_as(as = "UfeHex")]
     pub old_root: FieldElement,
-    /// The change in state applied in this block, given as a mapping of addresses to the new
-    /// values and/or new contracts
     pub state_diff: StateDiff,
 }
 
+/// The change in state applied in this block, given as a mapping of addresses to the new values
+/// and/or new contracts
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StateDiff {
     pub storage_diffs: Vec<ContractStorageDiffItem>,
-    /// The hashes of a new contracts declared as part of the new state
+    /// The hashes of new contracts declared as part of the new state
     #[serde_as(as = "Vec<UfeHex>")]
     pub declared_contract_hashes: Vec<FieldElement>,
     pub deployed_contracts: Vec<DeployedContractItem>,
@@ -396,28 +397,28 @@ pub struct TransactionReceiptMeta {
     pub events: Vec<Event>,
 }
 
-/// Invoke transaction receipt (`INVOKE_TXN_RECEIPT`)
+/// Invoke Transaction Receipt (`INVOKE_TXN_RECEIPT`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InvokeTransactionReceipt {
     #[serde(flatten)]
     pub meta: TransactionReceiptMeta,
 }
 
-/// Declare transaction receipt (`DECLARE_TXN_RECEIPT`)
+/// Declare Transaction Receipt (`DECLARE_TXN_RECEIPT`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeclareTransactionReceipt {
     #[serde(flatten)]
     pub meta: TransactionReceiptMeta,
 }
 
-/// Deploy account transaction receipt (`DEPLOY_ACCOUNT_TXN_RECEIPT`)
+/// Deploy Account Transaction Receipt (`DEPLOY_ACCOUNT_TXN_RECEIPT`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeployAccountTransactionReceipt {
     #[serde(flatten)]
     pub meta: DeployTransactionReceipt,
 }
 
-/// Deploy transaction receipt (`DEPLOY_TXN_RECEIPT`)
+/// Deploy Transaction Receipt (`DEPLOY_TXN_RECEIPT`)
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeployTransactionReceipt {
@@ -460,25 +461,20 @@ pub struct PendingTransactionReceiptMeta {
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     pub transaction_type: Option<TransactionType>,
     pub messages_sent: Vec<MsgToL1>,
+    /// The events emitted as part of this transaction
     pub events: Vec<Event>,
 }
 
-/// Pending deploy transaction receipt
+/// Pending deploy transaction receipt (`PENDING_DEPLOY_TXN_RECEIPT`)
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PendingDeployTransactionReceipt {
     #[serde(flatten)]
     pub meta: PendingTransactionReceiptMeta,
+    /// The address of the deployed contract
     #[serde_as(as = "UfeHex")]
     pub contract_address: FieldElement,
 }
-
-/// Used for deploy and declare transaction receipts
-// #[derive(Debug, Clone, Serialize, Deserialize)]
-// pub struct PendingDeclareOrDeployTransactionReceipt {
-//     #[serde(flatten)]
-//     pub meta: PendingTransactionReceiptMeta,
-// }
 
 /// The `PENDING_TXN_RECEIPT` type in the specification
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -489,6 +485,7 @@ pub enum PendingTransactionReceipt {
     TransactionMeta(PendingTransactionReceiptMeta),
 }
 
+/// (`MESSAGE_TO_L1`)
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MsgToL1 {
@@ -500,7 +497,7 @@ pub struct MsgToL1 {
     pub payload: Vec<FieldElement>,
 }
 
-/// The status of the transaction. May be unknown in case node is not aware of it
+/// (`TXN_STATUS`) The status of the transaction. May be unknown in case node is not aware of it
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TransactionStatus {
@@ -520,7 +517,7 @@ pub enum BlockStatus {
     Rejected,
 }
 
-/// Function call information
+/// Function call information (`FUNCTION_CALL`)
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionCall {
@@ -533,7 +530,7 @@ pub struct FunctionCall {
     pub calldata: Vec<FieldElement>,
 }
 
-/// The definition of a StarkNet contract class
+/// The definition of a StarkNet contract class (`CONTRACT_CLASS`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContractClass {
     /// A base64 representation of the compressed program code
@@ -597,7 +594,7 @@ pub struct BlockHashAndNumber {
     pub block_number: u64,
 }
 
-/// BROADCASTED_TXN 
+/// (`BROADCASTED_TXN`)
 /// the transaction's representation when it's sent to the sequencer (but not yet in a block)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -617,7 +614,7 @@ pub struct BroadcastedInvokeTransaction {
     pub invoke_transaction: InvokeTransactionVersion,
 }
 
-/// BROADCASTED_DECLARE_TXN mempool representation of a declare transaction
+/// (`BROADCASTED_DECLARE_TXN`) mempool representation of a declare transaction
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BroadcastedDeclareTransaction {
@@ -630,7 +627,7 @@ pub struct BroadcastedDeclareTransaction {
     pub sender_address: FieldElement,
 }
 
-/// mempool representation of a deploy transaction ('BROADCASTED_DEPLOY_TXN')
+/// (`BROADCASTED_DEPLOY_TXN`) mempool representation of a deploy transaction
 /// The structure of a deploy transaction. Note that this transaction type is deprecated and will
 /// no longer be supported in future versions
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -641,7 +638,7 @@ pub struct BroadcastedDeployTransaction {
     pub deploy_properties: DeployTransactionProperties,
 }
 
-/// BROADCASTED_DEPLOY_ACCOUNT_TXN Mempool representation of a deploy account transaction
+/// (`BROADCASTED_DEPLOY_ACCOUNT_TXN`) Mempool representation of a deploy account transaction
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BroadcastedDeployAccountTransaction {
     #[serde(flatten)]
@@ -666,7 +663,7 @@ pub struct DeployTransactionProperties {
     #[serde_as(as = "Vec<UfeHex>")]
     pub constructor_calldata: Vec<FieldElement>,
 }
-/// DEPLOY_ACCOUNT_TXN_PROPERTIES
+/// (`DEPLOY_ACCOUNT_TXN_PROPERTIES`)
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeployAccountTransactionProperties {
@@ -681,7 +678,7 @@ pub struct DeployAccountTransactionProperties {
     pub class_hash: FieldElement,
 }
 
-/// BROADCASTED_TXN_COMMON_PROPERTIES
+/// (`BROADCASTED_TXN_COMMON_PROPERTIES`)
 /// common properties of a transaction that is sent to the sequencer (but is not yet in a block)
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -718,7 +715,7 @@ pub struct InvokeTransactionV1 {
     pub calldata: Vec<FieldElement>,
 }
 
-/// TXN_TYPE
+/// (`TXN_TYPE`) The type of the transaction
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TransactionType {
@@ -729,11 +726,13 @@ pub enum TransactionType {
     L1Handler,
 }
 
+/// (`CONTRACT_ABI`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContractABI {
     pub entries: Vec<ContractABIEntry>,
 }
 
+/// (`CONTRACT_ABI_ENTRY`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ContractABIEntry {
@@ -742,18 +741,21 @@ pub enum ContractABIEntry {
     Function(FunctionABIEntry),
 }
 
+/// (`STRUCT_ABI_TYPE`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum StructABIType {
     Struct,
 }
 
+/// (`EVENT_ABI_TYPE`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum EventABIType {
     Event,
 }
 
+/// (`FUNCTION_ABI_TYPE`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FunctionABIType {
@@ -762,6 +764,7 @@ pub enum FunctionABIType {
     Constructor,
 }
 
+/// (`STRUCT_ABI_ENTRY`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StructABIEntry {
     #[serde(rename = "type")]
@@ -772,6 +775,7 @@ pub struct StructABIEntry {
     pub members: Vec<StructMember>,
 }
 
+/// (`STRUCT_MEMBER`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StructMember {
     #[serde(flatten)]
@@ -780,6 +784,7 @@ pub struct StructMember {
     pub offset: u64,
 }
 
+/// (`EVENT_ABI_ENTRY`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventABIEntry {
     #[serde(rename = "type")]
@@ -790,6 +795,7 @@ pub struct EventABIEntry {
     pub data: Vec<TypedParameter>,
 }
 
+/// (`FUNCTION_ABI_ENTRY`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionABIEntry {
     #[serde(rename = "type")]
@@ -800,6 +806,7 @@ pub struct FunctionABIEntry {
     pub outputs: Vec<TypedParameter>,
 }
 
+/// (`TYPED PARAMETER`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TypedParameter {
     /// The parameter's name

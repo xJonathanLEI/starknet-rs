@@ -224,7 +224,7 @@ where
         .await
     }
 
-    /// Get the contract class definition associated with the given hash
+    /// Get the contract class definition in the given block associated with the given hash
     pub async fn get_class(
         &self,
         block_id: &BlockId,
@@ -376,7 +376,7 @@ where
         .await
     }
 
-    /// Get the latest nonce associated with the given address
+    /// Get the nonce associated with the given address in the given block
     pub async fn get_nonce(
         &self,
         block_id: &BlockId,
