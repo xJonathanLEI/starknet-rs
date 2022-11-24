@@ -540,8 +540,7 @@ pub struct ContractClass {
     #[serde(with = "base64")]
     pub program: Vec<u8>,
     pub entry_points_by_type: EntryPointsByType,
-    // TODO: Check if this should be deserializable
-    #[serde(skip_deserializing, skip_serializing_if = "Option::is_none")]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub abi: Option<ContractABI>,
 }
 
