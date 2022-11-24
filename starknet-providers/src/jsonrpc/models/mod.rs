@@ -881,3 +881,9 @@ impl AsRef<FunctionCall> for FunctionCall {
         self
     }
 }
+
+impl AsRef<BroadcastedTransaction> for BroadcastedTransaction {
+    fn as_ref(&self) -> &BroadcastedTransaction {
+        self
+    }
+}

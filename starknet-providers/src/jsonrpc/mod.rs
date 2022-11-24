@@ -309,15 +309,18 @@ where
     }
 
     /// Estimate the fee for a given StarkNet transaction
-    pub async fn estimate_fee(
+    pub async fn estimate_fee<R>(
         &self,
-        request: &BroadcastedTransaction,
+        request: R,
         block_id: &BlockId,
-    ) -> Result<FeeEstimate, JsonRpcClientError<T::Error>> {
+    ) -> Result<FeeEstimate, JsonRpcClientError<T::Error>>
+    where
+        R: AsRef<BroadcastedTransaction>,
+    {
         self.send_request(
             JsonRpcMethod::EstimateFee,
             [
-                serde_json::to_value(request)?,
+                serde_json::to_value(request.as_ref())?,
                 serde_json::to_value(block_id)?,
             ],
         )
