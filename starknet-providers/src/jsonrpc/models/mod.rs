@@ -143,8 +143,8 @@ pub struct StateUpdate {
     /// The previous global state root
     #[serde_as(as = "UfeHex")]
     pub old_root: FieldElement,
-    /// The change in state applied in this block, given as a mapping of addresses to the new values
-    /// and/or new contracts
+    /// The change in state applied in this block, given as a mapping of addresses to the new
+    /// values and/or new contracts
     pub state_diff: StateDiff,
 }
 
@@ -351,8 +351,8 @@ pub struct DeclareTransaction {
 
 /// Deploy Contract Transaction (`DEPLOY_TXN`)
 ///
-/// The structure of a deploy transaction. Note that this transaction type is deprecated and will no
-/// longer be supported in future versions.
+/// The structure of a deploy transaction. Note that this transaction type is deprecated and will
+/// no longer be supported in future versions.
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeployTransaction {
@@ -583,7 +583,8 @@ pub struct FeeEstimate {
 pub struct EventsPage {
     /// Matching events
     pub events: Vec<EmittedEvent>,
-    /// a pointer to the last element of the delivered page, use this token in a subsequent query to obtain the next page
+    /// a pointer to the last element of the delivered page, use this token in a subsequent query
+    /// to obtain the next page
     #[serde(skip_serializing_if = "Option::is_none")]
     pub continuation_token: Option<String>,
 }
@@ -596,7 +597,8 @@ pub struct BlockHashAndNumber {
     pub block_number: u64,
 }
 
-/// BROADCASTED_TXN the transaction's representation when it's sent to the sequencer (but not yet in a block)
+/// BROADCASTED_TXN 
+/// the transaction's representation when it's sent to the sequencer (but not yet in a block)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum BroadcastedTransaction {
@@ -629,7 +631,8 @@ pub struct BroadcastedDeclareTransaction {
 }
 
 /// mempool representation of a deploy transaction ('BROADCASTED_DEPLOY_TXN')
-/// The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
+/// The structure of a deploy transaction. Note that this transaction type is deprecated and will
+/// no longer be supported in future versions
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BroadcastedDeployTransaction {
     /// The class of the contract that will be deployed
@@ -709,7 +712,8 @@ pub enum InvokeTransactionVersion {
 pub struct InvokeTransactionV1 {
     #[serde_as(as = "UfeHex")]
     pub sender_address: FieldElement,
-    /// The data expected by the account's `execute` function (in most usecases, this includes the called contract address and a function selector)
+    /// The data expected by the account's `execute` function (in most usecases, this includes the
+    /// called contract address and a function selector)
     #[serde_as(as = "Vec<UfeHex>")]
     pub calldata: Vec<FieldElement>,
 }

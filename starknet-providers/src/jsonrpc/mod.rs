@@ -111,7 +111,8 @@ struct FeltArray(#[serde_as(as = "Vec<UfeHex>")] pub Vec<FieldElement>);
 struct EventFilterWithPage {
     #[serde(flatten)]
     filter: EventFilter,
-    /// a pointer to the last element of the delivered page, use this token in a subsequent query to obtain the next page
+    /// a pointer to the last element of the delivered page, use this token in a subsequent query
+    /// to obtain the next page
     #[serde(skip_serializing_if = "Option::is_none")]
     continuation_token: Option<String>,
     chunk_size: u64,
@@ -239,7 +240,8 @@ where
         .await
     }
 
-    /// Get the contract class hash in the given block for the contract deployed at the given address
+    /// Get the contract class hash in the given block for the contract deployed at the given
+    /// address
     pub async fn get_class_hash_at(
         &self,
         block_id: &BlockId,
