@@ -65,6 +65,8 @@ pub enum JsonRpcMethod {
     AddDeclareTransaction,
     #[serde(rename = "starknet_addDeployTransaction")]
     AddDeployTransaction,
+    #[serde(rename = "starknet_addDeployAccountTransaction")]
+    AddDeployAccountTransaction,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -429,6 +431,18 @@ where
         self.send_request(
             JsonRpcMethod::AddDeployTransaction,
             [serde_json::to_value(deploy_transaction)?],
+        )
+        .await
+    }
+
+    /// Submit a new deploy account transaction
+    pub async fn add_deploy_account_transaction(
+        &self,
+        deploy_account_transaction: &BroadcastedDeployAccountTransaction,
+    ) -> Result<DeployTransactionResult, JsonRpcClientError<T::Error>> {
+        self.send_request(
+            JsonRpcMethod::AddDeployAccountTransaction,
+            [serde_json::to_value(deploy_account_transaction)?],
         )
         .await
     }

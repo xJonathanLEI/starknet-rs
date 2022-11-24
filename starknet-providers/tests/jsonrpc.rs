@@ -7,13 +7,13 @@ use starknet_core::{
 };
 use starknet_providers::jsonrpc::{
     models::{
-        BlockId, BlockTag, BroadcastedDeclareTransaction, BroadcastedDeployTransaction,
-        BroadcastedInvokeTransaction, BroadcastedTransaction,
+        BlockId, BlockTag, BroadcastedDeclareTransaction, BroadcastedDeployAccountTransaction,
+        BroadcastedDeployTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
         BroadcastedTransactionCommonProperties, ContractClass, ContractEntryPoint,
-        DeployTransactionProperties, EntryPointsByType, EventFilter, FunctionCall,
-        InvokeTransactionV1, InvokeTransactionVersion, MaybePendingBlockWithTxHashes,
-        MaybePendingBlockWithTxs, MaybePendingTransactionReceipt, SyncStatusType, Transaction,
-        TransactionReceipt, TransactionType,
+        DeployAccountTransactionProperties, DeployTransactionProperties, EntryPointsByType,
+        EventFilter, FunctionCall, InvokeTransactionV1, InvokeTransactionVersion,
+        MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingTransactionReceipt,
+        SyncStatusType, Transaction, TransactionReceipt, TransactionType,
     },
     HttpTransport, JsonRpcClient, JsonRpcClientError,
 };
@@ -546,6 +546,34 @@ async fn jsonrpc_add_deploy_transaction() {
                 transaction_type: TransactionType::Deploy,
                 contract_address_salt: FieldElement::ONE,
                 constructor_calldata: vec![FieldElement::ONE],
+            },
+        })
+        .await
+        .unwrap();
+
+    assert!(add_tx_result.contract_address > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_add_deploy_account_transaction() {
+    let rpc_client = create_jsonrpc_client();
+
+    let add_tx_result = rpc_client
+        .add_deploy_account_transaction(&BroadcastedDeployAccountTransaction {
+            common_properties: (BroadcastedTransactionCommonProperties {
+                transaction_type: TransactionType::DeployAccount,
+                max_fee: FieldElement::ONE,
+                version: 1,
+                signature: vec![],
+                nonce: FieldElement::ONE,
+            }),
+            deploy_account_properties: DeployAccountTransactionProperties {
+                class_hash: FieldElement::from_hex_be(
+                    "0x025ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918",
+                )
+                .unwrap(),
+                constructor_calldata: vec![FieldElement::ONE],
+                contract_address_salt: FieldElement::ONE,
             },
         })
         .await
