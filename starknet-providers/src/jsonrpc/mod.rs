@@ -400,7 +400,7 @@ where
     /// Submit a new transaction to be added to the chain
     pub async fn add_invoke_transaction(
         &self,
-        invoke_transaction: BroadcastedInvokeTransaction,
+        invoke_transaction: &BroadcastedInvokeTransaction,
     ) -> Result<InvokeTransactionResult, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::AddInvokeTransaction,

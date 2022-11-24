@@ -461,7 +461,7 @@ async fn jsonrpc_add_invoke_transaction_v1() {
 
     // This is an invalid made-up transaction but the sequencer will happily accept it anyways
     let add_tx_result = rpc_client
-        .add_invoke_transaction(BroadcastedInvokeTransaction {
+        .add_invoke_transaction(&BroadcastedInvokeTransaction {
             common_properties: BroadcastedTransactionCommonProperties {
                 transaction_type: TransactionType::Invoke,
                 max_fee: FieldElement::ONE,
@@ -489,7 +489,7 @@ async fn jsonrpc_add_invoke_transaction_v0() {
 
     // This is an invalid made-up transaction but the sequencer will happily accept it anyways
     let add_tx_result = rpc_client
-        .add_invoke_transaction(BroadcastedInvokeTransaction {
+        .add_invoke_transaction(&BroadcastedInvokeTransaction {
             common_properties: BroadcastedTransactionCommonProperties {
                 transaction_type: TransactionType::Invoke,
                 max_fee: FieldElement::ONE,
