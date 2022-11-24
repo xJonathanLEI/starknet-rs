@@ -538,7 +538,7 @@ pub struct ContractClass {
     pub program: Vec<u8>,
     pub entry_points_by_type: EntryPointsByType,
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub abi: Option<ContractABI>,
+    pub abi: Option<ContractAbi>,
 }
 
 #[serde_as]
@@ -685,8 +685,10 @@ pub struct DeployAccountTransactionProperties {
 pub struct BroadcastedTransactionCommonProperties {
     #[serde(rename = "type")]
     pub transaction_type: TransactionType,
+    /// The maximal fee that can be charged for including the transaction
     #[serde_as(as = "UfeHex")]
     pub max_fee: FieldElement,
+    /// Version of the transaction scheme
     #[serde_as(as = "NumAsHex")]
     pub version: u64,
     #[serde_as(as = "Vec<UfeHex>")]
@@ -728,37 +730,37 @@ pub enum TransactionType {
 
 /// (`CONTRACT_ABI`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContractABI {
-    pub entries: Vec<ContractABIEntry>,
+pub struct ContractAbi {
+    pub entries: Vec<ContractAbiEntry>,
 }
 
 /// (`CONTRACT_ABI_ENTRY`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum ContractABIEntry {
-    Struct(StructABIEntry),
-    Event(EventABIEntry),
-    Function(FunctionABIEntry),
+pub enum ContractAbiEntry {
+    Struct(StructAbiEntry),
+    Event(EventAbiEntry),
+    Function(FunctionAbiEntry),
 }
 
 /// (`STRUCT_ABI_TYPE`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum StructABIType {
+pub enum StructAbiType {
     Struct,
 }
 
 /// (`EVENT_ABI_TYPE`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum EventABIType {
+pub enum EventAbiType {
     Event,
 }
 
 /// (`FUNCTION_ABI_TYPE`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum FunctionABIType {
+pub enum FunctionAbiType {
     Function,
     L1Handler,
     Constructor,
@@ -766,9 +768,9 @@ pub enum FunctionABIType {
 
 /// (`STRUCT_ABI_ENTRY`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StructABIEntry {
+pub struct StructAbiEntry {
     #[serde(rename = "type")]
-    pub abi_type: StructABIType,
+    pub abi_type: StructAbiType,
     /// The struct name
     pub name: String,
     pub size: u64,
@@ -786,9 +788,9 @@ pub struct StructMember {
 
 /// (`EVENT_ABI_ENTRY`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventABIEntry {
+pub struct EventAbiEntry {
     #[serde(rename = "type")]
-    pub abi_type: EventABIType,
+    pub abi_type: EventAbiType,
     /// The event name
     pub name: String,
     pub keys: Vec<TypedParameter>,
@@ -797,9 +799,9 @@ pub struct EventABIEntry {
 
 /// (`FUNCTION_ABI_ENTRY`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FunctionABIEntry {
+pub struct FunctionAbiEntry {
     #[serde(rename = "type")]
-    pub abi_type: FunctionABIType,
+    pub abi_type: FunctionAbiType,
     /// The function name
     pub name: String,
     pub inputs: Vec<TypedParameter>,
