@@ -218,7 +218,7 @@ where
     pub async fn get_transaction_receipt(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<MaybePendingTransactionReceipt, JsonRpcClientError<T::Error>> {
+    ) -> Result<TransactionReceipt, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::GetTransactionReceipt,
             [serde_json::to_value(Felt(transaction_hash))?],
@@ -406,7 +406,9 @@ where
     ) -> Result<InvokeTransactionResult, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::AddInvokeTransaction,
-            [serde_json::to_value(invoke_transaction)?],
+            [serde_json::to_value(BroadcastedTransaction::Invoke(
+                invoke_transaction.clone(),
+            ))?],
         )
         .await
     }
@@ -418,7 +420,9 @@ where
     ) -> Result<DeclareTransactionResult, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::AddDeclareTransaction,
-            [serde_json::to_value(declare_transaction)?],
+            [serde_json::to_value(BroadcastedTransaction::Declare(
+                declare_transaction.clone(),
+            ))?],
         )
         .await
     }
@@ -430,7 +434,9 @@ where
     ) -> Result<DeployTransactionResult, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::AddDeployTransaction,
-            [serde_json::to_value(deploy_transaction)?],
+            [serde_json::to_value(BroadcastedTransaction::Deploy(
+                deploy_transaction.clone(),
+            ))?],
         )
         .await
     }
@@ -442,7 +448,9 @@ where
     ) -> Result<DeployTransactionResult, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::AddDeployAccountTransaction,
-            [serde_json::to_value(deploy_account_transaction)?],
+            [serde_json::to_value(
+                BroadcastedTransaction::DeployAccount(deploy_account_transaction.clone()),
+            )?],
         )
         .await
     }

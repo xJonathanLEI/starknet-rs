@@ -12,8 +12,8 @@ use starknet_providers::jsonrpc::{
         BroadcastedTransactionCommonProperties, ContractClass, ContractEntryPoint,
         DeployAccountTransactionProperties, DeployTransactionProperties, EntryPointsByType,
         EventFilter, FunctionCall, InvokeTransactionV1, InvokeTransactionVersion,
-        MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingTransactionReceipt,
-        SyncStatusType, Transaction, TransactionReceipt, TransactionType,
+        MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, SyncStatusType,
+        TaggedTransactionReceipt, Transaction, TransactionReceipt,
     },
     HttpTransport, JsonRpcClient, JsonRpcClientError,
 };
@@ -164,7 +164,7 @@ async fn jsonrpc_get_transaction_by_hash() {
     };
 
     let function_call = match tx.invoke_transaction {
-        InvokeTransactionVersion::V0(transaction) => transaction,
+        InvokeTransactionVersion::V0(function_call) => function_call,
         _ => panic!("unexpected transaction version"),
     };
 
@@ -186,7 +186,7 @@ async fn jsonrpc_get_transaction_by_block_id_and_index() {
     };
 
     let function_call = match tx.invoke_transaction {
-        InvokeTransactionVersion::V0(transaction) => transaction,
+        InvokeTransactionVersion::V0(function_call) => function_call,
         _ => panic!("unexpected transaction version"),
     };
 
@@ -226,7 +226,10 @@ async fn jsonrpc_get_transaction_receipt() {
         .unwrap();
 
     let receipt = match receipt {
-        MaybePendingTransactionReceipt::Receipt(TransactionReceipt::Invoke(receipt)) => receipt,
+        TransactionReceipt::Tagged(receipt) => match receipt {
+            TaggedTransactionReceipt::Invoke(invoke_receipt) => invoke_receipt,
+            _ => panic!("unexpected receipt response transaction type"),
+        },
         _ => panic!("unexpected receipt response type"),
     };
 
@@ -340,7 +343,6 @@ async fn jsonrpc_estimate_fee() {
         .estimate_fee(
             &BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction {
                 common_properties: BroadcastedTransactionCommonProperties {
-                    transaction_type: TransactionType::Invoke,
                     max_fee: FieldElement::ZERO,
                     version: 0,
                     signature: vec![],
@@ -364,6 +366,8 @@ async fn jsonrpc_estimate_fee() {
         .unwrap();
 
     // TODO: Add tests for different function types
+    // NOTE: estimate_fee does not support estiamting `DEPLOY_ACCOUNT` transactions
+    //   https://github.com/eqlabs/pathfinder#api-v021-rc1
 
     // There seems to be a bug in `gas_comsumed` causing it to be zero:
     //   https://github.com/eqlabs/pathfinder/issues/412
@@ -463,7 +467,6 @@ async fn jsonrpc_add_invoke_transaction_v1() {
     let add_tx_result = rpc_client
         .add_invoke_transaction(&BroadcastedInvokeTransaction {
             common_properties: BroadcastedTransactionCommonProperties {
-                transaction_type: TransactionType::Invoke,
                 max_fee: FieldElement::ONE,
                 version: 1,
                 signature: vec![],
@@ -491,7 +494,6 @@ async fn jsonrpc_add_invoke_transaction_v0() {
     let add_tx_result = rpc_client
         .add_invoke_transaction(&BroadcastedInvokeTransaction {
             common_properties: BroadcastedTransactionCommonProperties {
-                transaction_type: TransactionType::Invoke,
                 max_fee: FieldElement::ONE,
                 version: 0,
                 signature: vec![],
@@ -519,7 +521,6 @@ async fn jsonrpc_add_declare_transaction() {
     let add_tx_result = rpc_client
         .add_declare_transaction(&BroadcastedDeclareTransaction {
             common_properties: BroadcastedTransactionCommonProperties {
-                transaction_type: TransactionType::Declare,
                 max_fee: FieldElement::ONE,
                 version: 1,
                 signature: vec![],
@@ -543,7 +544,6 @@ async fn jsonrpc_add_deploy_transaction() {
             contract_class: create_contract_class(),
             deploy_properties: DeployTransactionProperties {
                 version: 0,
-                transaction_type: TransactionType::Deploy,
                 contract_address_salt: FieldElement::ONE,
                 constructor_calldata: vec![FieldElement::ONE],
             },
@@ -561,7 +561,6 @@ async fn jsonrpc_add_deploy_account_transaction() {
     let add_tx_result = rpc_client
         .add_deploy_account_transaction(&BroadcastedDeployAccountTransaction {
             common_properties: (BroadcastedTransactionCommonProperties {
-                transaction_type: TransactionType::DeployAccount,
                 max_fee: FieldElement::ONE,
                 version: 1,
                 signature: vec![],

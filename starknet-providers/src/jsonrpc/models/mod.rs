@@ -25,13 +25,6 @@ pub enum MaybePendingBlockWithTxs {
     PendingBlock(PendingBlockWithTxs),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum MaybePendingTransactionReceipt {
-    Receipt(TransactionReceipt),
-    PendingReceipt(PendingTransactionReceipt),
-}
-
 /// An event emitted as a result of transaction execution
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -233,8 +226,8 @@ pub struct PendingBlockWithTxHashes {
     pub parent_hash: FieldElement,
 }
 
-/// The dynamic block being constructed by the sequencer. Note that this object will be deprecated
-/// upon decentralization.
+/// (`PENDING_BLOCK_WITH_TXS`) The dynamic block being constructed by the sequencer. Note that
+/// this object will be deprecated upon decentralization.
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PendingBlockWithTxs {
@@ -286,7 +279,7 @@ pub struct StorageEntry {
 
 /// Transaction (`TXN`) The transaction schema, as it appears inside a block
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
+#[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Transaction {
     Invoke(InvokeTransaction),
     Declare(DeclareTransaction),
@@ -326,8 +319,6 @@ pub struct L1HandlerTransaction {
     /// Version of the transaction scheme
     #[serde_as(as = "NumAsHex")]
     pub version: u64,
-    #[serde(rename = "type")]
-    pub transaction_type: TransactionType,
     /// The L1->L2 message nonce field of the SN Core L1 contract at the time the transaction was
     /// sent
     #[serde_as(as = "NumAsHex")]
@@ -391,8 +382,6 @@ pub struct TransactionReceiptMeta {
     #[serde_as(as = "UfeHex")]
     pub block_hash: FieldElement,
     pub block_number: u64,
-    #[serde(rename = "type")]
-    pub transaction_type: TransactionType,
     pub messages_sent: Vec<MsgToL1>,
     pub events: Vec<Event>,
 }
@@ -438,14 +427,20 @@ pub struct L1HandlerTransactionReceipt {
 
 /// (`TXN_RECEIPT`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum TransactionReceipt {
+#[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum TaggedTransactionReceipt {
     Invoke(InvokeTransactionReceipt),
     L1Handler(L1HandlerTransactionReceipt),
     Declare(DeclareTransactionReceipt),
     Deploy(DeployTransactionReceipt),
     DeployAccount(DeployAccountTransactionReceipt),
-    PendingTransaction(PendingTransactionReceipt),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum TransactionReceipt {
+    Tagged(TaggedTransactionReceipt),
+    Untagged(PendingTransactionReceipt),
 }
 
 /// Common properties for a pending transaction receipt (`PENDING_COMMON_RECEIPT_PROPERTIES`)
@@ -458,7 +453,7 @@ pub struct PendingTransactionReceiptMeta {
     /// The fee that was charged by the sequencer
     #[serde_as(as = "UfeHex")]
     pub actual_fee: FieldElement,
-    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+    #[serde(default, rename = "type", skip_serializing_if = "Option::is_none")]
     pub transaction_type: Option<TransactionType>,
     pub messages_sent: Vec<MsgToL1>,
     /// The events emitted as part of this transaction
@@ -582,7 +577,7 @@ pub struct EventsPage {
     pub events: Vec<EmittedEvent>,
     /// a pointer to the last element of the delivered page, use this token in a subsequent query
     /// to obtain the next page
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub continuation_token: Option<String>,
 }
 
@@ -597,7 +592,7 @@ pub struct BlockHashAndNumber {
 /// (`BROADCASTED_TXN`)
 /// the transaction's representation when it's sent to the sequencer (but not yet in a block)
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
+#[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum BroadcastedTransaction {
     Invoke(BroadcastedInvokeTransaction),
     Declare(BroadcastedDeclareTransaction),
@@ -654,8 +649,6 @@ pub struct DeployTransactionProperties {
     /// Version of the transaction scheme
     #[serde_as(as = "NumAsHex")]
     pub version: u64,
-    #[serde(rename = "type")]
-    pub transaction_type: TransactionType,
     /// The salt for the address of the deployed contract
     #[serde_as(as = "UfeHex")]
     pub contract_address_salt: FieldElement,
@@ -663,6 +656,7 @@ pub struct DeployTransactionProperties {
     #[serde_as(as = "Vec<UfeHex>")]
     pub constructor_calldata: Vec<FieldElement>,
 }
+
 /// (`DEPLOY_ACCOUNT_TXN_PROPERTIES`)
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -683,8 +677,6 @@ pub struct DeployAccountTransactionProperties {
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BroadcastedTransactionCommonProperties {
-    #[serde(rename = "type")]
-    pub transaction_type: TransactionType,
     /// The maximal fee that can be charged for including the transaction
     #[serde_as(as = "UfeHex")]
     pub max_fee: FieldElement,
@@ -736,41 +728,18 @@ pub struct ContractAbi {
 
 /// (`CONTRACT_ABI_ENTRY`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum ContractAbiEntry {
     Struct(StructAbiEntry),
     Event(EventAbiEntry),
     Function(FunctionAbiEntry),
-}
-
-/// (`STRUCT_ABI_TYPE`)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum StructAbiType {
-    Struct,
-}
-
-/// (`EVENT_ABI_TYPE`)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum EventAbiType {
-    Event,
-}
-
-/// (`FUNCTION_ABI_TYPE`)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum FunctionAbiType {
-    Function,
-    L1Handler,
-    Constructor,
+    L1Handler(FunctionAbiEntry),
+    Constructor(FunctionAbiEntry),
 }
 
 /// (`STRUCT_ABI_ENTRY`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StructAbiEntry {
-    #[serde(rename = "type")]
-    pub abi_type: StructAbiType,
     /// The struct name
     pub name: String,
     pub size: u64,
@@ -789,8 +758,6 @@ pub struct StructMember {
 /// (`EVENT_ABI_ENTRY`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventAbiEntry {
-    #[serde(rename = "type")]
-    pub abi_type: EventAbiType,
     /// The event name
     pub name: String,
     pub keys: Vec<TypedParameter>,
@@ -800,8 +767,6 @@ pub struct EventAbiEntry {
 /// (`FUNCTION_ABI_ENTRY`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionAbiEntry {
-    #[serde(rename = "type")]
-    pub abi_type: FunctionAbiType,
     /// The function name
     pub name: String,
     pub inputs: Vec<TypedParameter>,
