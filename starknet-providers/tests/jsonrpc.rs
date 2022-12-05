@@ -8,12 +8,10 @@ use starknet_core::{
 use starknet_providers::jsonrpc::{
     models::{
         BlockId, BlockTag, BroadcastedDeclareTransaction, BroadcastedDeployAccountTransaction,
-        BroadcastedDeployTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
-        BroadcastedTransactionCommonProperties, ContractClass, ContractEntryPoint,
-        DeployAccountTransactionProperties, DeployTransactionProperties, EntryPointsByType,
-        EventFilter, FunctionCall, InvokeTransactionV1, InvokeTransactionVersion,
-        MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, SyncStatusType,
-        TaggedTransactionReceipt, Transaction, TransactionReceipt,
+        BroadcastedInvokeTransaction, BroadcastedTransaction, ContractClass, ContractEntryPoint,
+        EntryPointsByType, EventFilter, FunctionCall, InvokeTransactionProperties,
+        MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingTransactionReceipt,
+        SyncStatusType, Transaction, TransactionReceipt, TransactionVersion,
     },
     HttpTransport, JsonRpcClient, JsonRpcClientError,
 };
@@ -85,7 +83,7 @@ async fn jsonrpc_get_block_with_tx_hashes() {
         _ => panic!("unexpected block response type"),
     };
 
-    assert!(block.header.block_number > 0);
+    assert!(block.block_number > 0);
 }
 
 #[tokio::test]
@@ -102,7 +100,7 @@ async fn jsonrpc_get_block_with_txs() {
         _ => panic!("unexpected block response type"),
     };
 
-    assert!(block.header.block_number > 0);
+    assert!(block.block_number > 0);
 }
 
 #[tokio::test]
@@ -163,12 +161,16 @@ async fn jsonrpc_get_transaction_by_hash() {
         _ => panic!("unexpected tx response type"),
     };
 
-    let function_call = match tx.invoke_transaction {
-        InvokeTransactionVersion::V0(function_call) => function_call,
+    let entry_point_selector = match tx.versioned_properties {
+        InvokeTransactionProperties::V0 {
+            contract_address: _,
+            entry_point_selector,
+            calldata: _,
+        } => entry_point_selector,
         _ => panic!("unexpected transaction version"),
     };
 
-    assert!(function_call.entry_point_selector > FieldElement::ZERO);
+    assert!(entry_point_selector > FieldElement::ZERO);
 }
 
 #[tokio::test]
@@ -185,12 +187,16 @@ async fn jsonrpc_get_transaction_by_block_id_and_index() {
         _ => panic!("unexpected tx response type"),
     };
 
-    let function_call = match tx.invoke_transaction {
-        InvokeTransactionVersion::V0(function_call) => function_call,
+    let entry_point_selector = match tx.versioned_properties {
+        InvokeTransactionProperties::V0 {
+            contract_address: _,
+            entry_point_selector,
+            calldata: _,
+        } => entry_point_selector,
         _ => panic!("unexpected transaction version"),
     };
 
-    assert!(function_call.entry_point_selector > FieldElement::ZERO);
+    assert!(entry_point_selector > FieldElement::ZERO);
 }
 
 #[tokio::test]
@@ -225,15 +231,19 @@ async fn jsonrpc_get_transaction_receipt() {
         .await
         .unwrap();
 
-    let receipt = match receipt {
-        TransactionReceipt::Tagged(receipt) => match receipt {
-            TaggedTransactionReceipt::Invoke(invoke_receipt) => invoke_receipt,
-            _ => panic!("unexpected receipt response transaction type"),
-        },
-        _ => panic!("unexpected receipt response type"),
+    let invoke_transaction_receipt = match receipt {
+        MaybePendingTransactionReceipt::TransactionReceipt(transaction_receipt) => {
+            match transaction_receipt {
+                TransactionReceipt::Invoke(invoke_transaction_receipt) => {
+                    invoke_transaction_receipt
+                }
+                _ => panic!("unexepected TransactionReceipt variant from response"),
+            }
+        }
+        _ => panic!("unexepected MaybePendingTransactionReceipt variant from response"),
     };
 
-    assert!(receipt.meta.actual_fee > FieldElement::ZERO);
+    assert!(invoke_transaction_receipt.actual_fee > FieldElement::ZERO);
 }
 
 #[tokio::test]
@@ -342,13 +352,10 @@ async fn jsonrpc_estimate_fee() {
     let estimate = rpc_client
         .estimate_fee(
             &BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction {
-                common_properties: BroadcastedTransactionCommonProperties {
-                    max_fee: FieldElement::ZERO,
-                    version: 0,
-                    signature: vec![],
-                    nonce: FieldElement::ONE,
-                },
-                invoke_transaction: InvokeTransactionVersion::V0(FunctionCall {
+                max_fee: FieldElement::ZERO,
+                signature: vec![],
+                nonce: FieldElement::ONE,
+                versioned_properties: InvokeTransactionProperties::V0 {
                     contract_address: FieldElement::from_hex_be(
                         "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
                     )
@@ -358,15 +365,14 @@ async fn jsonrpc_estimate_fee() {
                         "01352dd0ac2a462cb53e4f125169b28f13bd6199091a9815c444dcae83056bbc",
                     )
                     .unwrap()],
-                }),
+                },
             }),
             &BlockId::Tag(BlockTag::Latest),
         )
         .await
         .unwrap();
 
-    // TODO: Add tests for different function types
-    // NOTE: estimate_fee does not support estiamting `DEPLOY_ACCOUNT` transactions
+    // NOTE: estimate_fee does not support estimating `DEPLOY_ACCOUNT` transactions
     //   https://github.com/eqlabs/pathfinder#api-v021-rc1
 
     // There seems to be a bug in `gas_comsumed` causing it to be zero:
@@ -422,23 +428,38 @@ async fn jsonrpc_syncing() {
 async fn jsonrpc_get_events() {
     let rpc_client = create_jsonrpc_client();
 
-    let events = rpc_client
-        .get_events(
-            EventFilter {
-                from_block: Some(BlockId::Number(234500)),
-                to_block: None,
-                address: None,
-                keys: None,
-            },
-            None,
-            20,
-        )
+    let events_page0 = rpc_client
+        .get_events(&EventFilter {
+            from_block: Some(BlockId::Number(234500)),
+            to_block: None,
+            address: None,
+            keys: None,
+            continuation_token: None,
+            chunk_size: 20,
+        })
         .await
         .unwrap();
 
-    // TODO: test use of continuation token
+    let continuation_token = match events_page0.continuation_token {
+        Some(continuation_token) => continuation_token,
+        _ => panic!("expected some continuation token"),
+    };
 
-    assert_eq!(events.events.len(), 20);
+    assert_eq!(events_page0.events.len(), 20);
+
+    let events_page1 = rpc_client
+        .get_events(&EventFilter {
+            from_block: Some(BlockId::Number(234500)),
+            to_block: None,
+            address: None,
+            keys: None,
+            continuation_token: Some(continuation_token),
+            chunk_size: 20,
+        })
+        .await
+        .unwrap();
+
+    assert_eq!(events_page1.events.len(), 20);
 }
 
 #[tokio::test]
@@ -466,47 +487,16 @@ async fn jsonrpc_add_invoke_transaction_v1() {
     // This is an invalid made-up transaction but the sequencer will happily accept it anyways
     let add_tx_result = rpc_client
         .add_invoke_transaction(&BroadcastedInvokeTransaction {
-            common_properties: BroadcastedTransactionCommonProperties {
-                max_fee: FieldElement::ONE,
-                version: 1,
-                signature: vec![],
-                nonce: FieldElement::ONE,
-            },
-            invoke_transaction: InvokeTransactionVersion::V1(InvokeTransactionV1 {
+            max_fee: FieldElement::ONE,
+            signature: vec![],
+            nonce: FieldElement::ONE,
+            versioned_properties: InvokeTransactionProperties::V1 {
                 sender_address: FieldElement::from_hex_be(
                     "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
                 )
                 .unwrap(),
                 calldata: vec![FieldElement::from_hex_be("1234").unwrap()],
-            }),
-        })
-        .await
-        .unwrap();
-
-    assert!(add_tx_result.transaction_hash > FieldElement::ZERO);
-}
-
-#[tokio::test]
-async fn jsonrpc_add_invoke_transaction_v0() {
-    let rpc_client = create_jsonrpc_client();
-
-    // This is an invalid made-up transaction but the sequencer will happily accept it anyways
-    let add_tx_result = rpc_client
-        .add_invoke_transaction(&BroadcastedInvokeTransaction {
-            common_properties: BroadcastedTransactionCommonProperties {
-                max_fee: FieldElement::ONE,
-                version: 0,
-                signature: vec![],
-                nonce: FieldElement::ONE,
             },
-            invoke_transaction: InvokeTransactionVersion::V0(FunctionCall {
-                contract_address: FieldElement::from_hex_be(
-                    "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-                )
-                .unwrap(),
-                entry_point_selector: get_selector_from_name("__execute__").unwrap(),
-                calldata: vec![FieldElement::from_hex_be("1234").unwrap()],
-            }),
         })
         .await
         .unwrap();
@@ -515,17 +505,15 @@ async fn jsonrpc_add_invoke_transaction_v0() {
 }
 
 #[tokio::test]
-async fn jsonrpc_add_declare_transaction() {
+async fn jsonrpc_add_declare_transaction_v1() {
     let rpc_client = create_jsonrpc_client();
 
     let add_tx_result = rpc_client
         .add_declare_transaction(&BroadcastedDeclareTransaction {
-            common_properties: BroadcastedTransactionCommonProperties {
-                max_fee: FieldElement::ONE,
-                version: 1,
-                signature: vec![],
-                nonce: FieldElement::ONE,
-            },
+            max_fee: FieldElement::ONE,
+            version: TransactionVersion::V1,
+            signature: vec![],
+            nonce: FieldElement::ONE,
             contract_class: create_contract_class(),
             sender_address: FieldElement::ONE,
         })
@@ -536,44 +524,21 @@ async fn jsonrpc_add_declare_transaction() {
 }
 
 #[tokio::test]
-async fn jsonrpc_add_deploy_transaction() {
-    let rpc_client = create_jsonrpc_client();
-
-    let add_tx_result = rpc_client
-        .add_deploy_transaction(&BroadcastedDeployTransaction {
-            contract_class: create_contract_class(),
-            deploy_properties: DeployTransactionProperties {
-                version: 0,
-                contract_address_salt: FieldElement::ONE,
-                constructor_calldata: vec![FieldElement::ONE],
-            },
-        })
-        .await
-        .unwrap();
-
-    assert!(add_tx_result.contract_address > FieldElement::ZERO);
-}
-
-#[tokio::test]
-async fn jsonrpc_add_deploy_account_transaction() {
+async fn jsonrpc_add_deploy_account_transaction_v1() {
     let rpc_client = create_jsonrpc_client();
 
     let add_tx_result = rpc_client
         .add_deploy_account_transaction(&BroadcastedDeployAccountTransaction {
-            common_properties: (BroadcastedTransactionCommonProperties {
-                max_fee: FieldElement::ONE,
-                version: 1,
-                signature: vec![],
-                nonce: FieldElement::ONE,
-            }),
-            deploy_account_properties: DeployAccountTransactionProperties {
-                class_hash: FieldElement::from_hex_be(
-                    "0x025ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918",
-                )
-                .unwrap(),
-                constructor_calldata: vec![FieldElement::ONE],
-                contract_address_salt: FieldElement::ONE,
-            },
+            max_fee: FieldElement::ONE,
+            version: TransactionVersion::V1,
+            signature: vec![],
+            nonce: FieldElement::ONE,
+            class_hash: FieldElement::from_hex_be(
+                "0x025ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918",
+            )
+            .unwrap(),
+            constructor_calldata: vec![FieldElement::ONE],
+            contract_address_salt: FieldElement::ONE,
         })
         .await
         .unwrap();

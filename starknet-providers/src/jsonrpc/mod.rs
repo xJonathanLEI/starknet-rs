@@ -218,7 +218,7 @@ where
     pub async fn get_transaction_receipt(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<TransactionReceipt, JsonRpcClientError<T::Error>> {
+    ) -> Result<MaybePendingTransactionReceipt, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::GetTransactionReceipt,
             [serde_json::to_value(Felt(transaction_hash))?],
@@ -366,19 +366,10 @@ where
     /// Returns all events matching the given filter
     pub async fn get_events(
         &self,
-        filter: EventFilter,
-        continuation_token: Option<String>,
-        chunk_size: u64,
+        request: &EventFilter,
     ) -> Result<EventsPage, JsonRpcClientError<T::Error>> {
-        self.send_request(
-            JsonRpcMethod::GetEvents,
-            [serde_json::to_value(EventFilterWithPage {
-                filter,
-                continuation_token,
-                chunk_size,
-            })?],
-        )
-        .await
+        self.send_request(JsonRpcMethod::GetEvents, [serde_json::to_value(request)?])
+            .await
     }
 
     /// Get the nonce associated with the given address in the given block
@@ -427,7 +418,8 @@ where
         .await
     }
 
-    /// Submit a new deploy contract transaction
+    /// Submit a new deploy contract transaction. Note that DEPLOY transactions are no longer
+    /// supported as of StarkNet alpha v0.10.3
     pub async fn add_deploy_transaction(
         &self,
         deploy_transaction: &BroadcastedDeployTransaction,
