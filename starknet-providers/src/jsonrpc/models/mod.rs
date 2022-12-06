@@ -18,7 +18,7 @@ pub enum MaybePendingBlockWithTxHashes {
     PendingBlock(PendingBlockWithTxHashes),
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePendingBlockWithTxs {
     Block(BlockWithTxs),
@@ -237,7 +237,7 @@ pub struct BlockWithTxHashes {
 
 /// (`BLOCK_WITH_TXS`) The block object
 #[serde_as]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlockWithTxs {
     pub status: BlockStatus,
     #[serde_as(as = "UfeHex")]
@@ -280,7 +280,7 @@ pub struct PendingBlockWithTxHashes {
 /// (`PENDING_BLOCK_WITH_TXS`) The dynamic block being constructed by the sequencer. Note that
 /// this object will be deprecated upon decentralization.
 #[serde_as]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PendingBlockWithTxs {
     /// The transactions in this block
     pub transactions: Vec<Transaction>,
@@ -295,7 +295,7 @@ pub struct PendingBlockWithTxs {
 }
 
 /// (`TXN`) Transaction. The transaction schema, as it appears inside a block
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Transaction {
     Invoke(InvokeTransaction),
@@ -308,7 +308,7 @@ pub enum Transaction {
 /// (`DEPLOY_ACCOUNT_TXN`) Deploy Account Transaction. Deploys an account contract, charges fee
 /// from the pre-funded account addresses
 #[serde_as]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeployAccountTransaction {
     /// The hash identifying the transaction
     #[serde_as(as = "UfeHex")]
@@ -336,7 +336,7 @@ pub struct DeployAccountTransaction {
 /// (`L1_HANDLER_TXN`) L1 -> L2 message transaction. A call to an l1_handler on an L2 contract
 /// induced by a message from L1
 #[serde_as]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct L1HandlerTransaction {
     /// The hash identifying the transaction
     #[serde_as(as = "UfeHex")]
@@ -358,7 +358,7 @@ pub struct L1HandlerTransaction {
 
 /// (`DECLARE_TXN`) Declare Contract Transaction
 #[serde_as]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeclareTransaction {
     /// The hash identifying the transaction
     #[serde_as(as = "UfeHex")]
@@ -383,7 +383,7 @@ pub struct DeclareTransaction {
 /// (`DEPLOY_TXN`) Deploy Contract Transaction. The structure of a deploy transaction. Note that
 /// this transaction type is deprecated and will no longer be supported in future versions.
 #[serde_as]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeployTransaction {
     /// The hash identifying the transaction
     #[serde_as(as = "UfeHex")]
@@ -403,7 +403,7 @@ pub struct DeployTransaction {
 
 /// (`INVOKE_TXN`) Initiate a transaction from an account
 #[serde_as]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InvokeTransaction {
     /// The hash identifying the transaction
     #[serde_as(as = "UfeHex")]
@@ -423,7 +423,7 @@ pub struct InvokeTransaction {
 
 /// (`INVOKE_TXN_RECEIPT`) Invoke Transaction Receipt
 #[serde_as]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InvokeTransactionReceipt {
     /// The hash identifying the transaction
     #[serde_as(as = "UfeHex")]
@@ -441,7 +441,7 @@ pub struct InvokeTransactionReceipt {
 
 /// (`DECLARE_TXN_RECEIPT`) Declare Transaction Receipt
 #[serde_as]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeclareTransactionReceipt {
     /// The hash identifying the transaction
     #[serde_as(as = "UfeHex")]
@@ -459,7 +459,7 @@ pub struct DeclareTransactionReceipt {
 
 /// (`DEPLOY_ACCOUNT_TXN_RECEIPT`) Deploy Account Transaction Receipt
 #[serde_as]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeployAccountTransactionReceipt {
     /// The hash identifying the transaction
     #[serde_as(as = "UfeHex")]
@@ -480,7 +480,7 @@ pub struct DeployAccountTransactionReceipt {
 
 /// (`DEPLOY_TXN_RECEIPT`) Deploy Transaction Receipt
 #[serde_as]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeployTransactionReceipt {
     /// The hash identifying the transaction
     #[serde_as(as = "UfeHex")]
@@ -501,7 +501,7 @@ pub struct DeployTransactionReceipt {
 
 /// (`L1_HANDLER_TXN_RECEIPT`) Receipt for l1 handler transaction
 #[serde_as]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct L1HandlerTransactionReceipt {
     /// The hash identifying the transaction
     #[serde_as(as = "UfeHex")]
@@ -518,7 +518,7 @@ pub struct L1HandlerTransactionReceipt {
 }
 
 /// (`TXN_RECEIPT`)
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TransactionReceipt {
     Invoke(InvokeTransactionReceipt),
@@ -528,7 +528,7 @@ pub enum TransactionReceipt {
     DeployAccount(DeployAccountTransactionReceipt),
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePendingTransactionReceipt {
     TransactionReceipt(TransactionReceipt),
@@ -537,7 +537,7 @@ pub enum MaybePendingTransactionReceipt {
 
 /// (`PENDING_COMMON_RECEIPT_PROPERTIES`) Common properties for a pending transaction receipt
 #[serde_as]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PendingInvokeOrDeclareTransactionReceipt {
     /// The hash identifying the transaction
     #[serde_as(as = "UfeHex")]
@@ -554,7 +554,7 @@ pub struct PendingInvokeOrDeclareTransactionReceipt {
 
 /// (`PENDING_DEPLOY_TXN_RECEIPT`) Pending deploy transaction receipt
 #[serde_as]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PendingDeployTransactionReceipt {
     /// The hash identifying the transaction
     #[serde_as(as = "UfeHex")]
@@ -573,7 +573,7 @@ pub struct PendingDeployTransactionReceipt {
 }
 
 /// (`PENDING_TXN_RECEIPT`)
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum PendingTransactionReceipt {
     Deploy(PendingDeployTransactionReceipt),
