@@ -397,9 +397,7 @@ where
     ) -> Result<InvokeTransactionResult, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::AddInvokeTransaction,
-            [serde_json::to_value(BroadcastedTransaction::Invoke(
-                invoke_transaction.clone(),
-            ))?],
+            [serde_json::to_value(invoke_transaction)?],
         )
         .await
     }
@@ -411,9 +409,7 @@ where
     ) -> Result<DeclareTransactionResult, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::AddDeclareTransaction,
-            [serde_json::to_value(BroadcastedTransaction::Declare(
-                declare_transaction.clone(),
-            ))?],
+            [serde_json::to_value(declare_transaction)?],
         )
         .await
     }
@@ -426,9 +422,7 @@ where
     ) -> Result<DeployTransactionResult, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::AddDeployTransaction,
-            [serde_json::to_value(BroadcastedTransaction::Deploy(
-                deploy_transaction.clone(),
-            ))?],
+            [serde_json::to_value(deploy_transaction)?],
         )
         .await
     }
@@ -440,9 +434,7 @@ where
     ) -> Result<DeployTransactionResult, JsonRpcClientError<T::Error>> {
         self.send_request(
             JsonRpcMethod::AddDeployAccountTransaction,
-            [serde_json::to_value(
-                BroadcastedTransaction::DeployAccount(deploy_account_transaction.clone()),
-            )?],
+            [serde_json::to_value(deploy_account_transaction)?],
         )
         .await
     }

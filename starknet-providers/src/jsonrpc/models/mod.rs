@@ -683,8 +683,9 @@ pub struct BlockHashAndNumber {
 
 /// (`BROADCASTED_TXN`) The transaction's representation when it's sent to the sequencer (but not
 /// yet in a block)
+// Untagged here so that variants can be used to serialize tag without wrapping in this enum
 #[derive(Debug, Clone, Serialize)]
-#[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
+#[serde(untagged)]
 pub enum BroadcastedTransaction {
     Invoke(BroadcastedInvokeTransaction),
     Declare(BroadcastedDeclareTransaction),
@@ -716,6 +717,7 @@ pub struct BroadcastedInvokeTransaction {
 /// (`BROADCASTED_DECLARE_TXN`) Mempool representation of a declare transaction.
 #[serde_as]
 #[derive(Debug, Clone, Serialize)]
+#[serde(tag = "type", rename = "DECLARE")]
 pub struct BroadcastedDeclareTransaction {
     pub version: TransactionVersion,
     /// The maximal fee that can be charged for including the transaction
@@ -737,6 +739,7 @@ pub struct BroadcastedDeclareTransaction {
 /// supported in future versions
 #[serde_as]
 #[derive(Debug, Clone, Serialize)]
+#[serde(tag = "type", rename = "DEPLOY")]
 pub struct BroadcastedDeployTransaction {
     /// Version of the transaction scheme
     pub version: TransactionVersion,
@@ -753,6 +756,7 @@ pub struct BroadcastedDeployTransaction {
 /// (`BROADCASTED_DEPLOY_ACCOUNT_TXN`) Mempool representation of a deploy account transaction
 #[serde_as]
 #[derive(Debug, Clone, Serialize)]
+#[serde(tag = "type", rename = "DEPLOY_ACCOUNT")]
 pub struct BroadcastedDeployAccountTransaction {
     /// The maximal fee that can be charged for including the transaction
     #[serde_as(as = "UfeHex")]
@@ -938,6 +942,7 @@ impl Serialize for BroadcastedInvokeTransaction {
     {
         #[serde_as]
         #[derive(Serialize)]
+        #[serde(tag = "type", rename = "INVOKE")]
         struct Versioned<'a> {
             version: TransactionVersion,
             #[serde_as(as = "UfeHex")]
