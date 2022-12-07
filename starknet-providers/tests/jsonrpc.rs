@@ -524,13 +524,12 @@ async fn jsonrpc_add_declare_transaction_v1() {
 }
 
 #[tokio::test]
-async fn jsonrpc_add_deploy_account_transaction_v1() {
+async fn jsonrpc_add_deploy_account_transaction() {
     let rpc_client = create_jsonrpc_client();
 
     let add_tx_result = rpc_client
         .add_deploy_account_transaction(&BroadcastedDeployAccountTransaction {
             max_fee: FieldElement::ONE,
-            version: TransactionVersion::V1,
             signature: vec![],
             nonce: FieldElement::ONE,
             class_hash: FieldElement::from_hex_be(

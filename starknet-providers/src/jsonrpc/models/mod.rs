@@ -693,10 +693,10 @@ pub enum BroadcastedTransaction {
     DeployAccount(BroadcastedDeployAccountTransaction),
 }
 
-/// Possible values for version are 0 or 1. This may effect the possible parameters for StarkNet
-/// RPCs and their resulting transaction hashes. (see
-/// https://docs.starknet.io/documentation/architecture_and_concepts/Blocks/transactions/ for more
-/// info)
+/// Possible values for version are 0 or 1. Generally transaction verison 0 is deprecated and
+/// version 1 should be used instead. This may effect the parameters and result of StarkNet RPCs.
+/// (see https://docs.starknet.io/documentation/architecture_and_concepts/Blocks/transactions/ for
+/// more info)
 #[serde_as]
 #[derive(Debug, Clone)]
 pub enum TransactionVersion {
@@ -754,27 +754,17 @@ pub struct BroadcastedDeployTransaction {
 }
 
 /// (`BROADCASTED_DEPLOY_ACCOUNT_TXN`) Mempool representation of a deploy account transaction
-#[serde_as]
-#[derive(Debug, Clone, Serialize)]
-#[serde(tag = "type", rename = "DEPLOY_ACCOUNT")]
+#[derive(Debug, Clone)]
 pub struct BroadcastedDeployAccountTransaction {
     /// The maximal fee that can be charged for including the transaction
-    #[serde_as(as = "UfeHex")]
     pub max_fee: FieldElement,
-    /// Version of the transaction scheme
-    pub version: TransactionVersion,
-    #[serde_as(as = "Vec<UfeHex>")]
     pub signature: Vec<FieldElement>,
-    #[serde_as(as = "UfeHex")]
     pub nonce: FieldElement,
     /// The salt for the address of the deployed contract
-    #[serde_as(as = "UfeHex")]
     pub contract_address_salt: FieldElement,
     /// The parameters passed to the constructor
-    #[serde_as(as = "Vec<UfeHex>")]
     pub constructor_calldata: Vec<FieldElement>,
     /// The hash of the deployed contract's class
-    #[serde_as(as = "UfeHex")]
     pub class_hash: FieldElement,
 }
 
@@ -977,6 +967,44 @@ impl Serialize for BroadcastedInvokeTransaction {
                 nonce: &self.nonce,
                 versioned_properties: &self.versioned_properties,
             },
+        };
+
+        Versioned::serialize(&versioned, serializer)
+    }
+}
+
+impl Serialize for BroadcastedDeployAccountTransaction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        #[serde_as]
+        #[derive(Serialize)]
+        #[serde(tag = "type", rename = "DEPLOY_ACCOUNT")]
+        struct Versioned<'a> {
+            version: TransactionVersion,
+            #[serde_as(as = "UfeHex")]
+            pub max_fee: &'a FieldElement,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            pub nonce: &'a FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub contract_address_salt: &'a FieldElement,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub constructor_calldata: &'a Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            pub class_hash: &'a FieldElement,
+        }
+
+        let versioned = Versioned {
+            version: TransactionVersion::V1,
+            max_fee: &self.max_fee,
+            signature: &self.signature,
+            nonce: &self.nonce,
+            contract_address_salt: &self.contract_address_salt,
+            constructor_calldata: &self.constructor_calldata,
+            class_hash: &self.class_hash,
         };
 
         Versioned::serialize(&versioned, serializer)
