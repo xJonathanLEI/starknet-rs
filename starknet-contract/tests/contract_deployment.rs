@@ -2,6 +2,7 @@ use starknet_contract::ContractFactory;
 use starknet_core::types::{ContractArtifact, FieldElement};
 
 #[tokio::test]
+#[ignore = "Legacy deploy transaction removed from live environments"]
 async fn can_deploy_contract_to_alpha_goerli() {
     let artifact = serde_json::from_str::<ContractArtifact>(include_str!(
         "../test-data/artifacts/oz_account.txt"
