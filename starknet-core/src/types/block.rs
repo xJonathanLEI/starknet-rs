@@ -58,7 +58,6 @@ pub struct Block {
 
 #[cfg(test)]
 mod tests {
-    use super::super::transaction::EntryPointType;
     use super::*;
 
     #[test]
@@ -87,7 +86,6 @@ mod tests {
             panic!("Did not deserialize Transaction::Deploy properly");
         }
         if let TransactionType::InvokeFunction(tx) = &block.transactions[1] {
-            assert_eq!(tx.entry_point_type, Some(EntryPointType::External));
             assert_eq!(tx.calldata.len(), 7);
         } else {
             panic!("Did not deserialize Transaction::InvokeFunction properly");
@@ -279,7 +277,6 @@ mod tests {
         };
 
         assert!(tx.entry_point_selector.is_none());
-        assert!(tx.entry_point_type.is_none());
     }
 
     #[test]
