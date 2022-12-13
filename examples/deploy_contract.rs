@@ -13,7 +13,7 @@ async fn main() {
 
     let contract_factory = ContractFactory::new(&contract_artifact, provider).unwrap();
     contract_factory
-        .deploy(vec![FieldElement::from_dec_str("123456").unwrap()], None)
+        .deploy(vec![FieldElement::from_dec_str("123456").unwrap()])
         .await
         .expect("Unable to deploy contract");
 }

@@ -13,7 +13,7 @@ async fn can_deploy_contract_to_alpha_goerli() {
     let factory = ContractFactory::new(&artifact, provider).unwrap();
 
     let result = factory
-        .deploy(vec![FieldElement::from_dec_str("1").unwrap()], None)
+        .deploy(vec![FieldElement::from_dec_str("1").unwrap()])
         .await;
 
     match result {

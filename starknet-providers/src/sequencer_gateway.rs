@@ -157,12 +157,8 @@ impl Provider for SequencerGatewayProvider {
     async fn add_transaction(
         &self,
         tx: TransactionRequest,
-        token: Option<String>,
     ) -> Result<AddTransactionResult, Self::Error> {
-        let mut request_url = self.extend_gateway_url("add_transaction");
-        if let Some(token) = token {
-            request_url.query_pairs_mut().append_pair("token", &token);
-        }
+        let request_url = self.extend_gateway_url("add_transaction");
 
         match self.send_post_request(request_url, &tx).await? {
             GatewayResponse::Data(data) => Ok(data),

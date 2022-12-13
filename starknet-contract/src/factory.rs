@@ -31,7 +31,6 @@ impl<P: Provider> Factory<P> {
     pub async fn deploy(
         &self,
         constructor_calldata: Vec<FieldElement>,
-        token: Option<String>,
     ) -> Result<AddTransactionResult, P::Error> {
         let mut salt_buffer = [0u8; 32];
 
@@ -41,18 +40,15 @@ impl<P: Provider> Factory<P> {
         rng.fill_bytes(&mut salt_buffer[1..]);
 
         self.provider
-            .add_transaction(
-                TransactionRequest::Deploy(DeployTransactionRequest {
-                    contract_address_salt: FieldElement::from_bytes_be(&salt_buffer).unwrap(),
-                    contract_definition: ContractDefinition {
-                        program: self.compressed_program.clone(),
-                        entry_points_by_type: self.entry_points_by_type.clone(),
-                        abi: Some(self.abi.clone()),
-                    },
-                    constructor_calldata,
-                }),
-                token,
-            )
+            .add_transaction(TransactionRequest::Deploy(DeployTransactionRequest {
+                contract_address_salt: FieldElement::from_bytes_be(&salt_buffer).unwrap(),
+                contract_definition: ContractDefinition {
+                    program: self.compressed_program.clone(),
+                    entry_points_by_type: self.entry_points_by_type.clone(),
+                    abi: Some(self.abi.clone()),
+                },
+                constructor_calldata,
+            }))
             .await
     }
 }
