@@ -311,10 +311,7 @@ where
             .await
             .map_err(Self::SendTransactionError::SignerError)?;
         self.provider
-            .add_transaction(
-                TransactionRequest::InvokeFunction(add_transaction_request),
-                None,
-            )
+            .add_transaction(TransactionRequest::InvokeFunction(add_transaction_request))
             .await
             .map_err(Self::SendTransactionError::ProviderError)
     }
@@ -360,7 +357,7 @@ where
             .await
             .map_err(Self::SendTransactionError::SignerError)?;
         self.provider
-            .add_transaction(TransactionRequest::Declare(add_transaction_request), None)
+            .add_transaction(TransactionRequest::Declare(add_transaction_request))
             .await
             .map_err(Self::SendTransactionError::ProviderError)
     }
