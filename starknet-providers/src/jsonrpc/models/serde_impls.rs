@@ -64,3 +64,74 @@ impl<'de> Deserialize<'de> for SyncStatusType {
         }
     }
 }
+
+// Deriving the Serialize trait directly results in duplicate fields since the variants also write
+// the tag fields when individually serialized.
+mod enum_ser_impls {
+    use super::super::*;
+
+    impl Serialize for Transaction {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            match self {
+                Self::Invoke(variant) => variant.serialize(serializer),
+                Self::L1Handler(variant) => variant.serialize(serializer),
+                Self::Declare(variant) => variant.serialize(serializer),
+                Self::Deploy(variant) => variant.serialize(serializer),
+                Self::DeployAccount(variant) => variant.serialize(serializer),
+            }
+        }
+    }
+
+    impl Serialize for BroadcastedTransaction {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            match self {
+                Self::Invoke(variant) => variant.serialize(serializer),
+                Self::Declare(variant) => variant.serialize(serializer),
+                Self::Deploy(variant) => variant.serialize(serializer),
+                Self::DeployAccount(variant) => variant.serialize(serializer),
+            }
+        }
+    }
+
+    impl Serialize for InvokeTransaction {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            match self {
+                Self::V0(variant) => variant.serialize(serializer),
+                Self::V1(variant) => variant.serialize(serializer),
+            }
+        }
+    }
+
+    impl Serialize for BroadcastedInvokeTransaction {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            match self {
+                Self::V0(variant) => variant.serialize(serializer),
+                Self::V1(variant) => variant.serialize(serializer),
+            }
+        }
+    }
+
+    impl Serialize for TransactionReceipt {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            match self {
+                Self::Invoke(variant) => variant.serialize(serializer),
+                Self::L1Handler(variant) => variant.serialize(serializer),
+                Self::Declare(variant) => variant.serialize(serializer),
+                Self::Deploy(variant) => variant.serialize(serializer),
+                Self::DeployAccount(variant) => variant.serialize(serializer),
+            }
+        }
+    }
+
+    impl Serialize for PendingTransactionReceipt {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            match self {
+                Self::Invoke(variant) => variant.serialize(serializer),
+                Self::L1Handler(variant) => variant.serialize(serializer),
+                Self::Declare(variant) => variant.serialize(serializer),
+                Self::Deploy(variant) => variant.serialize(serializer),
+                Self::DeployAccount(variant) => variant.serialize(serializer),
+            }
+        }
+    }
+}

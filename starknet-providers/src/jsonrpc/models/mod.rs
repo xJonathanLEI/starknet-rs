@@ -102,7 +102,7 @@ pub enum BlockId {
     Tag(BlockTag),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type")]
 pub enum Transaction {
     #[serde(rename = "INVOKE")]
@@ -117,7 +117,7 @@ pub enum Transaction {
     DeployAccount(DeployAccountTransaction),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type")]
 pub enum BroadcastedTransaction {
     #[serde(rename = "INVOKE")]
@@ -130,7 +130,7 @@ pub enum BroadcastedTransaction {
     DeployAccount(BroadcastedDeployAccountTransaction),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "version")]
 pub enum InvokeTransaction {
     #[serde(rename = "0x0")]
@@ -139,7 +139,7 @@ pub enum InvokeTransaction {
     V1(InvokeTransactionV1),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "version")]
 pub enum BroadcastedInvokeTransaction {
     #[serde(rename = "0x0")]
@@ -148,7 +148,7 @@ pub enum BroadcastedInvokeTransaction {
     V1(BroadcastedInvokeTransactionV1),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type")]
 pub enum TransactionReceipt {
     #[serde(rename = "INVOKE")]
@@ -163,7 +163,7 @@ pub enum TransactionReceipt {
     DeployAccount(DeployAccountTransactionReceipt),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type")]
 pub enum PendingTransactionReceipt {
     #[serde(rename = "INVOKE")]
