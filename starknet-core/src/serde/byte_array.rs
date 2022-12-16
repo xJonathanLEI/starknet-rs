@@ -14,7 +14,7 @@ pub mod base64 {
         D: Deserializer<'de>,
     {
         let value = String::deserialize(deserializer)?;
-        match base64::decode(&value) {
+        match base64::decode(value) {
             Ok(value) => Ok(value),
             Err(err) => Err(serde::de::Error::custom(format!(
                 "invalid base64 string: {}",
