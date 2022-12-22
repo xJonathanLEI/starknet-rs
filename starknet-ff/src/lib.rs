@@ -451,7 +451,7 @@ impl<'de> Deserialize<'de> for FieldElement {
         D: serde::Deserializer<'de>,
     {
         let value = String::deserialize(deserializer)?;
-        Self::from_str(&value).map_err(|err| serde::de::Error::custom(err))
+        Self::from_str(&value).map_err(serde::de::Error::custom)
     }
 }
 
