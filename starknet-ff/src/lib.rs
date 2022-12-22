@@ -451,8 +451,7 @@ impl<'de> Deserialize<'de> for FieldElement {
         D: serde::Deserializer<'de>,
     {
         let value = String::deserialize(deserializer)?;
-        Self::from_dec_str(&value)
-            .map_err(|err| serde::de::Error::custom(format!("invalid decimal string: {}", err)))
+        Self::from_str(&value).map_err(serde::de::Error::custom)
     }
 }
 
