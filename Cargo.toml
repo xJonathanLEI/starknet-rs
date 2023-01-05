@@ -26,6 +26,7 @@ members = [
     "starknet-macros",
     "starknet-curve",
     "starknet-crypto-codegen",
+    "starknet-id",
     "examples/starknet-wasm",
     "examples/starknet-cxx/starknet-cxx",
 ]

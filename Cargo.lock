@@ -1677,6 +1677,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "starknet-id"
+version = "0.1.0"
+dependencies = [
+ "num-traits",
+ "starknet-core",
+ "starknet-providers",
+ "tokio",
+]
+
+[[package]]
 name = "starknet-macros"
 version = "0.1.0"
 dependencies = [
