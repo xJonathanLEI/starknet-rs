@@ -41,6 +41,7 @@ starknet-contract = { version = "0.1.0", path = "./starknet-contract" }
 starknet-signers = { version = "0.1.0", path = "./starknet-signers" }
 starknet-accounts = { version = "0.1.0", path = "./starknet-accounts" }
 starknet-macros = { version = "0.1.0", path = "./starknet-macros" }
+starknet-id = { version = "0.1.0", path = "./starknet-id" }
 
 [dev-dependencies]
 serde_json = "1.0.74"

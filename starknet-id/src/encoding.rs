@@ -4,6 +4,11 @@ use starknet_core::types::FieldElement;
 const BASIC_ALPHABET: &str = "abcdefghijklmnopqrstuvwxyz0123456789-";
 const BIG_ALPHABET: &str = "这来";
 
+#[derive(Debug)]
+pub enum EncodingError {
+    UnkwnownCharacter(char),
+}
+
 fn extract_stars(mut domain: &str) -> (&str, usize) {
     let mut k = 0;
     let last_char = BIG_ALPHABET.chars().last().unwrap();
@@ -16,9 +21,10 @@ fn extract_stars(mut domain: &str) -> (&str, usize) {
     (domain, k)
 }
 
-pub fn encode(mut domain: String) -> FieldElement {
+pub fn encode(domain: &str) -> Result<FieldElement, EncodingError> {
     let mut mul = 1;
     let mut output = FieldElement::ZERO;
+    let mut wip_domain: String;
 
     if domain.chars().count() >= 2
         && domain.chars().nth(domain.chars().count() - 2).unwrap()
@@ -29,8 +35,8 @@ pub fn encode(mut domain: String) -> FieldElement {
         chars.next_back();
         chars.next_back();
         let (str, k) = extract_stars(chars.as_str());
-        domain = String::from(str);
-        domain.push_str(
+        wip_domain = String::from(str);
+        wip_domain.push_str(
             BIG_ALPHABET
                 .chars()
                 .last()
@@ -40,10 +46,10 @@ pub fn encode(mut domain: String) -> FieldElement {
                 .as_str(),
         )
     } else {
-        let (str, k) = extract_stars(domain.as_str());
+        let (str, k) = extract_stars(domain);
         if k != 0 {
-            domain = String::from(str);
-            domain.push_str(
+            wip_domain = String::from(str);
+            wip_domain.push_str(
                 BIG_ALPHABET
                     .chars()
                     .last()
@@ -52,11 +58,13 @@ pub fn encode(mut domain: String) -> FieldElement {
                     .repeat(1 + (2 * (k - 1)))
                     .as_str(),
             )
+        } else {
+            wip_domain = String::from(domain);
         }
     }
 
-    for (i, c) in domain.chars().enumerate() {
-        if i == domain.chars().count() - 1 && c == BASIC_ALPHABET.chars().next().unwrap() {
+    for (i, c) in wip_domain.chars().enumerate() {
+        if i == wip_domain.chars().count() - 1 && c == BASIC_ALPHABET.chars().next().unwrap() {
             output = output + FieldElement::from(BASIC_ALPHABET.chars().count() * mul);
         } else {
             let found_basic = BASIC_ALPHABET
@@ -79,7 +87,7 @@ pub fn encode(mut domain: String) -> FieldElement {
                             output = output
                                 + FieldElement::from(
                                     mul * (index
-                                        + if i == domain.chars().count() - 1 {
+                                        + if i == wip_domain.chars().count() - 1 {
                                             1
                                         } else {
                                             0
@@ -88,7 +96,7 @@ pub fn encode(mut domain: String) -> FieldElement {
                             mul = mul * BIG_ALPHABET.chars().count();
                         }
                         None => {
-                            panic!("Invalid character in domain name");
+                            return Err(EncodingError::UnkwnownCharacter(c));
                         }
                     }
                 }
@@ -96,7 +104,7 @@ pub fn encode(mut domain: String) -> FieldElement {
         }
     }
 
-    return output;
+    return Ok(output);
 }
 
 pub fn decode(mut felt: FieldElement) -> String {

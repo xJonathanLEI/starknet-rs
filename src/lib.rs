@@ -71,3 +71,7 @@ pub mod accounts {
 pub mod macros {
     pub use starknet_macros::*;
 }
+
+pub mod id {
+    pub use starknet_id::*;
+}

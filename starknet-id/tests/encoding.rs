@@ -3,26 +3,30 @@ use starknet_id::{decode, encode};
 
 #[tokio::test]
 async fn encoding_works() {
-    let encoded = encode("thomas".to_string());
+    let encoded = encode("thomas").unwrap();
     assert_eq!(encoded, FieldElement::from_dec_str("1426911989").unwrap());
 
-    let encoded = encode("".to_string());
+    let encoded = encode("").unwrap();
     assert_eq!(encoded, FieldElement::from_dec_str("0").unwrap());
 
-    let encoded = encode("ben".to_string());
+    let encoded = encode("ben").unwrap();
     assert_eq!(encoded, FieldElement::from_dec_str("18925").unwrap());
 
-    let encoded = encode("这来".to_string());
+    let encoded = encode("这来").unwrap();
     assert_eq!(encoded, FieldElement::from_dec_str("8625").unwrap());
 
-    let encoded = encode("efghijk来aa".to_string());
+    let encoded = encode("efghijk来aa").unwrap();
     assert_eq!(
         encoded,
         FieldElement::from_dec_str("12234603501699554").unwrap()
     );
 
-    let encoded = encode("a".to_string());
+    let encoded = encode("a").unwrap();
     assert_eq!(encoded, FieldElement::from_dec_str("37").unwrap());
+
+    let encoded = encode("/''[;[");
+
+    assert!(encoded.is_err());
 }
 
 #[tokio::test]
