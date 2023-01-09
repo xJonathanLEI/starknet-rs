@@ -11,7 +11,7 @@ use serde_with::serde_as;
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub enum TransactionType {
     Declare(DeclareTransaction),
     Deploy(DeployTransaction),
@@ -22,7 +22,7 @@ pub enum TransactionType {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct TransactionStatusInfo {
     #[serde(default)]
     #[serde_as(as = "UfePendingBlockHash")]
@@ -33,7 +33,7 @@ pub struct TransactionStatusInfo {
     pub transaction_failure_reason: Option<TransactionFailureReason>,
 }
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct TransactionFailureReason {
     pub code: String,
     pub error_message: Option<String>,
@@ -41,7 +41,7 @@ pub struct TransactionFailureReason {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct TransactionInfo {
     #[serde(default)]
     #[serde_as(as = "UfePendingBlockHash")]
@@ -56,7 +56,7 @@ pub struct TransactionInfo {
 
 #[derive(Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub enum EntryPointType {
     External,
     L1Handler,
@@ -65,7 +65,7 @@ pub enum EntryPointType {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct DeclareTransaction {
     #[serde_as(as = "UfeHex")]
     pub class_hash: FieldElement,
@@ -85,7 +85,7 @@ pub struct DeclareTransaction {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct DeployTransaction {
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub constructor_calldata: Vec<FieldElement>,
@@ -103,7 +103,7 @@ pub struct DeployTransaction {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct DeployAccountTransaction {
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub constructor_calldata: Vec<FieldElement>,
@@ -127,7 +127,7 @@ pub struct DeployAccountTransaction {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct InvokeFunctionTransaction {
     #[serde_as(as = "UfeHex")]
     pub contract_address: FieldElement,
@@ -151,7 +151,7 @@ pub struct InvokeFunctionTransaction {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct L1HandlerTransaction {
     #[serde_as(as = "UfeHex")]
     pub contract_address: FieldElement,

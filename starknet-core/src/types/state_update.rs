@@ -6,7 +6,7 @@ use std::collections::HashMap;
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct StateUpdate {
     #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
@@ -20,7 +20,7 @@ pub struct StateUpdate {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct StateDiff {
     #[serde_as(as = "HashMap<UfeHex, _>")]
     pub storage_diffs: HashMap<FieldElement, Vec<StorageDiff>>,
@@ -34,7 +34,7 @@ pub struct StateDiff {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct StorageDiff {
     #[serde_as(as = "UfeHex")]
     pub key: FieldElement,
@@ -44,7 +44,7 @@ pub struct StorageDiff {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct DeployedContract {
     #[serde_as(as = "UfeHex")]
     pub address: FieldElement,

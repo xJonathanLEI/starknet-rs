@@ -15,7 +15,7 @@ pub enum BlockId {
 
 #[derive(Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub enum BlockStatus {
     /// Block that is yet to be closed
     Pending,
@@ -31,7 +31,7 @@ pub enum BlockStatus {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct Block {
     #[serde(default)]
     #[serde_as(as = "UfeHexOption")]

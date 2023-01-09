@@ -15,7 +15,7 @@ use std::{collections::BTreeMap, io::Write};
 const API_VERSION: FieldElement = FieldElement::ZERO;
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ContractArtifact {
     pub abi: Vec<AbiEntry>,
     pub entry_points_by_type: EntryPointsByType,
@@ -40,7 +40,7 @@ pub enum CompressProgramError {
 
 #[serde_as]
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct Program {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attributes: Option<Vec<Attribute>>,
@@ -62,7 +62,7 @@ pub struct Program {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct Attribute {
     pub accessible_scopes: Vec<String>,
     pub end_pc: u64,
@@ -74,7 +74,7 @@ pub struct Attribute {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct DebugInfo {
     /// A partial map from file name to its content. Files that are not in the map, are assumed to
     /// exist in the file system.
@@ -84,7 +84,7 @@ pub struct DebugInfo {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct Hint {
     pub accessible_scopes: Vec<String>,
     pub code: String,
@@ -92,7 +92,7 @@ pub struct Hint {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct Identifier {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub decorators: Option<Vec<String>>,
@@ -116,13 +116,13 @@ pub struct Identifier {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ReferenceManager {
     pub references: Vec<Reference>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct InstructionLocation {
     pub accessible_scopes: Vec<String>,
     // This field is serialized as `null` instead of skipped
@@ -132,14 +132,14 @@ pub struct InstructionLocation {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct IdentifierMember {
     pub cairo_type: String,
     pub offset: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct Reference {
     pub ap_tracking_data: ApTrackingData,
     pub pc: u64,
@@ -147,14 +147,14 @@ pub struct Reference {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct FlowTrackingData {
     pub ap_tracking: ApTrackingData,
     pub reference_ids: BTreeMap<String, u64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct HintLocation {
     pub location: Location,
     /// The number of new lines following the "%{" symbol
@@ -162,7 +162,7 @@ pub struct HintLocation {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct Location {
     pub end_col: u64,
     pub end_line: u64,
@@ -174,14 +174,14 @@ pub struct Location {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ApTrackingData {
     pub group: u64,
     pub offset: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct InputFile {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filename: Option<String>,
