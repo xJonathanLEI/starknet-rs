@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#c75e6067c10b9f1161f99657e9c9819528bc96a6
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#275a28e3b6efb7f05216e643a73c9f51ee7d658f
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -25,6 +25,7 @@ use starknet_core::{
 use super::{serde_impls::NumAsHex, *};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ResultPageRequest {
     /// A pointer to the last element of the delivered page, use this token in a subsequent query to
     /// obtain the next page
@@ -38,6 +39,7 @@ pub struct ResultPageRequest {
 /// Event information decorated with metadata on where it was emitted.
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct EmittedEvent {
     #[serde_as(as = "UfeHex")]
     pub from_address: FieldElement,
@@ -58,6 +60,7 @@ pub struct EmittedEvent {
 /// A StarkNet event.
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct Event {
     #[serde_as(as = "UfeHex")]
     pub from_address: FieldElement,
@@ -99,6 +102,7 @@ pub enum BlockTag {
 /// An object describing the node synchronization status.
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct SyncStatus {
     /// The hash of the block from which the sync started
     #[serde_as(as = "UfeHex")]
@@ -122,6 +126,7 @@ pub struct SyncStatus {
 
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct StateUpdate {
     #[serde_as(as = "UfeHex")]
     pub block_hash: FieldElement,
@@ -138,6 +143,7 @@ pub struct StateUpdate {
 
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct StateDiff {
     pub storage_diffs: Vec<ContractStorageDiffItem>,
     #[serde_as(as = "Vec<UfeHex>")]
@@ -148,6 +154,7 @@ pub struct StateDiff {
 
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct NonceUpdate {
     /// The address of the contract
     #[serde_as(as = "UfeHex")]
@@ -160,6 +167,7 @@ pub struct NonceUpdate {
 /// The block object.
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct BlockWithTxHashes {
     pub status: BlockStatus,
     #[serde_as(as = "UfeHex")]
@@ -185,6 +193,7 @@ pub struct BlockWithTxHashes {
 /// The block object.
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct BlockWithTxs {
     pub status: BlockStatus,
     #[serde_as(as = "UfeHex")]
@@ -210,6 +219,7 @@ pub struct BlockWithTxs {
 /// upon decentralization.
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct PendingBlockWithTxHashes {
     /// The hashes of the transactions included in this block
     #[serde_as(as = "Vec<UfeHex>")]
@@ -228,6 +238,7 @@ pub struct PendingBlockWithTxHashes {
 /// upon decentralization.
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct PendingBlockWithTxs {
     /// The transactions in this block
     pub transactions: Vec<Transaction>,
@@ -243,6 +254,7 @@ pub struct PendingBlockWithTxs {
 
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct DeployedContractItem {
     /// The address of the contract
     #[serde_as(as = "UfeHex")]
@@ -254,6 +266,7 @@ pub struct DeployedContractItem {
 
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ContractStorageDiffItem {
     /// The contract address for which the storage changed
     #[serde_as(as = "UfeHex")]
@@ -264,6 +277,7 @@ pub struct ContractStorageDiffItem {
 
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct StorageEntry {
     /// The key of the changed value
     #[serde_as(as = "UfeHex")]
@@ -599,6 +613,7 @@ pub struct PendingL1HandlerTransactionReceipt {
 
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct MsgToL1 {
     /// The target L1 address the message is sent to
     #[serde_as(as = "UfeHex")]
@@ -637,6 +652,7 @@ pub enum BlockStatus {
 /// Function call information.
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct FunctionCall {
     #[serde_as(as = "UfeHex")]
     pub contract_address: FieldElement,
@@ -649,6 +665,7 @@ pub struct FunctionCall {
 
 /// The definition of a StarkNet contract class.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ContractClass {
     /// A base64 representation of the compressed program code
     #[serde(with = "base64")]
@@ -659,6 +676,7 @@ pub struct ContractClass {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct EntryPointsByType {
     #[serde(rename = "CONSTRUCTOR")]
     pub constructor: Vec<ContractEntryPoint>,
@@ -670,6 +688,7 @@ pub struct EntryPointsByType {
 
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ContractEntryPoint {
     /// The offset of the entry point in the program
     #[serde_as(as = "NumAsHex")]
@@ -702,6 +721,7 @@ pub enum FunctionAbiType {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct StructAbiEntry {
     pub r#type: StructAbiType,
     /// The struct name
@@ -711,6 +731,7 @@ pub struct StructAbiEntry {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct StructMember {
     /// The parameter's name
     pub name: String,
@@ -721,6 +742,7 @@ pub struct StructMember {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct EventAbiEntry {
     pub r#type: EventAbiType,
     /// The event name
@@ -739,6 +761,7 @@ pub struct FunctionAbiEntry {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct TypedParameter {
     /// The parameter's name
     pub name: String,
@@ -748,6 +771,7 @@ pub struct TypedParameter {
 
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct FeeEstimate {
     /// The Ethereum gas cost of the transaction (see
     /// https://docs.starknet.io/docs/fees/fee-mechanism for more info)
@@ -802,6 +826,7 @@ impl<'de> Deserialize<'de> for DeclareTransaction {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -878,6 +903,7 @@ impl<'de> Deserialize<'de> for BroadcastedDeclareTransaction {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde(default, skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
@@ -957,6 +983,7 @@ impl<'de> Deserialize<'de> for DeployAccountTransaction {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -1040,6 +1067,7 @@ impl<'de> Deserialize<'de> for BroadcastedDeployAccountTransaction {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde(default, skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
@@ -1114,6 +1142,7 @@ impl<'de> Deserialize<'de> for DeployTransaction {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -1178,6 +1207,7 @@ impl<'de> Deserialize<'de> for BroadcastedDeployTransaction {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             pub contract_class: ContractClass,
             #[serde_as(as = "NumAsHex")]
@@ -1251,6 +1281,7 @@ impl<'de> Deserialize<'de> for InvokeTransactionV0 {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -1340,6 +1371,7 @@ impl<'de> Deserialize<'de> for InvokeTransactionV1 {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -1426,6 +1458,7 @@ impl<'de> Deserialize<'de> for BroadcastedInvokeTransactionV0 {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde(default, skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
@@ -1509,6 +1542,7 @@ impl<'de> Deserialize<'de> for BroadcastedInvokeTransactionV1 {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde(default, skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
@@ -1589,6 +1623,7 @@ impl<'de> Deserialize<'de> for L1HandlerTransaction {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -1662,6 +1697,7 @@ impl<'de> Deserialize<'de> for InvokeTransactionReceipt {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -1734,6 +1770,7 @@ impl<'de> Deserialize<'de> for DeclareTransactionReceipt {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -1809,6 +1846,7 @@ impl<'de> Deserialize<'de> for DeployAccountTransactionReceipt {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -1887,6 +1925,7 @@ impl<'de> Deserialize<'de> for DeployTransactionReceipt {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -1962,6 +2001,7 @@ impl<'de> Deserialize<'de> for L1HandlerTransactionReceipt {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -2027,6 +2067,7 @@ impl<'de> Deserialize<'de> for PendingInvokeTransactionReceipt {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -2085,6 +2126,7 @@ impl<'de> Deserialize<'de> for PendingDeclareTransactionReceipt {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -2143,6 +2185,7 @@ impl<'de> Deserialize<'de> for PendingDeployAccountTransactionReceipt {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -2204,6 +2247,7 @@ impl<'de> Deserialize<'de> for PendingDeployTransactionReceipt {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -2265,6 +2309,7 @@ impl<'de> Deserialize<'de> for PendingL1HandlerTransactionReceipt {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,

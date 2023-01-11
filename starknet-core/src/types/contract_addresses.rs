@@ -3,7 +3,7 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ContractAddresses {
     pub starknet: Address,
     pub gps_statement_verifier: Address,

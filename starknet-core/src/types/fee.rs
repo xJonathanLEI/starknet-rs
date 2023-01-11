@@ -3,7 +3,7 @@ use serde::Deserialize;
 use super::TransactionTrace;
 
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct FeeEstimate {
     pub overall_fee: u64,
     pub unit: FeeUnit,
@@ -13,14 +13,14 @@ pub struct FeeEstimate {
 
 /// Represents the information regarding a StarkNet transaction's simulation.
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct TransactionSimulationInfo {
     pub trace: TransactionTrace,
     pub fee_estimation: FeeEstimate,
 }
 
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub enum FeeUnit {
     #[serde(rename = "wei")]
     Wei,

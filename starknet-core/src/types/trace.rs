@@ -7,7 +7,7 @@ use starknet_crypto::FieldElement;
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct BlockTraces {
     pub traces: Vec<TransactionTraceWithHash>,
 }
@@ -15,7 +15,7 @@ pub struct BlockTraces {
 /// Represents the trace of a StarkNet transaction execution, including internal calls.
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct TransactionTrace {
     /// An object describing the invocation of a specific function.
     pub function_invocation: FunctionInvocation,
@@ -31,7 +31,7 @@ pub struct TransactionTrace {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct TransactionTraceWithHash {
     #[serde(flatten)]
     pub trace: TransactionTrace,
@@ -41,7 +41,7 @@ pub struct TransactionTraceWithHash {
 
 #[derive(Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub enum CallType {
     Call,
     Delegate,
@@ -50,7 +50,7 @@ pub enum CallType {
 /// A lean version of CallInfo class, containing merely the information relevant for the user.
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct FunctionInvocation {
     #[serde_as(as = "UfeHex")]
     pub caller_address: FieldElement,
@@ -80,7 +80,7 @@ pub struct FunctionInvocation {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct OrderedEventResponse {
     pub order: u64,
     #[serde_as(as = "Vec<UfeHex>")]
@@ -91,7 +91,7 @@ pub struct OrderedEventResponse {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct OrderedL2ToL1MessageResponse {
     pub order: u64,
     pub to_address: Address,

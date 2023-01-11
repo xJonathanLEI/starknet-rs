@@ -30,6 +30,7 @@ thiserror = "1.0.30"
 
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false }
+starknet-core = { path = ".", features = ["no_unknown_fields"] }
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3.29"
@@ -37,6 +38,7 @@ wasm-bindgen-test = "0.3.29"
 [features]
 default = ["bigdecimal"]
 bigdecimal = ["starknet-ff/bigdecimal"]
+no_unknown_fields = []
 
 [[bench]]
 name = "class_hash"
