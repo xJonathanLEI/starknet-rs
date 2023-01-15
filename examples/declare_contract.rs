@@ -24,10 +24,7 @@ async fn main() {
     let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
 
     let result = account
-        .declare(
-            Arc::new(contract_artifact.compress().unwrap()),
-            contract_artifact.class_hash().unwrap(),
-        )
+        .declare(Arc::new(contract_artifact))
         .send()
         .await
         .unwrap();

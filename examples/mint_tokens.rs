@@ -20,7 +20,7 @@ async fn main() {
     let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
 
     let result = account
-        .execute(&[Call {
+        .execute(vec![Call {
             to: tst_token_address,
             selector: get_selector_from_name("mint").unwrap(),
             calldata: vec![
