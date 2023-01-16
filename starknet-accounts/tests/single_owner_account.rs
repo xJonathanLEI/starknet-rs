@@ -1,7 +1,7 @@
-use starknet_accounts::{Account, Call, SingleOwnerAccount};
+use starknet_accounts::{Account, Call, ConnectedAccount, SingleOwnerAccount};
 use starknet_core::{
     chain_id,
-    types::{AddTransactionResultCode, BlockId, ContractArtifact, FieldElement},
+    types::{AddTransactionResultCode, ContractArtifact, FieldElement},
     utils::get_selector_from_name,
 };
 use starknet_providers::SequencerGatewayProvider;
@@ -24,10 +24,7 @@ async fn can_get_nonce() {
 
     let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
 
-    assert_ne!(
-        account.get_nonce(BlockId::Latest).await.unwrap(),
-        FieldElement::ZERO
-    );
+    assert_ne!(account.get_nonce().await.unwrap(), FieldElement::ZERO);
 }
 
 #[tokio::test]
@@ -51,7 +48,7 @@ async fn can_estimate_fee() {
     let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
 
     let fee_estimate = account
-        .execute(&[
+        .execute(vec![
             Call {
                 to: tst_token_address,
                 selector: get_selector_from_name("mint").unwrap(),
@@ -106,7 +103,7 @@ async fn can_execute_tst_mint() {
     let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
 
     let result = account
-        .execute(&[
+        .execute(vec![
             Call {
                 to: tst_token_address,
                 selector: get_selector_from_name("mint").unwrap(),
@@ -154,10 +151,7 @@ async fn can_declare_oz_account_contract() {
         serde_json::from_str(include_str!("../test-data/artifacts/oz_account.txt")).unwrap();
 
     let result = account
-        .declare(
-            Arc::new(contract_artifact.compress().unwrap()),
-            contract_artifact.class_hash().unwrap(),
-        )
+        .declare(Arc::new(contract_artifact))
         .send()
         .await
         .unwrap();

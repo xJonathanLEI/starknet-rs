@@ -1,6 +1,7 @@
 mod account;
 pub use account::{
-    Account, AccountCall, AccountDeclaration, AttachedAccountCall, AttachedAccountDeclaration,
+    Account, AccountError, ConnectedAccount, Declaration, Execution, NotPreparedError,
+    PreparedDeclaration, PreparedExecution, RawDeclaration, RawExecution,
 };
 
 mod call;
