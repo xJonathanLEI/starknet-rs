@@ -8,7 +8,7 @@ use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
         AccountTransaction, AddTransactionResult, FeeEstimate, FieldElement,
-        InvokeFunctionTransactionRequest, TransactionRequest,
+        InvokeFunctionTransactionRequest, TransactionRequest, TransactionSimulationInfo,
     },
 };
 use starknet_providers::Provider;
@@ -81,6 +81,15 @@ where
         };
 
         self.estimate_fee_with_nonce(nonce).await
+    }
+
+    pub async fn simulate(
+        &self,
+    ) -> Result<
+        TransactionSimulationInfo,
+        AccountError<A::SignError, <A::Provider as Provider>::Error>,
+    > {
+        self.prepare().await?.simulate().await
     }
 
     pub async fn send(
@@ -222,6 +231,26 @@ where
         self.account
             .provider()
             .add_transaction(TransactionRequest::InvokeFunction(tx_request))
+            .await
+            .map_err(AccountError::Provider)
+    }
+
+    pub async fn simulate(
+        &self,
+    ) -> Result<
+        TransactionSimulationInfo,
+        AccountError<A::SignError, <A::Provider as Provider>::Error>,
+    > {
+        let tx_request = self
+            .get_invoke_request()
+            .await
+            .map_err(AccountError::Signing)?;
+        self.account
+            .provider()
+            .simulate_transaction(
+                AccountTransaction::InvokeFunction(tx_request),
+                self.account.block_id(),
+            )
             .await
             .map_err(AccountError::Provider)
     }
