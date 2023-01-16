@@ -1,7 +1,7 @@
 use crate::provider::Provider;
 
 use async_trait::async_trait;
-use reqwest::{Client, Error as ReqwestError};
+use reqwest::{Client, Error as ReqwestError, StatusCode};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Error as SerdeJsonError;
 use serde_with::serde_as;
@@ -34,6 +34,8 @@ pub enum ProviderError {
     Deserialization { err: SerdeJsonError, text: String },
     #[error(transparent)]
     StarknetError(StarknetError),
+    #[error("Request rate limited")]
+    RateLimited,
 }
 
 impl SequencerGatewayProvider {
@@ -126,9 +128,13 @@ impl SequencerGatewayProvider {
         T: DeserializeOwned,
     {
         let res = self.client.get(url).send().await?;
-        let body = res.text().await?;
-        serde_json::from_str(&body)
-            .map_err(|err| ProviderError::Deserialization { err, text: body })
+        if res.status() == StatusCode::TOO_MANY_REQUESTS {
+            Err(ProviderError::RateLimited)
+        } else {
+            let body = res.text().await?;
+            serde_json::from_str(&body)
+                .map_err(|err| ProviderError::Deserialization { err, text: body })
+        }
     }
 
     async fn send_post_request<Q, S>(&self, url: Url, body: &Q) -> Result<S, ProviderError>
@@ -143,9 +149,13 @@ impl SequencerGatewayProvider {
             .body(serde_json::to_string(body).map_err(ProviderError::Serialization)?)
             .send()
             .await?;
-        let body = res.text().await?;
-        serde_json::from_str(&body)
-            .map_err(|err| ProviderError::Deserialization { err, text: body })
+        if res.status() == StatusCode::TOO_MANY_REQUESTS {
+            Err(ProviderError::RateLimited)
+        } else {
+            let body = res.text().await?;
+            serde_json::from_str(&body)
+                .map_err(|err| ProviderError::Deserialization { err, text: body })
+        }
     }
 }
 
