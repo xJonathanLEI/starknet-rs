@@ -40,8 +40,16 @@ pub enum ProviderError {
 
 impl SequencerGatewayProvider {
     pub fn new(gateway_url: impl Into<Url>, feeder_gateway_url: impl Into<Url>) -> Self {
+        Self::new_with_client(gateway_url, feeder_gateway_url, Client::new())
+    }
+
+    pub fn new_with_client(
+        gateway_url: impl Into<Url>,
+        feeder_gateway_url: impl Into<Url>,
+        client: Client,
+    ) -> Self {
         Self {
-            client: Client::new(),
+            client,
             gateway_url: gateway_url.into(),
             feeder_gateway_url: feeder_gateway_url.into(),
         }

@@ -14,8 +14,12 @@ pub struct HttpTransport {
 
 impl HttpTransport {
     pub fn new(url: impl Into<Url>) -> Self {
+        Self::new_with_client(url, Client::new())
+    }
+
+    pub fn new_with_client(url: impl Into<Url>, client: Client) -> Self {
         Self {
-            client: Client::new(),
+            client,
             url: url.into(),
         }
     }
