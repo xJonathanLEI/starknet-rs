@@ -34,4 +34,6 @@ pub enum ErrorCode {
     MalformedRequest,
     #[serde(rename = "StarknetErrorCode.UNDECLARED_CLASS")]
     UndeclaredClass,
+    #[serde(rename = "StarknetErrorCode.INVALID_TRANSACTION_NONCE")]
+    InvalidTransactionNonce,
 }
