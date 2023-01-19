@@ -95,7 +95,7 @@ pub struct DeployAccountTransactionResult {
 }
 
 /// Block hash, number or tag
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BlockId {
     Hash(FieldElement),
     Number(u64),
