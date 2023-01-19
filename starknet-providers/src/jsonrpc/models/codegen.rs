@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#275a28e3b6efb7f05216e643a73c9f51ee7d658f
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#3745c758dde0f7c84106670036e1c5306de40c28
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -91,7 +91,7 @@ pub struct EventFilter {
 }
 
 /// A tag specifying a dynamic reference to a block.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BlockTag {
     #[serde(rename = "latest")]
     Latest,
@@ -624,7 +624,7 @@ pub struct MsgToL1 {
 }
 
 /// The status of the transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TransactionStatus {
     #[serde(rename = "PENDING")]
     Pending,
@@ -637,7 +637,7 @@ pub enum TransactionStatus {
 }
 
 /// The status of the block.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BlockStatus {
     #[serde(rename = "PENDING")]
     Pending,
@@ -698,19 +698,19 @@ pub struct ContractEntryPoint {
     pub selector: FieldElement,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StructAbiType {
     #[serde(rename = "struct")]
     Struct,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum EventAbiType {
     #[serde(rename = "event")]
     Event,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum FunctionAbiType {
     #[serde(rename = "function")]
     Function,
