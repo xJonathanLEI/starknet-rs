@@ -130,3 +130,129 @@ pub enum AccountError<S, P> {
     #[error(transparent)]
     ClassCompression(CompressProgramError),
 }
+
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+impl<A> Account for &A
+where
+    A: Account + Sync,
+{
+    type SignError = A::SignError;
+
+    fn address(&self) -> FieldElement {
+        (*self).address()
+    }
+
+    fn chain_id(&self) -> FieldElement {
+        (*self).chain_id()
+    }
+
+    async fn sign_execution(
+        &self,
+        execution: &RawExecution,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        (*self).sign_execution(execution).await
+    }
+
+    async fn sign_declaration(
+        &self,
+        declaration: &RawDeclaration,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        (*self).sign_declaration(declaration).await
+    }
+}
+
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+impl<A> Account for Box<A>
+where
+    A: Account + Sync + Send,
+{
+    type SignError = A::SignError;
+
+    fn address(&self) -> FieldElement {
+        self.as_ref().address()
+    }
+
+    fn chain_id(&self) -> FieldElement {
+        self.as_ref().chain_id()
+    }
+
+    async fn sign_execution(
+        &self,
+        execution: &RawExecution,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        self.as_ref().sign_execution(execution).await
+    }
+
+    async fn sign_declaration(
+        &self,
+        declaration: &RawDeclaration,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        self.as_ref().sign_declaration(declaration).await
+    }
+}
+
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+impl<A> Account for Arc<A>
+where
+    A: Account + Sync + Send,
+{
+    type SignError = A::SignError;
+
+    fn address(&self) -> FieldElement {
+        self.as_ref().address()
+    }
+
+    fn chain_id(&self) -> FieldElement {
+        self.as_ref().chain_id()
+    }
+
+    async fn sign_execution(
+        &self,
+        execution: &RawExecution,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        self.as_ref().sign_execution(execution).await
+    }
+
+    async fn sign_declaration(
+        &self,
+        declaration: &RawDeclaration,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        self.as_ref().sign_declaration(declaration).await
+    }
+}
+
+impl<A> ConnectedAccount for &A
+where
+    A: ConnectedAccount + Sync,
+{
+    type Provider = A::Provider;
+
+    fn provider(&self) -> &Self::Provider {
+        (*self).provider()
+    }
+}
+
+impl<A> ConnectedAccount for Box<A>
+where
+    A: ConnectedAccount + Sync + Send,
+{
+    type Provider = A::Provider;
+
+    fn provider(&self) -> &Self::Provider {
+        self.as_ref().provider()
+    }
+}
+
+impl<A> ConnectedAccount for Arc<A>
+where
+    A: ConnectedAccount + Sync + Send,
+{
+    type Provider = A::Provider;
+
+    fn provider(&self) -> &Self::Provider {
+        self.as_ref().provider()
+    }
+}
