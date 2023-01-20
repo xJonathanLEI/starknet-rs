@@ -1,54 +1,78 @@
-use rand::{prelude::StdRng, RngCore, SeedableRng};
-use starknet_core::types::{
-    contract_artifact::CompressProgramError, AbiEntry, AddTransactionResult, ContractArtifact,
-    ContractDefinition, DeployTransactionRequest, EntryPointsByType, FieldElement,
-    TransactionRequest,
-};
-use starknet_providers::Provider;
+use starknet_accounts::{Account, Call, Execution};
+use starknet_core::types::FieldElement;
 
-pub struct Factory<P>
-where
-    P: Provider,
-{
-    compressed_program: Vec<u8>,
-    entry_points_by_type: EntryPointsByType,
-    abi: Vec<AbiEntry>,
-    provider: P,
+/// The default UDC address: 0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf.
+const UDC_ADDRESS: FieldElement = FieldElement::from_mont([
+    15144800532519055890,
+    15685625669053253235,
+    9333317513348225193,
+    121672436446604875,
+]);
+
+/// Selector for entrypoint `deployContract`.
+const SELECTOR_DEPLOYCONTRACT: FieldElement = FieldElement::from_mont([
+    18249998464715511309,
+    1265649739554438882,
+    1439621915307882061,
+    469988280392664069,
+]);
+
+pub struct ContractFactory<A> {
+    class_hash: FieldElement,
+    udc_address: FieldElement,
+    account: A,
 }
 
-impl<P: Provider> Factory<P> {
-    pub fn new(artifact: &ContractArtifact, provider: P) -> Result<Self, CompressProgramError> {
-        let compressed_program = artifact.program.compress()?;
-
-        Ok(Self {
-            compressed_program,
-            entry_points_by_type: artifact.entry_points_by_type.clone(),
-            abi: artifact.abi.clone(),
-            provider,
-        })
+impl<A> ContractFactory<A> {
+    pub fn new(class_hash: FieldElement, account: A) -> Self {
+        Self::new_with_udc(class_hash, account, UDC_ADDRESS)
     }
 
-    pub async fn deploy(
+    pub fn new_with_udc(class_hash: FieldElement, account: A, udc_address: FieldElement) -> Self {
+        Self {
+            class_hash,
+            udc_address,
+            account,
+        }
+    }
+}
+
+impl<A> ContractFactory<A>
+where
+    A: Account,
+{
+    pub fn deploy<C>(
         &self,
-        constructor_calldata: Vec<FieldElement>,
-    ) -> Result<AddTransactionResult, P::Error> {
-        let mut salt_buffer = [0u8; 32];
+        constructor_calldata: C,
+        salt: FieldElement,
+        unique: bool,
+    ) -> Execution<A>
+    where
+        C: AsRef<[FieldElement]>,
+    {
+        let constructor_calldata = constructor_calldata.as_ref();
 
-        // Generate 31 bytes only here to avoid out of range error
-        // TODO: change to cover full range
-        let mut rng = StdRng::from_entropy();
-        rng.fill_bytes(&mut salt_buffer[1..]);
+        let mut calldata = vec![
+            self.class_hash,
+            salt,
+            if unique {
+                FieldElement::ONE
+            } else {
+                FieldElement::ZERO
+            },
+            constructor_calldata.len().into(),
+        ];
+        constructor_calldata
+            .iter()
+            .for_each(|item| calldata.push(*item));
 
-        self.provider
-            .add_transaction(TransactionRequest::Deploy(DeployTransactionRequest {
-                contract_address_salt: FieldElement::from_bytes_be(&salt_buffer).unwrap(),
-                contract_definition: ContractDefinition {
-                    program: self.compressed_program.clone(),
-                    entry_points_by_type: self.entry_points_by_type.clone(),
-                    abi: Some(self.abi.clone()),
-                },
-                constructor_calldata,
-            }))
-            .await
+        Execution::new(
+            vec![Call {
+                to: self.udc_address,
+                selector: SELECTOR_DEPLOYCONTRACT,
+                calldata,
+            }],
+            &self.account,
+        )
     }
 }

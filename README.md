@@ -72,7 +72,7 @@ Examples can be found in the [examples folder](./examples):
 
 1. [Get the latest block from `alpha-goerli` testnet](./examples/get_block.rs)
 
-2. [Deploy contract to `alpha-goerli` testnet](./examples/deploy_contract.rs)
+2. [Deploy contract to `alpha-goerli` testnet via UDC](./examples/deploy_contract.rs)
 
 3. [Mint yourself 1,000 TST tokens on `alpha-goerli`](./examples/mint_tokens.rs)
 

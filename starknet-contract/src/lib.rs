@@ -1,2 +1,2 @@
 mod factory;
-pub use factory::Factory as ContractFactory;
+pub use factory::ContractFactory;
