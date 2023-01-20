@@ -36,7 +36,6 @@ pub enum AddTransactionResultCode {
 #[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TransactionRequest {
     Declare(DeclareTransaction),
-    Deploy(DeployTransaction),
     InvokeFunction(InvokeFunctionTransaction),
     DeployAccount(DeployAccountTransaction),
 }
@@ -88,13 +87,6 @@ pub struct DeclareTransaction {
     pub signature: Vec<FieldElement>,
     /// A sequential integer used to distinguish between transactions and order them.
     pub nonce: FieldElement,
-}
-
-#[derive(Debug)]
-pub struct DeployTransaction {
-    pub constructor_calldata: Vec<FieldElement>,
-    pub contract_address_salt: FieldElement,
-    pub contract_definition: ContractDefinition,
 }
 
 #[derive(Debug)]
@@ -174,33 +166,6 @@ impl Serialize for DeclareTransaction {
             max_fee: &self.max_fee,
             signature: &self.signature,
             nonce: &self.nonce,
-        };
-
-        Versioned::serialize(&versioned, serializer)
-    }
-}
-
-impl Serialize for DeployTransaction {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        #[serde_as]
-        #[derive(Serialize)]
-        struct Versioned<'a> {
-            #[serde_as(as = "UfeHex")]
-            version: FieldElement,
-            constructor_calldata: &'a Vec<FieldElement>,
-            #[serde_as(as = "UfeHex")]
-            contract_address_salt: &'a FieldElement,
-            contract_definition: &'a ContractDefinition,
-        }
-
-        let versioned = Versioned {
-            version: FieldElement::ZERO,
-            constructor_calldata: &self.constructor_calldata,
-            contract_address_salt: &self.contract_address_salt,
-            contract_definition: &self.contract_definition,
         };
 
         Versioned::serialize(&versioned, serializer)
