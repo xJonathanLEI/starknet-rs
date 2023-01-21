@@ -15,8 +15,12 @@ pub fn selector(input: TokenStream) -> TokenStream {
     let selector_raw = selector_value.into_mont();
 
     format!(
-        "::starknet::core::types::FieldElement::from_mont([{}, {}, {}, {}])",
-        selector_raw[0], selector_raw[1], selector_raw[2], selector_raw[3],
+        "{}::from_mont([{}, {}, {}, {}])",
+        field_element_path(),
+        selector_raw[0],
+        selector_raw[1],
+        selector_raw[2],
+        selector_raw[3],
     )
     .parse()
     .unwrap()
@@ -32,8 +36,12 @@ pub fn short_string(input: TokenStream) -> TokenStream {
     let felt_raw = felt_value.into_mont();
 
     format!(
-        "::starknet::core::types::FieldElement::from_mont([{}, {}, {}, {}])",
-        felt_raw[0], felt_raw[1], felt_raw[2], felt_raw[3],
+        "{}::from_mont([{}, {}, {}, {}])",
+        field_element_path(),
+        felt_raw[0],
+        felt_raw[1],
+        felt_raw[2],
+        felt_raw[3],
     )
     .parse()
     .unwrap()
@@ -54,8 +62,12 @@ pub fn felt(input: TokenStream) -> TokenStream {
     let felt_raw = felt_value.into_mont();
 
     format!(
-        "::starknet::core::types::FieldElement::from_mont([{}, {}, {}, {}])",
-        felt_raw[0], felt_raw[1], felt_raw[2], felt_raw[3],
+        "{}::from_mont([{}, {}, {}, {}])",
+        field_element_path(),
+        felt_raw[0],
+        felt_raw[1],
+        felt_raw[2],
+        felt_raw[3],
     )
     .parse()
     .unwrap()
@@ -71,8 +83,12 @@ pub fn felt_dec(input: TokenStream) -> TokenStream {
     let felt_raw = felt_value.into_mont();
 
     format!(
-        "::starknet::core::types::FieldElement::from_mont([{}, {}, {}, {}])",
-        felt_raw[0], felt_raw[1], felt_raw[2], felt_raw[3],
+        "{}::from_mont([{}, {}, {}, {}])",
+        field_element_path(),
+        felt_raw[0],
+        felt_raw[1],
+        felt_raw[2],
+        felt_raw[3],
     )
     .parse()
     .unwrap()
@@ -88,9 +104,23 @@ pub fn felt_hex(input: TokenStream) -> TokenStream {
     let felt_raw = felt_value.into_mont();
 
     format!(
-        "::starknet::core::types::FieldElement::from_mont([{}, {}, {}, {}])",
-        felt_raw[0], felt_raw[1], felt_raw[2], felt_raw[3],
+        "{}::from_mont([{}, {}, {}, {}])",
+        field_element_path(),
+        felt_raw[0],
+        felt_raw[1],
+        felt_raw[2],
+        felt_raw[3],
     )
     .parse()
     .unwrap()
+}
+
+#[cfg(feature = "use_imported_type")]
+fn field_element_path() -> &'static str {
+    "FieldElement"
+}
+
+#[cfg(not(feature = "use_imported_type"))]
+fn field_element_path() -> &'static str {
+    "::starknet::core::types::FieldElement"
 }
