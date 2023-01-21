@@ -11,6 +11,9 @@ use starknet_core::{
 use starknet_providers::Provider;
 use std::error::Error;
 
+pub mod argent;
+pub mod open_zeppelin;
+
 /// Cairo string for "deploy_account"
 const PREFIX_DEPLOY_ACCOUNT: FieldElement = FieldElement::from_mont([
     3350261884043292318,
