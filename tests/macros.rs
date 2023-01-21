@@ -1,14 +1,25 @@
 use starknet::{
-    core::utils::get_selector_from_name,
-    macros::{felt, felt_dec, felt_hex, selector},
+    core::{
+        types::FieldElement,
+        utils::{cairo_short_string_to_felt, get_selector_from_name},
+    },
+    macros::{felt, felt_dec, felt_hex, selector, short_string},
 };
-use starknet_core::types::FieldElement;
 
 #[test]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 fn selector_can_generate_correct_selector() {
     let macro_value = selector!("balanceOf");
     let function_call_value = get_selector_from_name("balanceOf").unwrap();
+
+    assert_eq!(macro_value, function_call_value);
+}
+
+#[test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+fn short_string_can_generate_correct_short_string() {
+    let macro_value = short_string!("this is a string");
+    let function_call_value = cairo_short_string_to_felt("this is a string").unwrap();
 
     assert_eq!(macro_value, function_call_value);
 }
