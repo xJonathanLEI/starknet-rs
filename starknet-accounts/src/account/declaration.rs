@@ -1,6 +1,6 @@
 use super::{
-    Account, AccountError, ConnectedAccount, Declaration, NotPreparedError, PreparedDeclaration,
-    RawDeclaration,
+    super::NotPreparedError, Account, AccountError, ConnectedAccount, Declaration,
+    PreparedDeclaration, RawDeclaration,
 };
 
 use starknet_core::{

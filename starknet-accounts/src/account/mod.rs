@@ -116,10 +116,6 @@ pub struct PreparedDeclaration<'a, A> {
 }
 
 #[derive(Debug, thiserror::Error)]
-#[error("Not all fields are prepared")]
-pub struct NotPreparedError;
-
-#[derive(Debug, thiserror::Error)]
 pub enum AccountError<S, P> {
     #[error(transparent)]
     Signing(S),
