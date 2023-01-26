@@ -209,7 +209,7 @@ impl ContractArtifact {
             let mut buffer = vec![];
             for entrypoint in self.entry_points_by_type.external.iter() {
                 buffer.push(entrypoint.selector);
-                buffer.push(entrypoint.offset);
+                buffer.push(entrypoint.offset.into());
             }
             compute_hash_on_elements(&buffer)
         });
@@ -219,7 +219,7 @@ impl ContractArtifact {
             let mut buffer = vec![];
             for entrypoint in self.entry_points_by_type.l1_handler.iter() {
                 buffer.push(entrypoint.selector);
-                buffer.push(entrypoint.offset);
+                buffer.push(entrypoint.offset.into());
             }
             compute_hash_on_elements(&buffer)
         });
@@ -229,7 +229,7 @@ impl ContractArtifact {
             let mut buffer = vec![];
             for entrypoint in self.entry_points_by_type.constructor.iter() {
                 buffer.push(entrypoint.selector);
-                buffer.push(entrypoint.offset);
+                buffer.push(entrypoint.offset.into());
             }
             compute_hash_on_elements(&buffer)
         });

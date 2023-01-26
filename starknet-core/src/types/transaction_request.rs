@@ -1,6 +1,7 @@
 use super::{
     super::serde::{
         byte_array::base64::serialize as base64_ser,
+        num_hex::u64 as u64_hex,
         unsigned_field_element::{UfeHex, UfeHexOption},
     },
     AbiEntry, FieldElement, L1Address,
@@ -111,7 +112,7 @@ pub struct DeployAccountTransaction {
     pub nonce: FieldElement,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct ContractDefinition {
     #[serde(serialize_with = "base64_ser")]
     pub program: Vec<u8>,
@@ -133,8 +134,8 @@ pub struct EntryPointsByType {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct EntryPoint {
-    #[serde_as(as = "UfeHex")]
-    pub offset: FieldElement,
+    #[serde(with = "u64_hex")]
+    pub offset: u64,
     #[serde_as(as = "UfeHex")]
     pub selector: FieldElement,
 }
