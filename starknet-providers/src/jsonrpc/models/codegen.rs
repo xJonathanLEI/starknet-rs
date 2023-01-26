@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#3745c758dde0f7c84106670036e1c5306de40c28
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#24af98e92c2ff900a5c8b2794af04ca2f9df4126
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -752,12 +752,16 @@ pub struct EventAbiEntry {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct FunctionAbiEntry {
     pub r#type: FunctionAbiType,
     /// The function name
     pub name: String,
     pub inputs: Vec<TypedParameter>,
     pub outputs: Vec<TypedParameter>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "stateMutability")]
+    pub state_mutability: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
