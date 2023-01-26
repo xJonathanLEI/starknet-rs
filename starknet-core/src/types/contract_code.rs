@@ -55,7 +55,7 @@ pub struct L1Handler {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Event {
     pub data: Vec<EventData>,
-    pub keys: Vec<()>, // Can't figure out what's in `keys`
+    pub keys: Vec<EventData>,
     pub name: String,
 }
 

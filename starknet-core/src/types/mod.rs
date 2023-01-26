@@ -23,8 +23,10 @@ pub use starknet_error::{Error as StarknetError, ErrorCode as StarknetErrorCode}
 
 mod contract_code;
 pub use contract_code::{
-    AbiEntry, Constructor as AbiConstructorEntry, ContractCode, Function as AbiFunctionEntry,
-    L1Handler as AbiL1HandlerEntry, Struct as AbiStructEntry,
+    AbiEntry, Constructor as AbiConstructorEntry, ContractCode, Event as AbiEventEntry,
+    EventData as AbiEventData, Function as AbiFunctionEntry, Input as AbiInput,
+    L1Handler as AbiL1HandlerEntry, Member as AbiStructMember, Output as AbiOutput,
+    Struct as AbiStructEntry,
 };
 
 mod contract_addresses;

@@ -33,7 +33,7 @@ fn create_contract_class() -> ContractClass {
                 .constructor
                 .into_iter()
                 .map(|item| ContractEntryPoint {
-                    offset: item.offset.try_into().unwrap(),
+                    offset: item.offset,
                     selector: item.selector,
                 })
                 .collect(),
@@ -42,7 +42,7 @@ fn create_contract_class() -> ContractClass {
                 .external
                 .into_iter()
                 .map(|item| ContractEntryPoint {
-                    offset: item.offset.try_into().unwrap(),
+                    offset: item.offset,
                     selector: item.selector,
                 })
                 .collect(),
@@ -51,7 +51,7 @@ fn create_contract_class() -> ContractClass {
                 .l1_handler
                 .into_iter()
                 .map(|item| ContractEntryPoint {
-                    offset: item.offset.try_into().unwrap(),
+                    offset: item.offset,
                     selector: item.selector,
                 })
                 .collect(),
