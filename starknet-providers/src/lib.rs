@@ -1,11 +1,11 @@
 #![doc = include_str!("../README.md")]
 
 mod provider;
-pub use provider::Provider;
+pub use provider::{Provider, ProviderError};
 
 mod sequencer_gateway;
 pub use sequencer_gateway::{
-    ProviderError as SequencerGatewayProviderError, SequencerGatewayProvider,
+    GatewayClientError as SequencerGatewayProviderError, SequencerGatewayProvider,
 };
 
 pub mod jsonrpc;

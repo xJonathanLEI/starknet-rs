@@ -18,8 +18,8 @@ pub use transaction_receipt::{
     TransactionStatus,
 };
 
-mod starknet_error;
-pub use starknet_error::{Error as StarknetError, ErrorCode as StarknetErrorCode};
+mod error;
+pub use error::Error as StarknetError;
 
 mod contract_code;
 pub use contract_code::{

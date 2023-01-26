@@ -8,7 +8,7 @@ use starknet_core::{
         FeeEstimate, FieldElement, TransactionRequest,
     },
 };
-use starknet_providers::Provider;
+use starknet_providers::{Provider, ProviderError};
 use std::error::Error;
 
 pub mod argent;
@@ -100,7 +100,7 @@ pub enum AccountFactoryError<S, P> {
     #[error(transparent)]
     Signing(S),
     #[error(transparent)]
-    Provider(P),
+    Provider(ProviderError<P>),
 }
 
 impl<'f, F> AccountDeployment<'f, F> {
@@ -159,7 +159,9 @@ where
         )
     }
 
-    pub async fn fetch_nonce(&self) -> Result<FieldElement, <F::Provider as Provider>::Error> {
+    pub async fn fetch_nonce(
+        &self,
+    ) -> Result<FieldElement, ProviderError<<F::Provider as Provider>::Error>> {
         self.factory
             .provider()
             .get_nonce(self.address(), self.factory.block_id())
