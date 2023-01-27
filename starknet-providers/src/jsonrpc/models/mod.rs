@@ -1,10 +1,18 @@
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use starknet_core::{serde::unsigned_field_element::UfeHex, types::FieldElement};
+use starknet_core::{
+    serde::unsigned_field_element::UfeHex,
+    types::{FieldElement, StarknetError},
+};
 
 pub use starknet_core::types::L1Address as EthAddress;
 
 mod serde_impls;
+
+/// Temporary module before JSON-RPC becomes the de-facto provider:
+///
+/// https://github.com/xJonathanLEI/starknet-rs/issues/77#issuecomment-1150184364
+mod conversions;
 
 mod codegen;
 pub use codegen::*;
@@ -215,6 +223,7 @@ impl Serialize for BlockId {
         }
     }
 }
+
 impl AsRef<FunctionCall> for FunctionCall {
     fn as_ref(&self) -> &FunctionCall {
         self
@@ -224,5 +233,24 @@ impl AsRef<FunctionCall> for FunctionCall {
 impl AsRef<BroadcastedTransaction> for BroadcastedTransaction {
     fn as_ref(&self) -> &BroadcastedTransaction {
         self
+    }
+}
+
+impl From<ErrorCode> for StarknetError {
+    fn from(value: ErrorCode) -> Self {
+        match value {
+            ErrorCode::FailedToReceiveTransaction => Self::FailedToReceiveTxn,
+            ErrorCode::ContractNotFound => Self::ContractNotFound,
+            ErrorCode::InvalidMessageSelector => Self::InvalidMessageSelector,
+            ErrorCode::InvalidCallData => Self::InvalidCallData,
+            ErrorCode::BlockNotFound => Self::BlockNotFound,
+            ErrorCode::TransactionHashNotFound => Self::TxnHashNotFound,
+            ErrorCode::InvalidTransactionIndex => Self::InvalidTxnIndex,
+            ErrorCode::ClassHashNotFound => Self::ClassHashNotFound,
+            ErrorCode::PageSizeTooBig => Self::PageSizeTooBig,
+            ErrorCode::NoBlocks => Self::NoBlocks,
+            ErrorCode::InvalidContinuationToken => Self::InvalidContinuationToken,
+            ErrorCode::ContractError => Self::ContractError,
+        }
     }
 }

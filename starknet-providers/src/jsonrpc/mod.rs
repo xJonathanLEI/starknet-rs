@@ -12,6 +12,12 @@ pub use transports::{HttpTransport, JsonRpcTransport};
 /// https://github.com/xJonathanLEI/starknet-rs/issues/77#issuecomment-1150184364
 pub mod models;
 
+/// Temporary module for bridging the client and the `Provider` trait until:
+///
+/// https://github.com/xJonathanLEI/starknet-rs/issues/77#issuecomment-1150184364
+mod provider;
+pub use provider::JsonRpcProviderError;
+
 #[derive(Debug)]
 pub struct JsonRpcClient<T> {
     transport: T,
