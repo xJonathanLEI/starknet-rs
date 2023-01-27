@@ -5,7 +5,9 @@ use starknet_core::{
     types::{ContractArtifact, FieldElement},
     utils::{get_selector_from_name, get_storage_var_address},
 };
-use starknet_providers::jsonrpc::{models::*, HttpTransport, JsonRpcClient, JsonRpcClientError};
+use starknet_providers::jsonrpc::{
+    models::*, HttpTransport, JsonRpcClient, JsonRpcClientError, RpcError,
+};
 use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
@@ -182,9 +184,8 @@ async fn jsonrpc_get_transaction_by_hash_non_existent_tx() {
         .unwrap_err();
 
     match err {
-        JsonRpcClientError::RpcError(err) => {
-            // INVALID_TXN_HASH
-            assert_eq!(err.code, 25);
+        JsonRpcClientError::RpcError(RpcError::Code(ErrorCode::TransactionHashNotFound)) => {
+            // TXN_HASH_NOT_FOUND
         }
         _ => panic!("Unexpected error"),
     }
