@@ -1,4 +1,4 @@
-use crate::provider::Provider;
+use crate::provider::{Provider, ProviderError};
 
 use async_trait::async_trait;
 use reqwest::{Client, Error as ReqwestError, StatusCode};
@@ -14,7 +14,6 @@ use starknet_core::{
         TransactionRequest, TransactionSimulationInfo, TransactionStatusInfo, TransactionTrace,
     },
 };
-use thiserror::Error;
 use url::Url;
 
 #[derive(Clone)]
@@ -24,18 +23,48 @@ pub struct SequencerGatewayProvider {
     feeder_gateway_url: Url,
 }
 
-#[derive(Debug, Error)]
-pub enum ProviderError {
+#[derive(Debug, thiserror::Error)]
+pub enum GatewayClientError {
+    /// Network related error
     #[error(transparent)]
-    ReqwestError(#[from] ReqwestError),
+    Network(#[from] ReqwestError),
+    /// JSON serialization/deserialization error
     #[error(transparent)]
-    Serialization(SerdeJsonError),
-    #[error("Deserialization error: {err}, Response: {text}")]
-    Deserialization { err: SerdeJsonError, text: String },
+    Serde(SerdeJsonError),
+    /// Sequencer error responses not parsable into [StarknetError]
     #[error(transparent)]
-    StarknetError(StarknetError),
-    #[error("Request rate limited")]
-    RateLimited,
+    SequencerError(SequencerError),
+}
+
+#[derive(Debug, thiserror::Error, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+#[error("{message} ({code:?})")]
+pub struct SequencerError {
+    pub code: ErrorCode,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub enum ErrorCode {
+    #[serde(rename = "StarknetErrorCode.BLOCK_NOT_FOUND")]
+    BlockNotFound,
+    #[serde(rename = "StarknetErrorCode.ENTRY_POINT_NOT_FOUND_IN_CONTRACT")]
+    EntryPointNotFoundInContract,
+    #[serde(rename = "StarknetErrorCode.INVALID_PROGRAM")]
+    InvalidProgram,
+    #[serde(rename = "StarknetErrorCode.TRANSACTION_FAILED")]
+    TransactionFailed,
+    #[serde(rename = "StarknetErrorCode.TRANSACTION_NOT_FOUND")]
+    TransactionNotFound,
+    #[serde(rename = "StarknetErrorCode.UNINITIALIZED_CONTRACT")]
+    UninitializedContract,
+    #[serde(rename = "StarkErrorCode.MALFORMED_REQUEST")]
+    MalformedRequest,
+    #[serde(rename = "StarknetErrorCode.UNDECLARED_CLASS")]
+    UndeclaredClass,
+    #[serde(rename = "StarknetErrorCode.INVALID_TRANSACTION_NONCE")]
+    InvalidTransactionNonce,
 }
 
 impl SequencerGatewayProvider {
@@ -86,7 +115,7 @@ impl SequencerGatewayProvider {
 
 enum GatewayResponse<D> {
     Data(D),
-    StarknetError(StarknetError),
+    SequencerError(SequencerError),
 }
 
 // Work around gateway sending `abi` as `{}` instead of `[]` when the code doesn't exist
@@ -95,7 +124,7 @@ enum GatewayResponse<D> {
 enum GetCodeResponse {
     ContractCode(ContractCode),
     EmptyContractCode(EmptyContractCode),
-    StarknetError(StarknetError),
+    SequencerError(SequencerError),
 }
 
 // Work FieldElement deserialization
@@ -104,7 +133,7 @@ enum GetCodeResponse {
 #[serde(untagged)]
 enum RawFieldElementResponse {
     Data(#[serde_as(as = "UfeHex")] FieldElement),
-    StarknetError(StarknetError),
+    SequencerError(SequencerError),
 }
 
 // Work around gateway sending `abi` as `{}` instead of `[]` when the code doesn't exist
@@ -131,21 +160,33 @@ impl SequencerGatewayProvider {
         url
     }
 
-    async fn send_get_request<T>(&self, url: Url) -> Result<T, ProviderError>
+    async fn send_get_request<T>(&self, url: Url) -> Result<T, ProviderError<GatewayClientError>>
     where
         T: DeserializeOwned,
     {
-        let res = self.client.get(url).send().await?;
+        let res = self
+            .client
+            .get(url)
+            .send()
+            .await
+            .map_err(|err| ProviderError::Other(GatewayClientError::Network(err)))?;
         if res.status() == StatusCode::TOO_MANY_REQUESTS {
             Err(ProviderError::RateLimited)
         } else {
-            let body = res.text().await?;
+            let body = res
+                .text()
+                .await
+                .map_err(|err| ProviderError::Other(GatewayClientError::Network(err)))?;
             serde_json::from_str(&body)
-                .map_err(|err| ProviderError::Deserialization { err, text: body })
+                .map_err(|err| ProviderError::Other(GatewayClientError::Serde(err)))
         }
     }
 
-    async fn send_post_request<Q, S>(&self, url: Url, body: &Q) -> Result<S, ProviderError>
+    async fn send_post_request<Q, S>(
+        &self,
+        url: Url,
+        body: &Q,
+    ) -> Result<S, ProviderError<GatewayClientError>>
     where
         Q: Serialize,
         S: DeserializeOwned,
@@ -154,15 +195,22 @@ impl SequencerGatewayProvider {
             .client
             .post(url)
             .header("Content-Type", "application/json")
-            .body(serde_json::to_string(body).map_err(ProviderError::Serialization)?)
+            .body(
+                serde_json::to_string(body)
+                    .map_err(|err| ProviderError::Other(GatewayClientError::Serde(err)))?,
+            )
             .send()
-            .await?;
+            .await
+            .map_err(|err| ProviderError::Other(GatewayClientError::Network(err)))?;
         if res.status() == StatusCode::TOO_MANY_REQUESTS {
             Err(ProviderError::RateLimited)
         } else {
-            let body = res.text().await?;
+            let body = res
+                .text()
+                .await
+                .map_err(|err| ProviderError::Other(GatewayClientError::Network(err)))?;
             serde_json::from_str(&body)
-                .map_err(|err| ProviderError::Deserialization { err, text: body })
+                .map_err(|err| ProviderError::Other(GatewayClientError::Serde(err)))
         }
     }
 }
@@ -170,175 +218,135 @@ impl SequencerGatewayProvider {
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl Provider for SequencerGatewayProvider {
-    type Error = ProviderError;
+    type Error = GatewayClientError;
 
     async fn add_transaction(
         &self,
         tx: TransactionRequest,
-    ) -> Result<AddTransactionResult, Self::Error> {
+    ) -> Result<AddTransactionResult, ProviderError<Self::Error>> {
         let request_url = self.extend_gateway_url("add_transaction");
 
-        match self.send_post_request(request_url, &tx).await? {
-            GatewayResponse::Data(data) => Ok(data),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+        self.send_post_request::<_, GatewayResponse<_>>(request_url, &tx)
+            .await?
+            .into()
     }
 
-    async fn get_contract_addresses(&self) -> Result<ContractAddresses, Self::Error> {
+    async fn get_contract_addresses(
+        &self,
+    ) -> Result<ContractAddresses, ProviderError<Self::Error>> {
         let request_url = self.extend_feeder_gateway_url("get_contract_addresses");
 
-        match self
-            .send_get_request::<GatewayResponse<ContractAddresses>>(request_url)
+        self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
-        {
-            GatewayResponse::Data(addrs) => Ok(addrs),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
     async fn call_contract(
         &self,
         call_function: CallFunction,
         block_identifier: BlockId,
-    ) -> Result<CallContractResult, Self::Error> {
+    ) -> Result<CallContractResult, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("call_contract");
         append_block_id(&mut request_url, block_identifier);
 
-        match self.send_post_request(request_url, &call_function).await? {
-            GatewayResponse::Data(data) => Ok(data),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+        self.send_post_request::<_, GatewayResponse<_>>(request_url, &call_function)
+            .await?
+            .into()
     }
 
     async fn estimate_fee(
         &self,
         tx: AccountTransaction,
         block_identifier: BlockId,
-    ) -> Result<FeeEstimate, Self::Error> {
+    ) -> Result<FeeEstimate, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("estimate_fee");
         append_block_id(&mut request_url, block_identifier);
 
-        match self.send_post_request(request_url, &tx).await? {
-            GatewayResponse::Data(data) => Ok(data),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+        self.send_post_request::<_, GatewayResponse<_>>(request_url, &tx)
+            .await?
+            .into()
     }
 
     async fn estimate_fee_bulk(
         &self,
         txs: &[AccountTransaction],
         block_identifier: BlockId,
-    ) -> Result<Vec<FeeEstimate>, Self::Error> {
+    ) -> Result<Vec<FeeEstimate>, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("estimate_fee_bulk");
         append_block_id(&mut request_url, block_identifier);
 
-        match self.send_post_request(request_url, &txs).await? {
-            GatewayResponse::Data(data) => Ok(data),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+        self.send_post_request::<_, GatewayResponse<_>>(request_url, &txs)
+            .await?
+            .into()
     }
 
     async fn estimate_message_fee(
         &self,
         call_l1_handler: CallL1Handler,
         block_identifier: BlockId,
-    ) -> Result<FeeEstimate, Self::Error> {
+    ) -> Result<FeeEstimate, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("estimate_message_fee");
         append_block_id(&mut request_url, block_identifier);
 
-        match self
-            .send_post_request(request_url, &call_l1_handler)
+        self.send_post_request::<_, GatewayResponse<_>>(request_url, &call_l1_handler)
             .await?
-        {
-            GatewayResponse::Data(data) => Ok(data),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
     async fn simulate_transaction(
         &self,
         tx: AccountTransaction,
         block_identifier: BlockId,
-    ) -> Result<TransactionSimulationInfo, Self::Error> {
+    ) -> Result<TransactionSimulationInfo, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("simulate_transaction");
         append_block_id(&mut request_url, block_identifier);
 
-        match self.send_post_request(request_url, &tx).await? {
-            GatewayResponse::Data(data) => Ok(data),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+        self.send_post_request::<_, GatewayResponse<_>>(request_url, &tx)
+            .await?
+            .into()
     }
 
-    async fn get_block(&self, block_identifier: BlockId) -> Result<Block, Self::Error> {
+    async fn get_block(
+        &self,
+        block_identifier: BlockId,
+    ) -> Result<Block, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_block");
         append_block_id(&mut request_url, block_identifier);
 
-        match self
-            .send_get_request::<GatewayResponse<Block>>(request_url)
+        self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
-        {
-            GatewayResponse::Data(block) => Ok(block),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
     async fn get_block_traces(
         &self,
         block_identifier: BlockId,
-    ) -> Result<BlockTraces, Self::Error> {
+    ) -> Result<BlockTraces, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_block_traces");
         append_block_id(&mut request_url, block_identifier);
 
-        match self
-            .send_get_request::<GatewayResponse<BlockTraces>>(request_url)
+        self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
-        {
-            GatewayResponse::Data(update) => Ok(update),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
     async fn get_state_update(
         &self,
         block_identifier: BlockId,
-    ) -> Result<StateUpdate, Self::Error> {
+    ) -> Result<StateUpdate, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_state_update");
         append_block_id(&mut request_url, block_identifier);
 
-        match self
-            .send_get_request::<GatewayResponse<StateUpdate>>(request_url)
+        self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
-        {
-            GatewayResponse::Data(update) => Ok(update),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
     async fn get_code(
         &self,
         contract_address: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<ContractCode, Self::Error> {
+    ) -> Result<ContractCode, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_code");
         request_url
             .query_pairs_mut()
@@ -354,9 +362,12 @@ impl Provider for SequencerGatewayProvider {
                 bytecode: vec![],
                 abi: Some(vec![]),
             }),
-            GetCodeResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
+            GetCodeResponse::SequencerError(err) => match err.code.try_into() {
+                Ok(sn_err) => Err(ProviderError::StarknetError(sn_err)),
+                Err(_) => Err(ProviderError::Other(GatewayClientError::SequencerError(
+                    err,
+                ))),
+            },
         }
     }
 
@@ -364,64 +375,46 @@ impl Provider for SequencerGatewayProvider {
         &self,
         contract_address: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<ContractArtifact, Self::Error> {
+    ) -> Result<ContractArtifact, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_full_contract");
         request_url
             .query_pairs_mut()
             .append_pair("contractAddress", &format!("{:#x}", contract_address));
         append_block_id(&mut request_url, block_identifier);
 
-        match self
-            .send_get_request::<GatewayResponse<ContractArtifact>>(request_url)
+        self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
-        {
-            GatewayResponse::Data(artifact) => Ok(artifact),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
     async fn get_class_hash_at(
         &self,
         contract_address: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<FieldElement, Self::Error> {
+    ) -> Result<FieldElement, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_class_hash_at");
         request_url
             .query_pairs_mut()
             .append_pair("contractAddress", &format!("{:#x}", contract_address));
         append_block_id(&mut request_url, block_identifier);
 
-        match self
-            .send_get_request::<RawFieldElementResponse>(request_url)
+        self.send_get_request::<RawFieldElementResponse>(request_url)
             .await?
-        {
-            RawFieldElementResponse::Data(hash) => Ok(hash),
-            RawFieldElementResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
     async fn get_class_by_hash(
         &self,
         class_hash: FieldElement,
-    ) -> Result<ContractArtifact, Self::Error> {
+    ) -> Result<ContractArtifact, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_class_by_hash");
         request_url
             .query_pairs_mut()
             .append_pair("classHash", &format!("{:#x}", class_hash));
 
-        match self
-            .send_get_request::<GatewayResponse<ContractArtifact>>(request_url)
+        self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
-        {
-            GatewayResponse::Data(artifact) => Ok(artifact),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
     async fn get_storage_at(
@@ -429,7 +422,7 @@ impl Provider for SequencerGatewayProvider {
         contract_address: FieldElement,
         key: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<FieldElement, Self::Error> {
+    ) -> Result<FieldElement, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_storage_at");
         request_url
             .query_pairs_mut()
@@ -437,215 +430,198 @@ impl Provider for SequencerGatewayProvider {
             .append_pair("key", &key.to_string());
         append_block_id(&mut request_url, block_identifier);
 
-        match self
-            .send_get_request::<RawFieldElementResponse>(request_url)
+        self.send_get_request::<RawFieldElementResponse>(request_url)
             .await?
-        {
-            RawFieldElementResponse::Data(data) => Ok(data),
-            RawFieldElementResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
     async fn get_nonce(
         &self,
         contract_address: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<FieldElement, Self::Error> {
+    ) -> Result<FieldElement, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_nonce");
         request_url
             .query_pairs_mut()
             .append_pair("contractAddress", &format!("{:#x}", contract_address));
         append_block_id(&mut request_url, block_identifier);
 
-        match self
-            .send_get_request::<RawFieldElementResponse>(request_url)
+        self.send_get_request::<RawFieldElementResponse>(request_url)
             .await?
-        {
-            RawFieldElementResponse::Data(data) => Ok(data),
-            RawFieldElementResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
     async fn get_transaction_status(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<TransactionStatusInfo, Self::Error> {
+    ) -> Result<TransactionStatusInfo, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_status");
         request_url
             .query_pairs_mut()
             .append_pair("transactionHash", &format!("{:#x}", transaction_hash));
 
-        match self
-            .send_get_request::<GatewayResponse<TransactionStatusInfo>>(request_url)
+        self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
-        {
-            GatewayResponse::Data(tx_status) => Ok(tx_status),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
     async fn get_transaction(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<TransactionInfo, Self::Error> {
+    ) -> Result<TransactionInfo, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction");
         request_url
             .query_pairs_mut()
             .append_pair("transactionHash", &format!("{:#x}", transaction_hash));
 
-        match self
-            .send_get_request::<GatewayResponse<TransactionInfo>>(request_url)
+        self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
-        {
-            GatewayResponse::Data(tx) => Ok(tx),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
     async fn get_transaction_receipt(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<TransactionReceipt, Self::Error> {
+    ) -> Result<TransactionReceipt, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_receipt");
         request_url
             .query_pairs_mut()
             .append_pair("transactionHash", &format!("{:#x}", transaction_hash));
 
-        match self
-            .send_get_request::<GatewayResponse<TransactionReceipt>>(request_url)
+        self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
-        {
-            GatewayResponse::Data(receipt) => Ok(receipt),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
     async fn get_transaction_trace(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<TransactionTrace, Self::Error> {
+    ) -> Result<TransactionTrace, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_trace");
         request_url
             .query_pairs_mut()
             .append_pair("transactionHash", &format!("{:#x}", transaction_hash));
 
-        match self.send_get_request(request_url).await? {
-            GatewayResponse::Data(trace) => Ok(trace),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+        self.send_get_request::<GatewayResponse<_>>(request_url)
+            .await?
+            .into()
     }
 
-    async fn get_block_hash_by_id(&self, block_number: u64) -> Result<FieldElement, Self::Error> {
+    async fn get_block_hash_by_id(
+        &self,
+        block_number: u64,
+    ) -> Result<FieldElement, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_block_hash_by_id");
         request_url
             .query_pairs_mut()
             .append_pair("blockId", &block_number.to_string());
 
-        match self
-            .send_get_request::<RawFieldElementResponse>(request_url)
+        self.send_get_request::<RawFieldElementResponse>(request_url)
             .await?
-        {
-            RawFieldElementResponse::Data(hash) => Ok(hash),
-            RawFieldElementResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
-    async fn get_block_id_by_hash(&self, block_hash: FieldElement) -> Result<u64, Self::Error> {
+    async fn get_block_id_by_hash(
+        &self,
+        block_hash: FieldElement,
+    ) -> Result<u64, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_block_id_by_hash");
         request_url
             .query_pairs_mut()
             .append_pair("blockHash", &format!("{:#x}", block_hash));
 
-        match self
-            .send_get_request::<GatewayResponse<u64>>(request_url)
+        self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
-        {
-            GatewayResponse::Data(number) => Ok(number),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
     async fn get_transaction_hash_by_id(
         &self,
         transaction_number: u64,
-    ) -> Result<FieldElement, Self::Error> {
+    ) -> Result<FieldElement, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_hash_by_id");
         request_url
             .query_pairs_mut()
             .append_pair("transactionId", &transaction_number.to_string());
 
-        match self
-            .send_get_request::<RawFieldElementResponse>(request_url)
+        self.send_get_request::<RawFieldElementResponse>(request_url)
             .await?
-        {
-            RawFieldElementResponse::Data(hash) => Ok(hash),
-            RawFieldElementResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
     async fn get_transaction_id_by_hash(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<u64, Self::Error> {
+    ) -> Result<u64, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_id_by_hash");
         request_url
             .query_pairs_mut()
             .append_pair("transactionHash", &format!("{:#x}", transaction_hash));
 
-        match self
-            .send_get_request::<GatewayResponse<u64>>(request_url)
+        self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
-        {
-            GatewayResponse::Data(number) => Ok(number),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
-    async fn get_last_batch_id(&self) -> Result<u64, Self::Error> {
+    async fn get_last_batch_id(&self) -> Result<u64, ProviderError<Self::Error>> {
         let request_url = self.extend_feeder_gateway_url("get_last_batch_id");
 
-        match self
-            .send_get_request::<GatewayResponse<u64>>(request_url)
+        self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
-        {
-            GatewayResponse::Data(batch_id) => Ok(batch_id),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
-        }
+            .into()
     }
 
-    async fn get_l1_blockchain_id(&self) -> Result<u64, Self::Error> {
+    async fn get_l1_blockchain_id(&self) -> Result<u64, ProviderError<Self::Error>> {
         let request_url = self.extend_feeder_gateway_url("get_l1_blockchain_id");
 
-        match self
-            .send_get_request::<GatewayResponse<u64>>(request_url)
+        self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
-        {
-            GatewayResponse::Data(network_id) => Ok(network_id),
-            GatewayResponse::StarknetError(starknet_err) => {
-                Err(ProviderError::StarknetError(starknet_err))
-            }
+            .into()
+    }
+}
+
+impl TryFrom<ErrorCode> for StarknetError {
+    type Error = ();
+
+    fn try_from(value: ErrorCode) -> Result<Self, Self::Error> {
+        match value {
+            ErrorCode::BlockNotFound => Ok(Self::BlockNotFound),
+            ErrorCode::EntryPointNotFoundInContract => Err(()),
+            ErrorCode::InvalidProgram => Ok(Self::InvalidContractClass),
+            ErrorCode::TransactionFailed => Err(()),
+            ErrorCode::TransactionNotFound => Ok(Self::ContractNotFound),
+            ErrorCode::UninitializedContract => Ok(Self::ContractNotFound),
+            ErrorCode::MalformedRequest => Err(()),
+            ErrorCode::UndeclaredClass => Ok(Self::ClassHashNotFound),
+            ErrorCode::InvalidTransactionNonce => Err(()),
+        }
+    }
+}
+
+impl<D> From<GatewayResponse<D>> for Result<D, ProviderError<GatewayClientError>> {
+    fn from(value: GatewayResponse<D>) -> Self {
+        match value {
+            GatewayResponse::Data(data) => Ok(data),
+            GatewayResponse::SequencerError(err) => match err.code.try_into() {
+                Ok(sn_err) => Err(ProviderError::StarknetError(sn_err)),
+                Err(_) => Err(ProviderError::Other(GatewayClientError::SequencerError(
+                    err,
+                ))),
+            },
+        }
+    }
+}
+
+impl From<RawFieldElementResponse> for Result<FieldElement, ProviderError<GatewayClientError>> {
+    fn from(value: RawFieldElementResponse) -> Self {
+        match value {
+            RawFieldElementResponse::Data(data) => Ok(data),
+            RawFieldElementResponse::SequencerError(err) => match err.code.try_into() {
+                Ok(sn_err) => Err(ProviderError::StarknetError(sn_err)),
+                Err(_) => Err(ProviderError::Other(GatewayClientError::SequencerError(
+                    err,
+                ))),
+            },
         }
     }
 }
@@ -664,8 +640,8 @@ where
         if let Ok(value) = T::deserialize(&temp_value) {
             return Ok(GatewayResponse::Data(value));
         }
-        if let Ok(value) = StarknetError::deserialize(&temp_value) {
-            return Ok(GatewayResponse::StarknetError(value));
+        if let Ok(value) = SequencerError::deserialize(&temp_value) {
+            return Ok(GatewayResponse::SequencerError(value));
         }
         Err(serde::de::Error::custom(
             "data did not match any variant of enum GatewayResponse",
@@ -698,8 +674,6 @@ fn append_block_id(url: &mut Url, block_identifier: BlockId) {
 
 #[cfg(test)]
 mod tests {
-    use starknet_core::types::StarknetErrorCode;
-
     use super::*;
 
     #[test]
@@ -759,8 +733,8 @@ mod tests {
         ))
         .unwrap()
         {
-            GatewayResponse::StarknetError(err) => {
-                assert_eq!(err.code, StarknetErrorCode::UndeclaredClass);
+            GatewayResponse::SequencerError(err) => {
+                assert_eq!(err.code, ErrorCode::UndeclaredClass);
             }
             _ => panic!("Unexpected result"),
         }

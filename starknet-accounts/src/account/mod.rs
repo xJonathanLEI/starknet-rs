@@ -5,7 +5,7 @@ use starknet_core::types::{
     contract_artifact::{CompressProgramError, ComputeClassHashError},
     BlockId, ContractArtifact, FieldElement,
 };
-use starknet_providers::Provider;
+use starknet_providers::{Provider, ProviderError};
 use std::{error::Error, sync::Arc};
 
 mod declaration;
@@ -58,7 +58,9 @@ pub trait ConnectedAccount: Account {
         BlockId::Latest
     }
 
-    async fn get_nonce(&self) -> Result<FieldElement, <Self::Provider as Provider>::Error> {
+    async fn get_nonce(
+        &self,
+    ) -> Result<FieldElement, ProviderError<<Self::Provider as Provider>::Error>> {
         self.provider()
             .get_nonce(self.address(), self.block_id())
             .await
@@ -120,7 +122,7 @@ pub enum AccountError<S, P> {
     #[error(transparent)]
     Signing(S),
     #[error(transparent)]
-    Provider(P),
+    Provider(ProviderError<P>),
     #[error(transparent)]
     ClassHashCalculation(ComputeClassHashError),
     #[error(transparent)]
