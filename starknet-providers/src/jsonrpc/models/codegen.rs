@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#24af98e92c2ff900a5c8b2794af04ca2f9df4126
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#57a9bd34cd4541fa8e2b2ae7aeb100140800c723
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -787,6 +787,47 @@ pub struct FeeEstimate {
     /// The estimated fee for the transaction (in gwei), product of gas_consumed and gas_price
     #[serde_as(as = "NumAsHex")]
     pub overall_fee: u64,
+}
+
+/// JSON-RPC error codes
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, thiserror::Error)]
+pub enum ErrorCode {
+    /// Failed to write transaction
+    #[error("Failed to write transaction")]
+    FailedToReceiveTransaction,
+    /// Contract not found
+    #[error("Contract not found")]
+    ContractNotFound,
+    /// Invalid message selector
+    #[error("Invalid message selector")]
+    InvalidMessageSelector,
+    /// Invalid call data
+    #[error("Invalid call data")]
+    InvalidCallData,
+    /// Block not found
+    #[error("Block not found")]
+    BlockNotFound,
+    /// Transaction hash not found
+    #[error("Transaction hash not found")]
+    TransactionHashNotFound,
+    /// Invalid transaction index in a block
+    #[error("Invalid transaction index in a block")]
+    InvalidTransactionIndex,
+    /// Class hash not found
+    #[error("Class hash not found")]
+    ClassHashNotFound,
+    /// Requested page size is too big
+    #[error("Requested page size is too big")]
+    PageSizeTooBig,
+    /// There are no blocks
+    #[error("There are no blocks")]
+    NoBlocks,
+    /// The supplied continuation token is invalid or unknown
+    #[error("The supplied continuation token is invalid or unknown")]
+    InvalidContinuationToken,
+    /// Contract error
+    #[error("Contract error")]
+    ContractError,
 }
 
 impl Serialize for DeclareTransaction {

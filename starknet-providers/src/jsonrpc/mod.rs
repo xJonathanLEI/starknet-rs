@@ -76,7 +76,15 @@ pub enum JsonRpcClientError<T> {
     #[error(transparent)]
     TransportError(T),
     #[error(transparent)]
-    RpcError(JsonRpcError),
+    RpcError(RpcError),
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum RpcError {
+    #[error(transparent)]
+    Code(ErrorCode),
+    #[error(transparent)]
+    Unknown(JsonRpcError),
 }
 
 #[derive(Debug, thiserror::Error, Deserialize)]
@@ -461,7 +469,12 @@ where
             .map_err(JsonRpcClientError::TransportError)?
         {
             JsonRpcResponse::Success { result, .. } => Ok(result),
-            JsonRpcResponse::Error { error, .. } => Err(JsonRpcClientError::RpcError(error)),
+            JsonRpcResponse::Error { error, .. } => {
+                Err(JsonRpcClientError::RpcError(match error.code.try_into() {
+                    Ok(code) => RpcError::Code(code),
+                    Err(_) => RpcError::Unknown(error),
+                }))
+            }
         }
     }
 }
@@ -469,5 +482,27 @@ where
 impl<T> From<serde_json::Error> for JsonRpcClientError<T> {
     fn from(value: serde_json::Error) -> Self {
         Self::JsonError(value)
+    }
+}
+
+impl TryFrom<i64> for ErrorCode {
+    type Error = ();
+
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        Ok(match value {
+            1 => ErrorCode::FailedToReceiveTransaction,
+            20 => ErrorCode::ContractNotFound,
+            21 => ErrorCode::InvalidMessageSelector,
+            22 => ErrorCode::InvalidCallData,
+            24 => ErrorCode::BlockNotFound,
+            25 => ErrorCode::TransactionHashNotFound,
+            27 => ErrorCode::InvalidTransactionIndex,
+            28 => ErrorCode::ClassHashNotFound,
+            31 => ErrorCode::PageSizeTooBig,
+            32 => ErrorCode::NoBlocks,
+            33 => ErrorCode::InvalidContinuationToken,
+            40 => ErrorCode::ContractError,
+            _ => return Err(()),
+        })
     }
 }
