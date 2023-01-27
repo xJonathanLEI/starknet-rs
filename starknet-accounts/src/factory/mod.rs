@@ -5,7 +5,7 @@ use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
         AccountTransaction, AddTransactionResult, BlockId, DeployAccountTransactionRequest,
-        FeeEstimate, FieldElement, TransactionRequest,
+        FeeEstimate, FieldElement, StarknetError, TransactionRequest,
     },
 };
 use starknet_providers::{Provider, ProviderError};
@@ -162,10 +162,18 @@ where
     pub async fn fetch_nonce(
         &self,
     ) -> Result<FieldElement, ProviderError<<F::Provider as Provider>::Error>> {
-        self.factory
+        match self
+            .factory
             .provider()
             .get_nonce(self.address(), self.factory.block_id())
             .await
+        {
+            Ok(nonce) => Ok(nonce),
+            Err(ProviderError::StarknetError(StarknetError::ContractNotFound)) => {
+                Ok(FieldElement::ZERO)
+            }
+            Err(err) => Err(err),
+        }
     }
 
     pub async fn estimate_fee(
