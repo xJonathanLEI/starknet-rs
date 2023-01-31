@@ -68,6 +68,7 @@ pub trait ConnectedAccount: Account {
 }
 
 /// An intermediate type allowing users to optionally specify `nonce` and/or `max_fee`.
+#[must_use]
 #[derive(Debug)]
 pub struct Execution<'a, A> {
     account: &'a A,
@@ -78,6 +79,7 @@ pub struct Execution<'a, A> {
 }
 
 /// An intermediate type allowing users to optionally specify `nonce` and/or `max_fee`.
+#[must_use]
 #[derive(Debug)]
 pub struct Declaration<'a, A> {
     account: &'a A,
