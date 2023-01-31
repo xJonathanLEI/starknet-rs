@@ -14,7 +14,7 @@ impl SerializeAs<FieldElement> for UfeHex {
     where
         S: Serializer,
     {
-        serializer.serialize_str(&format!("{:#x}", value))
+        serializer.serialize_str(&format!("{value:#x}"))
     }
 }
 
@@ -26,7 +26,7 @@ impl<'de> DeserializeAs<'de, FieldElement> for UfeHex {
         let value = String::deserialize(deserializer)?;
         match FieldElement::from_hex_be(&value) {
             Ok(value) => Ok(value),
-            Err(err) => Err(DeError::custom(format!("invalid hex string: {}", err))),
+            Err(err) => Err(DeError::custom(format!("invalid hex string: {err}"))),
         }
     }
 }
@@ -37,7 +37,7 @@ impl SerializeAs<Option<FieldElement>> for UfeHexOption {
         S: Serializer,
     {
         match value {
-            Some(value) => serializer.serialize_str(&format!("{:#064x}", value)),
+            Some(value) => serializer.serialize_str(&format!("{value:#064x}")),
             None => serializer.serialize_none(),
         }
     }
@@ -53,7 +53,7 @@ impl<'de> DeserializeAs<'de, Option<FieldElement>> for UfeHexOption {
             "" => Ok(None),
             _ => match FieldElement::from_hex_be(&value) {
                 Ok(value) => Ok(Some(value)),
-                Err(err) => Err(DeError::custom(format!("invalid hex string: {}", err))),
+                Err(err) => Err(DeError::custom(format!("invalid hex string: {err}"))),
             },
         }
     }
@@ -65,7 +65,7 @@ impl SerializeAs<Option<FieldElement>> for UfePendingBlockHash {
         S: Serializer,
     {
         match value {
-            Some(value) => serializer.serialize_str(&format!("{:#064x}", value)),
+            Some(value) => serializer.serialize_str(&format!("{value:#064x}")),
             // We don't know if it's `null` or `"pending"`
             None => serializer.serialize_none(),
         }
@@ -83,7 +83,7 @@ impl<'de> DeserializeAs<'de, Option<FieldElement>> for UfePendingBlockHash {
         } else {
             match FieldElement::from_hex_be(&value) {
                 Ok(value) => Ok(Some(value)),
-                Err(err) => Err(DeError::custom(format!("invalid hex string: {}", err))),
+                Err(err) => Err(DeError::custom(format!("invalid hex string: {err}"))),
             }
         }
     }

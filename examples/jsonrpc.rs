@@ -8,5 +8,5 @@ async fn main() {
     ));
 
     let block_number = rpc_client.block_number().await.unwrap();
-    println!("{}", block_number);
+    println!("{block_number}");
 }

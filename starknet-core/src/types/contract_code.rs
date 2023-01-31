@@ -154,28 +154,27 @@ impl<'de> Deserialize<'de> for AbiEntry {
             serde_json::Value::String(type_str) => match &type_str[..] {
                 "constructor" => Ok(AbiEntry::Constructor(
                     Constructor::deserialize(temp_value).map_err(|err| {
-                        DeError::custom(format!("invalid constructor variant: {}", err))
+                        DeError::custom(format!("invalid constructor variant: {err}"))
                     })?,
                 )),
                 "function" => Ok(AbiEntry::Function(
                     Function::deserialize(temp_value).map_err(|err| {
-                        DeError::custom(format!("invalid function variant: {}", err))
+                        DeError::custom(format!("invalid function variant: {err}"))
                     })?,
                 )),
                 "struct" => Ok(AbiEntry::Struct(Struct::deserialize(temp_value).map_err(
-                    |err| DeError::custom(format!("invalid struct variant: {}", err)),
+                    |err| DeError::custom(format!("invalid struct variant: {err}")),
                 )?)),
                 "l1_handler" => Ok(AbiEntry::L1Handler(
                     L1Handler::deserialize(temp_value).map_err(|err| {
-                        DeError::custom(format!("invalid l1_handler variant: {}", err))
+                        DeError::custom(format!("invalid l1_handler variant: {err}"))
                     })?,
                 )),
                 "event" => Ok(AbiEntry::Event(Event::deserialize(temp_value).map_err(
-                    |err| DeError::custom(format!("invalid event variant: {}", err)),
+                    |err| DeError::custom(format!("invalid event variant: {err}")),
                 )?)),
                 _ => Err(DeError::custom(format!(
-                    "unknown ABI entry type: {}",
-                    type_str
+                    "unknown ABI entry type: {type_str}"
                 ))),
             },
             _ => Err(DeError::custom("invalid type field")),
