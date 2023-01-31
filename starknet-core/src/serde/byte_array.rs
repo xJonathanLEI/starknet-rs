@@ -17,8 +17,7 @@ pub mod base64 {
         match base64::decode(value) {
             Ok(value) => Ok(value),
             Err(err) => Err(serde::de::Error::custom(format!(
-                "invalid base64 string: {}",
-                err
+                "invalid base64 string: {err}"
             ))),
         }
     }

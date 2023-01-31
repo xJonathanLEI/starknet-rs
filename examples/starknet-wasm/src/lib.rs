@@ -11,5 +11,5 @@ pub fn get_public_key(private_key_hex: &str) -> String {
     let private_key = FieldElement::from_hex_be(private_key_hex).unwrap();
     let public_key = starknet_crypto::get_public_key(&private_key);
 
-    format!("{:#064x}", public_key)
+    format!("{public_key:#064x}")
 }

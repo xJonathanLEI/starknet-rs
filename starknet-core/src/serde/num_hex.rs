@@ -16,8 +16,7 @@ pub mod u64 {
         match u64::from_str_radix(value.trim_start_matches("0x"), 16) {
             Ok(value) => Ok(value),
             Err(err) => Err(serde::de::Error::custom(format!(
-                "invalid u64 hex string: {}",
-                err
+                "invalid u64 hex string: {err}"
             ))),
         }
     }

@@ -45,6 +45,6 @@ async fn can_deploy_contract_to_alpha_goerli() {
 
     match result {
         Ok(_) => {}
-        Err(err) => panic!("Contract deployment failed: {}", err),
+        Err(err) => panic!("Contract deployment failed: {err}"),
     }
 }

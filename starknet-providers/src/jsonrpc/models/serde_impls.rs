@@ -10,7 +10,7 @@ impl SerializeAs<u64> for NumAsHex {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&format!("{:#x}", value))
+        serializer.serialize_str(&format!("{value:#x}"))
     }
 }
 
@@ -23,8 +23,7 @@ impl<'de> DeserializeAs<'de, u64> for NumAsHex {
         match u64::from_str_radix(&value[2..], 16) {
             Ok(value) => Ok(value),
             Err(err) => Err(serde::de::Error::custom(format!(
-                "invalid hex string: {}",
-                err
+                "invalid hex string: {err}"
             ))),
         }
     }

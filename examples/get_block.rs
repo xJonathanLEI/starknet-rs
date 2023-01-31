@@ -7,5 +7,5 @@ use starknet::{
 async fn main() {
     let provider = SequencerGatewayProvider::starknet_alpha_goerli();
     let latest_block = provider.get_block(BlockId::Latest).await;
-    println!("{:#?}", latest_block);
+    println!("{latest_block:#?}");
 }

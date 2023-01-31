@@ -16,7 +16,7 @@ pub fn lookup_table(input: TokenStream) -> TokenStream {
     let bits: u32 = input.base10_parse().expect("invalid bits");
 
     let mut output = String::new();
-    writeln!(output, "pub const CURVE_CONSTS_BITS: usize = {};", bits).unwrap();
+    writeln!(output, "pub const CURVE_CONSTS_BITS: usize = {bits};").unwrap();
 
     push_points(&mut output, "P0", PEDERSEN_P0, 248, bits).expect("push_points failed");
     push_points(&mut output, "P1", PEDERSEN_P1, 4, bits).expect("push_points failed");
@@ -41,8 +41,7 @@ fn push_points(
 
     writeln!(
         buf,
-        "pub const CURVE_CONSTS_{}: [::starknet_curve::AffinePoint; {}] = [",
-        name, len
+        "pub const CURVE_CONSTS_{name}: [::starknet_curve::AffinePoint; {len}] = ["
     )?;
 
     let mut bits_left = max_bits;

@@ -356,7 +356,7 @@ impl<'de> Deserialize<'de> for ParentLocation {
 
             let location = array.pop().unwrap();
             let location = Location::deserialize(location).map_err(|err| {
-                serde::de::Error::custom(format!("unable to deserialize Location: {}", err))
+                serde::de::Error::custom(format!("unable to deserialize Location: {err}"))
             })?;
 
             Ok(Self {

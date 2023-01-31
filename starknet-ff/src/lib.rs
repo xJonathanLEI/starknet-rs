@@ -397,7 +397,7 @@ impl LowerHex for FieldElement {
                     latch = nibble != 0 || (64 - ind_nibble <= width);
                 }
                 if latch {
-                    write!(f, "{:x}", nibble)?;
+                    write!(f, "{nibble:x}")?;
                 }
                 ind_nibble += 1;
             }
@@ -427,7 +427,7 @@ impl UpperHex for FieldElement {
                     latch = nibble != 0 || (64 - ind_nibble <= width);
                 }
                 if latch {
-                    write!(f, "{:X}", nibble)?;
+                    write!(f, "{nibble:X}")?;
                 }
                 ind_nibble += 1;
             }
@@ -441,7 +441,7 @@ impl Serialize for FieldElement {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&format!("{}", self))
+        serializer.serialize_str(&format!("{self}"))
     }
 }
 
@@ -634,19 +634,19 @@ mod tests {
     fn test_zero_padded_hex_fmt() {
         let fe = FieldElement::from_hex_be("0x1234abcd").unwrap();
 
-        assert_eq!(format!("{:011x}", fe), "0001234abcd");
-        assert_eq!(format!("{:011X}", fe), "0001234ABCD");
-        assert_eq!(format!("{:08x}", fe), "1234abcd");
-        assert_eq!(format!("{:06x}", fe), "1234abcd");
-        assert_eq!(format!("{:#x}", fe), "0x1234abcd");
+        assert_eq!(format!("{fe:011x}"), "0001234abcd");
+        assert_eq!(format!("{fe:011X}"), "0001234ABCD");
+        assert_eq!(format!("{fe:08x}"), "1234abcd");
+        assert_eq!(format!("{fe:06x}"), "1234abcd");
+        assert_eq!(format!("{fe:#x}"), "0x1234abcd");
         assert_eq!(
-            format!("{:#064x}", fe),
+            format!("{fe:#064x}"),
             "0x000000000000000000000000000000000000000000000000000000001234abcd"
         );
 
         // Ignore if requesting more than 64 nibbles (or should we not?)
         assert_eq!(
-            format!("{:#0100x}", fe),
+            format!("{fe:#0100x}"),
             "0x000000000000000000000000000000000000000000000000000000001234abcd"
         );
     }

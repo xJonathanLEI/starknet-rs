@@ -350,7 +350,7 @@ impl Provider for SequencerGatewayProvider {
         let mut request_url = self.extend_feeder_gateway_url("get_code");
         request_url
             .query_pairs_mut()
-            .append_pair("contractAddress", &format!("{:#x}", contract_address));
+            .append_pair("contractAddress", &format!("{contract_address:#x}"));
         append_block_id(&mut request_url, block_identifier);
 
         match self
@@ -379,7 +379,7 @@ impl Provider for SequencerGatewayProvider {
         let mut request_url = self.extend_feeder_gateway_url("get_full_contract");
         request_url
             .query_pairs_mut()
-            .append_pair("contractAddress", &format!("{:#x}", contract_address));
+            .append_pair("contractAddress", &format!("{contract_address:#x}"));
         append_block_id(&mut request_url, block_identifier);
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
@@ -395,7 +395,7 @@ impl Provider for SequencerGatewayProvider {
         let mut request_url = self.extend_feeder_gateway_url("get_class_hash_at");
         request_url
             .query_pairs_mut()
-            .append_pair("contractAddress", &format!("{:#x}", contract_address));
+            .append_pair("contractAddress", &format!("{contract_address:#x}"));
         append_block_id(&mut request_url, block_identifier);
 
         self.send_get_request::<RawFieldElementResponse>(request_url)
@@ -410,7 +410,7 @@ impl Provider for SequencerGatewayProvider {
         let mut request_url = self.extend_feeder_gateway_url("get_class_by_hash");
         request_url
             .query_pairs_mut()
-            .append_pair("classHash", &format!("{:#x}", class_hash));
+            .append_pair("classHash", &format!("{class_hash:#x}"));
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
@@ -426,7 +426,7 @@ impl Provider for SequencerGatewayProvider {
         let mut request_url = self.extend_feeder_gateway_url("get_storage_at");
         request_url
             .query_pairs_mut()
-            .append_pair("contractAddress", &format!("{:#x}", contract_address))
+            .append_pair("contractAddress", &format!("{contract_address:#x}"))
             .append_pair("key", &key.to_string());
         append_block_id(&mut request_url, block_identifier);
 
@@ -443,7 +443,7 @@ impl Provider for SequencerGatewayProvider {
         let mut request_url = self.extend_feeder_gateway_url("get_nonce");
         request_url
             .query_pairs_mut()
-            .append_pair("contractAddress", &format!("{:#x}", contract_address));
+            .append_pair("contractAddress", &format!("{contract_address:#x}"));
         append_block_id(&mut request_url, block_identifier);
 
         self.send_get_request::<RawFieldElementResponse>(request_url)
@@ -458,7 +458,7 @@ impl Provider for SequencerGatewayProvider {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_status");
         request_url
             .query_pairs_mut()
-            .append_pair("transactionHash", &format!("{:#x}", transaction_hash));
+            .append_pair("transactionHash", &format!("{transaction_hash:#x}"));
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
@@ -472,7 +472,7 @@ impl Provider for SequencerGatewayProvider {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction");
         request_url
             .query_pairs_mut()
-            .append_pair("transactionHash", &format!("{:#x}", transaction_hash));
+            .append_pair("transactionHash", &format!("{transaction_hash:#x}"));
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
@@ -486,7 +486,7 @@ impl Provider for SequencerGatewayProvider {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_receipt");
         request_url
             .query_pairs_mut()
-            .append_pair("transactionHash", &format!("{:#x}", transaction_hash));
+            .append_pair("transactionHash", &format!("{transaction_hash:#x}"));
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
@@ -500,7 +500,7 @@ impl Provider for SequencerGatewayProvider {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_trace");
         request_url
             .query_pairs_mut()
-            .append_pair("transactionHash", &format!("{:#x}", transaction_hash));
+            .append_pair("transactionHash", &format!("{transaction_hash:#x}"));
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
@@ -528,7 +528,7 @@ impl Provider for SequencerGatewayProvider {
         let mut request_url = self.extend_feeder_gateway_url("get_block_id_by_hash");
         request_url
             .query_pairs_mut()
-            .append_pair("blockHash", &format!("{:#x}", block_hash));
+            .append_pair("blockHash", &format!("{block_hash:#x}"));
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
@@ -556,7 +556,7 @@ impl Provider for SequencerGatewayProvider {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_id_by_hash");
         request_url
             .query_pairs_mut()
-            .append_pair("transactionHash", &format!("{:#x}", transaction_hash));
+            .append_pair("transactionHash", &format!("{transaction_hash:#x}"));
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
@@ -659,7 +659,7 @@ fn append_block_id(url: &mut Url, block_identifier: BlockId) {
     match block_identifier {
         BlockId::Hash(block_hash) => {
             url.query_pairs_mut()
-                .append_pair("blockHash", &format!("{:#x}", block_hash));
+                .append_pair("blockHash", &format!("{block_hash:#x}"));
         }
         BlockId::Number(block_number) => {
             url.query_pairs_mut()
