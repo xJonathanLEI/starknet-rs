@@ -69,6 +69,7 @@ pub trait AccountFactory: Sized {
 }
 
 /// An intermediate type allowing users to optionally specify `nonce` and/or `max_fee`.
+#[must_use]
 #[derive(Debug)]
 pub struct AccountDeployment<'f, F> {
     factory: &'f F,
