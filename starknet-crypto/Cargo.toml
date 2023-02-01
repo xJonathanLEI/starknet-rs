@@ -8,7 +8,7 @@ readme = "README.md"
 repository = "https://github.com/xJonathanLEI/starknet-rs"
 homepage = "https://starknet.rs/"
 description = """
-Low-level cryptography utilities for StarkNet
+Low-level cryptography utilities for Starknet
 """
 keywords = ["ethereum", "starknet", "web3"]
 

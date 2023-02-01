@@ -1,6 +1,6 @@
-# Low-level cryptography utilities for StarkNet
+# Low-level cryptography utilities for Starknet
 
-`starknet-crypto` contains utilities for performing **low-level** cryptographic operations in StarkNet.
+`starknet-crypto` contains utilities for performing **low-level** cryptographic operations in Starknet.
 
 > _You're advised to use high-level crypto utilities implemented by the `starknet-core` crate (or use it through the `starknet::core` re-export) if you're not familiar with cryptographic primitives. Using these low-level functions incorrectly could result in leaking your private key, for example._
 

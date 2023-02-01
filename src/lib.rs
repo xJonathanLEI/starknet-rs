@@ -1,4 +1,4 @@
-//! # Complete StarkNet library in Rust
+//! # Complete Starknet library in Rust
 //!
 //! > _Note that `starknet-rs` is still experimental. Breaking changes will be made before the first
 //! stable release. Use at your own risk._
@@ -6,11 +6,11 @@
 //! > _The underlying cryptography library `starknet-crypto` does NOT provide constant-time
 //! guarantees._
 //!
-//! `starknet-rs` is a Rust client library for StarkNet. The current version offers full API
+//! `starknet-rs` is a Rust client library for Starknet. The current version offers full API
 //! coverage of the sequencer gateway and feeder gateway.
 //!
 //! Future versions of `starknet-rs` will support all common features required for buildling client
-//! software for StarkNet:
+//! software for Starknet:
 //!
 //! - full JSON-RPC API coverage as full node implementations become available
 //! - contract deployment
@@ -19,16 +19,16 @@
 //!
 //! ## `core`
 //!
-//! Contains all the [necessary data structures](core::types) for interacting with StarkNet.
+//! Contains all the [necessary data structures](core::types) for interacting with Starknet.
 //!
 //! ## `providers`
 //!
-//! The [`Provider`](providers::Provider) trait provides abstraction over StarkNet data providers.
+//! The [`Provider`](providers::Provider) trait provides abstraction over Starknet data providers.
 //! Currently the only implementation is [`SequencerGatewayProvider`](providers::SequencerGatewayProvider).
 //!
 //! ## `contract`
 //!
-//! Contains all the types for deploying and interacting with StarkNet smart contracts.
+//! Contains all the types for deploying and interacting with Starknet smart contracts.
 //!
 //! ## `signers`
 //!
@@ -36,7 +36,7 @@
 //!
 //! ## `accounts`
 //!
-//! Contains types for using account abstraction on StarkNet.
+//! Contains types for using account abstraction on Starknet.
 //!
 //! ## `macros`
 //!

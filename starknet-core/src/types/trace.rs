@@ -12,7 +12,7 @@ pub struct BlockTraces {
     pub traces: Vec<TransactionTraceWithHash>,
 }
 
-/// Represents the trace of a StarkNet transaction execution, including internal calls.
+/// Represents the trace of a Starknet transaction execution, including internal calls.
 #[serde_as]
 #[derive(Debug, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
@@ -144,7 +144,7 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_trace_deser_new_attributes_0_9_0() {
-        // This tx contains new fields introduced in StarkNet v0.9.0
+        // This tx contains new fields introduced in Starknet v0.9.0
         let new_tx: TransactionTrace = serde_json::from_str(include_str!(
             "../../test-data/raw_gateway_responses/get_transaction_trace/3_with_call_type.txt"
         ))

@@ -8,7 +8,7 @@ readme = "README.md"
 repository = "https://github.com/xJonathanLEI/starknet-rs"
 homepage = "https://starknet.rs/"
 description = """
-Types for handling StarkNet account abstraction
+Types for handling Starknet account abstraction
 """
 keywords = ["ethereum", "starknet", "web3"]
 

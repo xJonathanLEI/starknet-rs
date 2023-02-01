@@ -11,7 +11,7 @@ pub struct FeeEstimate {
     pub gas_usage: u64,
 }
 
-/// Represents the information regarding a StarkNet transaction's simulation.
+/// Represents the information regarding a Starknet transaction's simulation.
 #[derive(Debug, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct TransactionSimulationInfo {

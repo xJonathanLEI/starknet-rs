@@ -1,1 +1,1 @@
-# StarkNet field element type
+# Starknet field element type

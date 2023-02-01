@@ -8,7 +8,7 @@ readme = "README.md"
 repository = "https://github.com/xJonathanLEI/starknet-rs"
 homepage = "https://starknet.rs/"
 description = """
-Types and utilities for StarkNet smart contract deployment and interaction
+Types and utilities for Starknet smart contract deployment and interaction
 """
 keywords = ["ethereum", "starknet", "web3"]
 

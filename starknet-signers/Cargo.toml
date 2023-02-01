@@ -8,7 +8,7 @@ readme = "README.md"
 repository = "https://github.com/xJonathanLEI/starknet-rs"
 homepage = "https://starknet.rs/"
 description = """
-StarkNet signer implementations
+Starknet signer implementations
 """
 keywords = ["ethereum", "starknet", "web3"]
 
