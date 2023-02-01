@@ -3,9 +3,9 @@
   <h1 align="center">starknet-rs</h1>
 </p>
 
-**Complete StarkNet library in Rust**
+**Complete Starknet library in Rust**
 
-![starknet-version-v0.10.3](https://img.shields.io/badge/StarkNet_Version-v0.10.3-2ea44f?logo=ethereum)
+![starknet-version-v0.10.3](https://img.shields.io/badge/Starknet_Version-v0.10.3-2ea44f?logo=ethereum)
 [![jsonrpc-spec-v0.2.1](https://img.shields.io/badge/JSON--RPC-v0.2.1-2ea44f?logo=ethereum)](https://github.com/starkware-libs/starknet-specs/tree/v0.2.1)
 [![linting-badge](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml/badge.svg?branch=master)](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml)
 [![crates-badge](https://img.shields.io/crates/v/starknet.svg)](https://crates.io/crates/starknet)
@@ -43,14 +43,14 @@ starknet = { git = "https://github.com/xJonathanLEI/starknet-rs" }
 This workspace contains the following crates:
 
 - `starknet`: Re-export of other sub-crates (recommended)
-- `starknet-core`: Core data structures for interacting with StarkNet
-- `starknet-providers`: Abstraction and implementation of clients for interacting with StarkNet nodes and sequencers
-- `starknet-contract`: Types for deploying and interacting with StarkNet smart contracts
-- `starknet-crypto`: **Low-level** cryptography utilities for StarkNet
-- `starknet-signers`: StarkNet signer implementations
-- `starknet-accounts`: Types for handling StarkNet account abstraction
-- `starknet-ff`: StarkNet field element type
-- `starknet-curve`: StarkNet curve operations
+- `starknet-core`: Core data structures for interacting with Starknet
+- `starknet-providers`: Abstraction and implementation of clients for interacting with Starknet nodes and sequencers
+- `starknet-contract`: Types for deploying and interacting with Starknet smart contracts
+- `starknet-crypto`: **Low-level** cryptography utilities for Starknet
+- `starknet-signers`: Starknet signer implementations
+- `starknet-accounts`: Types for handling Starknet account abstraction
+- `starknet-ff`: Starknet field element type
+- `starknet-curve`: Starknet curve operations
 - `starknet-macros`: Useful macros for using the `starknet` crates
 
 ## WebAssembly

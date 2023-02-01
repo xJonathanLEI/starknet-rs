@@ -41,7 +41,7 @@ pub enum TransactionRequest {
     DeployAccount(DeployAccountTransaction),
 }
 
-/// Represents a transaction in the StarkNet network that is originated from an action of an
+/// Represents a transaction in the Starknet network that is originated from an action of an
 /// account.
 #[derive(Debug, Serialize)]
 #[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
@@ -51,7 +51,7 @@ pub enum AccountTransaction {
     DeployAccount(DeployAccountTransaction),
 }
 
-/// Represents a contract function call in the StarkNet network.
+/// Represents a contract function call in the Starknet network.
 #[serde_as]
 #[derive(Debug, Serialize)]
 pub struct CallFunction {
@@ -62,7 +62,7 @@ pub struct CallFunction {
     pub calldata: Vec<FieldElement>,
 }
 
-/// Represents an L1 handler call in the StarkNet network.
+/// Represents an L1 handler call in the Starknet network.
 #[serde_as]
 #[derive(Debug, Serialize)]
 pub struct CallL1Handler {

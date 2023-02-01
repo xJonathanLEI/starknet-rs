@@ -299,7 +299,7 @@ where
         .await
     }
 
-    /// Call a starknet function without creating a StarkNet transaction
+    /// Call a starknet function without creating a Starknet transaction
     pub async fn call<R>(
         &self,
         request: R,
@@ -320,7 +320,7 @@ where
             .0)
     }
 
-    /// Estimate the fee for a given StarkNet transaction
+    /// Estimate the fee for a given Starknet transaction
     pub async fn estimate_fee<R>(
         &self,
         request: R,
@@ -352,7 +352,7 @@ where
             .await
     }
 
-    /// Return the currently configured StarkNet chain id
+    /// Return the currently configured Starknet chain id
     pub async fn chain_id(&self) -> Result<FieldElement, JsonRpcClientError<T::Error>> {
         Ok(self
             .send_request::<_, Felt>(JsonRpcMethod::ChainId, ())

@@ -1,4 +1,4 @@
-# StarkNet data types
+# Starknet data types
 
 // TODO: add `starknet-core` documentation
 

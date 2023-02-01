@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#57a9bd34cd4541fa8e2b2ae7aeb100140800c723
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#a2761a3406c257736b6306b96e38696e1b670d17
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -57,7 +57,7 @@ pub struct EmittedEvent {
     pub transaction_hash: FieldElement,
 }
 
-/// A StarkNet event.
+/// A Starknet event.
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
@@ -182,7 +182,7 @@ pub struct BlockWithTxHashes {
     pub new_root: FieldElement,
     /// The time in which the block was created, encoded in Unix time
     pub timestamp: u64,
-    /// The StarkNet identity of the sequencer submitting this block
+    /// The Starknet identity of the sequencer submitting this block
     #[serde_as(as = "UfeHex")]
     pub sequencer_address: FieldElement,
     /// The hashes of the transactions included in this block
@@ -208,7 +208,7 @@ pub struct BlockWithTxs {
     pub new_root: FieldElement,
     /// The time in which the block was created, encoded in Unix time
     pub timestamp: u64,
-    /// The StarkNet identity of the sequencer submitting this block
+    /// The Starknet identity of the sequencer submitting this block
     #[serde_as(as = "UfeHex")]
     pub sequencer_address: FieldElement,
     /// The transactions in this block
@@ -226,7 +226,7 @@ pub struct PendingBlockWithTxHashes {
     pub transactions: Vec<FieldElement>,
     /// The time in which the block was created, encoded in Unix time
     pub timestamp: u64,
-    /// The StarkNet identity of the sequencer submitting this block
+    /// The Starknet identity of the sequencer submitting this block
     #[serde_as(as = "UfeHex")]
     pub sequencer_address: FieldElement,
     /// The hash of this block's parent
@@ -244,7 +244,7 @@ pub struct PendingBlockWithTxs {
     pub transactions: Vec<Transaction>,
     /// The time in which the block was created, encoded in Unix time
     pub timestamp: u64,
-    /// The StarkNet identity of the sequencer submitting this block
+    /// The Starknet identity of the sequencer submitting this block
     #[serde_as(as = "UfeHex")]
     pub sequencer_address: FieldElement,
     /// The hash of this block's parent
@@ -663,7 +663,7 @@ pub struct FunctionCall {
     pub calldata: Vec<FieldElement>,
 }
 
-/// The definition of a StarkNet contract class.
+/// The definition of a Starknet contract class.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ContractClass {

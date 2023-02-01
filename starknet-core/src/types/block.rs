@@ -133,7 +133,7 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_with_events() {
-        // has events introduced with StarkNet v0.7.0
+        // has events introduced with Starknet v0.7.0
         let raw = include_str!("../../test-data/raw_gateway_responses/get_block/3_with_events.txt");
 
         let block: Block = serde_json::from_str(raw).unwrap();
@@ -162,7 +162,7 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_new_attributes_0_8_2() {
-        // This block contains new fields introduced in StarkNet v0.8.2
+        // This block contains new fields introduced in Starknet v0.8.2
         let new_block: Block = serde_json::from_str(include_str!(
             "../../test-data/raw_gateway_responses/get_block/6_with_sequencer_address.txt"
         ))
@@ -179,7 +179,7 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_new_attributes_0_9_1() {
-        // This block contains new fields introduced in StarkNet v0.9.1
+        // This block contains new fields introduced in Starknet v0.9.1
         let new_block: Block = serde_json::from_str(include_str!(
             "../../test-data/raw_gateway_responses/get_block/8_with_starknet_version.txt"
         ))

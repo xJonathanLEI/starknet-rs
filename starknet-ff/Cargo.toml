@@ -8,7 +8,7 @@ readme = "README.md"
 repository = "https://github.com/xJonathanLEI/starknet-rs"
 homepage = "https://starknet.rs/"
 description = """
-StarkNet field element type
+Starknet field element type
 """
 keywords = ["ethereum", "starknet", "web3"]
 

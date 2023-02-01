@@ -1,1 +1,1 @@
-# StarkNet Curve
+# Starknet Curve

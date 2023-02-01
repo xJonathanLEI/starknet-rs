@@ -4,7 +4,7 @@
 curl -o ./get_block/1_with_transactions.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=39232"
 
 # ./get_block/2_with_messages.txt
-# (Changed from 39227 to 122387 due to a bug in StarkNet)
+# (Changed from 39227 to 122387 due to a bug in Starknet)
 curl -o ./get_block/2_with_messages.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=122387"
 
 # ./get_block/3_with_events.txt

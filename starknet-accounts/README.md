@@ -1,1 +1,1 @@
-# Types for handling StarkNet account abstraction
+# Types for handling Starknet account abstraction
