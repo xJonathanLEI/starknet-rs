@@ -155,6 +155,17 @@ impl FieldElement {
         Self::from_byte_slice(bytes).ok_or(FromByteArrayError)
     }
 
+    /// Same as `from_bytes_be` except this function takes a slice.
+    pub fn from_byte_slice_be(bytes: &[u8]) -> Result<Self, FromByteSliceError> {
+        if bytes.len() > U256_BYTE_COUNT {
+            Err(FromByteSliceError::InvalidLength)
+        } else {
+            let mut buffer = [0u8; U256_BYTE_COUNT];
+            buffer[(U256_BYTE_COUNT - bytes.len())..].copy_from_slice(bytes);
+            Self::from_byte_slice(&buffer).ok_or(FromByteSliceError::OutOfRange)
+        }
+    }
+
     /// Interprets the field element as a decimal number of a certain decimal places.
     #[cfg(feature = "bigdecimal")]
     pub fn to_big_decimal<D: Into<i64>>(&self, decimals: D) -> bigdecimal::BigDecimal {
@@ -832,6 +843,19 @@ mod tests {
             assert_eq!(
                 num.0.parse::<FieldElement>().unwrap(),
                 num.1.parse::<FieldElement>().unwrap(),
+            );
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_from_byte_slice_be() {
+        let nums = [("25800", [100u8, 200u8])];
+
+        for num in nums.into_iter() {
+            assert_eq!(
+                num.0.parse::<FieldElement>().unwrap(),
+                FieldElement::from_byte_slice_be(&num.1).unwrap()
             );
         }
     }
