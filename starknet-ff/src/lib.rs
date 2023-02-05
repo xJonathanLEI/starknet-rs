@@ -369,9 +369,9 @@ impl Display for FieldElement {
 
         loop {
             let digit = if current < ten {
-                current.to_uint_array()[0] as u8
+                current.to_words()[0] as u8
             } else {
-                (current.checked_rem(&ten)).unwrap().to_uint_array()[0] as u8
+                (current.checked_rem(&ten)).unwrap().to_words()[0] as u8
             };
             buf[i] = digit + b'0';
             current = current.checked_div(&ten).unwrap();
@@ -577,12 +577,12 @@ impl TryFrom<FieldElement> for u64 {
 impl From<&FieldElement> for U256 {
     #[cfg(target_pointer_width = "64")]
     fn from(value: &FieldElement) -> Self {
-        U256::from_uint_array(value.inner.into_repr().0)
+        U256::from_words(value.inner.into_repr().0)
     }
 
     #[cfg(target_pointer_width = "32")]
     fn from(value: &FieldElement) -> Self {
-        U256::from_uint_array(unsafe {
+        U256::from_words(unsafe {
             std::mem::transmute::<[u64; 4], [u32; 8]>(value.inner.into_repr().0)
         })
     }
@@ -602,13 +602,13 @@ fn u256_to_biginteger256(num: &U256) -> BigInteger256 {
 #[cfg(target_pointer_width = "64")]
 #[inline]
 fn u256_to_u64_array(num: &U256) -> [u64; 4] {
-    num.to_uint_array()
+    num.to_words()
 }
 
 #[cfg(target_pointer_width = "32")]
 #[inline]
 fn u256_to_u64_array(num: &U256) -> [u64; 4] {
-    unsafe { std::mem::transmute::<[u32; 8], [u64; 4]>(num.to_uint_array()) }
+    unsafe { std::mem::transmute::<[u32; 8], [u64; 4]>(num.to_words()) }
 }
 
 #[cfg(test)]
