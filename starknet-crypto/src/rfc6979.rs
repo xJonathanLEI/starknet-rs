@@ -1,5 +1,6 @@
 use crypto_bigint::{ArrayEncoding, ByteArray, Integer, U256};
-use hmac::digest::{BlockInput, FixedOutput, Reset, Update};
+use hmac::digest::Digest;
+use sha2::digest::{crypto_common::BlockSizeUser, FixedOutputReset, HashMarker};
 use zeroize::{Zeroize, Zeroizing};
 
 use crate::FieldElement;
@@ -58,7 +59,7 @@ pub fn generate_k(
 #[inline]
 fn generate_k_shifted<D, I>(x: &I, n: &I, h: &ByteArray<I>, data: &[u8]) -> Zeroizing<I>
 where
-    D: FixedOutput<OutputSize = I::ByteSize> + BlockInput + Clone + Default + Reset + Update,
+    D: Default + Digest + BlockSizeUser + FixedOutputReset + HashMarker,
     I: ArrayEncoding + Integer + Zeroize,
 {
     let mut x = x.to_be_byte_array();
