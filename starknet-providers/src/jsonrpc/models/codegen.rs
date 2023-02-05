@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#a2761a3406c257736b6306b96e38696e1b670d17
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#b6fb949c54c7b9727f2d90c783ccc51012c626dd
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -29,7 +29,7 @@ use super::{serde_impls::NumAsHex, *};
 pub struct ResultPageRequest {
     /// A pointer to the last element of the delivered page, use this token in a subsequent query to
     /// obtain the next page
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub continuation_token: Option<String>,
     pub chunk_size: u64,
 }
@@ -75,17 +75,17 @@ pub struct Event {
 #[derive(Debug, Clone, Serialize)]
 pub struct EventFilter {
     /// From block
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub from_block: Option<BlockId>,
     /// To block
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub to_block: Option<BlockId>,
     /// From contract
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde_as(as = "Option<UfeHex>")]
     pub address: Option<FieldElement>,
     /// Filter key values
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde_as(as = "Option<Vec<UfeHex>>")]
     pub keys: Option<Vec<FieldElement>>,
 }
@@ -671,7 +671,7 @@ pub struct ContractClass {
     #[serde(with = "base64")]
     pub program: Vec<u8>,
     pub entry_points_by_type: EntryPointsByType,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub abi: Option<Vec<ContractAbiEntry>>,
 }
 
@@ -759,7 +759,7 @@ pub struct FunctionAbiEntry {
     pub name: String,
     pub inputs: Vec<TypedParameter>,
     pub outputs: Vec<TypedParameter>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "stateMutability")]
     pub state_mutability: Option<String>,
 }
@@ -875,7 +875,7 @@ impl<'de> Deserialize<'de> for DeclareTransaction {
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
@@ -950,7 +950,7 @@ impl<'de> Deserialize<'de> for BroadcastedDeclareTransaction {
         #[derive(Deserialize)]
         #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
@@ -1032,7 +1032,7 @@ impl<'de> Deserialize<'de> for DeployAccountTransaction {
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
@@ -1114,7 +1114,7 @@ impl<'de> Deserialize<'de> for BroadcastedDeployAccountTransaction {
         #[derive(Deserialize)]
         #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
@@ -1195,7 +1195,7 @@ impl<'de> Deserialize<'de> for DeployTransaction {
             pub class_hash: FieldElement,
             #[serde_as(as = "NumAsHex")]
             pub version: u64,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub contract_address_salt: FieldElement,
@@ -1257,7 +1257,7 @@ impl<'de> Deserialize<'de> for BroadcastedDeployTransaction {
             pub contract_class: ContractClass,
             #[serde_as(as = "NumAsHex")]
             pub version: u64,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub contract_address_salt: FieldElement,
@@ -1330,11 +1330,11 @@ impl<'de> Deserialize<'de> for InvokeTransactionV0 {
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "Option<NumAsHex>")]
             pub version: Option<u64>,
             #[serde_as(as = "Vec<UfeHex>")]
@@ -1420,11 +1420,11 @@ impl<'de> Deserialize<'de> for InvokeTransactionV1 {
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "Option<NumAsHex>")]
             pub version: Option<u64>,
             #[serde_as(as = "Vec<UfeHex>")]
@@ -1505,11 +1505,11 @@ impl<'de> Deserialize<'de> for BroadcastedInvokeTransactionV0 {
         #[derive(Deserialize)]
         #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "Option<NumAsHex>")]
             pub version: Option<u64>,
             #[serde_as(as = "Vec<UfeHex>")]
@@ -1589,11 +1589,11 @@ impl<'de> Deserialize<'de> for BroadcastedInvokeTransactionV1 {
         #[derive(Deserialize)]
         #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "Option<NumAsHex>")]
             pub version: Option<u64>,
             #[serde_as(as = "Vec<UfeHex>")]
@@ -1674,7 +1674,7 @@ impl<'de> Deserialize<'de> for L1HandlerTransaction {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "NumAsHex")]
             pub version: u64,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "NumAsHex")]
             pub nonce: u64,
@@ -1752,7 +1752,7 @@ impl<'de> Deserialize<'de> for InvokeTransactionReceipt {
             #[serde_as(as = "UfeHex")]
             pub block_hash: FieldElement,
             pub block_number: u64,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
@@ -1825,7 +1825,7 @@ impl<'de> Deserialize<'de> for DeclareTransactionReceipt {
             #[serde_as(as = "UfeHex")]
             pub block_hash: FieldElement,
             pub block_number: u64,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
@@ -1901,7 +1901,7 @@ impl<'de> Deserialize<'de> for DeployAccountTransactionReceipt {
             #[serde_as(as = "UfeHex")]
             pub block_hash: FieldElement,
             pub block_number: u64,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
@@ -1980,7 +1980,7 @@ impl<'de> Deserialize<'de> for DeployTransactionReceipt {
             #[serde_as(as = "UfeHex")]
             pub block_hash: FieldElement,
             pub block_number: u64,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
@@ -2056,7 +2056,7 @@ impl<'de> Deserialize<'de> for L1HandlerTransactionReceipt {
             #[serde_as(as = "UfeHex")]
             pub block_hash: FieldElement,
             pub block_number: u64,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
@@ -2118,7 +2118,7 @@ impl<'de> Deserialize<'de> for PendingInvokeTransactionReceipt {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "UfeHex")]
             pub actual_fee: FieldElement,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
@@ -2177,7 +2177,7 @@ impl<'de> Deserialize<'de> for PendingDeclareTransactionReceipt {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "UfeHex")]
             pub actual_fee: FieldElement,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
@@ -2236,7 +2236,7 @@ impl<'de> Deserialize<'de> for PendingDeployAccountTransactionReceipt {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "UfeHex")]
             pub actual_fee: FieldElement,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
@@ -2298,7 +2298,7 @@ impl<'de> Deserialize<'de> for PendingDeployTransactionReceipt {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "UfeHex")]
             pub actual_fee: FieldElement,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
@@ -2360,7 +2360,7 @@ impl<'de> Deserialize<'de> for PendingL1HandlerTransactionReceipt {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "UfeHex")]
             pub actual_fee: FieldElement,
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,

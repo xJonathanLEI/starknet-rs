@@ -18,7 +18,7 @@ starknet-providers = { version = "0.2.0", path = "../starknet-providers" }
 starknet-accounts = { version = "0.1.0", path = "../starknet-accounts" }
 serde = { version = "1.0.133", features = ["derive"] }
 serde_json = "1.0.74"
-serde_with = "1.12.0"
+serde_with = "2.2.0"
 thiserror = "1.0.30"
 
 [dev-dependencies]

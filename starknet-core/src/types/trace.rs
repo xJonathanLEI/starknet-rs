@@ -61,12 +61,10 @@ pub struct FunctionInvocation {
     pub call_type: Option<CallType>,
     // This field is marked optional because it's missing from old transactions. Drop `Option` once
     // it's resolved.
-    #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
     pub class_hash: Option<FieldElement>,
     // This field is marked optional because it's missing from old transactions. Drop `Option` once
     // it's resolved.
-    #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
     pub selector: Option<FieldElement>,
     pub entry_point_type: Option<EntryPointType>,
