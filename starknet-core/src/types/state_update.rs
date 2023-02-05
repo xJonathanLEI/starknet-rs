@@ -8,7 +8,6 @@ use std::collections::HashMap;
 #[derive(Debug, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct StateUpdate {
-    #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
     pub block_hash: Option<FieldElement>,
     #[serde_as(as = "UfeHex")]

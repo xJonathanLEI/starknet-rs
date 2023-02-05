@@ -24,7 +24,7 @@ flate2 = "1.0.24"
 hex = "0.4.3"
 serde = { version = "1.0.133", features = ["derive"] }
 serde_json = { version = "1.0.74", features = ["arbitrary_precision"] }
-serde_with = "1.12.0"
+serde_with = "2.2.0"
 sha3 = "0.10.0"
 thiserror = "1.0.30"
 

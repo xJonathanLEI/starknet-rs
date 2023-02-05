@@ -131,7 +131,6 @@ pub struct DeployAccountTransaction {
 pub struct InvokeFunctionTransaction {
     #[serde_as(as = "UfeHex")]
     pub contract_address: FieldElement,
-    #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
     pub entry_point_selector: Option<FieldElement>,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
@@ -142,7 +141,6 @@ pub struct InvokeFunctionTransaction {
     pub transaction_hash: FieldElement,
     #[serde_as(as = "UfeHex")]
     pub max_fee: FieldElement,
-    #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
     pub nonce: Option<FieldElement>,
     #[serde_as(as = "UfeHex")]
@@ -161,7 +159,6 @@ pub struct L1HandlerTransaction {
     pub calldata: Vec<FieldElement>,
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
-    #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
     pub nonce: Option<FieldElement>,
     #[serde_as(as = "UfeHex")]
