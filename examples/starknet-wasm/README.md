@@ -1,6 +1,6 @@
 # Example usage of starknet-rs from WASM
 
-This is an example of using `starknet-rs` as an WebAssembly (WASM) module. With WASM you can use `starknet-rs` in browser, as a Node.js module, or really just anywhere WebAssembly is supported.
+This is an example of using `starknet-rs` as a WebAssembly (WASM) module. With WASM you can use `starknet-rs` in browser, as a Node.js module, or really just anywhere WebAssembly is supported.
 
 To run this example, make sure you have [`wasm-pack`](https://github.com/rustwasm/wasm-pack) installed. See installation instructions [here](https://rustwasm.github.io/wasm-pack/installer/).
 
