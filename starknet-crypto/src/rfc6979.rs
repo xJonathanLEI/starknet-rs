@@ -4,7 +4,7 @@ use sha2::digest::{crypto_common::BlockSizeUser, FixedOutputReset, HashMarker};
 use zeroize::{Zeroize, Zeroizing};
 
 use crate::FieldElement;
-
+use std::prelude::v1::*;
 const EC_ORDER: U256 =
     U256::from_be_hex("0800000000000010ffffffffffffffffb781126dcae7b2321e66a241adc64d2f");
 

@@ -27,12 +27,14 @@ pub struct Signature {
 
 impl fmt::Display for Signature {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
+        // TODO: uncomment and find a way to make it work with no_std
+        /*write!(
             f,
             "{}{}",
             hex::encode(self.r.to_bytes_be()),
             hex::encode(self.s.to_bytes_be()),
-        )
+        )*/
+        Ok(())
     }
 }
 
