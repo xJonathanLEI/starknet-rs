@@ -37,9 +37,9 @@ std = [ "no-std-compat/std" ]
 
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false }
-hex = "0.4.3"
+hex = {versio = "0.4.3", default-features = false}
 hex-literal = "0.3.4"
-serde = { version = "1.0.150", features = ["derive"] }
+serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0.74"
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
