@@ -1668,6 +1668,8 @@ name = "starknet-ff"
 version = "0.2.0"
 dependencies = [
  "ark-ff",
+ "ark-serialize",
+ "ark-std",
  "bigdecimal",
  "crypto-bigint",
  "getrandom",
