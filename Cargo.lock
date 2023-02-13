@@ -978,6 +978,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "no-std-compat"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b93853da6d84c2e3c7d730d6473e8817692dd89be387eb01b94d7f108ecb5b8c"
+
+[[package]]
 name = "num-bigint"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1568,6 +1574,7 @@ name = "starknet-accounts"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "no-std-compat",
  "serde_json",
  "starknet-core",
  "starknet-providers",
@@ -1580,6 +1587,7 @@ dependencies = [
 name = "starknet-contract"
 version = "0.1.0"
 dependencies = [
+ "no-std-compat",
  "rand",
  "serde",
  "serde_json",
@@ -1601,6 +1609,7 @@ dependencies = [
  "ethereum-types",
  "flate2",
  "hex",
+ "no-std-compat",
  "serde",
  "serde_json",
  "serde_with",
@@ -1621,6 +1630,7 @@ dependencies = [
  "hex",
  "hex-literal",
  "hmac",
+ "no-std-compat",
  "num-bigint",
  "num-integer",
  "num-traits",
@@ -1640,6 +1650,7 @@ dependencies = [
 name = "starknet-crypto-codegen"
 version = "0.1.0"
 dependencies = [
+ "no-std-compat",
  "starknet-curve",
  "starknet-ff",
  "syn",
@@ -1649,6 +1660,7 @@ dependencies = [
 name = "starknet-curve"
 version = "0.1.0"
 dependencies = [
+ "no-std-compat",
  "starknet-ff",
 ]
 
@@ -1661,6 +1673,7 @@ dependencies = [
  "crypto-bigint",
  "getrandom",
  "hex",
+ "no-std-compat",
  "num-bigint",
  "serde",
  "thiserror",
@@ -1671,6 +1684,7 @@ dependencies = [
 name = "starknet-macros"
 version = "0.1.0"
 dependencies = [
+ "no-std-compat",
  "starknet-core",
  "syn",
 ]
@@ -1682,6 +1696,7 @@ dependencies = [
  "async-trait",
  "auto_impl",
  "flate2",
+ "no-std-compat",
  "reqwest",
  "serde",
  "serde_json",
@@ -1698,6 +1713,7 @@ name = "starknet-signers"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "no-std-compat",
  "starknet-core",
  "starknet-crypto",
  "thiserror",

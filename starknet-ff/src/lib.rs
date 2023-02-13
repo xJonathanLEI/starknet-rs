@@ -1,10 +1,13 @@
 #![allow(clippy::comparison_chain)]
+#![no_std]
+
+extern crate no_std_compat as std;
 
 use crate::fr::FrParameters;
-
 use ark_ff::{fields::Fp256, BigInteger, BigInteger256, Field, PrimeField, SquareRootField};
 use crypto_bigint::{CheckedAdd, CheckedMul, Zero, U256};
 use serde::{Deserialize, Serialize};
+use std::prelude::v1::*;
 use std::{
     fmt::{Debug, Display, LowerHex, UpperHex},
     str::FromStr,

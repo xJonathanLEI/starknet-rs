@@ -7,7 +7,7 @@ use crate::{
     fe_utils::{add_unbounded, bigint_mul_mod_floor, mod_inverse, mul_mod_floor},
     FieldElement, SignError, VerifyError,
 };
-use std::fmt;
+use std::{fmt, prelude::v1::*};
 
 const ELEMENT_UPPER_BOUND: FieldElement = FieldElement::from_mont([
     18446743986131435553,

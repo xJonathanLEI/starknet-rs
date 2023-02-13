@@ -10,8 +10,8 @@ use super::{
 use flate2::{write::GzEncoder, Compression};
 use serde::{ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer};
 use serde_with::{serde_as, SerializeAs};
+use std::prelude::v1::*;
 use std::{collections::BTreeMap, io::Write};
-
 const API_VERSION: FieldElement = FieldElement::ZERO;
 
 #[derive(Debug, Serialize, Deserialize)]

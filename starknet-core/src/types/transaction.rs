@@ -5,9 +5,9 @@ use super::{
         TransactionStatus,
     },
 };
-
 use serde::Deserialize;
 use serde_with::serde_as;
+use std::prelude::v1::*;
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]

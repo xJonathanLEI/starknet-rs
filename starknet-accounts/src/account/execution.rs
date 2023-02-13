@@ -3,7 +3,6 @@ use super::{
     RawExecution,
 };
 use crate::Call;
-
 use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
@@ -12,6 +11,7 @@ use starknet_core::{
     },
 };
 use starknet_providers::Provider;
+use std::prelude::v1::*;
 
 /// Cairo string for "invoke"
 const PREFIX_INVOKE: FieldElement = FieldElement::from_mont([

@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use starknet_core::types::FieldElement;
 use starknet_providers::Provider;
 use starknet_signers::Signer;
-
+use std::prelude::v1::*;
 /// Selector for "initialize"
 const SELECTOR_INITIALIZE: FieldElement = FieldElement::from_mont([
     14382173896205878522,

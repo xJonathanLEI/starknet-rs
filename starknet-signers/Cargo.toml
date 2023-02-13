@@ -17,6 +17,14 @@ starknet-core = { version = "0.2.0", path = "../starknet-core" }
 starknet-crypto = { version = "0.2.0", path = "../starknet-crypto" }
 async-trait = "0.1.52"
 thiserror = "1.0.30"
+no-std-compat = { version = "0.4.1", features = [
+    "alloc",
+    "compat_macros",
+    "std",
+] }
+[features]
+default = [ "std" ] # Default to using the std
+std = [ "no-std-compat/std" ]
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3.29"

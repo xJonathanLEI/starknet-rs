@@ -6,7 +6,7 @@ use starknet_core::{
 };
 
 pub use starknet_core::types::L1Address as EthAddress;
-
+use std::prelude::v1::*;
 mod serde_impls;
 
 /// Temporary module before JSON-RPC becomes the de-facto provider:

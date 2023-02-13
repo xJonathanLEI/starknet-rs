@@ -1,7 +1,7 @@
 use serde::Serialize;
 use serde_json::{ser::Formatter, Serializer};
 use std::io;
-
+use std::prelude::v1::*;
 /// A `serde_json` formatter that mimicks the output of `json.dumps()` in Python. This is primarily
 /// used in `hinted_class_hash` calculation to obtain the exact same hash as in `cairo-lang`.
 #[derive(Debug)]

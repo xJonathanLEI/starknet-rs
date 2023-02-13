@@ -2,8 +2,8 @@ use crate::{crypto::compute_hash_on_elements, types::FieldElement};
 
 use sha3::{Digest, Keccak256};
 use starknet_crypto::pedersen_hash;
+use std::prelude::v1::*;
 use thiserror::Error;
-
 const DEFAULT_ENTRY_POINT_NAME: &str = "__default__";
 const DEFAULT_L1_ENTRY_POINT_NAME: &str = "__l1_default__";
 

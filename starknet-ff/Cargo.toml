@@ -23,6 +23,11 @@ hex = "0.4.3"
 num-bigint = { version = "0.4.3", optional = true }
 serde = "1.0.152"
 thiserror = "1.0.30"
+no-std-compat = { version = "0.4.1", features = [
+    "alloc",
+    "compat_macros",
+    "std",
+] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2.3", features = ["js"] }
@@ -33,3 +38,4 @@ wasm-bindgen-test = "0.3.29"
 [features]
 default = ["bigdecimal"]
 bigdecimal = ["dep:bigdecimal", "dep:num-bigint"]
+std = [ "no-std-compat/std" ]

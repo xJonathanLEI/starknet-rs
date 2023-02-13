@@ -19,3 +19,11 @@ proc-macro = true
 starknet-curve = { version = "0.1.0", path = "../starknet-curve" }
 starknet-ff = { version = "0.2.0", path = "../starknet-ff" }
 syn = "1.0.96"
+no-std-compat = { version = "0.4.1", features = [
+    "alloc",
+    "compat_macros",
+    "std",
+] }
+[features]
+default = [ "std" ] # Default to using the std
+std = [ "no-std-compat/std" ]

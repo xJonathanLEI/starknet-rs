@@ -1,7 +1,7 @@
+use crate::types::FieldElement;
 use serde::{de::Error as DeError, Deserialize, Deserializer, Serializer};
 use serde_with::{DeserializeAs, SerializeAs};
-
-use crate::types::FieldElement;
+use std::prelude::v1::*;
 
 pub struct UfeHex;
 

@@ -1,7 +1,10 @@
 // Code ported from the build.rs script here:
 //   https://github.com/eqlabs/pathfinder/blob/7f9a6bb0264943f93a633f61fc4e0bc9237f68a0/crates/stark_hash/build.rs
+#![no_std]
 
+extern crate no_std_compat as std;
 use std::fmt::Write;
+use std::prelude::v1::*;
 
 use proc_macro::TokenStream;
 use starknet_curve::{

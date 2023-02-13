@@ -27,6 +27,11 @@ serde_json = { version = "1.0.74", features = ["arbitrary_precision"] }
 serde_with = "2.2.0"
 sha3 = "0.10.0"
 thiserror = "1.0.30"
+no-std-compat = { version = "0.4.1", features = [
+    "alloc",
+    "compat_macros",
+    "std",
+] }
 
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false }
@@ -39,6 +44,7 @@ wasm-bindgen-test = "0.3.29"
 default = ["bigdecimal"]
 bigdecimal = ["starknet-ff/bigdecimal"]
 no_unknown_fields = []
+std = [ "no-std-compat/std" ]
 
 [[bench]]
 name = "class_hash"

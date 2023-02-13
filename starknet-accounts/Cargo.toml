@@ -18,6 +18,14 @@ starknet-providers = { version = "0.2.0", path = "../starknet-providers" }
 starknet-signers = { version = "0.1.0", path = "../starknet-signers" }
 async-trait = "0.1.52"
 thiserror = "1.0.30"
+no-std-compat = { version = "0.4.1", features = [
+    "alloc",
+    "compat_macros",
+    "std",
+] }
+[features]
+default = [ "std" ] # Default to using the std
+std = [ "no-std-compat/std" ]
 
 [dev-dependencies]
 serde_json = "1.0.74"

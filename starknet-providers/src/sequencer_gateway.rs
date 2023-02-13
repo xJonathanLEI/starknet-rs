@@ -14,6 +14,7 @@ use starknet_core::{
         TransactionRequest, TransactionSimulationInfo, TransactionStatusInfo, TransactionTrace,
     },
 };
+use std::prelude::v1::*;
 use url::Url;
 
 #[derive(Clone)]

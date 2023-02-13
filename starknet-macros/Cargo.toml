@@ -18,7 +18,13 @@ proc-macro = true
 [dependencies]
 starknet-core = { version = "0.2.0", path = "../starknet-core" }
 syn = "1.0.96"
+no-std-compat = { version = "0.4.1", features = [
+    "alloc",
+    "compat_macros",
+    "std",
+] }
 
 [features]
 default = []
 use_imported_type = []
+std = [ "no-std-compat/std" ]

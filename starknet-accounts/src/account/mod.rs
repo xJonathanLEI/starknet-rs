@@ -6,8 +6,8 @@ use starknet_core::types::{
     BlockId, ContractArtifact, FieldElement,
 };
 use starknet_providers::{Provider, ProviderError};
+use std::prelude::v1::*;
 use std::{error::Error, sync::Arc};
-
 mod declaration;
 mod execution;
 

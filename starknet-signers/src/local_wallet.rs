@@ -5,6 +5,7 @@ use starknet_core::{
     crypto::{EcdsaSignError, Signature},
     types::FieldElement,
 };
+use std::prelude::v1::*;
 
 #[derive(Debug, Clone)]
 pub struct LocalWallet {

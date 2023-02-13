@@ -1,10 +1,10 @@
-use async_trait::async_trait;
-use reqwest::{Client, Url};
-use serde::{de::DeserializeOwned, Serialize};
-
 use crate::jsonrpc::{
     transports::JsonRpcTransport, JsonRpcMethod, JsonRpcRequest, JsonRpcResponse,
 };
+use async_trait::async_trait;
+use reqwest::{Client, Url};
+use serde::{de::DeserializeOwned, Serialize};
+use std::prelude::v1::*;
 
 #[derive(Debug)]
 pub struct HttpTransport {

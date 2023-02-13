@@ -5,7 +5,7 @@ use super::{
 
 use serde::Deserialize;
 use serde_with::serde_as;
-
+use std::prelude::v1::*;
 pub enum BlockId {
     Hash(FieldElement),
     Number(u64),

@@ -1,3 +1,7 @@
+#![no_std]
+
+extern crate no_std_compat as std;
+
 mod account;
 pub use account::{
     Account, AccountError, ConnectedAccount, Declaration, Execution, PreparedDeclaration,

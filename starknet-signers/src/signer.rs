@@ -3,7 +3,7 @@ use crate::VerifyingKey;
 use async_trait::async_trait;
 use starknet_core::{crypto::Signature, types::FieldElement};
 use std::error::Error;
-
+use std::prelude::v1::*;
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait Signer {

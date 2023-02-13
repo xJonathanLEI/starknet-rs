@@ -1,6 +1,6 @@
 pub mod base64 {
     use serde::{Deserialize, Deserializer, Serializer};
-
+    use std::prelude::v1::*;
     pub fn serialize<S, T>(value: T, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

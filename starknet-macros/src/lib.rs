@@ -1,8 +1,12 @@
+#![no_std]
+
+extern crate no_std_compat as std;
 use proc_macro::TokenStream;
 use starknet_core::{
     types::FieldElement,
     utils::{cairo_short_string_to_felt, get_selector_from_name},
 };
+use std::prelude::v1::*;
 use syn::{parse_macro_input, LitStr};
 
 #[proc_macro]

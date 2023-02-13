@@ -1,3 +1,7 @@
+#![no_std]
+
+extern crate no_std_compat as std;
+
 mod key_pair;
 pub use key_pair::{SigningKey, VerifyingKey};
 

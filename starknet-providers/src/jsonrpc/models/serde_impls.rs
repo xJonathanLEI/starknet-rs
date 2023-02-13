@@ -2,7 +2,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_with::{DeserializeAs, SerializeAs};
 
 use super::{SyncStatus, SyncStatusType};
-
+use std::prelude::v1::*;
 pub(crate) struct NumAsHex;
 
 impl SerializeAs<u64> for NumAsHex {

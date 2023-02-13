@@ -10,6 +10,7 @@ use starknet_core::{
 };
 use starknet_providers::{Provider, ProviderError};
 use std::error::Error;
+use std::prelude::v1::*;
 
 pub mod argent;
 pub mod open_zeppelin;

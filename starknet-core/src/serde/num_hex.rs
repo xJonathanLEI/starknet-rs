@@ -1,6 +1,6 @@
 pub mod u64 {
     use serde::{Deserialize, Deserializer, Serializer};
-
+    use std::prelude::v1::*;
     pub fn serialize<S>(value: &u64, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
