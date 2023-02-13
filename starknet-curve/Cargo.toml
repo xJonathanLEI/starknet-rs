@@ -13,7 +13,7 @@ Stark curve
 keywords = ["ethereum", "starknet", "web3"]
 
 [dependencies]
-starknet-ff = { version = "0.2.0", path = "../starknet-ff" }
+starknet-ff = { version = "0.2.0", path = "../starknet-ff", default-features = false }
 no-std-compat = { version = "0.4.1", features = [
     "alloc",
     "compat_macros",
@@ -21,4 +21,4 @@ no-std-compat = { version = "0.4.1", features = [
 ] }
 [features]
 default = [ "std" ] # Default to using the std
-std = [ "no-std-compat/std" ]
+std = [ "no-std-compat/std", "starknet-ff/std" ]
