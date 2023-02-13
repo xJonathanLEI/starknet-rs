@@ -33,7 +33,7 @@ no-std-compat = { version = "0.4.1", features = [
 ] }
 [features]
 default = [ "std" ] # Default to using the std
-std = [ "no-std-compat/std" ]
+std = [ "no-std-compat/std", "starknet-crypto-codegen/std", "starknet-curve/std", "starknet-ff/std" ]
 
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false }
