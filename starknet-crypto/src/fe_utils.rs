@@ -1,7 +1,7 @@
+use crate::ops::{Add, Mul};
 use num_bigint::BigInt;
 use num_integer::Integer;
 use num_traits::{One, Zero};
-use std::ops::{Add, Mul};
 
 use crate::FieldElement;
 

@@ -22,17 +22,17 @@ crypto-bigint = {version = "0.4.9", default-features = false}
 hex = {version = "0.4.3", default-features = false}
 num-bigint = {version = "0.4.3", optional = true, default-features = false}
 serde = {version = "1.0.152", default-features = false}
-thiserror = {version = "1.0.30", default-features = false}
+thiserror-no-std = {version = "2.0.2", default-features = false}
 
 
 [features]
 default = ["std"]
 std = ["serde/std"]
-alloc = []
+alloc = ["serde/alloc"]
 bigdecimal = ["dep:bigdecimal", "dep:num-bigint"]
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-getrandom = { version = "0.2.3", features = ["js"] }
+#[target.'cfg(target_arch = "wasm32")'.dependencies]
+#getrandom = { version = "0.2.3", features = ["js"] }
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3.29"

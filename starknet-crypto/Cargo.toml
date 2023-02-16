@@ -15,7 +15,7 @@ keywords = ["ethereum", "starknet", "web3"]
 [dependencies]
 starknet-crypto-codegen = { version = "0.1.0", path = "../starknet-crypto-codegen", default-features = false }
 starknet-curve = { version = "0.1.0", path = "../starknet-curve", default-features = false }
-starknet-ff = { version = "0.2.0", path = "../starknet-ff", default-features = false }
+starknet-ff = { version = "0.2.0", path = "../starknet-ff", default-features = false, features = ["alloc", "bigdecimal"] }
 crypto-bigint = {version = "0.4.9", default-features = false}
 hmac = {version = "0.12.1", default-features = false}
 num-bigint = {version = "0.4.3", default-features = false}
@@ -23,14 +23,15 @@ num-integer = {version = "0.1.44", default-features = false}
 num-traits = {version = "0.2.14", default-features = false}
 rfc6979 = {version = "0.3.1", default-features = false}
 sha2 = {version = "0.10.6", default-features = false}
-thiserror = {version = "1.0.30", default-features = false}
+thiserror-no-std = {version = "2.0.2", default-features = false}
 zeroize = {version = "1.5.0", default-features = false}
 hex = {version = "0.4.3", default-features = false}
+hashbrown = "0.13.2"
 
 [features]
 default = ["std"]
 std = ["serde/std", "starknet-ff/std", "hex/std"]
-alloc = []
+alloc = ["starknet-ff/alloc", "hex/alloc"]
 
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false }
