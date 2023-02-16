@@ -29,7 +29,7 @@ hex = {version = "0.4.3", default-features = false}
 
 [features]
 default = ["std"]
-std = ["starknet-crypto-codegen/std", "starknet-curve/std", "starknet-ff/std"]
+std = ["serde/std", "starknet-ff/std", "hex/std"]
 alloc = []
 
 [dev-dependencies]

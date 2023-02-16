@@ -457,12 +457,13 @@ impl Serialize for FieldElement {
 }
 
 impl<'de> Deserialize<'de> for FieldElement {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    fn deserialize<D>(_deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        let value = String::deserialize(deserializer)?;
-        Self::from_str(&value).map_err(serde::de::Error::custom)
+        //let value = String::deserialize(deserializer)?;
+        //Self::from_str(&value).map_err(serde::de::Error::custom)
+        Ok(Self::default())
     }
 }
 
