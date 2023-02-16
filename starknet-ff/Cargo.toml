@@ -26,7 +26,7 @@ thiserror = {version = "1.0.30", default-features = false}
 
 
 [features]
-default = ["bigdecimal", "std"]
+default = ["std"]
 std = ["serde/std"]
 alloc = []
 bigdecimal = ["dep:bigdecimal", "dep:num-bigint"]
