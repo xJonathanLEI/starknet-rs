@@ -808,7 +808,7 @@ mod tests {
     #[cfg(feature = "bigdecimal")]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_to_big_decimal() {
-        use bigdecimal::{BigDecimal, Num};
+        use bigdecimal_no_std::{BigDecimal, Num};
 
         let nums = [
             (
