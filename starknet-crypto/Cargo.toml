@@ -13,19 +13,24 @@ Low-level cryptography utilities for Starknet
 keywords = ["ethereum", "starknet", "web3"]
 
 [dependencies]
-starknet-crypto-codegen = { version = "0.1.0", path = "../starknet-crypto-codegen" }
-starknet-curve = { version = "0.1.0", path = "../starknet-curve" }
-starknet-ff = { version = "0.2.0", path = "../starknet-ff" }
-crypto-bigint = "0.4.9"
-hmac = "0.12.1"
-num-bigint = "0.4.3"
-num-integer = "0.1.44"
-num-traits = "0.2.14"
-rfc6979 = "0.3.1"
-sha2 = "0.10.6"
-thiserror = "1.0.30"
-zeroize = "1.5.0"
-hex = "0.4.3"
+starknet-crypto-codegen = { version = "0.1.0", path = "../starknet-crypto-codegen", default-features = false }
+starknet-curve = { version = "0.1.0", path = "../starknet-curve", default-features = false }
+starknet-ff = { version = "0.2.0", path = "../starknet-ff", default-features = false, features = ["bigdecimal"] }
+crypto-bigint = {version = "0.4.9", default-features = false}
+hmac = {version = "0.12.1", default-features = false}
+num-bigint = {version = "0.4.3", default-features = false}
+num-integer = {version = "0.1.44", default-features = false}
+num-traits = {version = "0.2.14", default-features = false}
+rfc6979 = {version = "0.3.1", default-features = false}
+sha2 = {version = "0.10.6", default-features = false}
+thiserror = {version = "1.0.30", default-features = false}
+zeroize = {version = "1.5.0", default-features = false}
+hex = {version = "0.4.3", default-features = false}
+
+[features]
+default = ["std"]
+std = ["starknet-crypto-codegen/std", "starknet-curve/std", "starknet-ff/std"]
+alloc = []
 
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false }
