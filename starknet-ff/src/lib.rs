@@ -589,7 +589,9 @@ impl From<&FieldElement> for U256 {
 
     #[cfg(target_pointer_width = "32")]
     fn from(value: &FieldElement) -> Self {
-        U256::from_words(unsafe { mem::transmute::<[u64; 4], [u32; 8]>(value.inner.into_repr().0) })
+        U256::from_words(unsafe {
+            core::mem::transmute::<[u64; 4], [u32; 8]>(value.inner.into_repr().0)
+        })
     }
 }
 
@@ -613,7 +615,7 @@ fn u256_to_u64_array(num: &U256) -> [u64; 4] {
 #[cfg(target_pointer_width = "32")]
 #[inline]
 fn u256_to_u64_array(num: &U256) -> [u64; 4] {
-    unsafe { mem::transmute::<[u32; 8], [u64; 4]>(num.to_words()) }
+    unsafe { core::mem::transmute::<[u32; 8], [u64; 4]>(num.to_words()) }
 }
 
 #[cfg(test)]
