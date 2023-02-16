@@ -1,4 +1,8 @@
+#![cfg_attr(not(feature = "std"), no_std)]
 #![doc = include_str!("../README.md")]
+
+#[cfg(all(not(feature = "std"), any(test, feature = "alloc")))]
+extern crate alloc;
 
 mod ecdsa;
 mod error;

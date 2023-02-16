@@ -48,4 +48,7 @@ url = "2.2.2"
 [features]
 default = ["bigdecimal"]
 bigdecimal = ["starknet-core/bigdecimal"]
-no_unknown_fields = ["starknet-core/no_unknown_fields", "starknet-providers/no_unknown_fields"]
+no_unknown_fields = [
+    "starknet-core/no_unknown_fields",
+    "starknet-providers/no_unknown_fields",
+]

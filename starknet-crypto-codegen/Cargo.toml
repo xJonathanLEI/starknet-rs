@@ -10,12 +10,12 @@ homepage = "https://starknet.rs/"
 description = """
 Codegen macros for `starknet-crypto`
 """
-keywords = ["ethereum", "starknet", "web3"]
+keywords = ["ethereum", "starknet", "web3", "no_std"]
 
 [lib]
 proc-macro = true
 
 [dependencies]
 starknet-curve = { version = "0.1.0", path = "../starknet-curve" }
-starknet-ff = { version = "0.2.0", path = "../starknet-ff" }
-syn = "1.0.96"
+starknet-ff = { version = "0.2.0", path = "../starknet-ff", default-features = false }
+syn = { version = "1.0.96", default-features = false }

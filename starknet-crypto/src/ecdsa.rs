@@ -7,7 +7,6 @@ use crate::{
     fe_utils::{add_unbounded, bigint_mul_mod_floor, mod_inverse, mul_mod_floor},
     FieldElement, SignError, VerifyError,
 };
-use std::fmt;
 
 const ELEMENT_UPPER_BOUND: FieldElement = FieldElement::from_mont([
     18446743986131435553,
@@ -25,8 +24,9 @@ pub struct Signature {
     pub s: FieldElement,
 }
 
-impl fmt::Display for Signature {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+#[cfg(feature = "signature-display")]
+impl core::fmt::Display for Signature {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         write!(
             f,
             "{}{}",

@@ -1,14 +1,19 @@
+#![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::comparison_chain)]
 
-use crate::fr::FrParameters;
+#[cfg(all(not(feature = "std"), any(test, feature = "alloc")))]
+#[cfg_attr(test, macro_use)]
+extern crate alloc;
+
+use core::{
+    fmt, ops,
+    str::{self, FromStr},
+};
+
+use fr::FrParameters;
 
 use ark_ff::{fields::Fp256, BigInteger, BigInteger256, Field, PrimeField, SquareRootField};
 use crypto_bigint::{CheckedAdd, CheckedMul, Zero, U256};
-use serde::{Deserialize, Serialize};
-use std::{
-    fmt::{Debug, Display, LowerHex, UpperHex},
-    str::FromStr,
-};
 
 mod fr;
 
@@ -19,29 +24,79 @@ pub struct FieldElement {
     inner: Fp256<FrParameters>,
 }
 
-#[derive(Debug, thiserror::Error)]
-pub enum FromStrError {
-    #[error("invalid character")]
-    InvalidCharacter,
-    #[error("number out of range")]
-    OutOfRange,
+mod from_str_error {
+
+    #[derive(Debug)]
+    pub enum FromStrError {
+        InvalidCharacter,
+        OutOfRange,
+    }
+
+    #[cfg(feature = "std")]
+    impl std::error::Error for FromStrError {}
+
+    impl core::fmt::Display for FromStrError {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            match self {
+                Self::InvalidCharacter => write!(f, "invalid character"),
+                Self::OutOfRange => write!(f, "number out of range"),
+            }
+        }
+    }
 }
+pub use from_str_error::FromStrError;
 
-#[derive(Debug, thiserror::Error)]
-pub enum FromByteSliceError {
-    #[error("invalid length")]
-    InvalidLength,
-    #[error("number out of range")]
-    OutOfRange,
+mod from_bytes_slice_error {
+
+    #[derive(Debug)]
+    pub enum FromByteSliceError {
+        InvalidLength,
+        OutOfRange,
+    }
+
+    #[cfg(feature = "std")]
+    impl std::error::Error for FromByteSliceError {}
+
+    impl core::fmt::Display for FromByteSliceError {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            match self {
+                Self::InvalidLength => write!(f, "invalid length"),
+                Self::OutOfRange => write!(f, "number out of range"),
+            }
+        }
+    }
 }
+pub use from_bytes_slice_error::FromByteSliceError;
 
-#[derive(Debug, thiserror::Error)]
-#[error("number out of range")]
-pub struct FromByteArrayError;
+mod from_byte_array_error {
+    #[derive(Debug)]
+    pub struct FromByteArrayError;
 
-#[derive(Debug, thiserror::Error)]
-#[error("field element value out of range")]
-pub struct ValueOutOfRangeError;
+    #[cfg(feature = "std")]
+    impl std::error::Error for FromByteArrayError {}
+
+    impl core::fmt::Display for FromByteArrayError {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            write!(f, "number out of range")
+        }
+    }
+}
+pub use from_byte_array_error::FromByteArrayError;
+
+mod value_out_of_range_error {
+    #[derive(Debug)]
+    pub struct ValueOutOfRangeError;
+
+    #[cfg(feature = "std")]
+    impl std::error::Error for ValueOutOfRangeError {}
+
+    impl core::fmt::Display for ValueOutOfRangeError {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            write!(f, "field element value out of range")
+        }
+    }
+}
+pub use value_out_of_range_error::ValueOutOfRangeError;
 
 struct InnerDebug<'a>(pub &'a FieldElement);
 
@@ -251,7 +306,7 @@ impl Default for FieldElement {
     }
 }
 
-impl std::ops::Add<FieldElement> for FieldElement {
+impl ops::Add<FieldElement> for FieldElement {
     type Output = FieldElement;
 
     fn add(self, rhs: FieldElement) -> Self::Output {
@@ -261,7 +316,7 @@ impl std::ops::Add<FieldElement> for FieldElement {
     }
 }
 
-impl std::ops::Sub<FieldElement> for FieldElement {
+impl ops::Sub<FieldElement> for FieldElement {
     type Output = FieldElement;
 
     fn sub(self, rhs: FieldElement) -> Self::Output {
@@ -271,7 +326,7 @@ impl std::ops::Sub<FieldElement> for FieldElement {
     }
 }
 
-impl std::ops::Mul<FieldElement> for FieldElement {
+impl ops::Mul<FieldElement> for FieldElement {
     type Output = FieldElement;
 
     fn mul(self, rhs: FieldElement) -> Self::Output {
@@ -281,7 +336,7 @@ impl std::ops::Mul<FieldElement> for FieldElement {
     }
 }
 
-impl std::ops::Neg for FieldElement {
+impl ops::Neg for FieldElement {
     type Output = FieldElement;
 
     fn neg(self) -> Self::Output {
@@ -289,7 +344,7 @@ impl std::ops::Neg for FieldElement {
     }
 }
 
-impl std::ops::Rem<FieldElement> for FieldElement {
+impl ops::Rem<FieldElement> for FieldElement {
     type Output = FieldElement;
 
     fn rem(self, rhs: FieldElement) -> Self::Output {
@@ -315,7 +370,7 @@ impl std::ops::Rem<FieldElement> for FieldElement {
     }
 }
 
-impl std::ops::BitAnd<FieldElement> for FieldElement {
+impl ops::BitAnd<FieldElement> for FieldElement {
     type Output = FieldElement;
 
     fn bitand(self, rhs: FieldElement) -> Self::Output {
@@ -329,7 +384,7 @@ impl std::ops::BitAnd<FieldElement> for FieldElement {
     }
 }
 
-impl std::ops::BitOr<FieldElement> for FieldElement {
+impl ops::BitOr<FieldElement> for FieldElement {
     type Output = FieldElement;
 
     fn bitor(self, rhs: FieldElement) -> Self::Output {
@@ -343,16 +398,16 @@ impl std::ops::BitOr<FieldElement> for FieldElement {
     }
 }
 
-impl Debug for FieldElement {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Debug for FieldElement {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("FieldElement")
             .field("inner", &InnerDebug(self))
             .finish()
     }
 }
 
-impl Display for FieldElement {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for FieldElement {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // Ported from:
         //   https://github.com/paritytech/parity-common/blob/b37d0b312d39fa47c61c4430b30ca87d90e45a08/uint/src/uint.rs#L1650
 
@@ -382,13 +437,13 @@ impl Display for FieldElement {
         }
 
         // sequence of `'0'..'9'` chars is guaranteed to be a valid UTF8 string
-        let s = unsafe { std::str::from_utf8_unchecked(&buf[i..]) };
+        let s = unsafe { str::from_utf8_unchecked(&buf[i..]) };
         f.pad_integral(true, "", s)
     }
 }
 
-impl LowerHex for FieldElement {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::LowerHex for FieldElement {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let repr: U256 = self.into();
 
         let width = if f.sign_aware_zero_pad() {
@@ -417,8 +472,8 @@ impl LowerHex for FieldElement {
     }
 }
 
-impl UpperHex for FieldElement {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::UpperHex for FieldElement {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let repr: U256 = self.into();
 
         let width = if f.sign_aware_zero_pad() {
@@ -447,22 +502,30 @@ impl UpperHex for FieldElement {
     }
 }
 
-impl Serialize for FieldElement {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(&format!("{self}"))
-    }
-}
+#[cfg(feature = "serde")]
+mod serde_field_element {
+    use super::*;
+    #[cfg(not(feature = "std"))]
+    use alloc::string::{String, ToString};
+    use serde::{Deserialize, Serialize};
 
-impl<'de> Deserialize<'de> for FieldElement {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let value = String::deserialize(deserializer)?;
-        Self::from_str(&value).map_err(serde::de::Error::custom)
+    impl Serialize for FieldElement {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer,
+        {
+            serializer.serialize_str(&ToString::to_string(&self))
+        }
+    }
+
+    impl<'de> Deserialize<'de> for FieldElement {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: serde::Deserializer<'de>,
+        {
+            let value = String::deserialize(deserializer)?;
+            Self::from_str(&value).map_err(serde::de::Error::custom)
+        }
     }
 }
 
@@ -583,13 +646,13 @@ impl From<&FieldElement> for U256 {
     #[cfg(target_pointer_width = "32")]
     fn from(value: &FieldElement) -> Self {
         U256::from_words(unsafe {
-            std::mem::transmute::<[u64; 4], [u32; 8]>(value.inner.into_repr().0)
+            core::mem::transmute::<[u64; 4], [u32; 8]>(value.inner.into_repr().0)
         })
     }
 }
 
-impl<'a> Debug for InnerDebug<'a> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<'a> fmt::Debug for InnerDebug<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:#064x}", self.0)
     }
 }
@@ -608,7 +671,7 @@ fn u256_to_u64_array(num: &U256) -> [u64; 4] {
 #[cfg(target_pointer_width = "32")]
 #[inline]
 fn u256_to_u64_array(num: &U256) -> [u64; 4] {
-    unsafe { std::mem::transmute::<[u32; 8], [u64; 4]>(num.to_words()) }
+    unsafe { core::mem::transmute::<[u32; 8], [u64; 4]>(num.to_words()) }
 }
 
 #[cfg(test)]
