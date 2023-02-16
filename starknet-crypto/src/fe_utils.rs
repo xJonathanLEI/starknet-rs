@@ -1,4 +1,4 @@
-use crate::ops::{Add, Mul};
+use core::ops::{Add, Mul};
 use num_bigint::BigInt;
 use num_integer::Integer;
 use num_traits::{One, Zero};

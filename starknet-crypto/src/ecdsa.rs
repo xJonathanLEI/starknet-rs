@@ -5,8 +5,10 @@ use starknet_curve::{
 
 use crate::{
     fe_utils::{add_unbounded, bigint_mul_mod_floor, mod_inverse, mul_mod_floor},
-    fmt, FieldElement, SignError, VerifyError,
+    FieldElement, SignError, VerifyError,
 };
+
+use core::fmt;
 
 const ELEMENT_UPPER_BOUND: FieldElement = FieldElement::from_mont([
     18446743986131435553,

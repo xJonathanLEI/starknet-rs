@@ -173,6 +173,17 @@ impl FieldElement {
         }
     }
 
+    /// Interprets the field element as a decimal number of a certain decimal places.
+    #[cfg(feature = "bigdecimal")]
+    pub fn to_big_decimal<D: Into<i64>>(&self, decimals: D) -> bigdecimal_no_std::BigDecimal {
+        use num_bigint::{BigInt, Sign};
+
+        bigdecimal_no_std::BigDecimal::new(
+            BigInt::from_bytes_be(Sign::Plus, &self.to_bytes_be()),
+            decimals.into(),
+        )
+    }
+
     /// Transforms [FieldElement] into little endian bit representation.
     pub fn to_bits_le(self) -> [bool; 256] {
         let mut bits = [false; 256];

@@ -1,12 +1,6 @@
 #![cfg_attr(any(target_arch = "wasm32", not(feature = "std")), no_std)]
 #![doc = include_str!("../README.md")]
 
-#[cfg(feature = "std")]
-include!("./with_std.rs");
-
-#[cfg(all(not(feature = "std"), feature = "alloc"))]
-include!("./without_std.rs");
-
 /// Feature gate some code that should only be run when `std` feature is enabled.
 ///
 /// # Example
