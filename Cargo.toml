@@ -46,6 +46,5 @@ tokio = { version = "1.15.0", features = ["full"] }
 url = "2.2.2"
 
 [features]
-default = ["bigdecimal"]
-bigdecimal = ["starknet-core/bigdecimal"]
+default = []
 no_unknown_fields = ["starknet-core/no_unknown_fields", "starknet-providers/no_unknown_fields"]

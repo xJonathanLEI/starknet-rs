@@ -36,8 +36,7 @@ starknet-core = { path = ".", features = ["no_unknown_fields"] }
 wasm-bindgen-test = "0.3.29"
 
 [features]
-default = ["bigdecimal"]
-bigdecimal = ["starknet-ff/bigdecimal"]
+default = []
 no_unknown_fields = []
 
 [[bench]]
