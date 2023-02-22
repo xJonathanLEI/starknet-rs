@@ -135,6 +135,7 @@ async fn sequencer_goerli_can_simulate_transaction() {
         simulation
             .trace
             .function_invocation
+            .unwrap()
             .execution_resources
             .n_steps
             > 0
