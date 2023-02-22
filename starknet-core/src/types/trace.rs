@@ -18,7 +18,8 @@ pub struct BlockTraces {
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct TransactionTrace {
     /// An object describing the invocation of a specific function.
-    pub function_invocation: FunctionInvocation,
+    #[serde(default)]
+    pub function_invocation: Option<FunctionInvocation>,
     /// An object describing the invocation of a fee transfer.
     #[serde(default)]
     pub fee_transfer_invocation: Option<FunctionInvocation>,
@@ -147,17 +148,22 @@ mod tests {
             "../../test-data/raw_gateway_responses/get_transaction_trace/3_with_call_type.txt"
         ))
         .unwrap();
-        match new_tx.function_invocation.call_type {
-            Some(call_type) => assert_eq!(call_type, CallType::Call),
+        match &new_tx.function_invocation.as_ref().unwrap().call_type {
+            Some(call_type) => assert_eq!(call_type, &CallType::Call),
             None => panic!("Empty call_type"),
         }
-        assert!(&new_tx.function_invocation.class_hash.is_some());
+        assert!(&new_tx.function_invocation.unwrap().class_hash.is_some());
 
         let old_tx: TransactionTrace = serde_json::from_str(include_str!(
             "../../test-data/raw_gateway_responses/get_transaction_trace/1_with_messages.txt"
         ))
         .unwrap();
-        assert!(&old_tx.function_invocation.call_type.is_none());
-        assert!(&old_tx.function_invocation.class_hash.is_none());
+        assert!(&old_tx
+            .function_invocation
+            .as_ref()
+            .unwrap()
+            .call_type
+            .is_none());
+        assert!(&old_tx.function_invocation.unwrap().class_hash.is_none());
     }
 }

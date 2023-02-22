@@ -122,7 +122,12 @@ async fn can_simulate_execution() {
         .await
         .unwrap();
 
-    assert!(!result.trace.function_invocation.internal_calls.is_empty());
+    assert!(!result
+        .trace
+        .function_invocation
+        .unwrap()
+        .internal_calls
+        .is_empty());
 }
 
 #[tokio::test]
