@@ -10,7 +10,10 @@ homepage = "https://starknet.rs/"
 description = """
 Stark curve
 """
-keywords = ["ethereum", "starknet", "web3"]
+keywords = ["ethereum", "starknet", "web3", "no_std"]
 
 [dependencies]
-starknet-ff = { version = "0.2.0", path = "../starknet-ff" }
+starknet-ff = { version = "0.2.0", path = "../starknet-ff", default-features = false }
+
+[features]
+bigdecimal = ["starknet-ff/bigdecimal"]
