@@ -52,3 +52,7 @@ jobs:
       - name: Run Clippy lints
         run: |
           cargo clippy --all --all-targets -- -D warnings
+      - name: Run Clippy lints (no_std)
+        run: |
+          cargo clippy --package starknet-crypto --no-default-features -- -D warnings
+          cargo clippy --package starknet-crypto --no-default-features --features alloc -- -D warnings
