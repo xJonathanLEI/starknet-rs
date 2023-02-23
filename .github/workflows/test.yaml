@@ -118,3 +118,53 @@ jobs:
       - name: Run starknet-macros tests
         run: |
           (cd ./starknet-macros && wasm-pack test --node)
+
+  no-std-build:
+    name: no-std build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Setup toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - uses: Swatinem/rust-cache@v1
+        with:
+          cache-on-failure:
+
+      - name: Add --target thumbv6m-none-eabi target
+        run: |
+          rustup target add thumbv6m-none-eabi
+
+      - name: Build starknet-ff
+        run: |
+          cargo build --package starknet-ff \
+            --target thumbv6m-none-eabi \
+            --no-default-features
+
+          cargo build --package starknet-ff \
+            --target thumbv6m-none-eabi \
+            --no-default-features \
+            --features alloc
+
+          cargo build --package starknet-ff \
+            --target thumbv6m-none-eabi \
+            --no-default-features \
+            --features serde
+
+      - name: Build starknet-crypto
+        run: |
+          cargo build --package starknet-crypto \
+            --target thumbv6m-none-eabi \
+            --no-default-features
+
+          cargo build --package starknet-crypto \
+            --target thumbv6m-none-eabi \
+            --no-default-features \
+            --features alloc
