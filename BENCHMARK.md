@@ -14,4 +14,4 @@ Or just `cargo bench` inside any crate with benchmark code.
 
 ## WebAssembly
 
-As a portable format, WebAssembly has many runtimes, including `wasmer`, `wasmtime`, Node.js, browsers, and more. Results are only provided for `wasmer`, `wasmtime`, and Node.js. For other runtimes, check out [this guide](https://github.com/bheisler/criterion.rs/blob/version-0.4/book/src/user_guide/wasi.md) from `criterion`.
+As a portable format, WebAssembly has many runtimes, including `wasmer`, `wasmtime`, Node.js, browsers, and more. Results are only provided for Node.js. For other runtimes, check out [this guide](https://github.com/bheisler/criterion.rs/blob/version-0.4/book/src/user_guide/wasi.md) from `criterion`.
