@@ -9,6 +9,7 @@ mod error;
 mod fe_utils;
 mod pedersen_hash;
 mod pedersen_points;
+mod poseidon_hash;
 mod rfc6979;
 
 #[cfg(test)]
@@ -17,6 +18,8 @@ mod test_utils;
 pub use starknet_ff::FieldElement;
 
 pub use pedersen_hash::pedersen_hash;
+
+pub use poseidon_hash::{poseidon_hash, poseidon_hash_many, poseidon_hash_single, PoseidonHasher};
 
 pub use ecdsa::{get_public_key, sign, verify, Signature};
 
