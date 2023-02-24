@@ -48,6 +48,10 @@ name = "pedersen_hash"
 harness = false
 
 [[bench]]
+name = "poseidon_hash"
+harness = false
+
+[[bench]]
 name = "ecdsa_get_public_key"
 harness = false
 
