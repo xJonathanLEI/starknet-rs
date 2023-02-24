@@ -316,6 +316,12 @@ impl ops::Add<FieldElement> for FieldElement {
     }
 }
 
+impl ops::AddAssign<FieldElement> for FieldElement {
+    fn add_assign(&mut self, rhs: FieldElement) {
+        self.inner = self.inner + rhs.inner;
+    }
+}
+
 impl ops::Sub<FieldElement> for FieldElement {
     type Output = FieldElement;
 
@@ -326,6 +332,12 @@ impl ops::Sub<FieldElement> for FieldElement {
     }
 }
 
+impl ops::SubAssign<FieldElement> for FieldElement {
+    fn sub_assign(&mut self, rhs: FieldElement) {
+        self.inner = self.inner - rhs.inner;
+    }
+}
+
 impl ops::Mul<FieldElement> for FieldElement {
     type Output = FieldElement;
 
@@ -333,6 +345,12 @@ impl ops::Mul<FieldElement> for FieldElement {
         FieldElement {
             inner: self.inner * rhs.inner,
         }
+    }
+}
+
+impl ops::MulAssign<FieldElement> for FieldElement {
+    fn mul_assign(&mut self, rhs: FieldElement) {
+        self.inner = self.inner * rhs.inner;
     }
 }
 
@@ -738,11 +756,13 @@ mod tests {
         ];
 
         for item in additions.iter() {
-            assert_eq!(
-                FieldElement::from_dec_str(item[0]).unwrap()
-                    + FieldElement::from_dec_str(item[1]).unwrap(),
-                FieldElement::from_dec_str(item[2]).unwrap()
-            );
+            let mut lhs = FieldElement::from_dec_str(item[0]).unwrap();
+            let rhs = FieldElement::from_dec_str(item[1]).unwrap();
+            let result = FieldElement::from_dec_str(item[2]).unwrap();
+            assert_eq!(lhs + rhs, result);
+
+            lhs += rhs;
+            assert_eq!(lhs, result);
         }
     }
 
@@ -759,11 +779,13 @@ mod tests {
         ];
 
         for item in subtractions.iter() {
-            assert_eq!(
-                FieldElement::from_dec_str(item[0]).unwrap()
-                    - FieldElement::from_dec_str(item[1]).unwrap(),
-                FieldElement::from_dec_str(item[2]).unwrap()
-            );
+            let mut lhs = FieldElement::from_dec_str(item[0]).unwrap();
+            let rhs = FieldElement::from_dec_str(item[1]).unwrap();
+            let result = FieldElement::from_dec_str(item[2]).unwrap();
+            assert_eq!(lhs - rhs, result);
+
+            lhs -= rhs;
+            assert_eq!(lhs, result);
         }
     }
 
@@ -785,11 +807,13 @@ mod tests {
         ];
 
         for item in multiplications.iter() {
-            assert_eq!(
-                FieldElement::from_dec_str(item[0]).unwrap()
-                    * FieldElement::from_dec_str(item[1]).unwrap(),
-                FieldElement::from_dec_str(item[2]).unwrap()
-            );
+            let mut lhs = FieldElement::from_dec_str(item[0]).unwrap();
+            let rhs = FieldElement::from_dec_str(item[1]).unwrap();
+            let result = FieldElement::from_dec_str(item[2]).unwrap();
+            assert_eq!(lhs * rhs, result);
+
+            lhs *= rhs;
+            assert_eq!(lhs, result);
         }
     }
 
