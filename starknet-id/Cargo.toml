@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 starknet-core = { version = "0.2.0", path = "../starknet-core" }
-starknet-providers = { version = "0.2.0", path = "../starknet-providers" }
 num-traits = "0.2.14"
 
 [dev-dependencies]
