@@ -7,6 +7,7 @@ use starknet_core::types::{
     StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest,
     TransactionSimulationInfo, TransactionStatusInfo, TransactionTrace,
 };
+use starknet_id::naming::ResolvingError;
 use std::error::Error;
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
@@ -168,3 +169,15 @@ pub enum ProviderError<E> {
     #[error(transparent)]
     Other(E),
 }
+
+async fn domain_to_address(
+    &self,
+    domain: &str,
+    contract_addr: FieldElement,
+) -> Result<FieldElement, ResolvingError>;
+
+async fn address_to_domain(
+    &self,
+    address: FieldElement, 
+    contract_addr: FieldElement
+) -> Result<String, ResolvingError>;

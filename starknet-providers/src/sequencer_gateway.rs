@@ -15,6 +15,10 @@ use starknet_core::{
         TransactionSimulationInfo, TransactionStatusInfo, TransactionTrace,
     },
 };
+use starknet_id::{
+    encoding::{decode, encode},
+    naming::{ResolvingError, SELECTOR_D2A, SELECTOR_A2D,},
+};
 use url::Url;
 
 #[derive(Clone)]
@@ -613,53 +617,6 @@ impl Provider for SequencerGatewayProvider {
     }
 }
 
-impl TryFrom<ErrorCode> for StarknetError {
-    type Error = ();
-
-    fn try_from(value: ErrorCode) -> Result<Self, Self::Error> {
-        match value {
-            ErrorCode::BlockNotFound => Ok(Self::BlockNotFound),
-            ErrorCode::EntryPointNotFoundInContract => Err(()),
-            ErrorCode::InvalidProgram => Ok(Self::InvalidContractClass),
-            ErrorCode::TransactionFailed => Err(()),
-            ErrorCode::TransactionNotFound => Ok(Self::ContractNotFound),
-            ErrorCode::UninitializedContract => Ok(Self::ContractNotFound),
-            ErrorCode::MalformedRequest => Err(()),
-            ErrorCode::UndeclaredClass => Ok(Self::ClassHashNotFound),
-            ErrorCode::InvalidTransactionNonce => Err(()),
-            ErrorCode::ClassAlreadyDeclared => Err(()),
-        }
-    }
-}
-
-impl<D> From<GatewayResponse<D>> for Result<D, ProviderError<GatewayClientError>> {
-    fn from(value: GatewayResponse<D>) -> Self {
-        match value {
-            GatewayResponse::Data(data) => Ok(data),
-            GatewayResponse::SequencerError(err) => match err.code.try_into() {
-                Ok(sn_err) => Err(ProviderError::StarknetError(sn_err)),
-                Err(_) => Err(ProviderError::Other(GatewayClientError::SequencerError(
-                    err,
-                ))),
-            },
-        }
-    }
-}
-
-impl From<RawFieldElementResponse> for Result<FieldElement, ProviderError<GatewayClientError>> {
-    fn from(value: RawFieldElementResponse) -> Self {
-        match value {
-            RawFieldElementResponse::Data(data) => Ok(data),
-            RawFieldElementResponse::SequencerError(err) => match err.code.try_into() {
-                Ok(sn_err) => Err(ProviderError::StarknetError(sn_err)),
-                Err(_) => Err(ProviderError::Other(GatewayClientError::SequencerError(
-                    err,
-                ))),
-            },
-        }
-    }
-}
-
 // We need to manually implement this because `arbitrary_precision` doesn't work with `untagged`:
 //   https://github.com/serde-rs/serde/issues/1183
 impl<'de, T> Deserialize<'de> for GatewayResponse<T>
@@ -708,6 +665,8 @@ fn append_block_id(url: &mut Url, block_identifier: BlockId) {
 
 #[cfg(test)]
 mod tests {
+    use starknet_core::types::StarknetErrorCode;
+
     use super::*;
 
     #[test]
@@ -777,4 +736,6 @@ mod tests {
             _ => panic!("Unexpected result"),
         }
     }
+    
+    
 }
