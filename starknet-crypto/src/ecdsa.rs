@@ -1,3 +1,4 @@
+use num_bigint::BigInt;
 use starknet_curve::{
     curve_params::{EC_ORDER, GENERATOR},
     AffinePoint,
@@ -5,7 +6,7 @@ use starknet_curve::{
 
 use crate::{
     fe_utils::{add_unbounded, bigint_mul_mod_floor, mod_inverse, mul_mod_floor},
-    FieldElement, SignError, VerifyError,
+    FieldElement, RecoverError, SignError, VerifyError,
 };
 
 const ELEMENT_UPPER_BOUND: FieldElement = FieldElement::from_mont([
@@ -121,6 +122,53 @@ pub fn verify(
     Ok((&zw_g + &rw_q).x == *r || (&zw_g - &rw_q).x == *r)
 }
 
+// TODO:
+//      - make a util in order to calculate v
+/// Recovers the public key from a signed message and (r, s, v) signature parameters
+///
+/// ### Arguments
+///
+/// * `msg_hash`: The message hash
+/// * `r_bytes`: The `r` value of the signature
+/// * `s_bytes`: The `s` value of the signature
+/// * `v_bytes`: The `v` value of the signature
+pub fn recover(
+    message: &FieldElement,
+    r: &FieldElement,
+    s: &FieldElement,
+    v: &FieldElement,
+) -> Result<FieldElement, RecoverError> {
+    if message >= &ELEMENT_UPPER_BOUND {
+        return Err(RecoverError::InvalidMessageHash);
+    }
+    if r == &FieldElement::ZERO || r >= &ELEMENT_UPPER_BOUND {
+        return Err(RecoverError::InvalidR);
+    }
+    if s == &FieldElement::ZERO || s >= &EC_ORDER {
+        return Err(RecoverError::InvalidS);
+    }
+    // Check the conditions for throwing the error
+    if v >= &EC_ORDER {
+        return Err(RecoverError::InvalidV);
+    }
+
+    let mut full_r = AffinePoint::from_x(*r);
+    if *v % FieldElement::TWO == FieldElement::ONE {
+        full_r.y = -full_r.y;
+    }
+
+    let full_rs = &full_r * &s.to_bits_le();
+    let zg = &GENERATOR * &message.to_bits_le();
+
+    let r_inv = mod_inverse(r, &EC_ORDER);
+
+    let rw_zg = &full_rs - &zg;
+
+    let k = &rw_zg * &r_inv.to_bits_le();
+
+    Ok(k.x)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -210,5 +258,27 @@ mod tests {
         let public_key = get_public_key(&private_key);
 
         assert!(verify(&public_key, &message, &signature.r, &signature.s).unwrap());
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_recover() {
+        let private_key = field_element_from_be_hex(
+            "0000000000000000000000000000000000000000000000000000000000000001",
+        );
+        let message = field_element_from_be_hex(
+            "0000000000000000000000000000000000000000000000000000000000000002",
+        );
+        let k = field_element_from_be_hex(
+            "0000000000000000000000000000000000000000000000000000000000000003",
+        );
+        let v = field_element_from_be_hex(
+            "0000000000000000000000000000000000000000000000000000000000000000",
+        );
+
+        let signature = sign(&private_key, &message, &k).unwrap();
+        let public_key = recover(&message, &signature.r, &signature.s, &v).unwrap();
+
+        assert_eq!(get_public_key(&private_key), public_key);
     }
 }
