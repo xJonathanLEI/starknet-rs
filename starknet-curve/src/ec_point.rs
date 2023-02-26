@@ -89,6 +89,11 @@ impl ops::AddAssign<&AffinePoint> for AffinePoint {
             return;
         }
         if self.x == rhs.x {
+            if self.y == -rhs.y {
+                self.x = FieldElement::ZERO;
+                self.y = FieldElement::ZERO;
+                self.infinity = true;
+            }
             self.double_assign();
             return;
         }
