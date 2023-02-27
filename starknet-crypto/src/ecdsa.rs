@@ -23,6 +23,8 @@ pub struct Signature {
     pub r: FieldElement,
     /// The `s` value of a signature
     pub s: FieldElement,
+    /// The `v` value of a signature
+    pub v: FieldElement,
 }
 
 #[cfg(feature = "signature-display")]
@@ -65,7 +67,8 @@ pub fn sign(
         return Err(SignError::InvalidK);
     }
 
-    let r = (&GENERATOR * &k.to_bits_le()).x;
+    let full_r = &GENERATOR * &k.to_bits_le();
+    let r = full_r.x;
     if r == FieldElement::ZERO || r >= ELEMENT_UPPER_BOUND {
         return Err(SignError::InvalidK);
     }
@@ -79,7 +82,9 @@ pub fn sign(
         return Err(SignError::InvalidK);
     }
 
-    Ok(Signature { r, s })
+    let v = full_r.y & FieldElement::ONE;
+
+    Ok(Signature { r, s, v })
 }
 
 /// Verifies if a signature is valid over a message hash given a Stark public key.
@@ -122,9 +127,7 @@ pub fn verify(
     Ok((&zw_g + &rw_q).x == *r || (&zw_g - &rw_q).x == *r)
 }
 
-// TODO:
-//      - make a util in order to calculate v
-/// Recovers the public key from a signed message and (r, s, v) signature parameters
+/// Recovers the public key from a message and (r, s, v) signature parameters
 ///
 /// ### Arguments
 ///
@@ -147,13 +150,12 @@ pub fn recover(
     if s == &FieldElement::ZERO || s >= &EC_ORDER {
         return Err(RecoverError::InvalidS);
     }
-    // Check the conditions for throwing the error
-    if v >= &EC_ORDER {
+    if v > &FieldElement::ONE {
         return Err(RecoverError::InvalidV);
     }
 
     let mut full_r = AffinePoint::from_x(*r);
-    if *v % FieldElement::TWO == FieldElement::ONE {
+    if (full_r.y & FieldElement::ONE) - *v != FieldElement::ZERO {
         full_r.y = -full_r.y;
     }
 
@@ -272,12 +274,9 @@ mod tests {
         let k = field_element_from_be_hex(
             "0000000000000000000000000000000000000000000000000000000000000003",
         );
-        let v = field_element_from_be_hex(
-            "0000000000000000000000000000000000000000000000000000000000000000",
-        );
 
         let signature = sign(&private_key, &message, &k).unwrap();
-        let public_key = recover(&message, &signature.r, &signature.s, &v).unwrap();
+        let public_key = recover(&message, &signature.r, &signature.s, &signature.v).unwrap();
 
         assert_eq!(get_public_key(&private_key), public_key);
     }

@@ -93,6 +93,7 @@ impl ops::AddAssign<&AffinePoint> for AffinePoint {
                 self.x = FieldElement::ZERO;
                 self.y = FieldElement::ZERO;
                 self.infinity = true;
+                return;
             }
             self.double_assign();
             return;
