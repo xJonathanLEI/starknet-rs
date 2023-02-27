@@ -155,7 +155,7 @@ pub fn recover(
     }
 
     let mut full_r = AffinePoint::from_x(*r);
-    if (full_r.y & FieldElement::ONE) - *v != FieldElement::ZERO {
+    if (full_r.y & FieldElement::ONE) != *v {
         full_r.y = -full_r.y;
     }
 
