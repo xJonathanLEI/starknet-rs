@@ -52,6 +52,8 @@ This workspace contains the following crates:
 - `starknet-ff`: Starknet field element type
 - `starknet-curve`: Starknet curve operations
 - `starknet-macros`: Useful macros for using the `starknet` crates
+- `starknet-id`: StarkNet-Id internal logic
+
 
 ## WebAssembly
 
@@ -95,6 +97,9 @@ Examples can be found in the [examples folder](./examples):
 7. [Call a contract view function via sequencer gateway](./examples/sequencer_erc20_balance.rs)
 
 8. [Deploy an Argent X account to a pre-funded address](./examples/deploy_argent_account.rs)
+
+7. [Query the Starknet.id domain name of an address](./examples/resolve_domain.rs)
+
 
 ## License
 
