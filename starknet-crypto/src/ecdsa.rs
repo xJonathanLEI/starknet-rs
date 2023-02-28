@@ -5,7 +5,7 @@ use starknet_curve::{
 
 use crate::{
     fe_utils::{add_unbounded, bigint_mul_mod_floor, mod_inverse, mul_mod_floor},
-    FieldElement, SignError, VerifyError,
+    FieldElement, RecoverError, SignError, VerifyError,
 };
 
 const ELEMENT_UPPER_BOUND: FieldElement = FieldElement::from_mont([
@@ -22,6 +22,8 @@ pub struct Signature {
     pub r: FieldElement,
     /// The `s` value of a signature
     pub s: FieldElement,
+    /// The `v` value of a signature
+    pub v: FieldElement,
 }
 
 #[cfg(feature = "signature-display")]
@@ -64,7 +66,8 @@ pub fn sign(
         return Err(SignError::InvalidK);
     }
 
-    let r = (&GENERATOR * &k.to_bits_le()).x;
+    let full_r = &GENERATOR * &k.to_bits_le();
+    let r = full_r.x;
     if r == FieldElement::ZERO || r >= ELEMENT_UPPER_BOUND {
         return Err(SignError::InvalidK);
     }
@@ -78,7 +81,9 @@ pub fn sign(
         return Err(SignError::InvalidK);
     }
 
-    Ok(Signature { r, s })
+    let v = full_r.y & FieldElement::ONE;
+
+    Ok(Signature { r, s, v })
 }
 
 /// Verifies if a signature is valid over a message hash given a Stark public key.
@@ -119,6 +124,50 @@ pub fn verify(
     let rw_q = &full_public_key * &rw.to_bits_le();
 
     Ok((&zw_g + &rw_q).x == *r || (&zw_g - &rw_q).x == *r)
+}
+
+/// Recovers the public key from a message and (r, s, v) signature parameters
+///
+/// ### Arguments
+///
+/// * `msg_hash`: The message hash
+/// * `r_bytes`: The `r` value of the signature
+/// * `s_bytes`: The `s` value of the signature
+/// * `v_bytes`: The `v` value of the signature
+pub fn recover(
+    message: &FieldElement,
+    r: &FieldElement,
+    s: &FieldElement,
+    v: &FieldElement,
+) -> Result<FieldElement, RecoverError> {
+    if message >= &ELEMENT_UPPER_BOUND {
+        return Err(RecoverError::InvalidMessageHash);
+    }
+    if r == &FieldElement::ZERO || r >= &ELEMENT_UPPER_BOUND {
+        return Err(RecoverError::InvalidR);
+    }
+    if s == &FieldElement::ZERO || s >= &EC_ORDER {
+        return Err(RecoverError::InvalidS);
+    }
+    if v > &FieldElement::ONE {
+        return Err(RecoverError::InvalidV);
+    }
+
+    let mut full_r = AffinePoint::from_x(*r);
+    if (full_r.y & FieldElement::ONE) != *v {
+        full_r.y = -full_r.y;
+    }
+
+    let full_rs = &full_r * &s.to_bits_le();
+    let zg = &GENERATOR * &message.to_bits_le();
+
+    let r_inv = mod_inverse(r, &EC_ORDER);
+
+    let rs_zg = &full_rs - &zg;
+
+    let k = &rs_zg * &r_inv.to_bits_le();
+
+    Ok(k.x)
 }
 
 #[cfg(test)]
@@ -210,5 +259,24 @@ mod tests {
         let public_key = get_public_key(&private_key);
 
         assert!(verify(&public_key, &message, &signature.r, &signature.s).unwrap());
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_recover() {
+        let private_key = field_element_from_be_hex(
+            "0000000000000000000000000000000000000000000000000000000000000001",
+        );
+        let message = field_element_from_be_hex(
+            "0000000000000000000000000000000000000000000000000000000000000002",
+        );
+        let k = field_element_from_be_hex(
+            "0000000000000000000000000000000000000000000000000000000000000003",
+        );
+
+        let signature = sign(&private_key, &message, &k).unwrap();
+        let public_key = recover(&message, &signature.r, &signature.s, &signature.v).unwrap();
+
+        assert_eq!(get_public_key(&private_key), public_key);
     }
 }

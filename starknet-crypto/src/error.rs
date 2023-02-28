@@ -43,3 +43,29 @@ mod verify_error {
     }
 }
 pub use verify_error::VerifyError;
+
+mod recover_error {
+    /// Errors when performing ECDSA [`recover`](fn.recover) operations
+    #[derive(Debug)]
+    pub enum RecoverError {
+        InvalidMessageHash,
+        InvalidR,
+        InvalidS,
+        InvalidV,
+    }
+
+    #[cfg(feature = "std")]
+    impl std::error::Error for RecoverError {}
+
+    impl core::fmt::Display for RecoverError {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            match self {
+                Self::InvalidMessageHash => write!(f, "Invalid message hash"),
+                Self::InvalidR => write!(f, "Invalid r"),
+                Self::InvalidS => write!(f, "Invalid s"),
+                Self::InvalidV => write!(f, "Invalid v"),
+            }
+        }
+    }
+}
+pub use recover_error::RecoverError;

@@ -42,7 +42,11 @@ pub fn ecdsa_sign(
 
         match sign(private_key, message_hash, &k) {
             Ok(sig) => {
-                return Ok(Signature { r: sig.r, s: sig.s });
+                return Ok(Signature {
+                    r: sig.r,
+                    s: sig.s,
+                    v: sig.v,
+                });
             }
             Err(SignError::InvalidMessageHash) => {
                 return Err(EcdsaSignError::MessageHashOutOfRange)
@@ -172,8 +176,12 @@ mod tests {
             "04e44e759cea02c23568bb4d8a09929bbca8768ab68270d50c18d214166ccd9a",
         )
         .unwrap();
+        let v = FieldElement::from_hex_be(
+            "0000000000000000000000000000000000000000000000000000000000000000",
+        )
+        .unwrap();
 
-        assert!(ecdsa_verify(&public_key, &message_hash, &Signature { r, s }).unwrap());
+        assert!(ecdsa_verify(&public_key, &message_hash, &Signature { r, s, v }).unwrap());
     }
 
     #[test]
@@ -196,7 +204,11 @@ mod tests {
             "04e44e759cea02c23568bb4d8a09929bbca8768ab68270d50c18d214166ccd9b",
         )
         .unwrap();
+        let v = FieldElement::from_hex_be(
+            "0000000000000000000000000000000000000000000000000000000000000000",
+        )
+        .unwrap();
 
-        assert!(!ecdsa_verify(&public_key, &message_hash, &Signature { r, s }).unwrap());
+        assert!(!ecdsa_verify(&public_key, &message_hash, &Signature { r, s, v }).unwrap());
     }
 }
