@@ -1,5 +1,5 @@
 // Code ported from the the implementation from pathfinder here:
-//   https://github.com/eqlabs/pathfinder/blob/ab3f2e849cd94d5dc3c7c02040adff4ad7d0597b/crates/stark_poseidon/src/lib.rs
+//   https://github.com/eqlabs/pathfinder/blob/00a1a74a90a7b8a7f1d07ac3e616be1cb39cf8f1/crates/stark_poseidon/src/lib.rs
 
 use starknet_crypto_codegen::poseidon_consts;
 use starknet_ff::FieldElement;
@@ -12,7 +12,7 @@ poseidon_consts!();
 #[derive(Debug, Default)]
 pub struct PoseidonHasher {
     state: [FieldElement; 3],
-    accumulator: Option<FieldElement>,
+    buffer: Option<FieldElement>,
 }
 
 impl PoseidonHasher {
@@ -23,14 +23,14 @@ impl PoseidonHasher {
 
     /// Absorbs message into the hash.
     pub fn update(&mut self, msg: FieldElement) {
-        match self.accumulator.take() {
+        match self.buffer.take() {
             Some(previous_message) => {
                 self.state[0] += previous_message;
                 self.state[1] += msg;
                 permute_comp(&mut self.state);
             }
             None => {
-                self.accumulator = Some(msg);
+                self.buffer = Some(msg);
             }
         }
     }
@@ -38,7 +38,7 @@ impl PoseidonHasher {
     /// Finishes and returns hash.
     pub fn finalize(mut self) -> FieldElement {
         // Applies padding
-        match self.accumulator.take() {
+        match self.buffer.take() {
             Some(last_message) => {
                 self.state[0] += last_message;
                 self.state[1] += FieldElement::ONE;
