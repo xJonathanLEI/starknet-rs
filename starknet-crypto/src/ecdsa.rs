@@ -1,4 +1,3 @@
-use num_bigint::BigInt;
 use starknet_curve::{
     curve_params::{EC_ORDER, GENERATOR},
     AffinePoint,
@@ -164,9 +163,9 @@ pub fn recover(
 
     let r_inv = mod_inverse(r, &EC_ORDER);
 
-    let rw_zg = &full_rs - &zg;
+    let rs_zg = &full_rs - &zg;
 
-    let k = &rw_zg * &r_inv.to_bits_le();
+    let k = &rs_zg * &r_inv.to_bits_le();
 
     Ok(k.x)
 }
