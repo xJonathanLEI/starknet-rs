@@ -16,7 +16,7 @@ fn extract_stars(mut domain: &str) -> (&str, usize) {
         let mut chars = domain.chars();
         chars.next_back();
         domain = chars.as_str();
-        k = k + 1;
+        k += 1;
     }
     (domain, k)
 }
@@ -74,7 +74,7 @@ pub fn encode(domain: &str) -> Result<FieldElement, EncodingError> {
             match found_basic {
                 Some(index) => {
                     output = output + FieldElement::from(index * mul);
-                    mul = mul * (BASIC_ALPHABET.chars().count() + 1);
+                    mul *= BASIC_ALPHABET.chars().count() + 1;
                 }
                 None => {
                     let found_big = BIG_ALPHABET.chars().position(|alphabet_c| alphabet_c == c);
@@ -82,7 +82,7 @@ pub fn encode(domain: &str) -> Result<FieldElement, EncodingError> {
                         Some(index) => {
                             output =
                                 output + FieldElement::from(BASIC_ALPHABET.chars().count() * mul);
-                            mul = mul * (BASIC_ALPHABET.chars().count() + 1);
+                            mul *= BASIC_ALPHABET.chars().count() + 1;
 
                             output = output
                                 + FieldElement::from(
@@ -93,7 +93,7 @@ pub fn encode(domain: &str) -> Result<FieldElement, EncodingError> {
                                             0
                                         }),
                                 );
-                            mul = mul * BIG_ALPHABET.chars().count();
+                            mul *= BIG_ALPHABET.chars().count();
                         }
                         None => {
                             return Err(EncodingError::UnkwnownCharacter(c));
@@ -104,7 +104,7 @@ pub fn encode(domain: &str) -> Result<FieldElement, EncodingError> {
         }
     }
 
-    return Ok(output);
+    Ok(output)
 }
 
 pub fn decode(mut felt: FieldElement) -> String {

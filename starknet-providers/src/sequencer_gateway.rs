@@ -17,7 +17,7 @@ use starknet_core::{
 };
 use starknet_id::{
     encoding::{decode, encode},
-    naming::{ResolvingError, SELECTOR_D2A, SELECTOR_A2D,},
+    naming::{ResolvingError, SELECTOR_A2D, SELECTOR_D2A},
 };
 use url::Url;
 
@@ -615,6 +615,121 @@ impl Provider for SequencerGatewayProvider {
             .await?
             .into()
     }
+
+    async fn domain_to_address(
+        &self,
+        domain: &str,
+        contract_addr: FieldElement,
+    ) -> Result<FieldElement, ResolvingError> {
+        if !domain.ends_with(".stark") {
+            return Err(ResolvingError::InvalidDomain);
+        }
+        let encoding_result = encode(&domain[0..domain.len() - 6]);
+        match encoding_result {
+            Ok(encoded) => {
+                match self
+                    .call_contract(
+                        CallFunction {
+                            contract_address: contract_addr,
+                            entry_point_selector: SELECTOR_D2A,
+                            calldata: vec![FieldElement::ONE, encoded],
+                        },
+                        BlockId::Latest,
+                    )
+                    .await
+                {
+                    Ok(result) => match result.result.first() {
+                        Some(x) => Ok(*x),
+                        None => Err(ResolvingError::InvalidContractResult),
+                    },
+                    Err(cause) => Err(ResolvingError::ConnectionError(cause.to_string())),
+                }
+            }
+            Err(_) => Err(ResolvingError::InvalidDomain),
+        }
+    }
+
+    async fn address_to_domain(
+        &self,
+        address: FieldElement,
+        contract_addr: FieldElement,
+    ) -> Result<String, ResolvingError> {
+        match self
+            .call_contract(
+                CallFunction {
+                    contract_address: contract_addr,
+                    entry_point_selector: SELECTOR_A2D,
+                    calldata: vec![address],
+                },
+                BlockId::Latest,
+            )
+            .await
+        {
+            Ok(result) => {
+                let mut calldata = result.result.iter();
+                let mut domain = String::new().to_owned();
+                match calldata.next() {
+                    Some(_) => {
+                        calldata.for_each(|value| {
+                            domain.push_str(decode(*value).as_str());
+                            domain.push('.');
+                        });
+                        domain.push_str("stark");
+                        Ok(domain)
+                    }
+                    None => Err(ResolvingError::InvalidContractResult),
+                }
+            }
+            Err(cause) => Err(ResolvingError::ConnectionError(cause.to_string())),
+        }
+    }
+}
+
+impl TryFrom<ErrorCode> for StarknetError {
+    type Error = ();
+
+    fn try_from(value: ErrorCode) -> Result<Self, Self::Error> {
+        match value {
+            ErrorCode::BlockNotFound => Ok(Self::BlockNotFound),
+            ErrorCode::EntryPointNotFoundInContract => Err(()),
+            ErrorCode::InvalidProgram => Ok(Self::InvalidContractClass),
+            ErrorCode::TransactionFailed => Err(()),
+            ErrorCode::TransactionNotFound => Ok(Self::ContractNotFound),
+            ErrorCode::UninitializedContract => Ok(Self::ContractNotFound),
+            ErrorCode::MalformedRequest => Err(()),
+            ErrorCode::UndeclaredClass => Ok(Self::ClassHashNotFound),
+            ErrorCode::InvalidTransactionNonce => Err(()),
+            ErrorCode::ClassAlreadyDeclared => Err(()),
+        }
+    }
+}
+
+impl<D> From<GatewayResponse<D>> for Result<D, ProviderError<GatewayClientError>> {
+    fn from(value: GatewayResponse<D>) -> Self {
+        match value {
+            GatewayResponse::Data(data) => Ok(data),
+            GatewayResponse::SequencerError(err) => match err.code.try_into() {
+                Ok(sn_err) => Err(ProviderError::StarknetError(sn_err)),
+                Err(_) => Err(ProviderError::Other(GatewayClientError::SequencerError(
+                    err,
+                ))),
+            },
+        }
+    }
+}
+
+impl From<RawFieldElementResponse> for Result<FieldElement, ProviderError<GatewayClientError>> {
+    fn from(value: RawFieldElementResponse) -> Self {
+        match value {
+            RawFieldElementResponse::Data(data) => Ok(data),
+            RawFieldElementResponse::SequencerError(err) => match err.code.try_into() {
+                Ok(sn_err) => Err(ProviderError::StarknetError(sn_err)),
+                Err(_) => Err(ProviderError::Other(GatewayClientError::SequencerError(
+                    err,
+                ))),
+            },
+        }
+    }
 }
 
 // We need to manually implement this because `arbitrary_precision` doesn't work with `untagged`:
@@ -665,8 +780,6 @@ fn append_block_id(url: &mut Url, block_identifier: BlockId) {
 
 #[cfg(test)]
 mod tests {
-    use starknet_core::types::StarknetErrorCode;
-
     use super::*;
 
     #[test]
@@ -736,6 +849,4 @@ mod tests {
             _ => panic!("Unexpected result"),
         }
     }
-    
-    
 }

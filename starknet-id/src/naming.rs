@@ -1,10 +1,11 @@
-use starknet_core::types::{FieldElement};
+use starknet_core::types::FieldElement;
 
 #[derive(Debug)]
 pub enum ResolvingError {
     ConnectionError(String),
     InvalidContractResult,
     InvalidDomain,
+    NotSupported,
 }
 
 pub const SELECTOR_D2A: FieldElement = FieldElement::from_mont([

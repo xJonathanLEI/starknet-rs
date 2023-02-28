@@ -2,7 +2,6 @@ use crate::{
     jsonrpc::{models::*, JsonRpcClient, JsonRpcClientError, JsonRpcError, JsonRpcTransport},
     Provider, ProviderError,
 };
-
 use async_trait::async_trait;
 use starknet_core::types::{
     contract::{legacy::LegacyContractCode, CompiledClass, DeployedClass},
@@ -10,6 +9,10 @@ use starknet_core::types::{
     CallFunction, CallL1Handler, ContractAddresses, FeeEstimate, FieldElement, StateUpdate,
     TransactionInfo, TransactionReceipt, TransactionRequest, TransactionSimulationInfo,
     TransactionStatusInfo, TransactionTrace,
+};
+use starknet_id::{
+    encoding::{decode, encode},
+    naming::{ResolvingError, SELECTOR_A2D, SELECTOR_D2A},
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -261,6 +264,22 @@ where
 
     async fn get_l1_blockchain_id(&self) -> Result<u64, ProviderError<Self::Error>> {
         Err(ProviderError::Other(Self::Error::NotSupported))
+    }
+
+    async fn domain_to_address(
+        &self,
+        _domain: &str,
+        _contract_addr: FieldElement,
+    ) -> Result<FieldElement, ResolvingError> {
+        Err(ResolvingError::NotSupported)
+    }
+
+    async fn address_to_domain(
+        &self,
+        _address: FieldElement,
+        _contract_addr: FieldElement,
+    ) -> Result<String, ResolvingError> {
+        Err(ResolvingError::NotSupported)
     }
 }
 
