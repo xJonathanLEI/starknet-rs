@@ -4,7 +4,7 @@ use starknet_core::types::contract::legacy::LegacyContractClass;
 pub fn criterion_benchmark(c: &mut Criterion) {
     // Using the latest OZ account contract for the benchmark
     let contract_artifact: LegacyContractClass = serde_json::from_str(include_str!(
-        "../test-data/contracts/artifacts/oz_account.txt"
+        "../test-data/contracts/artifacts/legacy/oz_account.txt"
     ))
     .unwrap();
 

@@ -22,6 +22,7 @@ mod error;
 pub use error::Error as StarknetError;
 
 pub mod contract;
+pub use contract::ContractArtifact;
 
 mod contract_addresses;
 pub use contract_addresses::ContractAddresses;
