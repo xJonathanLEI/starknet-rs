@@ -10,3 +10,5 @@ pub mod crypto;
 pub mod utils;
 
 pub mod chain_id;
+
+pub mod decoder;
