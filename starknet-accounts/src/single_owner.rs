@@ -1,7 +1,7 @@
 use crate::{Account, ConnectedAccount, RawDeclaration, RawExecution};
 
 use async_trait::async_trait;
-use starknet_core::types::{contract_artifact::ComputeClassHashError, FieldElement};
+use starknet_core::types::{contract::ComputeClassHashError, FieldElement};
 use starknet_providers::Provider;
 use starknet_signers::Signer;
 

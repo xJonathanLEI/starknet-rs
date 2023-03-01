@@ -6,8 +6,9 @@ use super::{
 use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
-        contract_artifact::ComputeClassHashError, AccountTransaction, AddTransactionResult,
-        ContractArtifact, DeclareTransactionRequest, FeeEstimate, FieldElement, TransactionRequest,
+        contract::{legacy::LegacyContractClass, ComputeClassHashError},
+        AccountTransaction, AddTransactionResult, DeclareTransactionRequest, FeeEstimate,
+        FieldElement, TransactionRequest,
     },
 };
 use starknet_providers::Provider;
@@ -22,7 +23,7 @@ const PREFIX_DECLARE: FieldElement = FieldElement::from_mont([
 ]);
 
 impl<'a, A> Declaration<'a, A> {
-    pub fn new(contract_class: Arc<ContractArtifact>, account: &'a A) -> Self {
+    pub fn new(contract_class: Arc<LegacyContractClass>, account: &'a A) -> Self {
         Self {
             account,
             contract_class,

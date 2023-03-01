@@ -1,6 +1,6 @@
 use super::*;
 
-use starknet_core as core;
+use starknet_core::{self as core, types::contract::legacy as legacy_contract};
 
 impl From<core::types::BlockId> for BlockId {
     fn from(value: core::types::BlockId) -> Self {
@@ -130,8 +130,8 @@ impl From<DeployAccountTransactionResult> for core::types::AddTransactionResult 
     }
 }
 
-impl From<core::types::ContractDefinition> for ContractClass {
-    fn from(value: core::types::ContractDefinition) -> Self {
+impl From<legacy_contract::CompressedLegacyContractClass> for ContractClass {
+    fn from(value: legacy_contract::CompressedLegacyContractClass) -> Self {
         Self {
             program: value.program,
             entry_points_by_type: value.entry_points_by_type.into(),
@@ -142,8 +142,8 @@ impl From<core::types::ContractDefinition> for ContractClass {
     }
 }
 
-impl From<core::types::EntryPointsByType> for EntryPointsByType {
-    fn from(value: core::types::EntryPointsByType) -> Self {
+impl From<legacy_contract::LegacyEntryPoints> for EntryPointsByType {
+    fn from(value: legacy_contract::LegacyEntryPoints) -> Self {
         Self {
             constructor: value
                 .constructor
@@ -160,8 +160,8 @@ impl From<core::types::EntryPointsByType> for EntryPointsByType {
     }
 }
 
-impl From<core::types::EntryPoint> for ContractEntryPoint {
-    fn from(value: core::types::EntryPoint) -> Self {
+impl From<legacy_contract::LegacyEntryPoint> for ContractEntryPoint {
+    fn from(value: legacy_contract::LegacyEntryPoint) -> Self {
         Self {
             offset: value.offset,
             selector: value.selector,
@@ -169,20 +169,20 @@ impl From<core::types::EntryPoint> for ContractEntryPoint {
     }
 }
 
-impl From<core::types::AbiEntry> for ContractAbiEntry {
-    fn from(value: core::types::AbiEntry) -> Self {
+impl From<legacy_contract::LegacyAbiEntry> for ContractAbiEntry {
+    fn from(value: legacy_contract::LegacyAbiEntry) -> Self {
         match value {
-            core::types::AbiEntry::Constructor(entry) => Self::Function(entry.into()),
-            core::types::AbiEntry::Function(entry) => Self::Function(entry.into()),
-            core::types::AbiEntry::Struct(entry) => Self::Struct(entry.into()),
-            core::types::AbiEntry::L1Handler(entry) => Self::Function(entry.into()),
-            core::types::AbiEntry::Event(entry) => Self::Event(entry.into()),
+            legacy_contract::LegacyAbiEntry::Constructor(entry) => Self::Function(entry.into()),
+            legacy_contract::LegacyAbiEntry::Function(entry) => Self::Function(entry.into()),
+            legacy_contract::LegacyAbiEntry::Struct(entry) => Self::Struct(entry.into()),
+            legacy_contract::LegacyAbiEntry::L1Handler(entry) => Self::Function(entry.into()),
+            legacy_contract::LegacyAbiEntry::Event(entry) => Self::Event(entry.into()),
         }
     }
 }
 
-impl From<core::types::AbiConstructorEntry> for FunctionAbiEntry {
-    fn from(value: core::types::AbiConstructorEntry) -> Self {
+impl From<legacy_contract::LegacyConstructor> for FunctionAbiEntry {
+    fn from(value: legacy_contract::LegacyConstructor) -> Self {
         Self {
             r#type: FunctionAbiType::Constructor,
             name: value.name,
@@ -193,8 +193,8 @@ impl From<core::types::AbiConstructorEntry> for FunctionAbiEntry {
     }
 }
 
-impl From<core::types::AbiFunctionEntry> for FunctionAbiEntry {
-    fn from(value: core::types::AbiFunctionEntry) -> Self {
+impl From<legacy_contract::LegacyFunction> for FunctionAbiEntry {
+    fn from(value: legacy_contract::LegacyFunction) -> Self {
         Self {
             r#type: FunctionAbiType::Function,
             name: value.name,
@@ -205,8 +205,8 @@ impl From<core::types::AbiFunctionEntry> for FunctionAbiEntry {
     }
 }
 
-impl From<core::types::AbiStructEntry> for StructAbiEntry {
-    fn from(value: core::types::AbiStructEntry) -> Self {
+impl From<legacy_contract::LegacyStruct> for StructAbiEntry {
+    fn from(value: legacy_contract::LegacyStruct) -> Self {
         Self {
             r#type: StructAbiType::Struct,
             name: value.name,
@@ -216,8 +216,8 @@ impl From<core::types::AbiStructEntry> for StructAbiEntry {
     }
 }
 
-impl From<core::types::AbiL1HandlerEntry> for FunctionAbiEntry {
-    fn from(value: core::types::AbiL1HandlerEntry) -> Self {
+impl From<legacy_contract::LegacyL1Handler> for FunctionAbiEntry {
+    fn from(value: legacy_contract::LegacyL1Handler) -> Self {
         Self {
             r#type: FunctionAbiType::L1Handler,
             name: value.name,
@@ -228,8 +228,8 @@ impl From<core::types::AbiL1HandlerEntry> for FunctionAbiEntry {
     }
 }
 
-impl From<core::types::AbiEventEntry> for EventAbiEntry {
-    fn from(value: core::types::AbiEventEntry) -> Self {
+impl From<legacy_contract::LegacyEvent> for EventAbiEntry {
+    fn from(value: legacy_contract::LegacyEvent) -> Self {
         Self {
             r#type: EventAbiType::Event,
             name: value.name,
@@ -239,8 +239,8 @@ impl From<core::types::AbiEventEntry> for EventAbiEntry {
     }
 }
 
-impl From<core::types::AbiStructMember> for StructMember {
-    fn from(value: core::types::AbiStructMember) -> Self {
+impl From<legacy_contract::LegacyMember> for StructMember {
+    fn from(value: legacy_contract::LegacyMember) -> Self {
         Self {
             name: value.name,
             r#type: value.r#type,
@@ -249,8 +249,8 @@ impl From<core::types::AbiStructMember> for StructMember {
     }
 }
 
-impl From<core::types::AbiInput> for TypedParameter {
-    fn from(value: core::types::AbiInput) -> Self {
+impl From<legacy_contract::LegacyInput> for TypedParameter {
+    fn from(value: legacy_contract::LegacyInput) -> Self {
         Self {
             name: value.name,
             r#type: value.r#type,
@@ -258,8 +258,8 @@ impl From<core::types::AbiInput> for TypedParameter {
     }
 }
 
-impl From<core::types::AbiOutput> for TypedParameter {
-    fn from(value: core::types::AbiOutput) -> Self {
+impl From<legacy_contract::LegacyOutput> for TypedParameter {
+    fn from(value: legacy_contract::LegacyOutput) -> Self {
         Self {
             name: value.name,
             r#type: value.r#type,
@@ -267,8 +267,8 @@ impl From<core::types::AbiOutput> for TypedParameter {
     }
 }
 
-impl From<core::types::AbiEventData> for TypedParameter {
-    fn from(value: core::types::AbiEventData) -> Self {
+impl From<legacy_contract::LegacyEventData> for TypedParameter {
+    fn from(value: legacy_contract::LegacyEventData) -> Self {
         Self {
             name: value.name,
             r#type: value.r#type,

@@ -5,7 +5,7 @@ use starknet::{
     contract::ContractFactory,
     core::{
         chain_id,
-        types::{ContractArtifact, FieldElement},
+        types::{contract::legacy::LegacyContractClass, FieldElement},
     },
     macros::felt,
     providers::SequencerGatewayProvider,
@@ -15,7 +15,7 @@ use starknet::{
 #[tokio::main]
 async fn main() {
     // NOTE: you will need to declare this class first
-    let contract_artifact: ContractArtifact =
+    let contract_artifact: LegacyContractClass =
         serde_json::from_reader(std::fs::File::open("/path/to/contract/artifact.json").unwrap())
             .unwrap();
     let class_hash = contract_artifact.class_hash().unwrap();

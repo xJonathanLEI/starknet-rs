@@ -8,10 +8,11 @@ use serde_with::serde_as;
 use starknet_core::{
     serde::unsigned_field_element::UfeHex,
     types::{
+        contract::legacy::{LegacyContractClass, LegacyContractCode},
         AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
-        CallFunction, CallL1Handler, ContractAddresses, ContractArtifact, ContractCode,
-        FeeEstimate, FieldElement, StarknetError, StateUpdate, TransactionInfo, TransactionReceipt,
-        TransactionRequest, TransactionSimulationInfo, TransactionStatusInfo, TransactionTrace,
+        CallFunction, CallL1Handler, ContractAddresses, FeeEstimate, FieldElement, StarknetError,
+        StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest,
+        TransactionSimulationInfo, TransactionStatusInfo, TransactionTrace,
     },
 };
 use url::Url;
@@ -122,7 +123,7 @@ enum GatewayResponse<D> {
 #[derive(Deserialize)]
 #[serde(untagged)]
 enum GetCodeResponse {
-    ContractCode(ContractCode),
+    ContractCode(LegacyContractCode),
     EmptyContractCode(EmptyContractCode),
     SequencerError(SequencerError),
 }
@@ -346,7 +347,7 @@ impl Provider for SequencerGatewayProvider {
         &self,
         contract_address: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<ContractCode, ProviderError<Self::Error>> {
+    ) -> Result<LegacyContractCode, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_code");
         request_url
             .query_pairs_mut()
@@ -358,7 +359,7 @@ impl Provider for SequencerGatewayProvider {
             .await?
         {
             GetCodeResponse::ContractCode(code) => Ok(code),
-            GetCodeResponse::EmptyContractCode(_) => Ok(ContractCode {
+            GetCodeResponse::EmptyContractCode(_) => Ok(LegacyContractCode {
                 bytecode: vec![],
                 abi: Some(vec![]),
             }),
@@ -375,7 +376,7 @@ impl Provider for SequencerGatewayProvider {
         &self,
         contract_address: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<ContractArtifact, ProviderError<Self::Error>> {
+    ) -> Result<LegacyContractClass, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_full_contract");
         request_url
             .query_pairs_mut()
@@ -406,7 +407,7 @@ impl Provider for SequencerGatewayProvider {
     async fn get_class_by_hash(
         &self,
         class_hash: FieldElement,
-    ) -> Result<ContractArtifact, ProviderError<Self::Error>> {
+    ) -> Result<LegacyContractClass, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_class_by_hash");
         request_url
             .query_pairs_mut()
@@ -706,7 +707,7 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_full_contract_deser() {
-        serde_json::from_str::<GatewayResponse<ContractArtifact>>(include_str!(
+        serde_json::from_str::<GatewayResponse<LegacyContractClass>>(include_str!(
             "../test-data/get_full_contract/1_code.txt"
         ))
         .unwrap();
@@ -715,7 +716,7 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_class_by_hash_deser_success() {
-        match serde_json::from_str::<GatewayResponse<ContractArtifact>>(include_str!(
+        match serde_json::from_str::<GatewayResponse<LegacyContractClass>>(include_str!(
             "../test-data/get_class_by_hash/1_success.txt"
         ))
         .unwrap()
@@ -728,7 +729,7 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_class_by_hash_deser_not_declared() {
-        match serde_json::from_str::<GatewayResponse<ContractArtifact>>(include_str!(
+        match serde_json::from_str::<GatewayResponse<LegacyContractClass>>(include_str!(
             "../test-data/get_class_by_hash/2_not_declared.txt"
         ))
         .unwrap()

@@ -3,7 +3,7 @@ use starknet_accounts::SingleOwnerAccount;
 use starknet_contract::ContractFactory;
 use starknet_core::{
     chain_id,
-    types::{ContractArtifact, FieldElement},
+    types::{contract::legacy::LegacyContractClass, FieldElement},
 };
 use starknet_providers::SequencerGatewayProvider;
 use starknet_signers::{LocalWallet, SigningKey};
@@ -23,7 +23,7 @@ async fn can_deploy_contract_to_alpha_goerli() {
     .unwrap();
     let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
 
-    let artifact = serde_json::from_str::<ContractArtifact>(include_str!(
+    let artifact = serde_json::from_str::<LegacyContractClass>(include_str!(
         "../test-data/artifacts/oz_account.txt"
     ))
     .unwrap();

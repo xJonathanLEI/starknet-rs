@@ -4,7 +4,7 @@ use starknet::{
     accounts::{Account, SingleOwnerAccount},
     core::{
         chain_id,
-        types::{ContractArtifact, FieldElement},
+        types::{contract::legacy::LegacyContractClass, FieldElement},
     },
     providers::SequencerGatewayProvider,
     signers::{LocalWallet, SigningKey},
@@ -12,7 +12,7 @@ use starknet::{
 
 #[tokio::main]
 async fn main() {
-    let contract_artifact: ContractArtifact =
+    let contract_artifact: LegacyContractClass =
         serde_json::from_reader(std::fs::File::open("/path/to/contract/artifact.json").unwrap())
             .unwrap();
     let provider = SequencerGatewayProvider::starknet_alpha_goerli();
