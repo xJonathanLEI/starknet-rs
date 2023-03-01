@@ -2,7 +2,7 @@ use std::io::Write;
 
 use flate2::{write::GzEncoder, Compression};
 use starknet_core::{
-    types::{ContractArtifact, FieldElement},
+    types::{contract::legacy::LegacyContractClass, FieldElement},
     utils::{get_selector_from_name, get_storage_var_address},
 };
 use starknet_providers::jsonrpc::{
@@ -18,8 +18,8 @@ fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
 }
 
 fn create_contract_class() -> ContractClass {
-    let artifact = serde_json::from_str::<ContractArtifact>(include_str!(
-        "../../starknet-core/test-data/contracts/artifacts/oz_account.txt"
+    let artifact = serde_json::from_str::<LegacyContractClass>(include_str!(
+        "../../starknet-core/test-data/contracts/artifacts/legacy/oz_account.txt"
     ))
     .unwrap();
 

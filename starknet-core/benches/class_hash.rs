@@ -1,10 +1,10 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use starknet_core::types::ContractArtifact;
+use starknet_core::types::contract::legacy::LegacyContractClass;
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     // Using the latest OZ account contract for the benchmark
-    let contract_artifact: ContractArtifact = serde_json::from_str(include_str!(
-        "../test-data/contracts/artifacts/oz_account.txt"
+    let contract_artifact: LegacyContractClass = serde_json::from_str(include_str!(
+        "../test-data/contracts/artifacts/legacy/oz_account.txt"
     ))
     .unwrap();
 

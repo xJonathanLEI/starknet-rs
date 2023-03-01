@@ -2,8 +2,8 @@ use crate::Call;
 
 use async_trait::async_trait;
 use starknet_core::types::{
-    contract_artifact::{CompressProgramError, ComputeClassHashError},
-    BlockId, ContractArtifact, FieldElement,
+    contract::{legacy::LegacyContractClass, CompressProgramError, ComputeClassHashError},
+    BlockId, FieldElement,
 };
 use starknet_providers::{Provider, ProviderError};
 use std::{error::Error, sync::Arc};
@@ -38,7 +38,7 @@ pub trait Account: Sized {
         Execution::new(calls, self)
     }
 
-    fn declare(&self, contract_class: Arc<ContractArtifact>) -> Declaration<Self> {
+    fn declare(&self, contract_class: Arc<LegacyContractClass>) -> Declaration<Self> {
         Declaration::new(contract_class, self)
     }
 }
@@ -83,7 +83,7 @@ pub struct Execution<'a, A> {
 #[derive(Debug)]
 pub struct Declaration<'a, A> {
     account: &'a A,
-    contract_class: Arc<ContractArtifact>,
+    contract_class: Arc<LegacyContractClass>,
     nonce: Option<FieldElement>,
     max_fee: Option<FieldElement>,
     fee_estimate_multiplier: f64,
@@ -100,7 +100,7 @@ pub struct RawExecution {
 /// [Declaration] but with `nonce` and `max_fee` already determined.
 #[derive(Debug)]
 pub struct RawDeclaration {
-    contract_class: Arc<ContractArtifact>,
+    contract_class: Arc<LegacyContractClass>,
     nonce: FieldElement,
     max_fee: FieldElement,
 }

@@ -1,10 +1,7 @@
 use super::{
-    super::serde::{
-        byte_array::base64::serialize as base64_ser,
-        num_hex::u64 as u64_hex,
-        unsigned_field_element::{UfeHex, UfeHexOption},
-    },
-    AbiEntry, FieldElement, L1Address,
+    super::serde::unsigned_field_element::{UfeHex, UfeHexOption},
+    contract::legacy::CompressedLegacyContractClass,
+    FieldElement, L1Address,
 };
 
 use serde::{Deserialize, Serialize, Serializer};
@@ -79,7 +76,7 @@ pub struct CallL1Handler {
 
 #[derive(Debug)]
 pub struct DeclareTransaction {
-    pub contract_class: Arc<ContractDefinition>,
+    pub contract_class: Arc<CompressedLegacyContractClass>,
     /// The address of the account contract sending the declaration transaction.
     pub sender_address: FieldElement,
     /// The maximal fee to be paid in Wei for declaring a contract class.
@@ -112,34 +109,6 @@ pub struct DeployAccountTransaction {
     pub nonce: FieldElement,
 }
 
-#[derive(Debug, Serialize, Clone)]
-pub struct ContractDefinition {
-    #[serde(serialize_with = "base64_ser")]
-    pub program: Vec<u8>,
-    pub entry_points_by_type: EntryPointsByType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub abi: Option<Vec<AbiEntry>>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct EntryPointsByType {
-    pub constructor: Vec<EntryPoint>,
-    pub external: Vec<EntryPoint>,
-    pub l1_handler: Vec<EntryPoint>,
-}
-
-#[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct EntryPoint {
-    #[serde(with = "u64_hex")]
-    pub offset: u64,
-    #[serde_as(as = "UfeHex")]
-    pub selector: FieldElement,
-}
-
 impl Serialize for DeclareTransaction {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -150,7 +119,7 @@ impl Serialize for DeclareTransaction {
         struct Versioned<'a> {
             #[serde_as(as = "UfeHex")]
             version: FieldElement,
-            contract_class: &'a ContractDefinition,
+            contract_class: &'a CompressedLegacyContractClass,
             #[serde_as(as = "UfeHex")]
             sender_address: &'a FieldElement,
             #[serde_as(as = "UfeHex")]

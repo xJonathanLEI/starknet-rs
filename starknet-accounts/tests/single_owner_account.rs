@@ -1,7 +1,7 @@
 use starknet_accounts::{Account, Call, ConnectedAccount, SingleOwnerAccount};
 use starknet_core::{
     chain_id,
-    types::{AddTransactionResultCode, ContractArtifact, FieldElement},
+    types::{contract::legacy::LegacyContractClass, AddTransactionResultCode, FieldElement},
     utils::get_selector_from_name,
 };
 use starknet_providers::SequencerGatewayProvider;
@@ -202,8 +202,8 @@ async fn can_declare_oz_account_contract() {
     .unwrap();
     let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
 
-    let contract_artifact: ContractArtifact =
-        serde_json::from_str(include_str!("../test-data/artifacts/oz_account.txt")).unwrap();
+    let contract_artifact: LegacyContractClass =
+        serde_json::from_str(include_str!("../test-data/artifacts/legacy/oz_account.txt")).unwrap();
 
     let result = account
         .declare(Arc::new(contract_artifact))

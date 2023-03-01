@@ -5,10 +5,11 @@ use crate::{
 
 use async_trait::async_trait;
 use starknet_core::types::{
+    contract::legacy::{LegacyContractClass, LegacyContractCode},
     AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
-    CallFunction, CallL1Handler, ContractAddresses, ContractArtifact, ContractCode, FeeEstimate,
-    FieldElement, StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest,
-    TransactionSimulationInfo, TransactionStatusInfo, TransactionTrace,
+    CallFunction, CallL1Handler, ContractAddresses, FeeEstimate, FieldElement, StateUpdate,
+    TransactionInfo, TransactionReceipt, TransactionRequest, TransactionSimulationInfo,
+    TransactionStatusInfo, TransactionTrace,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -129,7 +130,7 @@ where
         &self,
         _contract_address: FieldElement,
         _block_identifier: BlockId,
-    ) -> Result<ContractCode, ProviderError<Self::Error>> {
+    ) -> Result<LegacyContractCode, ProviderError<Self::Error>> {
         Err(ProviderError::Other(Self::Error::NotSupported))
     }
 
@@ -137,7 +138,7 @@ where
         &self,
         _contract_address: FieldElement,
         _block_identifier: BlockId,
-    ) -> Result<ContractArtifact, ProviderError<Self::Error>> {
+    ) -> Result<LegacyContractClass, ProviderError<Self::Error>> {
         Err(ProviderError::Other(Self::Error::NotSupported))
     }
 
@@ -152,7 +153,7 @@ where
     async fn get_class_by_hash(
         &self,
         _class_hash: FieldElement,
-    ) -> Result<ContractArtifact, ProviderError<Self::Error>> {
+    ) -> Result<LegacyContractClass, ProviderError<Self::Error>> {
         Err(ProviderError::Other(Self::Error::NotSupported))
     }
 

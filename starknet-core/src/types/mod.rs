@@ -21,13 +21,8 @@ pub use transaction_receipt::{
 mod error;
 pub use error::Error as StarknetError;
 
-mod contract_code;
-pub use contract_code::{
-    AbiEntry, Constructor as AbiConstructorEntry, ContractCode, Event as AbiEventEntry,
-    EventData as AbiEventData, Function as AbiFunctionEntry, Input as AbiInput,
-    L1Handler as AbiL1HandlerEntry, Member as AbiStructMember, Output as AbiOutput,
-    Struct as AbiStructEntry,
-};
+pub mod contract;
+pub use contract::ContractArtifact;
 
 mod contract_addresses;
 pub use contract_addresses::ContractAddresses;
@@ -38,8 +33,8 @@ pub use call_contract::CallContractResult;
 mod transaction_request;
 pub use transaction_request::{
     AccountTransaction, AddTransactionResult, AddTransactionResultCode, CallFunction,
-    CallL1Handler, ContractDefinition, DeclareTransaction as DeclareTransactionRequest,
-    DeployAccountTransaction as DeployAccountTransactionRequest, EntryPoint, EntryPointsByType,
+    CallL1Handler, DeclareTransaction as DeclareTransactionRequest,
+    DeployAccountTransaction as DeployAccountTransactionRequest,
     InvokeFunctionTransaction as InvokeFunctionTransactionRequest, TransactionRequest,
 };
 
@@ -47,9 +42,6 @@ pub use starknet_ff::*;
 
 pub mod state_update;
 pub use state_update::StateUpdate;
-
-pub mod contract_artifact;
-pub use contract_artifact::ContractArtifact;
 
 mod fee;
 pub use fee::{FeeEstimate, FeeUnit, TransactionSimulationInfo};
