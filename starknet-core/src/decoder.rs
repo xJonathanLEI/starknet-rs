@@ -19,138 +19,271 @@ pub struct DecodeResult {
     new_offset: usize,
 }
 
-pub fn decode_param(param: &ParamType, data: &[FieldElement], offset: usize) -> DecodeResult {
-    match *param {
-        ParamType::FieldElement => DecodeResult {
-            token: Token::FieldElement(data[offset]),
-            new_offset: offset + 1,
-        },
-        ParamType::Array => {
-            // TODO: don't use unwrap
-            let size: usize = u32::try_from(data[offset]).unwrap() as usize;
-            DecodeResult {
-                token: Token::Array(data[(offset + 1)..(offset + size + 1)].to_vec()),
-                new_offset: offset + size + 1,
+mod decoder_error {
+
+    #[derive(Debug, PartialEq)]
+    pub enum DecoderError {
+        InvalidLength,
+        ValueOutOfRange,
+    }
+
+    #[cfg(feature = "std")]
+    impl std::error::Error for DecoderError {}
+
+    impl core::fmt::Display for DecoderError {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            match self {
+                Self::InvalidLength => write!(f, "invalid length"),
+                Self::ValueOutOfRange => write!(f, "number out of range"),
             }
         }
-        ParamType::Tuple(size) => DecodeResult {
-            token: Token::Tuple(data[offset..(offset + size)].to_vec()),
-            new_offset: offset + size,
-        },
+    }
+}
+pub use decoder_error::DecoderError;
+
+fn validate_data_length(
+    data: &[FieldElement],
+    offset: usize,
+    len: usize,
+) -> Result<(), DecoderError> {
+    if offset + len > data.len() {
+        Err(DecoderError::InvalidLength)
+    } else {
+        Ok(())
     }
 }
 
-pub fn decode(types: &[ParamType], data: &[FieldElement]) -> Vec<Token> {
+fn decode_param(
+    param: &ParamType,
+    data: &[FieldElement],
+    offset: usize,
+    validate: bool,
+) -> Result<DecodeResult, DecoderError> {
+    match *param {
+        ParamType::FieldElement => {
+            if validate {
+                validate_data_length(data, offset, 1)?;
+            }
+
+            Ok(DecodeResult {
+                token: Token::FieldElement(data[offset]),
+                new_offset: offset + 1,
+            })
+        }
+        ParamType::Array => {
+            if validate {
+                validate_data_length(data, offset, 1)?;
+            }
+
+            let size: usize =
+                u32::try_from(data[offset]).map_err(|_| DecoderError::ValueOutOfRange)? as usize;
+
+            if validate {
+                validate_data_length(data, offset, size + 1)?;
+            }
+
+            Ok(DecodeResult {
+                token: Token::Array(data[(offset + 1)..(offset + size + 1)].to_vec()),
+                new_offset: offset + size + 1,
+            })
+        }
+        ParamType::Tuple(size) => {
+            if validate {
+                validate_data_length(data, offset, size)?;
+            }
+
+            Ok(DecodeResult {
+                token: Token::Tuple(data[offset..(offset + size)].to_vec()),
+                new_offset: offset + size,
+            })
+        }
+    }
+}
+
+fn decode_impl(
+    types: &[ParamType],
+    data: &[FieldElement],
+    offset: usize,
+    validate: bool,
+) -> Result<Vec<Token>, DecoderError> {
     let mut tokens = vec![];
-    let mut offset = 0;
+    let mut offset = offset;
 
     for param in types {
-        let res = decode_param(param, data, offset);
+        let res = decode_param(param, data, offset, validate)?;
         offset = res.new_offset;
         tokens.push(res.token);
     }
 
-    tokens
+    Ok(tokens)
+}
+
+pub fn decode(types: &[ParamType], data: &[FieldElement]) -> Result<Vec<Token>, DecoderError> {
+    decode_impl(types, data, 0, true)
 }
 
 mod test {
     use starknet_crypto::FieldElement;
 
-    use super::{decode, decode_param, DecodeResult, ParamType, Token};
+    use super::{decode, decode_impl, decode_param, DecodeResult, DecoderError, ParamType, Token};
 
     #[test]
-    fn decode_param_field_element() {
-        let result = decode_param(&ParamType::FieldElement, &[FieldElement::ONE], 0);
+    fn decode_param_field_element() -> Result<(), DecoderError> {
+        let result = decode_param(&ParamType::FieldElement, &[FieldElement::ONE], 0, true)?;
         let expected_result = DecodeResult {
             token: Token::FieldElement(FieldElement::ONE),
             new_offset: 1,
         };
+        assert_eq!(result, expected_result);
+        Ok(())
+    }
+
+    #[test]
+    fn decode_param_field_element_empty_data() {
+        let result = decode_param(&ParamType::FieldElement, &[], 0, true);
+        let expected_result = Err(DecoderError::InvalidLength);
         assert_eq!(result, expected_result)
     }
 
     #[test]
     #[should_panic(expected = "index out of bounds")]
-    fn decode_param_field_element_empty_data() {
-        decode_param(&ParamType::FieldElement, &[], 0);
+    fn decode_param_field_element_empty_data_no_validate() {
+        decode_param(&ParamType::FieldElement, &[], 0, false).unwrap();
     }
 
     #[test]
-    fn decode_param_array() {
+    fn decode_param_array() -> Result<(), DecoderError> {
         let result = decode_param(
             &ParamType::Array,
             &[FieldElement::TWO, FieldElement::ONE, FieldElement::THREE],
             0,
-        );
+            true,
+        )?;
         let expected_result = DecodeResult {
             token: Token::Array(vec![FieldElement::ONE, FieldElement::THREE]),
             new_offset: 3,
         };
+        assert_eq!(result, expected_result);
+        Ok(())
+    }
+
+    #[test]
+    fn decode_param_array_empty_data() {
+        let result = decode_param(&ParamType::Array, &[], 0, true);
+        let expected_result = Err(DecoderError::InvalidLength);
         assert_eq!(result, expected_result)
     }
 
     #[test]
     #[should_panic(expected = "index out of bounds")]
-    fn decode_param_array_empty_data() {
-        decode_param(&ParamType::Array, &[], 0);
+    fn decode_param_array_empty_data_no_validate() {
+        decode_param(&ParamType::Array, &[], 0, false).unwrap();
+    }
+
+    #[test]
+    fn decode_param_array_insufficient_data() {
+        let result = decode_param(
+            &ParamType::Array,
+            &[FieldElement::TWO, FieldElement::THREE],
+            0,
+            true,
+        );
+
+        let expected_result = Err(DecoderError::InvalidLength);
+        assert_eq!(result, expected_result)
     }
 
     #[test]
     #[should_panic(expected = "range end index 3 out of range for slice of length 2")]
-    fn decode_param_array_insufficient_data() {
+    fn decode_param_array_insufficient_data_no_validate() {
         decode_param(
             &ParamType::Array,
             &[FieldElement::TWO, FieldElement::THREE],
             0,
-        );
+            false,
+        )
+        .unwrap();
     }
 
     #[test]
-    #[should_panic(expected = "ValueOutOfRange")]
     fn decode_param_array_invalid_size() {
         let result = decode_param(
             &ParamType::Array,
             &[FieldElement::MAX, FieldElement::ONE, FieldElement::THREE],
             0,
+            true,
         );
-        let expected_result = DecodeResult {
-            token: Token::Array(vec![FieldElement::ONE, FieldElement::THREE]),
-            new_offset: 3,
-        };
-        assert_eq!(result, expected_result)
+        let expected_result = Err(DecoderError::ValueOutOfRange);
+        assert_eq!(result, expected_result);
     }
 
     #[test]
-    fn decode_param_tuple() {
+    #[should_panic(expected = "ValueOutOfRange")]
+    fn decode_param_array_invalid_size_no_validate() {
+        decode_param(
+            &ParamType::Array,
+            &[FieldElement::MAX, FieldElement::ONE, FieldElement::THREE],
+            0,
+            true,
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn decode_param_tuple() -> Result<(), DecoderError> {
         let result = decode_param(
             &ParamType::Tuple(2),
             &[FieldElement::TWO, FieldElement::THREE],
             0,
-        );
+            true,
+        )?;
         let expected_result = DecodeResult {
             token: Token::Tuple(vec![FieldElement::TWO, FieldElement::THREE]),
             new_offset: 2,
         };
-        assert_eq!(result, expected_result)
+        assert_eq!(result, expected_result);
+        Ok(())
+    }
+
+    #[test]
+    fn decode_param_tuple_empty_data() {
+        let result = decode_param(&ParamType::Tuple(2), &[], 0, true);
+        let expected_result = Err(DecoderError::InvalidLength);
+        assert_eq!(result, expected_result);
     }
 
     #[test]
     #[should_panic(expected = "range end index 2 out of range for slice of length 0")]
-    fn decode_param_tuple_empty_data() {
-        decode_param(&ParamType::Tuple(2), &[], 0);
+    fn decode_param_tuple_empty_data_no_validate() {
+        decode_param(&ParamType::Tuple(2), &[], 0, false).unwrap();
+    }
+
+    #[test]
+    fn decode_param_tuple_insufficient_data() {
+        let result = decode_param(
+            &ParamType::Tuple(3),
+            &[FieldElement::TWO, FieldElement::THREE, FieldElement::ONE],
+            1,
+            true,
+        );
+        let expected_result = Err(DecoderError::InvalidLength);
+        assert_eq!(result, expected_result);
     }
 
     #[test]
     #[should_panic(expected = "range end index 4 out of range for slice of length 3")]
-    fn decode_param_tuple_insufficient_data() {
+    fn decode_param_tuple_insufficient_data_no_validate() {
         decode_param(
             &ParamType::Tuple(3),
             &[FieldElement::TWO, FieldElement::THREE, FieldElement::ONE],
             1,
-        );
+            false,
+        )
+        .unwrap();
     }
 
     #[test]
-    fn decode_data() {
+    fn decode_data() -> Result<(), DecoderError> {
         let types = [
             ParamType::FieldElement,
             ParamType::Array,
@@ -172,13 +305,14 @@ mod test {
             Token::Tuple(vec![FieldElement::TWO, FieldElement::THREE]),
         ];
 
-        let result = decode(&types, &data);
+        let result = decode(&types, &data)?;
 
-        assert_eq!(result, expected_result)
+        assert_eq!(result, expected_result);
+        Ok(())
     }
 
     #[test]
-    fn decode_data_exceeds_types() {
+    fn decode_data_exceeds_types() -> Result<(), DecoderError> {
         let types = [ParamType::FieldElement, ParamType::Tuple(3)];
 
         let data = [
@@ -199,13 +333,13 @@ mod test {
             ]),
         ];
 
-        let result = decode(&types, &data);
+        let result = decode(&types, &data)?;
 
-        assert_eq!(result, expected_result)
+        assert_eq!(result, expected_result);
+        Ok(())
     }
 
     #[test]
-    #[should_panic(expected = "index out of bounds: the len is 6 but the index is 6")]
     fn decode_missing_data() {
         let types = [
             ParamType::FieldElement,
@@ -224,14 +358,32 @@ mod test {
                                  // missing last field element
         ];
 
-        let expected_result = vec![
-            Token::FieldElement(FieldElement::ONE),
-            Token::Array(vec![FieldElement::ONE, FieldElement::THREE]),
-            Token::Tuple(vec![FieldElement::TWO, FieldElement::THREE]),
+        let result = decode(&types, &data);
+        let expected_result = Err(DecoderError::InvalidLength);
+
+        assert_eq!(result, expected_result);
+    }
+
+    #[test]
+    #[should_panic(expected = "index out of bounds: the len is 6 but the index is 6")]
+    fn decode_missing_data_no_validate() {
+        let types = [
+            ParamType::FieldElement,
+            ParamType::Array,
+            ParamType::Tuple(2),
+            ParamType::FieldElement,
         ];
 
-        let result = decode(&types, &data);
+        let data = [
+            FieldElement::ONE,   // field element
+            FieldElement::TWO,   // array length
+            FieldElement::ONE,   // first element of the array
+            FieldElement::THREE, // second element of the array
+            FieldElement::TWO,   // first element of the tuple
+            FieldElement::THREE, // second element of the tuple
+                                 // missing last field element
+        ];
 
-        assert_eq!(result, expected_result)
+        decode_impl(&types, &data, 0, false).unwrap();
     }
 }
