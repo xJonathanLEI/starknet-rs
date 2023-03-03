@@ -122,6 +122,7 @@ pub fn decode(types: &[ParamType], data: &[FieldElement]) -> Result<Vec<Token>, 
     decode_impl(types, data, 0, true)
 }
 
+#[cfg(test)]
 mod test {
     use starknet_crypto::FieldElement;
 
