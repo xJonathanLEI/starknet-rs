@@ -1552,6 +1552,7 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 name = "starknet"
 version = "0.2.0"
 dependencies = [
+ "crypto-bigint",
  "serde_json",
  "starknet-accounts",
  "starknet-contract",
@@ -1598,6 +1599,7 @@ version = "0.2.0"
 dependencies = [
  "base64",
  "criterion",
+ "crypto-bigint",
  "ethereum-types",
  "flate2",
  "hex",

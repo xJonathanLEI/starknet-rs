@@ -13,7 +13,7 @@ use core::{
 use fr::FrParameters;
 
 use ark_ff::{fields::Fp256, BigInteger, BigInteger256, Field, PrimeField, SquareRootField};
-use crypto_bigint::{CheckedAdd, CheckedMul, Zero, U256};
+use crypto_bigint::{CheckedAdd, CheckedMul, Zero, U256, U512};
 
 mod fr;
 
@@ -616,6 +616,30 @@ impl TryFrom<FieldElement> for u8 {
     }
 }
 
+impl TryFrom<FieldElement> for bool {
+    type Error = ValueOutOfRangeError;
+    fn try_from(value: FieldElement) -> Result<Self, Self::Error> {
+        if value == FieldElement::ONE {
+            return Ok(true);
+        } else if value == FieldElement::ZERO {
+            return Ok(false);
+        } else {
+            return Err(ValueOutOfRangeError);
+        }
+    }
+}
+
+impl TryFrom<FieldElement> for String {
+    type Error = ValueOutOfRangeError;
+    fn try_from(value: FieldElement) -> Result<Self, Self::Error> {
+        let be = value.to_bytes_be();
+        String::from_utf8(be.to_vec())
+            .map_err(|_| ValueOutOfRangeError)
+            .map(|s| s.trim_start_matches("\0").to_owned())
+            .map(String::from)
+    }
+}
+
 impl TryFrom<FieldElement> for u16 {
     type Error = ValueOutOfRangeError;
 
@@ -944,6 +968,17 @@ mod tests {
                 num.0.parse::<FieldElement>().unwrap(),
                 FieldElement::from_byte_slice_be(&num.1).unwrap()
             );
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_string() {
+        let strs = ["Hello world", "1924", "0x123", "0"];
+
+        for str in strs.into_iter() {
+            let felt = FieldElement::from_byte_slice_be(str.as_bytes()).unwrap();
+            assert_eq!(String::try_from(felt).unwrap(), str)
         }
     }
 }

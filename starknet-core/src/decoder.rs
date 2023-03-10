@@ -40,6 +40,7 @@ mod decoder_error {
     }
 }
 pub use decoder_error::DecoderError;
+use starknet_ff::ValueOutOfRangeError;
 
 fn validate_data_length(
     data: &[FieldElement],
@@ -120,6 +121,52 @@ fn decode_impl(
 
 pub fn decode(types: &[ParamType], data: &[FieldElement]) -> Result<Vec<Token>, DecoderError> {
     decode_impl(types, data, 0, true)
+}
+
+impl TryFrom<&Token> for u32 {
+    // TODO: add an error type to represent invalid token types like Array and Tuple !
+    type Error = ValueOutOfRangeError;
+    fn try_from(value: &Token) -> Result<Self, Self::Error> {
+        match value {
+            Token::FieldElement(felt) => u32::try_from(*felt),
+            _ => Err(ValueOutOfRangeError),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct Address(String);
+
+impl TryFrom<&Token> for Address {
+    // TODO: add an error type to represent invalid token types like Array and Tuple !
+    type Error = ValueOutOfRangeError;
+    fn try_from(value: &Token) -> Result<Self, Self::Error> {
+        match value {
+            Token::FieldElement(felt) => Ok(Address(format!("{:#064x}", felt))),
+            _ => Err(ValueOutOfRangeError),
+        }
+    }
+}
+
+impl TryFrom<&Token> for String {
+    // TODO: add an error type to represent invalid token types like Array and Tuple !
+    type Error = ValueOutOfRangeError;
+    fn try_from(value: &Token) -> Result<Self, Self::Error> {
+        match value {
+            Token::FieldElement(felt) => String::try_from(*felt),
+            _ => Err(ValueOutOfRangeError),
+        }
+    }
+}
+
+impl TryFrom<Token> for Vec<u32> {
+    type Error = ValueOutOfRangeError;
+    fn try_from(value: Token) -> Result<Self, Self::Error> {
+        match value {
+            Token::Array(v) => v.iter().map(|felt| u32::try_from(*felt)).collect(),
+            _ => Err(ValueOutOfRangeError),
+        }
+    }
 }
 
 #[cfg(test)]
