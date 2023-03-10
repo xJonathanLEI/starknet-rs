@@ -1,6 +1,6 @@
 use crate::types::FieldElement;
 
-pub use starknet_crypto::{pedersen_hash, Signature};
+pub use starknet_crypto::{pedersen_hash, ExtendedSignature, Signature};
 use starknet_crypto::{rfc6979_generate_k, sign, verify, SignError, VerifyError};
 use thiserror::Error;
 
@@ -34,7 +34,7 @@ pub fn compute_hash_on_elements(data: &[FieldElement]) -> FieldElement {
 pub fn ecdsa_sign(
     private_key: &FieldElement,
     message_hash: &FieldElement,
-) -> Result<Signature, EcdsaSignError> {
+) -> Result<ExtendedSignature, EcdsaSignError> {
     // Seed-retry logic ported from `cairo-lang`
     let mut seed = None;
     loop {
@@ -42,11 +42,7 @@ pub fn ecdsa_sign(
 
         match sign(private_key, message_hash, &k) {
             Ok(sig) => {
-                return Ok(Signature {
-                    r: sig.r,
-                    s: sig.s,
-                    v: sig.v,
-                });
+                return Ok(sig);
             }
             Err(SignError::InvalidMessageHash) => {
                 return Err(EcdsaSignError::MessageHashOutOfRange)
@@ -176,12 +172,8 @@ mod tests {
             "04e44e759cea02c23568bb4d8a09929bbca8768ab68270d50c18d214166ccd9a",
         )
         .unwrap();
-        let v = FieldElement::from_hex_be(
-            "0000000000000000000000000000000000000000000000000000000000000000",
-        )
-        .unwrap();
 
-        assert!(ecdsa_verify(&public_key, &message_hash, &Signature { r, s, v }).unwrap());
+        assert!(ecdsa_verify(&public_key, &message_hash, &Signature { r, s }).unwrap());
     }
 
     #[test]
@@ -204,11 +196,7 @@ mod tests {
             "04e44e759cea02c23568bb4d8a09929bbca8768ab68270d50c18d214166ccd9b",
         )
         .unwrap();
-        let v = FieldElement::from_hex_be(
-            "0000000000000000000000000000000000000000000000000000000000000000",
-        )
-        .unwrap();
 
-        assert!(!ecdsa_verify(&public_key, &message_hash, &Signature { r, s, v }).unwrap());
+        assert!(!ecdsa_verify(&public_key, &message_hash, &Signature { r, s }).unwrap());
     }
 }
