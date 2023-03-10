@@ -61,9 +61,10 @@ impl core::fmt::Display for ExtendedSignature {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         write!(
             f,
-            "{}{}",
+            "{}{}{:02x}",
             hex::encode(self.r.to_bytes_be()),
             hex::encode(self.s.to_bytes_be()),
+            self.v
         )
     }
 }
