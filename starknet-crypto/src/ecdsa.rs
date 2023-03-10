@@ -22,12 +22,42 @@ pub struct Signature {
     pub r: FieldElement,
     /// The `s` value of a signature
     pub s: FieldElement,
+}
+
+/// Stark ECDSA signature with `v`
+#[derive(Debug)]
+pub struct ExtendedSignature {
+    /// The `r` value of a signature
+    pub r: FieldElement,
+    /// The `s` value of a signature
+    pub s: FieldElement,
     /// The `v` value of a signature
     pub v: FieldElement,
 }
 
+impl From<ExtendedSignature> for Signature {
+    fn from(value: ExtendedSignature) -> Self {
+        Self {
+            r: value.r,
+            s: value.s,
+        }
+    }
+}
+
 #[cfg(feature = "signature-display")]
 impl core::fmt::Display for Signature {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        write!(
+            f,
+            "{}{}",
+            hex::encode(self.r.to_bytes_be()),
+            hex::encode(self.s.to_bytes_be()),
+        )
+    }
+}
+
+#[cfg(feature = "signature-display")]
+impl core::fmt::Display for ExtendedSignature {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         write!(
             f,
@@ -58,7 +88,7 @@ pub fn sign(
     private_key: &FieldElement,
     message: &FieldElement,
     k: &FieldElement,
-) -> Result<Signature, SignError> {
+) -> Result<ExtendedSignature, SignError> {
     if message >= &ELEMENT_UPPER_BOUND {
         return Err(SignError::InvalidMessageHash);
     }
@@ -83,7 +113,7 @@ pub fn sign(
 
     let v = full_r.y & FieldElement::ONE;
 
-    Ok(Signature { r, s, v })
+    Ok(ExtendedSignature { r, s, v })
 }
 
 /// Verifies if a signature is valid over a message hash given a Stark public key.

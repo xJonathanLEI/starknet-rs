@@ -28,7 +28,7 @@ impl SigningKey {
     }
 
     pub fn sign(&self, hash: &FieldElement) -> Result<Signature, EcdsaSignError> {
-        ecdsa_sign(&self.secret_scalar, hash)
+        ecdsa_sign(&self.secret_scalar, hash).map(|sig| sig.into())
     }
 }
 
@@ -155,14 +155,10 @@ mod tests {
             "04e44e759cea02c23568bb4d8a09929bbca8768ab68270d50c18d214166ccd9a",
         )
         .unwrap();
-        let v = FieldElement::from_hex_be(
-            "0000000000000000000000000000000000000000000000000000000000000000",
-        )
-        .unwrap();
 
         let verifying_key = VerifyingKey::from_scalar(public_key);
 
-        assert!(verifying_key.verify(&hash, &Signature { r, s, v }).unwrap());
+        assert!(verifying_key.verify(&hash, &Signature { r, s }).unwrap());
     }
 
     #[test]
@@ -185,13 +181,9 @@ mod tests {
             "04e44e759cea02c23568bb4d8a09929bbca8768ab68270d50c18d214166ccd9b",
         )
         .unwrap();
-        let v = FieldElement::from_hex_be(
-            "0000000000000000000000000000000000000000000000000000000000000000",
-        )
-        .unwrap();
 
         let verifying_key = VerifyingKey::from_scalar(public_key);
 
-        assert!(!verifying_key.verify(&hash, &Signature { r, s, v }).unwrap());
+        assert!(!verifying_key.verify(&hash, &Signature { r, s }).unwrap());
     }
 }
