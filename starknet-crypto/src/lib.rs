@@ -19,7 +19,9 @@ pub use starknet_ff::FieldElement;
 
 pub use pedersen_hash::pedersen_hash;
 
-pub use poseidon_hash::{poseidon_hash, poseidon_hash_many, poseidon_hash_single, PoseidonHasher};
+pub use poseidon_hash::{
+    poseidon_hash, poseidon_hash_many, poseidon_hash_single, poseidon_permute_comp, PoseidonHasher,
+};
 
 pub use ecdsa::{get_public_key, recover, sign, verify, Signature};
 

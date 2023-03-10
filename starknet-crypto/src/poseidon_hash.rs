@@ -27,7 +27,7 @@ impl PoseidonHasher {
             Some(previous_message) => {
                 self.state[0] += previous_message;
                 self.state[1] += msg;
-                permute_comp(&mut self.state);
+                poseidon_permute_comp(&mut self.state);
             }
             None => {
                 self.buffer = Some(msg);
@@ -47,7 +47,7 @@ impl PoseidonHasher {
                 self.state[0] += FieldElement::ONE;
             }
         }
-        permute_comp(&mut self.state);
+        poseidon_permute_comp(&mut self.state);
 
         self.state[0]
     }
@@ -56,7 +56,7 @@ impl PoseidonHasher {
 /// Computes the Starknet Poseidon hash of x and y.
 pub fn poseidon_hash(x: FieldElement, y: FieldElement) -> FieldElement {
     let mut state = [x, y, FieldElement::TWO];
-    permute_comp(&mut state);
+    poseidon_permute_comp(&mut state);
 
     state[0]
 }
@@ -64,7 +64,7 @@ pub fn poseidon_hash(x: FieldElement, y: FieldElement) -> FieldElement {
 /// Computes the Starknet Poseidon hash of a single [FieldElement].
 pub fn poseidon_hash_single(x: FieldElement) -> FieldElement {
     let mut state = [x, FieldElement::ZERO, FieldElement::ONE];
-    permute_comp(&mut state);
+    poseidon_permute_comp(&mut state);
 
     state[0]
 }
@@ -79,16 +79,39 @@ pub fn poseidon_hash_many(msgs: &[FieldElement]) -> FieldElement {
     for msg in iter.by_ref() {
         state[0] += msg[0];
         state[1] += msg[1];
-        permute_comp(&mut state);
+        poseidon_permute_comp(&mut state);
     }
     let r = iter.remainder();
     if r.len() == 1 {
         state[0] += r[0];
     }
     state[r.len()] += FieldElement::ONE;
-    permute_comp(&mut state);
+    poseidon_permute_comp(&mut state);
 
     state[0]
+}
+
+/// Poseidon permutation function.
+pub fn poseidon_permute_comp(state: &mut [FieldElement; 3]) {
+    let mut idx = 0;
+
+    // Full rounds
+    for _ in 0..(FULL_ROUNDS / 2) {
+        round_comp(state, idx, true);
+        idx += 3;
+    }
+
+    // Partial rounds
+    for _ in 0..PARTIAL_ROUNDS {
+        round_comp(state, idx, false);
+        idx += 1;
+    }
+
+    // Full rounds
+    for _ in 0..(FULL_ROUNDS / 2) {
+        round_comp(state, idx, true);
+        idx += 3;
+    }
 }
 
 /// Linear layer for MDS matrix M = ((3,1,1), (1,-1,1), (1,1,2))
@@ -115,29 +138,6 @@ fn round_comp(state: &mut [FieldElement; 3], idx: usize, full: bool) {
         state[2] = state[2] * state[2] * state[2];
     }
     mix(state);
-}
-
-/// Poseidon permutation function
-fn permute_comp(state: &mut [FieldElement; 3]) {
-    let mut idx = 0;
-
-    // Full rounds
-    for _ in 0..(FULL_ROUNDS / 2) {
-        round_comp(state, idx, true);
-        idx += 3;
-    }
-
-    // Partial rounds
-    for _ in 0..PARTIAL_ROUNDS {
-        round_comp(state, idx, false);
-        idx += 1;
-    }
-
-    // Full rounds
-    for _ in 0..(FULL_ROUNDS / 2) {
-        round_comp(state, idx, true);
-        idx += 3;
-    }
 }
 
 #[cfg(test)]
