@@ -27,6 +27,7 @@ members = [
     "starknet-curve",
     "starknet-crypto-codegen",
     "examples/starknet-wasm",
+    "examples/starknet-cxx/starknet-cxx",
 ]
 
 [package.metadata.docs.rs]

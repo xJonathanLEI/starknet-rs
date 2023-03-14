@@ -1614,7 +1614,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-crypto"
-version = "0.4.1"
+version = "0.4.2"
 dependencies = [
  "criterion",
  "crypto-bigint",
@@ -1649,6 +1649,15 @@ name = "starknet-curve"
 version = "0.2.1"
 dependencies = [
  "starknet-ff",
+]
+
+[[package]]
+name = "starknet-cxx"
+version = "0.1.0"
+dependencies = [
+ "cxx",
+ "cxx-build",
+ "starknet-crypto",
 ]
 
 [[package]]
