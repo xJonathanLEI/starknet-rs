@@ -57,6 +57,10 @@ This workspace contains the following crates:
 
 `starknet-rs` can be used as a WebAssembly module. Check out [this example](./examples/starknet-wasm/).
 
+## Using `starknet-rs` from C++
+
+`starknet-rs` can be used as a dynamic or static library from C++. Check out [this example](./examples/starknet-cxx/).
+
 ## Performance
 
 Benchmark results for native and WebAssembly targets are available for these crates:

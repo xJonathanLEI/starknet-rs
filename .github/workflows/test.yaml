@@ -64,7 +64,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all --target ${{ matrix.target }}
+          args: --all --target ${{ matrix.target }} --exclude starknet-cxx
 
   wasm-test:
     name: WASM tests
@@ -91,7 +91,7 @@ jobs:
 
       - name: Build project
         run: |
-          cargo build --all --target wasm32-unknown-unknown
+          cargo build --all --target wasm32-unknown-unknown --exclude starknet-cxx
 
       - name: Install wasm-pack
         uses: actions-rs/cargo@v1

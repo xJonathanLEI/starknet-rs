@@ -1,0 +1,26 @@
+[package]
+name = "starknet-cxx"
+version = "0.1.0"
+authors = ["Jonathan LEI <me@xjonathan.dev>"]
+edition = "2021"
+
+[dependencies]
+cxx = "1.0"
+
+# Using path dependency here to make development easier. However, you probably want to fetch the
+# crate from crates.io instead, which means changing the next line to:
+#
+# starknet-crypto = "0.4.2"
+starknet-crypto = { version = "0.4.2", path = "../../../starknet-crypto" }
+
+[build-dependencies]
+cxx-build = "1.0"
+
+[lib]
+crate-type = ["staticlib"]
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
