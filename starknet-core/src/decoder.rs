@@ -169,6 +169,10 @@ impl TryFrom<Token> for Vec<u32> {
     }
 }
 
+pub trait Decode {
+    fn decode(tokens: &[Token]) -> Self;
+}
+
 #[cfg(test)]
 mod test {
     use starknet_crypto::FieldElement;

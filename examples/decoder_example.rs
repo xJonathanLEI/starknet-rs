@@ -1,14 +1,14 @@
-use serde_json::Value;
 use starknet::{
-    core::types::{BlockId, FieldElement},
+    core::types::FieldElement,
     providers::{Provider, SequencerGatewayProvider},
 };
 use starknet_core::{
-    decoder::{decode, Address, ParamType, Token},
+    decoder::{decode, Address, Decode, ParamType, Token},
     types::{TransactionType, ValueOutOfRangeError},
 };
 
 use crypto_bigint::U256;
+use starknet_macros::Decode;
 
 #[derive(Debug)]
 struct Uint {
@@ -16,7 +16,7 @@ struct Uint {
     high: U256,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Decode)]
 struct Transfer {
     from: Address,
     to: Address,
@@ -55,7 +55,7 @@ async fn main() {
     let tx_hash = "0x03a4ce1bb249ed3f8b190012dc7ca0ab2caff155d1b81727aebf2bb7ee12b04b";
     let tx_hash = FieldElement::from_hex_be(tx_hash).unwrap();
     let tx = provider.get_transaction(tx_hash).await.unwrap();
-    println!("tx: {tx:#?}");
+    println!("tx: {tx:?}");
 
     let tx_type = tx.r#type.unwrap();
 
@@ -66,9 +66,9 @@ async fn main() {
     ];
     if let TransactionType::L1Handler(tx) = tx_type {
         let decoded = decode(&types, &tx.calldata).unwrap();
-        println!("decoded: {decoded:#?}");
+        println!("decoded: {decoded:?}");
 
-        let transfer = Transfer::try_from(decoded).unwrap();
-        println!("transfer: {transfer:#?}");
+        let transfer = Transfer::decode(&decoded);
+        println!("transfer: {transfer:?}");
     }
 }
