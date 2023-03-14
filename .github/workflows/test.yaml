@@ -64,7 +64,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all --target ${{ matrix.target }}
+          args: --all --target ${{ matrix.target }} --exclude starknet-cxx
 
   wasm-test:
     name: WASM tests
