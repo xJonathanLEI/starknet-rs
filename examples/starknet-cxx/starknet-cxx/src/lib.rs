@@ -13,14 +13,14 @@
 //! create idiomatic bindings, which is way too much work to maintain as an example, and should be
 //! a project of its own.
 
-use starknet_crypto::{FieldElement, Signature};
+use starknet_core::{crypto::Signature, types::FieldElement};
 
 #[cxx::bridge]
 mod ffi {
     extern "Rust" {
         fn pedersen_hash(x: &str, y: &str) -> String;
 
-        fn ecdsa_sign(private_key: &str, message: &str, k: &str) -> String;
+        fn ecdsa_sign(private_key: &str, message: &str) -> String;
     }
 }
 
@@ -29,16 +29,15 @@ pub fn pedersen_hash(x: &str, y: &str) -> String {
     let x = FieldElement::from_hex_be(x).unwrap();
     let y = FieldElement::from_hex_be(y).unwrap();
 
-    format!("{:#064x}", starknet_crypto::pedersen_hash(&x, &y))
+    format!("{:#064x}", starknet_core::crypto::pedersen_hash(&x, &y))
 }
 
-fn ecdsa_sign(private_key: &str, message: &str, k: &str) -> String {
+fn ecdsa_sign(private_key: &str, message: &str) -> String {
     // WARNING: no error handling here
     let private_key = FieldElement::from_hex_be(private_key).unwrap();
     let message = FieldElement::from_hex_be(message).unwrap();
-    let k = FieldElement::from_hex_be(k).unwrap();
 
-    let signature: Signature = starknet_crypto::sign(&private_key, &message, &k)
+    let signature: Signature = starknet_core::crypto::ecdsa_sign(&private_key, &message)
         // WARNING: no error handling here
         .unwrap()
         .into();

@@ -7,11 +7,9 @@ int main() {
         "0x208a0a10250e382e1e4bbe2880906c2791bf6275695e02fbbc6aeff9cd8b31a"
     );
 
-    // WARNING: DO NOT hard code the k value in real code!! Doing so would expose the private key.
     auto signature = ecdsa_sign(
         "0x1",
-        "0x2",
-        "0x3"
+        "0x2"
     );
   
     std::cout << "pedersen_hash():" << "\n"
