@@ -1657,7 +1657,7 @@ version = "0.1.0"
 dependencies = [
  "cxx",
  "cxx-build",
- "starknet-crypto",
+ "starknet-core",
 ]
 
 [[package]]

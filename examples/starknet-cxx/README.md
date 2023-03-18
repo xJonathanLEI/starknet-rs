@@ -1,10 +1,10 @@
 # Example usage of starknet-rs from C++
 
-This is a quick demo on exposing `starknet-crypto` to C++ with the [cxx](https://github.com/dtolnay/cxx) bridge and [corrosion](https://github.com/corrosion-rs/corrosion).
+This is a quick demo on exposing `starknet-core` to C++ with the [cxx](https://github.com/dtolnay/cxx) bridge and [corrosion](https://github.com/corrosion-rs/corrosion).
 
 ## **WARNING**
 
-As noted in the [`starknet-crypto` page](../../starknet-crypto/), you're advised to use high-level constructs exposed through `starknet-core` instead if you're not familiar with cryptographic primitives. `starknet-crypto` is chosen here considering that the C++ audience might prefer low-level libraries, but it's possible to wrap `starknet-core` as well.
+As noted in the [`starknet-crypto` page](../../starknet-crypto/), you're advised to use high-level constructs exposed through `starknet-core` instead if you're not familiar with cryptographic primitives, as we're doing here. However, it's possible to wrap the underlying `starknet-crypto` crate directly _if you know what you're doing._
 
 ## Note
 
@@ -31,5 +31,5 @@ $ ./main
 pedersen_hash():
   0x030e480bed5fe53fa909cc0f8c4d99b8f9f2c016be4c41e13a4848797979c662
 ecdsa_sign():
-  0x0411494b501a98abd8262b0da1351e17899a0c4ef23dd2f96fec5ba847310b200405c3191ab3883ef2b763af35bc5f5d15b3b4e99461d70e84c654a351a7c81b
+  0x0543b191c671bc1f9b2f4e643a5711535cf34cb8330ab22e2416e8cdda8db05402f139920a75d2209e972b1bf82dc72e4c1edb8355fdbae7b4910ea7c32e70e2
 ```

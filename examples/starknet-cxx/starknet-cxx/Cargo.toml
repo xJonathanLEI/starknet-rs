@@ -8,10 +8,11 @@ edition = "2021"
 cxx = "1.0"
 
 # Using path dependency here to make development easier. However, you probably want to fetch the
-# crate from crates.io instead, which means changing the next line to:
+# crate from GitHub instead (because the `starknet-core` crate isn't being published to crates.io
+# regularly like `starknet-crypto` at the moment), which means changing the next line to:
 #
-# starknet-crypto = "0.4.2"
-starknet-crypto = { version = "0.4.2", path = "../../../starknet-crypto" }
+# starknet-core = { git = "https://github.com/xJonathanLEI/starknet-rs" }
+starknet-core = { path = "../../../starknet-core" }
 
 [build-dependencies]
 cxx-build = "1.0"
