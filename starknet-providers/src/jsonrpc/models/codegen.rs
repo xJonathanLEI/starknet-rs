@@ -72,7 +72,7 @@ pub struct Event {
 
 /// An event filter/query.
 #[serde_as]
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventFilter {
     /// From block
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -1,4 +1,8 @@
-use serde::{Deserialize, Serialize};
+use serde::{
+    de::{Expected, Unexpected, Visitor},
+    Deserialize, Serialize,
+};
+use serde_json::Value;
 use serde_with::serde_as;
 use starknet_core::{
     serde::unsigned_field_element::UfeHex,
@@ -221,6 +225,58 @@ impl Serialize for BlockId {
             ),
             Self::Tag(tag) => BlockTag::serialize(tag, serializer),
         }
+    }
+}
+
+struct BlockIdVisitor;
+impl<'de> Visitor<'de> for BlockIdVisitor {
+    type Value = BlockId;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("a block_hash, block_number, latest or pending")
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::MapAccess<'de>,
+    {
+        match map.next_key::<String>()?.unwrap().as_str() {
+            "block_number" => Ok(BlockId::Number(map.next_value::<u64>()?)),
+            "block_hash" => Ok(BlockId::Hash(map.next_value::<FieldElement>()?)),
+            key => {
+                // First ensure there is a value for this unknown field before
+                // returning unknown_field error!
+                map.next_value::<Value>()?;
+
+                Err(serde::de::Error::unknown_field(
+                    key,
+                    &["block_hash", "block_number"],
+                ))
+            }
+        }
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        match v {
+            "latest" => Ok(BlockId::Tag(BlockTag::Latest)),
+            "pending" => Ok(BlockId::Tag(BlockTag::Pending)),
+            key => Err(serde::de::Error::invalid_value(
+                Unexpected::Str(key),
+                &"either 'latest' or 'pending'",
+            )),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for BlockId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_any(BlockIdVisitor)
     }
 }
 
