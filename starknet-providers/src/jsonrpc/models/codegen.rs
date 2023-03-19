@@ -38,7 +38,7 @@ pub struct ResultPageRequest {
 ///
 /// Event information decorated with metadata on where it was emitted.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct EmittedEvent {
     #[serde_as(as = "UfeHex")]

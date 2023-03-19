@@ -1,5 +1,5 @@
 use serde::{
-    de::{Expected, Unexpected, Visitor},
+    de::{Unexpected, Visitor},
     Deserialize, Serialize,
 };
 use serde_json::Value;
@@ -56,7 +56,7 @@ pub enum SyncStatusType {
     NotSyncing,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct EventsPage {
     /// Matching events
     pub events: Vec<EmittedEvent>,
