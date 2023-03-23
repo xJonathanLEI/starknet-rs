@@ -130,7 +130,7 @@ pub struct DeployAccountTransaction {
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct InvokeFunctionTransaction {
     #[serde_as(as = "UfeHex")]
-    pub contract_address: FieldElement,
+    pub sender_address: FieldElement,
     #[serde_as(as = "Option<UfeHex>")]
     pub entry_point_selector: Option<FieldElement>,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
