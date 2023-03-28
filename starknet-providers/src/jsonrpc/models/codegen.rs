@@ -48,10 +48,10 @@ pub struct EmittedEvent {
     #[serde_as(as = "Vec<UfeHex>")]
     pub data: Vec<FieldElement>,
     /// The hash of the block in which the event was emitted
-    #[serde_as(as = "UfeHex")]
-    pub block_hash: FieldElement,
+    #[serde_as(as = "Option<UfeHex>")]
+    pub block_hash: Option<FieldElement>,
     /// The number of the block in which the event was emitted
-    pub block_number: u64,
+    pub block_number: Option<u64>,
     /// The transaction that emitted the event
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
