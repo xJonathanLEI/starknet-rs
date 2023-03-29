@@ -24,7 +24,7 @@ async fn can_deploy_contract_to_alpha_goerli() {
     let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
 
     let artifact = serde_json::from_str::<LegacyContractClass>(include_str!(
-        "../test-data/artifacts/legacy/oz_account.txt"
+        "../test-data/cairo0/artifacts/oz_account.txt"
     ))
     .unwrap();
 

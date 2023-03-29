@@ -662,7 +662,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_artifact_deser_oz_account() {
         serde_json::from_str::<LegacyContractClass>(include_str!(
-            "../../../test-data/contracts/artifacts/legacy/oz_account.txt"
+            "../../../test-data/contracts/cairo0/artifacts/oz_account.txt"
         ))
         .unwrap();
     }
@@ -671,7 +671,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_artifact_deser_event_example() {
         serde_json::from_str::<LegacyContractClass>(include_str!(
-            "../../../test-data/contracts/artifacts/legacy/event_example.txt"
+            "../../../test-data/contracts/cairo0/artifacts/event_example.txt"
         ))
         .unwrap();
     }
@@ -707,13 +707,13 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_contract_class_hash() {
         let artifact = serde_json::from_str::<LegacyContractClass>(include_str!(
-            "../../../test-data/contracts/artifacts/legacy/oz_account.txt"
+            "../../../test-data/contracts/cairo0/artifacts/oz_account.txt"
         ))
         .unwrap();
         let computed_hash = artifact.class_hash().unwrap();
 
         let hashes: ContractHashes = serde_json::from_str(include_str!(
-            "../../../test-data/contracts/artifacts/legacy/oz_account.hashes.json"
+            "../../../test-data/contracts/cairo0/artifacts/oz_account.hashes.json"
         ))
         .unwrap();
         let expected_hash = FieldElement::from_hex_be(&hashes.class_hash).unwrap();
@@ -725,13 +725,13 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_contract_hinted_class_hash() {
         let artifact = serde_json::from_str::<LegacyContractClass>(include_str!(
-            "../../../test-data/contracts/artifacts/legacy/oz_account.txt"
+            "../../../test-data/contracts/cairo0/artifacts/oz_account.txt"
         ))
         .unwrap();
         let computed_hash = artifact.hinted_class_hash().unwrap();
 
         let hashes: ContractHashes = serde_json::from_str(include_str!(
-            "../../../test-data/contracts/artifacts/legacy/oz_account.hashes.json"
+            "../../../test-data/contracts/cairo0/artifacts/oz_account.hashes.json"
         ))
         .unwrap();
         let expected_hash = FieldElement::from_hex_be(&hashes.hinted_class_hash).unwrap();
@@ -744,7 +744,7 @@ mod tests {
     fn test_artifact_json_equivalence() {
         // Removes '\n' or "\r\n" at the end
         let original_text =
-            include_str!("../../../test-data/contracts/artifacts/legacy/oz_account.txt");
+            include_str!("../../../test-data/contracts/cairo0/artifacts/oz_account.txt");
         let original_text = original_text
             .trim_end_matches("\r\n")
             .trim_end_matches('\n');
