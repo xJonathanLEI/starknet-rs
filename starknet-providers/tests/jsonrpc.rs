@@ -19,7 +19,7 @@ fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
 
 fn create_contract_class() -> ContractClass {
     let artifact = serde_json::from_str::<LegacyContractClass>(include_str!(
-        "../../starknet-core/test-data/contracts/artifacts/legacy/oz_account.txt"
+        "../../starknet-core/test-data/contracts/cairo0/artifacts/oz_account.txt"
     ))
     .unwrap();
 

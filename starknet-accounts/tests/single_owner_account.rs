@@ -203,7 +203,7 @@ async fn can_declare_oz_account_contract() {
     let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
 
     let contract_artifact: LegacyContractClass =
-        serde_json::from_str(include_str!("../test-data/artifacts/legacy/oz_account.txt")).unwrap();
+        serde_json::from_str(include_str!("../test-data/cairo0/artifacts/oz_account.txt")).unwrap();
 
     let result = account
         .declare(Arc::new(contract_artifact))

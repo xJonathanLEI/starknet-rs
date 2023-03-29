@@ -398,7 +398,7 @@ mod tests {
     fn test_sierra_class_deser() {
         // Artifact generated from cairo v1.0.0-alpha.3
         match serde_json::from_str::<ContractArtifact>(include_str!(
-            "../../../test-data/contracts/artifacts/erc20_sierra.txt"
+            "../../../test-data/contracts/cairo1/artifacts/erc20_sierra.txt"
         )) {
             Ok(ContractArtifact::SierraClass(_)) => {}
             _ => panic!("Unexpected result"),
@@ -410,7 +410,7 @@ mod tests {
     fn test_compiled_class_deser() {
         // Artifact generated from cairo v1.0.0-alpha.3
         match serde_json::from_str::<ContractArtifact>(include_str!(
-            "../../../test-data/contracts/artifacts/erc20_compiled.txt"
+            "../../../test-data/contracts/cairo1/artifacts/erc20_compiled.txt"
         )) {
             Ok(ContractArtifact::CompiledClass(_)) => {}
             _ => panic!("Unexpected result"),
@@ -421,7 +421,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_legacy_class_deser() {
         match serde_json::from_str::<ContractArtifact>(include_str!(
-            "../../../test-data/contracts/artifacts/legacy/oz_account.txt"
+            "../../../test-data/contracts/cairo0/artifacts/oz_account.txt"
         )) {
             Ok(ContractArtifact::LegacyClass(_)) => {}
             _ => panic!("Unexpected result"),
@@ -439,7 +439,7 @@ mod tests {
         .unwrap();
 
         let compiled_class = serde_json::from_str::<CompiledClass>(include_str!(
-            "../../../test-data/contracts/artifacts/erc20_compiled.txt"
+            "../../../test-data/contracts/cairo1/artifacts/erc20_compiled.txt"
         ))
         .unwrap();
         let computed_hash = compiled_class.class_hash().unwrap();
