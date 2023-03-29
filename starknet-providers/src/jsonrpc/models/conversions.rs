@@ -163,7 +163,7 @@ impl From<legacy_contract::LegacyEntryPoints> for EntryPointsByType {
 impl From<legacy_contract::LegacyEntryPoint> for ContractEntryPoint {
     fn from(value: legacy_contract::LegacyEntryPoint) -> Self {
         Self {
-            offset: value.offset,
+            offset: value.offset.into(),
             selector: value.selector,
         }
     }
