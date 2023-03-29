@@ -85,6 +85,8 @@ pub struct SierraClassEntrypoint {
 pub enum AbiEntry {
     Function(AbiFunction),
     Event(AbiEvent),
+    Struct(AbiStruct),
+    Enum(AbiEnum),
 }
 
 #[derive(Debug)]
@@ -107,7 +109,7 @@ pub struct CompiledClassEntrypoint {
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct AbiFunction {
     pub name: String,
-    pub inputs: Vec<AbiInput>,
+    pub inputs: Vec<AbiNamedMember>,
     pub outputs: Vec<AbiOutput>,
     pub state_mutability: StateMutability,
 }
@@ -116,12 +118,26 @@ pub struct AbiFunction {
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct AbiEvent {
     pub name: String,
-    pub inputs: Vec<AbiInput>,
+    pub inputs: Vec<AbiNamedMember>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct AbiInput {
+pub struct AbiStruct {
+    pub name: String,
+    pub members: Vec<AbiNamedMember>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct AbiEnum {
+    pub name: String,
+    pub variants: Vec<AbiNamedMember>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct AbiNamedMember {
     pub name: String,
     pub r#type: String,
 }
@@ -402,12 +418,17 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_sierra_class_deser() {
-        // Artifact generated from cairo v1.0.0-alpha.6
-        match serde_json::from_str::<ContractArtifact>(include_str!(
-            "../../../test-data/contracts/cairo1/artifacts/erc20_sierra.txt"
-        )) {
-            Ok(ContractArtifact::SierraClass(_)) => {}
-            _ => panic!("Unexpected result"),
+        // Artifacts generated from cairo v1.0.0-alpha.6
+        for raw_artifact in [
+            include_str!("../../../test-data/contracts/cairo1/artifacts/abi_types_sierra.txt"),
+            include_str!("../../../test-data/contracts/cairo1/artifacts/erc20_sierra.txt"),
+        ]
+        .into_iter()
+        {
+            match serde_json::from_str::<ContractArtifact>(raw_artifact) {
+                Ok(ContractArtifact::SierraClass(_)) => {}
+                _ => panic!("Unexpected result"),
+            }
         }
     }
 
@@ -415,12 +436,17 @@ mod tests {
     #[ignore = "Disabled until casm code rework is done"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_compiled_class_deser() {
-        // Artifact generated from cairo v1.0.0-alpha.6
-        match serde_json::from_str::<ContractArtifact>(include_str!(
-            "../../../test-data/contracts/cairo1/artifacts/erc20_compiled.txt"
-        )) {
-            Ok(ContractArtifact::CompiledClass(_)) => {}
-            _ => panic!("Unexpected result"),
+        // Artifacts generated from cairo v1.0.0-alpha.6
+        for raw_artifact in [
+            include_str!("../../../test-data/contracts/cairo1/artifacts/abi_types_compiled.txt"),
+            include_str!("../../../test-data/contracts/cairo1/artifacts/erc20_compiled.txt"),
+        ]
+        .into_iter()
+        {
+            match serde_json::from_str::<ContractArtifact>(raw_artifact) {
+                Ok(ContractArtifact::CompiledClass(_)) => {}
+                _ => panic!("Unexpected result"),
+            }
         }
     }
 
