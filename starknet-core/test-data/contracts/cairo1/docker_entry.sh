@@ -10,4 +10,6 @@ compile () {
   chown $USER_ID:$GROUP_ID "${2}_compiled.txt"
 }
 
+compile "/contracts/abi_types.cairo" "/artifacts/abi_types"
+
 compile "/contracts/erc20.cairo" "/artifacts/erc20"
