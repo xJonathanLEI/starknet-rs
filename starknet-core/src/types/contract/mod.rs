@@ -351,17 +351,13 @@ mod tests {
         for (raw_artifact, raw_hashes) in [
             (
                 include_str!("../../../test-data/contracts/cairo1/artifacts/erc20_compiled.txt"),
-                include_str!(
-                    "../../../test-data/contracts/cairo1/artifacts/erc20_compiled.hashes.json"
-                ),
+                include_str!("../../../test-data/contracts/cairo1/artifacts/erc20.hashes.json"),
             ),
             (
                 include_str!(
                     "../../../test-data/contracts/cairo1/artifacts/abi_types_compiled.txt"
                 ),
-                include_str!(
-                    "../../../test-data/contracts/cairo1/artifacts/abi_types_compiled.hashes.json"
-                ),
+                include_str!("../../../test-data/contracts/cairo1/artifacts/abi_types.hashes.json"),
             ),
         ]
         .into_iter()
