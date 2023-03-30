@@ -3,13 +3,23 @@ use serde_with::serde_as;
 use starknet_crypto::{poseidon_hash_many, PoseidonHasher};
 
 use crate::{
-    serde::unsigned_field_element::UfeHex,
+    serde::{json::to_string_pythonic, unsigned_field_element::UfeHex},
     types::FieldElement,
-    utils::{cairo_short_string_to_felt, CairoShortStringToFeltError},
+    utils::{
+        cairo_short_string_to_felt, normalize_address, starknet_keccak, CairoShortStringToFeltError,
+    },
 };
 
 /// Module containing types related to artifacts of contracts compiled with a Cairo 0.x compiler.
 pub mod legacy;
+
+/// Cairo string for "CONTRACT_CLASS_V0.1.0"
+const PREFIX_CONTRACT_CLASS_V0_1_0: FieldElement = FieldElement::from_mont([
+    5800711240972404213,
+    15539482671244488427,
+    18446734822722598327,
+    37302452645455172,
+]);
 
 /// Cairo string for "COMPILED_CLASS_V1"
 const PREFIX_COMPILED_CLASS_V1: FieldElement = FieldElement::from_mont([
@@ -179,6 +189,47 @@ pub enum CompressProgramError {
     Io(std::io::Error),
 }
 
+impl SierraClass {
+    pub fn class_hash(&self) -> Result<FieldElement, ComputeClassHashError> {
+        // Technically we don't have to use the Pythonic JSON style here. Doing this just to align
+        // with the official `cairo-lang` CLI.
+        //
+        // TODO: add an `AbiFormatter` trait and let users choose which one to use.
+        let abi_str = to_string_pythonic(&self.abi).map_err(ComputeClassHashError::Json)?;
+
+        let mut hasher = PoseidonHasher::new();
+        hasher.update(PREFIX_CONTRACT_CLASS_V0_1_0);
+
+        // Hashes entry points
+        hasher.update(Self::hash_entrypoints(&self.entry_points_by_type.external));
+        hasher.update(Self::hash_entrypoints(
+            &self.entry_points_by_type.l1_handler,
+        ));
+        hasher.update(Self::hash_entrypoints(
+            &self.entry_points_by_type.constructor,
+        ));
+
+        // Hashes ABI
+        hasher.update(starknet_keccak(abi_str.as_bytes()));
+
+        // Hashes Sierra program
+        hasher.update(poseidon_hash_many(&self.sierra_program));
+
+        Ok(normalize_address(hasher.finalize()))
+    }
+
+    fn hash_entrypoints(entrypoints: &[SierraClassEntrypoint]) -> FieldElement {
+        let mut hasher = PoseidonHasher::new();
+
+        for entry in entrypoints.iter() {
+            hasher.update(entry.selector);
+            hasher.update(entry.function_idx.into());
+        }
+
+        hasher.finalize()
+    }
+}
+
 impl CompiledClass {
     pub fn class_hash(&self) -> Result<FieldElement, ComputeClassHashError> {
         let mut hasher = PoseidonHasher::new();
@@ -297,6 +348,7 @@ mod tests {
 
     #[derive(serde::Deserialize)]
     struct ContractHashes {
+        sierra_class_hash: String,
         compiled_class_hash: String,
     }
 
@@ -342,6 +394,31 @@ mod tests {
         )) {
             Ok(ContractArtifact::LegacyClass(_)) => {}
             _ => panic!("Unexpected result"),
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_sierra_class_hash() {
+        for (raw_artifact, raw_hashes) in [
+            (
+                include_str!("../../../test-data/contracts/cairo1/artifacts/erc20_sierra.txt"),
+                include_str!("../../../test-data/contracts/cairo1/artifacts/erc20.hashes.json"),
+            ),
+            (
+                include_str!("../../../test-data/contracts/cairo1/artifacts/abi_types_sierra.txt"),
+                include_str!("../../../test-data/contracts/cairo1/artifacts/abi_types.hashes.json"),
+            ),
+        ]
+        .into_iter()
+        {
+            let sierra_class = serde_json::from_str::<SierraClass>(raw_artifact).unwrap();
+            let computed_hash = sierra_class.class_hash().unwrap();
+
+            let hashes: ContractHashes = serde_json::from_str(raw_hashes).unwrap();
+            let expected_hash = FieldElement::from_hex_be(&hashes.sierra_class_hash).unwrap();
+
+            assert_eq!(computed_hash, expected_hash);
         }
     }
 

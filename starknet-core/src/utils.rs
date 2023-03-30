@@ -79,7 +79,7 @@ pub fn get_storage_var_address(
         for arg in args.iter() {
             res = pedersen_hash(&res, arg);
         }
-        Ok(res % ADDR_BOUND)
+        Ok(normalize_address(res))
     } else {
         Err(NonAsciiNameError)
     }
@@ -133,13 +133,17 @@ pub fn get_contract_address(
     constructor_calldata: &[FieldElement],
     deployer_address: FieldElement,
 ) -> FieldElement {
-    compute_hash_on_elements(&[
+    normalize_address(compute_hash_on_elements(&[
         CONTRACT_ADDRESS_PREFIX,
         deployer_address,
         salt,
         class_hash,
         compute_hash_on_elements(constructor_calldata),
-    ]) % ADDR_BOUND
+    ]))
+}
+
+pub fn normalize_address(address: FieldElement) -> FieldElement {
+    address % ADDR_BOUND
 }
 
 #[cfg(test)]
