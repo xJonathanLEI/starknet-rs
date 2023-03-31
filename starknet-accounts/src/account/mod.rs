@@ -2,7 +2,10 @@ use crate::Call;
 
 use async_trait::async_trait;
 use starknet_core::types::{
-    contract::{legacy::LegacyContractClass, CompressProgramError, ComputeClassHashError},
+    contract::{
+        legacy::LegacyContractClass, CompressProgramError, ComputeClassHashError,
+        FlattenSierraClass,
+    },
     BlockId, FieldElement,
 };
 use starknet_providers::{Provider, ProviderError};
@@ -34,12 +37,25 @@ pub trait Account: Sized {
         declaration: &RawDeclaration,
     ) -> Result<Vec<FieldElement>, Self::SignError>;
 
+    async fn sign_legacy_declaration(
+        &self,
+        legacy_declaration: &RawLegacyDeclaration,
+    ) -> Result<Vec<FieldElement>, Self::SignError>;
+
     fn execute(&self, calls: Vec<Call>) -> Execution<Self> {
         Execution::new(calls, self)
     }
 
-    fn declare(&self, contract_class: Arc<LegacyContractClass>) -> Declaration<Self> {
-        Declaration::new(contract_class, self)
+    fn declare(
+        &self,
+        contract_class: Arc<FlattenSierraClass>,
+        compiled_class_hash: FieldElement,
+    ) -> Declaration<Self> {
+        Declaration::new(contract_class, compiled_class_hash, self)
+    }
+
+    fn declare_legacy(&self, contract_class: Arc<LegacyContractClass>) -> LegacyDeclaration<Self> {
+        LegacyDeclaration::new(contract_class, self)
     }
 }
 
@@ -83,6 +99,18 @@ pub struct Execution<'a, A> {
 #[derive(Debug)]
 pub struct Declaration<'a, A> {
     account: &'a A,
+    contract_class: Arc<FlattenSierraClass>,
+    compiled_class_hash: FieldElement,
+    nonce: Option<FieldElement>,
+    max_fee: Option<FieldElement>,
+    fee_estimate_multiplier: f64,
+}
+
+/// An intermediate type allowing users to optionally specify `nonce` and/or `max_fee`.
+#[must_use]
+#[derive(Debug)]
+pub struct LegacyDeclaration<'a, A> {
+    account: &'a A,
     contract_class: Arc<LegacyContractClass>,
     nonce: Option<FieldElement>,
     max_fee: Option<FieldElement>,
@@ -100,6 +128,15 @@ pub struct RawExecution {
 /// [Declaration] but with `nonce` and `max_fee` already determined.
 #[derive(Debug)]
 pub struct RawDeclaration {
+    contract_class: Arc<FlattenSierraClass>,
+    compiled_class_hash: FieldElement,
+    nonce: FieldElement,
+    max_fee: FieldElement,
+}
+
+/// [LegacyDeclaration] but with `nonce` and `max_fee` already determined.
+#[derive(Debug)]
+pub struct RawLegacyDeclaration {
     contract_class: Arc<LegacyContractClass>,
     nonce: FieldElement,
     max_fee: FieldElement,
@@ -112,11 +149,18 @@ pub struct PreparedExecution<'a, A> {
     inner: RawExecution,
 }
 
-/// [RawExecution] but with an account associated.
+/// [RawDeclaration] but with an account associated.
 #[derive(Debug)]
 pub struct PreparedDeclaration<'a, A> {
     account: &'a A,
     inner: RawDeclaration,
+}
+
+/// [RawLegacyDeclaration] but with an account associated.
+#[derive(Debug)]
+pub struct PreparedLegacyDeclaration<'a, A> {
+    account: &'a A,
+    inner: RawLegacyDeclaration,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -160,6 +204,13 @@ where
     ) -> Result<Vec<FieldElement>, Self::SignError> {
         (*self).sign_declaration(declaration).await
     }
+
+    async fn sign_legacy_declaration(
+        &self,
+        legacy_declaration: &RawLegacyDeclaration,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        (*self).sign_legacy_declaration(legacy_declaration).await
+    }
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
@@ -191,6 +242,15 @@ where
     ) -> Result<Vec<FieldElement>, Self::SignError> {
         self.as_ref().sign_declaration(declaration).await
     }
+
+    async fn sign_legacy_declaration(
+        &self,
+        legacy_declaration: &RawLegacyDeclaration,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        self.as_ref()
+            .sign_legacy_declaration(legacy_declaration)
+            .await
+    }
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
@@ -221,6 +281,15 @@ where
         declaration: &RawDeclaration,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
         self.as_ref().sign_declaration(declaration).await
+    }
+
+    async fn sign_legacy_declaration(
+        &self,
+        legacy_declaration: &RawLegacyDeclaration,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        self.as_ref()
+            .sign_legacy_declaration(legacy_declaration)
+            .await
     }
 }
 

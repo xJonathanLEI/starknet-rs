@@ -1,9 +1,15 @@
+use std::io::Write;
+
+use flate2::{write::GzEncoder, Compression};
 use serde::{ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer};
 use serde_with::serde_as;
 use starknet_crypto::{poseidon_hash_many, PoseidonHasher};
 
 use crate::{
-    serde::{json::to_string_pythonic, unsigned_field_element::UfeHex},
+    serde::{
+        byte_array::base64::serialize as base64_ser, json::to_string_pythonic,
+        unsigned_field_element::UfeHex,
+    },
     types::FieldElement,
     utils::{
         cairo_short_string_to_felt, normalize_address, starknet_keccak, CairoShortStringToFeltError,
@@ -61,6 +67,28 @@ pub struct CompiledClass {
     pub hints: Vec<Hint>,
     pub pythonic_hints: Option<Vec<PythonicHint>>,
     pub entry_points_by_type: EntrypointList<CompiledClassEntrypoint>,
+}
+
+#[serde_as]
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct FlattenSierraClass {
+    #[serde_as(as = "Vec<UfeHex>")]
+    pub sierra_program: Vec<FieldElement>,
+    pub contract_class_version: String,
+    pub entry_points_by_type: EntrypointList<SierraClassEntrypoint>,
+    pub abi: String,
+}
+
+#[serde_as]
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct CompressedSierraClass {
+    #[serde(serialize_with = "base64_ser")]
+    pub sierra_program: Vec<u8>,
+    pub contract_class_version: String,
+    pub entry_points_by_type: EntrypointList<SierraClassEntrypoint>,
+    pub abi: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -201,11 +229,11 @@ impl SierraClass {
         hasher.update(PREFIX_CONTRACT_CLASS_V0_1_0);
 
         // Hashes entry points
-        hasher.update(Self::hash_entrypoints(&self.entry_points_by_type.external));
-        hasher.update(Self::hash_entrypoints(
+        hasher.update(hash_sierra_entrypoints(&self.entry_points_by_type.external));
+        hasher.update(hash_sierra_entrypoints(
             &self.entry_points_by_type.l1_handler,
         ));
-        hasher.update(Self::hash_entrypoints(
+        hasher.update(hash_sierra_entrypoints(
             &self.entry_points_by_type.constructor,
         ));
 
@@ -218,15 +246,63 @@ impl SierraClass {
         Ok(normalize_address(hasher.finalize()))
     }
 
-    fn hash_entrypoints(entrypoints: &[SierraClassEntrypoint]) -> FieldElement {
+    pub fn flantten(self) -> Result<FlattenSierraClass, serde_json::Error> {
+        let abi = to_string_pythonic(&self.abi)?;
+
+        Ok(FlattenSierraClass {
+            sierra_program: self.sierra_program,
+            contract_class_version: self.contract_class_version,
+            entry_points_by_type: self.entry_points_by_type,
+            abi,
+        })
+    }
+}
+
+impl FlattenSierraClass {
+    pub fn class_hash(&self) -> FieldElement {
         let mut hasher = PoseidonHasher::new();
+        hasher.update(PREFIX_CONTRACT_CLASS_V0_1_0);
 
-        for entry in entrypoints.iter() {
-            hasher.update(entry.selector);
-            hasher.update(entry.function_idx.into());
-        }
+        // Hashes entry points
+        hasher.update(hash_sierra_entrypoints(&self.entry_points_by_type.external));
+        hasher.update(hash_sierra_entrypoints(
+            &self.entry_points_by_type.l1_handler,
+        ));
+        hasher.update(hash_sierra_entrypoints(
+            &self.entry_points_by_type.constructor,
+        ));
 
-        hasher.finalize()
+        // Hashes ABI
+        hasher.update(starknet_keccak(self.abi.as_bytes()));
+
+        // Hashes Sierra program
+        hasher.update(poseidon_hash_many(&self.sierra_program));
+
+        normalize_address(hasher.finalize())
+    }
+
+    pub fn compress(&self) -> Result<CompressedSierraClass, CompressProgramError> {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct SierraProgram<'a>(#[serde_as(as = "Vec<UfeHex>")] &'a Vec<FieldElement>);
+
+        let program_json = serde_json::to_string(&SierraProgram(&self.sierra_program))
+            .map_err(CompressProgramError::Json)?;
+
+        // Use best compression level to optimize for payload size
+        let mut gzip_encoder = GzEncoder::new(Vec::new(), Compression::best());
+        gzip_encoder
+            .write_all(program_json.as_bytes())
+            .map_err(CompressProgramError::Io)?;
+
+        let compressed_program = gzip_encoder.finish().map_err(CompressProgramError::Io)?;
+
+        Ok(CompressedSierraClass {
+            sierra_program: compressed_program,
+            contract_class_version: self.contract_class_version.clone(),
+            entry_points_by_type: self.entry_points_by_type.clone(),
+            abi: self.abi.clone(),
+        })
     }
 }
 
@@ -340,6 +416,17 @@ impl<'de> Deserialize<'de> for PythonicHint {
             Err(serde::de::Error::custom("expected sequence"))
         }
     }
+}
+
+fn hash_sierra_entrypoints(entrypoints: &[SierraClassEntrypoint]) -> FieldElement {
+    let mut hasher = PoseidonHasher::new();
+
+    for entry in entrypoints.iter() {
+        hasher.update(entry.selector);
+        hasher.update(entry.function_idx.into());
+    }
+
+    hasher.finalize()
 }
 
 #[cfg(test)]

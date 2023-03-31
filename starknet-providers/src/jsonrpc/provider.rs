@@ -7,9 +7,9 @@ use async_trait::async_trait;
 use starknet_core::types::{
     contract::legacy::{LegacyContractClass, LegacyContractCode},
     AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
-    CallFunction, CallL1Handler, ContractAddresses, FeeEstimate, FieldElement, StateUpdate,
-    TransactionInfo, TransactionReceipt, TransactionRequest, TransactionSimulationInfo,
-    TransactionStatusInfo, TransactionTrace,
+    CallFunction, CallL1Handler, ContractAddresses, DeclareTransactionRequest, FeeEstimate,
+    FieldElement, StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest,
+    TransactionSimulationInfo, TransactionStatusInfo, TransactionTrace,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -37,11 +37,16 @@ where
         tx: TransactionRequest,
     ) -> Result<AddTransactionResult, ProviderError<Self::Error>> {
         match tx {
-            TransactionRequest::Declare(tx) => self
-                .add_declare_transaction(&tx.into())
-                .await
-                .map(|result| result.into())
-                .map_err(|err| err.into()),
+            TransactionRequest::Declare(tx) => match tx {
+                DeclareTransactionRequest::V1(tx) => self
+                    .add_declare_transaction(&tx.into())
+                    .await
+                    .map(|result| result.into())
+                    .map_err(|err| err.into()),
+                DeclareTransactionRequest::V2(_) => {
+                    Err(ProviderError::Other(Self::Error::NotSupported))
+                }
+            },
             TransactionRequest::InvokeFunction(tx) => self
                 .add_invoke_transaction(&tx.into())
                 .await
@@ -74,7 +79,9 @@ where
         tx: AccountTransaction,
         block_identifier: BlockId,
     ) -> Result<FeeEstimate, ProviderError<Self::Error>> {
-        let tx: BroadcastedTransaction = tx.into();
+        let tx: BroadcastedTransaction = tx
+            .try_into()
+            .map_err(|_| ProviderError::Other(Self::Error::NotSupported))?;
         self.estimate_fee(tx, &block_identifier.into())
             .await
             .map(|est| est.into())

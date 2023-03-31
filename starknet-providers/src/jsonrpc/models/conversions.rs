@@ -24,8 +24,8 @@ impl From<FeeEstimate> for core::types::FeeEstimate {
     }
 }
 
-impl From<core::types::DeclareTransactionRequest> for BroadcastedDeclareTransaction {
-    fn from(value: core::types::DeclareTransactionRequest) -> Self {
+impl From<core::types::DeclareV1TransactionRequest> for BroadcastedDeclareTransaction {
+    fn from(value: core::types::DeclareV1TransactionRequest) -> Self {
         Self {
             max_fee: value.max_fee,
             version: 1,
@@ -37,8 +37,8 @@ impl From<core::types::DeclareTransactionRequest> for BroadcastedDeclareTransact
     }
 }
 
-impl From<core::types::DeclareTransactionRequest> for BroadcastedTransaction {
-    fn from(value: core::types::DeclareTransactionRequest) -> Self {
+impl From<core::types::DeclareV1TransactionRequest> for BroadcastedTransaction {
+    fn from(value: core::types::DeclareV1TransactionRequest) -> Self {
         Self::Declare(value.into())
     }
 }
@@ -87,13 +87,18 @@ impl From<core::types::DeployAccountTransactionRequest> for BroadcastedTransacti
     }
 }
 
-impl From<core::types::AccountTransaction> for BroadcastedTransaction {
-    fn from(value: core::types::AccountTransaction) -> Self {
-        match value {
-            core::types::AccountTransaction::Declare(tx) => tx.into(),
+impl TryFrom<core::types::AccountTransaction> for BroadcastedTransaction {
+    type Error = &'static str;
+
+    fn try_from(value: core::types::AccountTransaction) -> Result<Self, Self::Error> {
+        Ok(match value {
+            core::types::AccountTransaction::Declare(tx) => match tx {
+                core::types::DeclareTransactionRequest::V1(tx) => tx.into(),
+                _ => return Err("Declare v2 not support for JSON-RPC yet"),
+            },
             core::types::AccountTransaction::InvokeFunction(tx) => tx.into(),
             core::types::AccountTransaction::DeployAccount(tx) => tx.into(),
-        }
+        })
     }
 }
 

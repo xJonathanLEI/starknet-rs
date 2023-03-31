@@ -1,6 +1,6 @@
 use super::{
     super::serde::unsigned_field_element::{UfeHex, UfeHexOption},
-    contract::legacy::CompressedLegacyContractClass,
+    contract::{legacy::CompressedLegacyContractClass, CompressedSierraClass},
     FieldElement, L1Address,
 };
 
@@ -74,9 +74,34 @@ pub struct CallL1Handler {
     pub payload: Vec<FieldElement>,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(untagged)]
+pub enum DeclareTransaction {
+    V1(DeclareV1Transaction),
+    V2(DeclareV2Transaction),
+}
+
 #[derive(Debug)]
-pub struct DeclareTransaction {
+pub struct DeclareV1Transaction {
     pub contract_class: Arc<CompressedLegacyContractClass>,
+    /// The address of the account contract sending the declaration transaction.
+    pub sender_address: FieldElement,
+    /// The maximal fee to be paid in Wei for declaring a contract class.
+    pub max_fee: FieldElement,
+    /// Additional information given by the caller that represents the signature of the transaction.
+    pub signature: Vec<FieldElement>,
+    /// A sequential integer used to distinguish between transactions and order them.
+    pub nonce: FieldElement,
+}
+
+#[derive(Debug)]
+pub struct DeclareV2Transaction {
+    pub contract_class: Arc<CompressedSierraClass>,
+    /// Hash of the compiled class obtained by running `starknet-sierra-compile` on the Sierra
+    /// class. This is required because at the moment, Sierra compilation is not proven, allowing
+    /// the sequencer to run arbitrary code if this is not signed. It's expected that in the future
+    /// this will no longer be required.
+    pub compiled_class_hash: FieldElement,
     /// The address of the account contract sending the declaration transaction.
     pub sender_address: FieldElement,
     /// The maximal fee to be paid in Wei for declaring a contract class.
@@ -109,7 +134,7 @@ pub struct DeployAccountTransaction {
     pub nonce: FieldElement,
 }
 
-impl Serialize for DeclareTransaction {
+impl Serialize for DeclareV1Transaction {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -132,6 +157,42 @@ impl Serialize for DeclareTransaction {
         let versioned = Versioned {
             version: FieldElement::ONE,
             contract_class: &self.contract_class,
+            sender_address: &self.sender_address,
+            max_fee: &self.max_fee,
+            signature: &self.signature,
+            nonce: &self.nonce,
+        };
+
+        Versioned::serialize(&versioned, serializer)
+    }
+}
+
+impl Serialize for DeclareV2Transaction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct Versioned<'a> {
+            #[serde_as(as = "UfeHex")]
+            version: FieldElement,
+            contract_class: &'a CompressedSierraClass,
+            #[serde_as(as = "UfeHex")]
+            compiled_class_hash: &'a FieldElement,
+            #[serde_as(as = "UfeHex")]
+            sender_address: &'a FieldElement,
+            #[serde_as(as = "UfeHex")]
+            max_fee: &'a FieldElement,
+            signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            nonce: &'a FieldElement,
+        }
+
+        let versioned = Versioned {
+            version: FieldElement::TWO,
+            contract_class: &self.contract_class,
+            compiled_class_hash: &self.compiled_class_hash,
             sender_address: &self.sender_address,
             max_fee: &self.max_fee,
             signature: &self.signature,
