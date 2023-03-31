@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use starknet_core::types::{
     contract::{
         legacy::LegacyContractClass, CompressProgramError, ComputeClassHashError,
-        FlattenSierraClass,
+        FlattenedSierraClass,
     },
     BlockId, FieldElement,
 };
@@ -48,7 +48,7 @@ pub trait Account: Sized {
 
     fn declare(
         &self,
-        contract_class: Arc<FlattenSierraClass>,
+        contract_class: Arc<FlattenedSierraClass>,
         compiled_class_hash: FieldElement,
     ) -> Declaration<Self> {
         Declaration::new(contract_class, compiled_class_hash, self)
@@ -99,7 +99,7 @@ pub struct Execution<'a, A> {
 #[derive(Debug)]
 pub struct Declaration<'a, A> {
     account: &'a A,
-    contract_class: Arc<FlattenSierraClass>,
+    contract_class: Arc<FlattenedSierraClass>,
     compiled_class_hash: FieldElement,
     nonce: Option<FieldElement>,
     max_fee: Option<FieldElement>,
@@ -128,7 +128,7 @@ pub struct RawExecution {
 /// [Declaration] but with `nonce` and `max_fee` already determined.
 #[derive(Debug)]
 pub struct RawDeclaration {
-    contract_class: Arc<FlattenSierraClass>,
+    contract_class: Arc<FlattenedSierraClass>,
     compiled_class_hash: FieldElement,
     nonce: FieldElement,
     max_fee: FieldElement,

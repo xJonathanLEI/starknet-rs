@@ -30,10 +30,10 @@ async fn main() {
     let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
 
     // We need to flatten the ABI into a string first
-    let flatten_class = contract_artifact.flantten().unwrap();
+    let flattened_class = contract_artifact.flatten().unwrap();
 
     let result = account
-        .declare(Arc::new(flatten_class), compiled_class_hash)
+        .declare(Arc::new(flattened_class), compiled_class_hash)
         .send()
         .await
         .unwrap();
