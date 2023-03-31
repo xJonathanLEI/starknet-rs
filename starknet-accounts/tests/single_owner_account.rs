@@ -221,8 +221,8 @@ async fn can_declare_cairo1_contract() {
 
     // Cairo 1 contract classes are not allowed to be declared multiple times. We spam the network
     // by exploiting the fact that ABI is part of the class hash.
-    let mut flatten_class = contract_artifact.flantten().unwrap();
-    flatten_class.abi = format!(
+    let mut flattened_class = contract_artifact.flatten().unwrap();
+    flattened_class.abi = format!(
         "Declared from starknet-rs test case. Timestamp: {}",
         std::time::SystemTime::now()
             .duration_since(std::time::SystemTime::UNIX_EPOCH)
@@ -232,7 +232,7 @@ async fn can_declare_cairo1_contract() {
 
     let result = account
         .declare(
-            Arc::new(flatten_class),
+            Arc::new(flattened_class),
             FieldElement::from_hex_be(&hashes.compiled_class_hash).unwrap(),
         )
         .send()

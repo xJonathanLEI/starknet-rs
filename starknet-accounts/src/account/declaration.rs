@@ -7,7 +7,7 @@ use super::{
 use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
-        contract::{legacy::LegacyContractClass, ComputeClassHashError, FlattenSierraClass},
+        contract::{legacy::LegacyContractClass, ComputeClassHashError, FlattenedSierraClass},
         AccountTransaction, AddTransactionResult, DeclareTransactionRequest,
         DeclareV1TransactionRequest, DeclareV2TransactionRequest, FeeEstimate, FieldElement,
         TransactionRequest,
@@ -26,7 +26,7 @@ const PREFIX_DECLARE: FieldElement = FieldElement::from_mont([
 
 impl<'a, A> Declaration<'a, A> {
     pub fn new(
-        contract_class: Arc<FlattenSierraClass>,
+        contract_class: Arc<FlattenedSierraClass>,
         compiled_class_hash: FieldElement,
         account: &'a A,
     ) -> Self {

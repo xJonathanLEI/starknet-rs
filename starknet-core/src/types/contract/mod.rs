@@ -72,7 +72,7 @@ pub struct CompiledClass {
 #[serde_as]
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct FlattenSierraClass {
+pub struct FlattenedSierraClass {
     #[serde_as(as = "Vec<UfeHex>")]
     pub sierra_program: Vec<FieldElement>,
     pub contract_class_version: String,
@@ -246,10 +246,10 @@ impl SierraClass {
         Ok(normalize_address(hasher.finalize()))
     }
 
-    pub fn flantten(self) -> Result<FlattenSierraClass, serde_json::Error> {
+    pub fn flatten(self) -> Result<FlattenedSierraClass, serde_json::Error> {
         let abi = to_string_pythonic(&self.abi)?;
 
-        Ok(FlattenSierraClass {
+        Ok(FlattenedSierraClass {
             sierra_program: self.sierra_program,
             contract_class_version: self.contract_class_version,
             entry_points_by_type: self.entry_points_by_type,
@@ -258,7 +258,7 @@ impl SierraClass {
     }
 }
 
-impl FlattenSierraClass {
+impl FlattenedSierraClass {
     pub fn class_hash(&self) -> FieldElement {
         let mut hasher = PoseidonHasher::new();
         hasher.update(PREFIX_CONTRACT_CLASS_V0_1_0);
