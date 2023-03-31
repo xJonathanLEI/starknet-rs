@@ -82,15 +82,19 @@ Examples can be found in the [examples folder](./examples):
 
    Make sure your account has some L2 Goerli ETH to pay for the transaction fee. You can use [this faucet](https://faucet.goerli.starknet.io/) to fund your account.
 
-4. [Declare contract on `alpha-goerli` testnet](./examples/declare_contract.rs)
+4. [Declare Cairo 1 contract on `alpha-goerli` testnet](./examples/declare_cairo1_contract.rs)
 
-   Declaring contracts without going through an account (and thus not paying fees) has been deprecated, so please make sure your account has enough L2 Goerli ETH for the fees.
+   Make sure your account has some L2 Goerli ETH to pay for the transaction fee. You can use [this faucet](https://faucet.goerli.starknet.io/) to fund your account.
 
-5. [Query the latest block number with JSON-RPC](./examples/jsonrpc.rs)
+5. [Declare legacy Cairo 0 contract on `alpha-goerli` testnet](./examples/declare_cairo0_contract.rs)
 
-6. [Call a contract view function via sequencer gateway](./examples/sequencer_erc20_balance.rs)
+   Make sure your account has some L2 Goerli ETH to pay for the transaction fee. You can use [this faucet](https://faucet.goerli.starknet.io/) to fund your account.
 
-7. [Deploy an Argent X account to a pre-funded address](./examples/deploy_argent_account.rs)
+6. [Query the latest block number with JSON-RPC](./examples/jsonrpc.rs)
+
+7. [Call a contract view function via sequencer gateway](./examples/sequencer_erc20_balance.rs)
+
+8. [Deploy an Argent X account to a pre-funded address](./examples/deploy_argent_account.rs)
 
 ## License
 

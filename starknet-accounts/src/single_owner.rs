@@ -1,4 +1,4 @@
-use crate::{Account, ConnectedAccount, RawDeclaration, RawExecution};
+use crate::{Account, ConnectedAccount, RawDeclaration, RawExecution, RawLegacyDeclaration};
 
 use async_trait::async_trait;
 use starknet_core::types::{contract::ComputeClassHashError, FieldElement};
@@ -75,7 +75,21 @@ where
         &self,
         declaration: &RawDeclaration,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
-        let tx_hash = declaration
+        let tx_hash = declaration.transaction_hash(self.chain_id, self.address);
+        let signature = self
+            .signer
+            .sign_hash(&tx_hash)
+            .await
+            .map_err(SignError::Signer)?;
+
+        Ok(vec![signature.r, signature.s])
+    }
+
+    async fn sign_legacy_declaration(
+        &self,
+        legacy_declaration: &RawLegacyDeclaration,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        let tx_hash = legacy_declaration
             .transaction_hash(self.chain_id, self.address)
             .map_err(SignError::ClassHash)?;
         let signature = self

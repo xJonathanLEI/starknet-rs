@@ -66,6 +66,8 @@ pub enum ErrorCode {
     UndeclaredClass,
     #[serde(rename = "StarknetErrorCode.INVALID_TRANSACTION_NONCE")]
     InvalidTransactionNonce,
+    #[serde(rename = "StarknetErrorCode.CLASS_ALREADY_DECLARED")]
+    ClassAlreadyDeclared,
 }
 
 impl SequencerGatewayProvider {
@@ -595,6 +597,7 @@ impl TryFrom<ErrorCode> for StarknetError {
             ErrorCode::MalformedRequest => Err(()),
             ErrorCode::UndeclaredClass => Ok(Self::ClassHashNotFound),
             ErrorCode::InvalidTransactionNonce => Err(()),
+            ErrorCode::ClassAlreadyDeclared => Err(()),
         }
     }
 }

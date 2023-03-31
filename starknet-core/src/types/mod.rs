@@ -34,6 +34,8 @@ mod transaction_request;
 pub use transaction_request::{
     AccountTransaction, AddTransactionResult, AddTransactionResultCode, CallFunction,
     CallL1Handler, DeclareTransaction as DeclareTransactionRequest,
+    DeclareV1Transaction as DeclareV1TransactionRequest,
+    DeclareV2Transaction as DeclareV2TransactionRequest,
     DeployAccountTransaction as DeployAccountTransactionRequest,
     InvokeFunctionTransaction as InvokeFunctionTransactionRequest, TransactionRequest,
 };
