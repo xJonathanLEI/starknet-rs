@@ -110,6 +110,13 @@ pub enum BlockId {
     Tag(BlockTag),
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ContractClass {
+    Sierra(SierraContractClass),
+    Legacy(LegacyContractClass),
+}
+
 #[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type")]
 pub enum Transaction {
@@ -154,6 +161,24 @@ pub enum BroadcastedInvokeTransaction {
     V0(BroadcastedInvokeTransactionV0),
     #[serde(rename = "0x1")]
     V1(BroadcastedInvokeTransactionV1),
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(tag = "version")]
+pub enum DeclareTransaction {
+    #[serde(rename = "0x1")]
+    V1(DeclareTransactionV1),
+    #[serde(rename = "0x2")]
+    V2(DeclareTransactionV2),
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(tag = "version")]
+pub enum BroadcastedDeclareTransaction {
+    #[serde(rename = "0x1")]
+    V1(BroadcastedDeclareTransactionV1),
+    #[serde(rename = "0x2")]
+    V2(BroadcastedDeclareTransactionV2),
 }
 
 #[derive(Debug, Clone, Deserialize)]
