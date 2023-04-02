@@ -83,7 +83,7 @@ impl From<core::types::InvokeFunctionTransactionRequest> for BroadcastedInvokeTr
             max_fee: value.max_fee,
             signature: value.signature,
             nonce: value.nonce,
-            sender_address: value.contract_address,
+            sender_address: value.sender_address,
             calldata: value.calldata,
         }
     }

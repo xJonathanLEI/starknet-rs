@@ -676,6 +676,8 @@ fn should_skip_attributes_for_hinted_hash(value: &Option<Vec<LegacyAttribute>>) 
 
 #[cfg(test)]
 mod tests {
+    use crate::types::contract::DeployedClass;
+
     use super::*;
 
     #[derive(serde::Deserialize)]
@@ -703,29 +705,42 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_get_full_contract_deser_code() {
-        serde_json::from_str::<LegacyContractClass>(include_str!(
-            "../../../test-data/raw_gateway_responses/get_full_contract/1_code.txt"
+    fn test_get_full_contract_deser_cairo_0() {
+        let class = serde_json::from_str::<DeployedClass>(include_str!(
+            "../../../test-data/raw_gateway_responses/get_full_contract/1_cairo_0.txt"
         ))
         .unwrap();
+        assert!(matches!(class, DeployedClass::LegacyClass(_)));
     }
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_get_full_contract_deser_all_abi_types() {
-        serde_json::from_str::<LegacyContractClass>(include_str!(
-            "../../../test-data/raw_gateway_responses/get_full_contract/2_all_abi_types.txt"
+    fn test_get_full_contract_deser_cairo_1() {
+        let class = serde_json::from_str::<DeployedClass>(include_str!(
+            "../../../test-data/raw_gateway_responses/get_full_contract/2_cairo_1.txt"
         ))
         .unwrap();
+        assert!(matches!(class, DeployedClass::SierraClass(_)));
     }
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_get_class_by_hash_deser() {
-        serde_json::from_str::<LegacyContractClass>(include_str!(
-            "../../../test-data/raw_gateway_responses/get_class_by_hash/1_success.txt"
+    fn test_get_class_by_hash_deser_cairo_0() {
+        let class = serde_json::from_str::<DeployedClass>(include_str!(
+            "../../../test-data/raw_gateway_responses/get_class_by_hash/1_cairo_0.txt"
         ))
         .unwrap();
+        assert!(matches!(class, DeployedClass::LegacyClass(_)));
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_get_class_by_hash_deser_cairo_1() {
+        let class = serde_json::from_str::<DeployedClass>(include_str!(
+            "../../../test-data/raw_gateway_responses/get_class_by_hash/3_cairo_1.txt"
+        ))
+        .unwrap();
+        assert!(matches!(class, DeployedClass::SierraClass(_)));
     }
 
     #[test]

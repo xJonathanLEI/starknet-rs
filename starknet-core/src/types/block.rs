@@ -294,4 +294,17 @@ mod tests {
 
         assert_eq!(tx.signature.len(), 2);
     }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_block_deser_with_declare_v2() {
+        let raw = include_str!("../../test-data/raw_gateway_responses/get_block/15_declare_v2.txt");
+
+        let block: Block = serde_json::from_str(raw).unwrap();
+
+        assert!(block
+            .transactions
+            .into_iter()
+            .any(|tx| matches!(tx, TransactionType::Declare(_))));
+    }
 }

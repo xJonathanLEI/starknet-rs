@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use auto_impl::auto_impl;
 use starknet_core::types::{
-    contract::legacy::{LegacyContractClass, LegacyContractCode},
+    contract::{legacy::LegacyContractCode, DeployedClass},
     AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
     CallFunction, CallL1Handler, ContractAddresses, FeeEstimate, FieldElement, StarknetError,
     StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest,
@@ -33,12 +33,14 @@ pub trait Provider {
         &self,
         tx: AccountTransaction,
         block_identifier: BlockId,
+        skip_validate: bool,
     ) -> Result<FeeEstimate, ProviderError<Self::Error>>;
 
     async fn estimate_fee_bulk(
         &self,
         txs: &[AccountTransaction],
         block_identifier: BlockId,
+        skip_validate: bool,
     ) -> Result<Vec<FeeEstimate>, ProviderError<Self::Error>>;
 
     async fn estimate_message_fee(
@@ -51,6 +53,7 @@ pub trait Provider {
         &self,
         tx: AccountTransaction,
         block_identifier: BlockId,
+        skip_validate: bool,
     ) -> Result<TransactionSimulationInfo, ProviderError<Self::Error>>;
 
     async fn get_block(
@@ -78,7 +81,7 @@ pub trait Provider {
         &self,
         contract_address: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<LegacyContractClass, ProviderError<Self::Error>>;
+    ) -> Result<DeployedClass, ProviderError<Self::Error>>;
 
     async fn get_class_hash_at(
         &self,
@@ -89,7 +92,8 @@ pub trait Provider {
     async fn get_class_by_hash(
         &self,
         class_hash: FieldElement,
-    ) -> Result<LegacyContractClass, ProviderError<Self::Error>>;
+        block_identifier: BlockId,
+    ) -> Result<DeployedClass, ProviderError<Self::Error>>;
 
     async fn get_storage_at(
         &self,

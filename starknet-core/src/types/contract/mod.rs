@@ -44,6 +44,14 @@ pub enum ContractArtifact {
     LegacyClass(legacy::LegacyContractClass),
 }
 
+#[derive(Debug, Serialize)]
+#[serde(untagged)]
+#[allow(clippy::large_enum_variant)]
+pub enum DeployedClass {
+    SierraClass(FlattenedSierraClass),
+    LegacyClass(legacy::LegacyContractClass),
+}
+
 #[serde_as]
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
@@ -371,6 +379,26 @@ impl<'de> Deserialize<'de> for ContractArtifact {
         }
         Err(serde::de::Error::custom(
             "data did not match any variant of enum ContractArtifact",
+        ))
+    }
+}
+
+// We need to manually implement this because `arbitrary_precision` doesn't work with `untagged`:
+//   https://github.com/serde-rs/serde/issues/1183
+impl<'de> Deserialize<'de> for DeployedClass {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let temp_value = serde_json::Value::deserialize(deserializer)?;
+        if let Ok(value) = FlattenedSierraClass::deserialize(&temp_value) {
+            return Ok(Self::SierraClass(value));
+        }
+        if let Ok(value) = legacy::LegacyContractClass::deserialize(&temp_value) {
+            return Ok(Self::LegacyClass(value));
+        }
+        Err(serde::de::Error::custom(
+            "data did not match any variant of enum DeployedClass",
         ))
     }
 }

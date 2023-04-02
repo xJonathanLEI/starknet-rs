@@ -25,10 +25,12 @@ pub struct StateDiff {
     pub storage_diffs: HashMap<FieldElement, Vec<StorageDiff>>,
     pub deployed_contracts: Vec<DeployedContract>,
     #[serde_as(as = "Vec<UfeHex>")]
-    pub declared_contracts: Vec<FieldElement>,
+    pub old_declared_contracts: Vec<FieldElement>,
+    pub declared_classes: Vec<DeclaredContract>,
     #[serde(default)]
     #[serde_as(as = "HashMap<UfeHex, UfeHex>")]
     pub nonces: HashMap<FieldElement, FieldElement>,
+    pub replaced_classes: Vec<DeployedContract>,
 }
 
 #[serde_as]
@@ -49,6 +51,16 @@ pub struct DeployedContract {
     pub address: FieldElement,
     #[serde_as(as = "UfeHex")]
     pub class_hash: FieldElement,
+}
+
+#[serde_as]
+#[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct DeclaredContract {
+    #[serde_as(as = "UfeHex")]
+    pub class_hash: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub compiled_class_hash: FieldElement,
 }
 
 #[cfg(test)]
@@ -113,5 +125,25 @@ mod tests {
 
         let state_update: StateUpdate = serde_json::from_str(raw).unwrap();
         assert_eq!(state_update.state_diff.nonces.len(), 1);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_state_update_deser_with_declare_v2() {
+        let raw = include_str!(
+            "../../test-data/raw_gateway_responses/get_state_update/5_with_declare_v2.txt"
+        );
+        serde_json::from_str::<StateUpdate>(raw).unwrap();
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_state_update_deser_with_replaced_classes() {
+        let raw = include_str!(
+            "../../test-data/raw_gateway_responses/get_state_update/6_with_replaced_classes.txt"
+        );
+
+        let state_update: StateUpdate = serde_json::from_str(raw).unwrap();
+        assert_eq!(state_update.state_diff.replaced_classes.len(), 1);
     }
 }
