@@ -110,6 +110,24 @@ mod enum_ser_impls {
         }
     }
 
+    impl Serialize for DeclareTransaction {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            match self {
+                Self::V1(variant) => variant.serialize(serializer),
+                Self::V2(variant) => variant.serialize(serializer),
+            }
+        }
+    }
+
+    impl Serialize for BroadcastedDeclareTransaction {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            match self {
+                Self::V1(variant) => variant.serialize(serializer),
+                Self::V2(variant) => variant.serialize(serializer),
+            }
+        }
+    }
+
     impl Serialize for TransactionReceipt {
         fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
             match self {

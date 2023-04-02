@@ -7,13 +7,82 @@ use starknet_core::{
     },
     utils::get_selector_from_name,
 };
-use starknet_providers::SequencerGatewayProvider;
+use starknet_providers::{
+    jsonrpc::{HttpTransport, JsonRpcClient},
+    Provider, SequencerGatewayProvider,
+};
 use starknet_signers::{LocalWallet, SigningKey};
 use std::sync::Arc;
 
+fn create_sequencer_client() -> SequencerGatewayProvider {
+    SequencerGatewayProvider::starknet_alpha_goerli()
+}
+
+fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
+    JsonRpcClient::new(HttpTransport::new(
+        url::Url::parse("https://starknet-goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161")
+            .unwrap(),
+    ))
+}
+
 #[tokio::test]
-async fn can_get_nonce() {
-    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
+async fn can_get_nonce_with_sequencer() {
+    can_get_nonce_inner(create_sequencer_client()).await
+}
+
+#[tokio::test]
+async fn can_get_nonce_with_jsonrpc() {
+    can_get_nonce_inner(create_jsonrpc_client()).await
+}
+
+#[tokio::test]
+async fn can_estimate_fee_with_sequencer() {
+    can_estimate_fee_inner(create_sequencer_client()).await
+}
+
+#[tokio::test]
+async fn can_estimate_fee_with_jsonrpc() {
+    can_estimate_fee_inner(create_jsonrpc_client()).await
+}
+
+#[tokio::test]
+async fn can_simulate_execution_with_sequencer() {
+    can_simulate_execution_inner(create_sequencer_client()).await
+}
+
+// TODO: add `can_simulate_execution` case when it's supported in pathfinder
+
+#[tokio::test]
+async fn can_execute_tst_mint_with_sequencer() {
+    can_execute_tst_mint_inner(create_sequencer_client()).await
+}
+
+#[tokio::test]
+async fn can_execute_tst_mint_with_jsonrpc() {
+    can_execute_tst_mint_inner(create_jsonrpc_client()).await
+}
+
+#[tokio::test]
+async fn can_declare_cairo1_contract_with_sequencer() {
+    can_declare_cairo1_contract_inner(create_sequencer_client()).await
+}
+
+#[tokio::test]
+async fn can_declare_cairo1_contract_with_jsonrpc() {
+    can_declare_cairo1_contract_inner(create_jsonrpc_client()).await
+}
+
+#[tokio::test]
+async fn can_declare_cairo0_contract_with_sequencer() {
+    can_declare_cairo0_contract_inner(create_sequencer_client()).await
+}
+
+#[tokio::test]
+async fn can_declare_cairo0_contract_with_jsonrpc() {
+    can_declare_cairo0_contract_inner(create_jsonrpc_client()).await
+}
+
+async fn can_get_nonce_inner<P: Provider + Send + Sync>(provider: P) {
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be(
             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
@@ -30,9 +99,7 @@ async fn can_get_nonce() {
     assert_ne!(account.get_nonce().await.unwrap(), FieldElement::ZERO);
 }
 
-#[tokio::test]
-async fn can_estimate_fee() {
-    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
+async fn can_estimate_fee_inner<P: Provider + Send + Sync>(provider: P) {
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be(
             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
@@ -78,11 +145,9 @@ async fn can_estimate_fee() {
     assert!(fee_estimate.overall_fee > 0);
 }
 
-#[tokio::test]
-async fn can_simulate_execution() {
+async fn can_simulate_execution_inner<P: Provider + Send + Sync>(provider: P) {
     // Simulates the tx in `can_execute_tst_mint()` without actually sending
 
-    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be(
             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
@@ -133,8 +198,7 @@ async fn can_simulate_execution() {
         .is_empty());
 }
 
-#[tokio::test]
-async fn can_execute_tst_mint() {
+async fn can_execute_tst_mint_inner<P: Provider + Send + Sync>(provider: P) {
     // This test case is not very useful as the sequencer will always respond with
     // `TransactionReceived` even if the transaction will eventually fail, just like how
     // `eth_sendRawTransaction` always responds with success except for insufficient balance. So it
@@ -142,7 +206,6 @@ async fn can_execute_tst_mint() {
     //   - change to use a local testing network similar to Ganacha for Ethereum; or
     //   - poll the transaction hash until it's processed.
 
-    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be(
             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
@@ -188,8 +251,7 @@ async fn can_execute_tst_mint() {
     assert_eq!(result.code, AddTransactionResultCode::TransactionReceived);
 }
 
-#[tokio::test]
-async fn can_declare_cairo1_contract() {
+async fn can_declare_cairo1_contract_inner<P: Provider + Send + Sync>(provider: P) {
     // This test case is not very useful, same as `can_execute_tst_mint` above.
 
     #[derive(serde::Deserialize)]
@@ -197,7 +259,6 @@ async fn can_declare_cairo1_contract() {
         compiled_class_hash: String,
     }
 
-    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be(
             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
@@ -244,11 +305,9 @@ async fn can_declare_cairo1_contract() {
     assert_eq!(result.code, AddTransactionResultCode::TransactionReceived);
 }
 
-#[tokio::test]
-async fn can_declare_cairo0_contract() {
+async fn can_declare_cairo0_contract_inner<P: Provider + Send + Sync>(provider: P) {
     // This test case is not very useful, same as `can_execute_tst_mint` above.
 
-    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be(
             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",

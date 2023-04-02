@@ -81,7 +81,7 @@ pub struct FlattenedSierraClass {
 }
 
 #[serde_as]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct CompressedSierraClass {
     #[serde(serialize_with = "base64_ser")]

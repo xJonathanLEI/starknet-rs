@@ -1,8 +1,5 @@
-use std::io::Write;
-
-use flate2::{write::GzEncoder, Compression};
 use starknet_core::{
-    types::{contract::legacy::LegacyContractClass, FieldElement},
+    types::FieldElement,
     utils::{get_selector_from_name, get_storage_var_address},
 };
 use starknet_providers::jsonrpc::{
@@ -15,52 +12,6 @@ fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
         Url::parse("https://starknet-goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161")
             .unwrap(),
     ))
-}
-
-fn create_contract_class() -> ContractClass {
-    let artifact = serde_json::from_str::<LegacyContractClass>(include_str!(
-        "../../starknet-core/test-data/contracts/cairo0/artifacts/oz_account.txt"
-    ))
-    .unwrap();
-
-    let program_json = serde_json::to_string(&artifact.program).unwrap();
-    let mut gzip_encoder = GzEncoder::new(Vec::new(), Compression::best());
-    gzip_encoder.write_all(program_json.as_bytes()).unwrap();
-    let compressed_program = gzip_encoder.finish().unwrap();
-
-    ContractClass {
-        program: compressed_program,
-        entry_points_by_type: EntryPointsByType {
-            constructor: artifact
-                .entry_points_by_type
-                .constructor
-                .into_iter()
-                .map(|item| ContractEntryPoint {
-                    offset: item.offset.into(),
-                    selector: item.selector,
-                })
-                .collect(),
-            external: artifact
-                .entry_points_by_type
-                .external
-                .into_iter()
-                .map(|item| ContractEntryPoint {
-                    offset: item.offset.into(),
-                    selector: item.selector,
-                })
-                .collect(),
-            l1_handler: artifact
-                .entry_points_by_type
-                .l1_handler
-                .into_iter()
-                .map(|item| ContractEntryPoint {
-                    offset: item.offset.into(),
-                    selector: item.selector,
-                })
-                .collect(),
-        },
-        abi: None,
-    }
 }
 
 #[tokio::test]
@@ -231,6 +182,11 @@ async fn jsonrpc_get_class() {
         .await
         .unwrap();
 
+    let class = match class {
+        ContractClass::Legacy(class) => class,
+        _ => panic!("unexpected class type"),
+    };
+
     assert!(!class.program.is_empty());
 }
 
@@ -274,6 +230,11 @@ async fn jsonrpc_get_class_at() {
         )
         .await
         .unwrap();
+
+    let class = match class {
+        ContractClass::Legacy(class) => class,
+        _ => panic!("unexpected class type"),
+    };
 
     assert!(!class.program.is_empty());
 }
@@ -454,50 +415,6 @@ async fn jsonrpc_get_nonce() {
     assert_eq!(nonce, FieldElement::ZERO);
 }
 
-#[tokio::test]
-#[ignore = "Disabled until changed to use INVOKE v1"]
-async fn jsonrpc_add_invoke_transaction() {
-    let rpc_client = create_jsonrpc_client();
-
-    // This is an invalid made-up transaction but the sequencer will happily accept it anyways
-    let add_tx_result = rpc_client
-        .add_invoke_transaction(&BroadcastedInvokeTransaction::V0(
-            BroadcastedInvokeTransactionV0 {
-                max_fee: FieldElement::ONE,
-                signature: vec![],
-                nonce: FieldElement::ZERO,
-                contract_address: FieldElement::from_hex_be(
-                    "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-                )
-                .unwrap(),
-                entry_point_selector: get_selector_from_name("__execute__").unwrap(),
-                calldata: vec![FieldElement::from_hex_be("1234").unwrap()],
-            },
-        ))
-        .await
-        .unwrap();
-
-    assert!(add_tx_result.transaction_hash > FieldElement::ZERO);
-}
-
-#[tokio::test]
-#[ignore = "Disabled until changed to use DECLARE v1"]
-async fn jsonrpc_add_declare_transaction() {
-    let rpc_client = create_jsonrpc_client();
-
-    let add_tx_result = rpc_client
-        .add_declare_transaction(&BroadcastedDeclareTransaction {
-            max_fee: FieldElement::ZERO,
-            version: 0,
-            signature: vec![],
-            nonce: FieldElement::ZERO,
-            contract_class: create_contract_class(),
-            sender_address: FieldElement::ONE,
-        })
-        .await
-        .unwrap();
-
-    assert!(add_tx_result.class_hash > FieldElement::ZERO);
-}
-
-// TODO: test deploy account transaction
+// NOTE: `addXxxxTransaction` methods are harder to test here since they require signatures. These
+// are integration tests anyways, so we might as well just leave the job to th tests in
+// `starknet-accounts`.

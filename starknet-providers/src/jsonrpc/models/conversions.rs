@@ -1,6 +1,13 @@
+use std::io::Read;
+
+use flate2::read::GzDecoder;
+use starknet_core::{self as core, types::contract::legacy as legacy_contract};
+
 use super::*;
 
-use starknet_core::{self as core, types::contract::legacy as legacy_contract};
+#[derive(Debug, thiserror::Error)]
+#[error("Unable to decompress Sierra class")]
+pub struct DecompressionError;
 
 impl From<core::types::BlockId> for BlockId {
     fn from(value: core::types::BlockId) -> Self {
@@ -24,11 +31,10 @@ impl From<FeeEstimate> for core::types::FeeEstimate {
     }
 }
 
-impl From<core::types::DeclareV1TransactionRequest> for BroadcastedDeclareTransaction {
+impl From<core::types::DeclareV1TransactionRequest> for BroadcastedDeclareTransactionV1 {
     fn from(value: core::types::DeclareV1TransactionRequest) -> Self {
         Self {
             max_fee: value.max_fee,
-            version: 1,
             signature: value.signature,
             nonce: value.nonce,
             contract_class: value.contract_class.as_ref().clone().into(),
@@ -37,9 +43,37 @@ impl From<core::types::DeclareV1TransactionRequest> for BroadcastedDeclareTransa
     }
 }
 
-impl From<core::types::DeclareV1TransactionRequest> for BroadcastedTransaction {
-    fn from(value: core::types::DeclareV1TransactionRequest) -> Self {
-        Self::Declare(value.into())
+impl TryFrom<core::types::DeclareV2TransactionRequest> for BroadcastedDeclareTransactionV2 {
+    type Error = DecompressionError;
+
+    fn try_from(value: core::types::DeclareV2TransactionRequest) -> Result<Self, Self::Error> {
+        Ok(Self {
+            max_fee: value.max_fee,
+            signature: value.signature,
+            nonce: value.nonce,
+            contract_class: value.contract_class.as_ref().clone().try_into()?,
+            compiled_class_hash: value.compiled_class_hash,
+            sender_address: value.sender_address,
+        })
+    }
+}
+
+impl TryFrom<core::types::DeclareTransactionRequest> for BroadcastedDeclareTransaction {
+    type Error = DecompressionError;
+
+    fn try_from(value: core::types::DeclareTransactionRequest) -> Result<Self, Self::Error> {
+        Ok(match value {
+            core::types::DeclareTransactionRequest::V1(value) => Self::V1(value.into()),
+            core::types::DeclareTransactionRequest::V2(value) => Self::V2(value.try_into()?),
+        })
+    }
+}
+
+impl TryFrom<core::types::DeclareTransactionRequest> for BroadcastedTransaction {
+    type Error = DecompressionError;
+
+    fn try_from(value: core::types::DeclareTransactionRequest) -> Result<Self, Self::Error> {
+        Ok(Self::Declare(value.try_into()?))
     }
 }
 
@@ -88,14 +122,11 @@ impl From<core::types::DeployAccountTransactionRequest> for BroadcastedTransacti
 }
 
 impl TryFrom<core::types::AccountTransaction> for BroadcastedTransaction {
-    type Error = &'static str;
+    type Error = DecompressionError;
 
     fn try_from(value: core::types::AccountTransaction) -> Result<Self, Self::Error> {
         Ok(match value {
-            core::types::AccountTransaction::Declare(tx) => match tx {
-                core::types::DeclareTransactionRequest::V1(tx) => tx.into(),
-                _ => return Err("Declare v2 not support for JSON-RPC yet"),
-            },
+            core::types::AccountTransaction::Declare(tx) => tx.try_into()?,
             core::types::AccountTransaction::InvokeFunction(tx) => tx.into(),
             core::types::AccountTransaction::DeployAccount(tx) => tx.into(),
         })
@@ -135,9 +166,82 @@ impl From<DeployAccountTransactionResult> for core::types::AddTransactionResult 
     }
 }
 
-impl From<legacy_contract::CompressedLegacyContractClass> for ContractClass {
-    fn from(value: legacy_contract::CompressedLegacyContractClass) -> Self {
+impl From<SierraContractClass> for ContractClass {
+    fn from(value: SierraContractClass) -> Self {
+        Self::Sierra(value)
+    }
+}
+
+impl TryFrom<core::types::contract::CompressedSierraClass> for SierraContractClass {
+    type Error = DecompressionError;
+
+    fn try_from(value: core::types::contract::CompressedSierraClass) -> Result<Self, Self::Error> {
+        // Unfortunately we need to decompress the bytecodes back to Vec because currently the
+        // `Provider` interface is modeled after the sequencer gateway API. This should no longer
+        // be needed after this resolves:
+        //
+        //   https://github.com/xJonathanLEI/starknet-rs/issues/173
+
+        #[serde_as]
+        #[derive(Serialize)]
+        struct SierraProgram<'a>(#[serde_as(as = "Vec<UfeHex>")] &'a Vec<FieldElement>);
+
+        // Use best compression level to optimize for payload size
+        let mut gzip_decoder = GzDecoder::new(&value.sierra_program[..]);
+        let mut program_json = String::new();
+        gzip_decoder
+            .read_to_string(&mut program_json)
+            .map_err(|_| DecompressionError)?;
+
+        Ok(SierraContractClass {
+            sierra_program: serde_json::from_str(&program_json).map_err(|_| DecompressionError)?,
+            entry_points_by_type: value.entry_points_by_type.into(),
+            abi: value.abi,
+            contract_class_version: value.contract_class_version,
+        })
+    }
+}
+
+impl From<core::types::contract::EntrypointList<core::types::contract::SierraClassEntrypoint>>
+    for EntryPointsByType
+{
+    fn from(
+        value: core::types::contract::EntrypointList<core::types::contract::SierraClassEntrypoint>,
+    ) -> Self {
         Self {
+            constructor: value
+                .constructor
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+            external: value.external.into_iter().map(|item| item.into()).collect(),
+            l1_handler: value
+                .l1_handler
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+        }
+    }
+}
+
+impl From<core::types::contract::SierraClassEntrypoint> for ContractEntryPoint {
+    fn from(value: core::types::contract::SierraClassEntrypoint) -> Self {
+        Self {
+            function_idx: value.function_idx,
+            selector: value.selector,
+        }
+    }
+}
+
+impl From<LegacyContractClass> for ContractClass {
+    fn from(value: LegacyContractClass) -> Self {
+        Self::Legacy(value)
+    }
+}
+
+impl From<legacy_contract::CompressedLegacyContractClass> for LegacyContractClass {
+    fn from(value: legacy_contract::CompressedLegacyContractClass) -> Self {
+        LegacyContractClass {
             program: value.program,
             entry_points_by_type: value.entry_points_by_type.into(),
             abi: value
@@ -147,7 +251,7 @@ impl From<legacy_contract::CompressedLegacyContractClass> for ContractClass {
     }
 }
 
-impl From<legacy_contract::LegacyEntryPoints> for EntryPointsByType {
+impl From<legacy_contract::LegacyEntryPoints> for LegacyEntryPointsByType {
     fn from(value: legacy_contract::LegacyEntryPoints) -> Self {
         Self {
             constructor: value
@@ -165,7 +269,7 @@ impl From<legacy_contract::LegacyEntryPoints> for EntryPointsByType {
     }
 }
 
-impl From<legacy_contract::LegacyEntryPoint> for ContractEntryPoint {
+impl From<legacy_contract::LegacyEntryPoint> for LegacyContractEntryPoint {
     fn from(value: legacy_contract::LegacyEntryPoint) -> Self {
         Self {
             offset: value.offset.into(),
