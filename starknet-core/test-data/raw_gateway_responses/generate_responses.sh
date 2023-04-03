@@ -43,6 +43,9 @@ curl -o ./get_block/13_without_entry_point.txt "https://alpha4.starknet.io/feede
 # ./get_block/14_deploy_account.txt
 curl -o ./get_block/14_deploy_account.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=375919"
 
+# ./get_block/15_declare_v2.txt
+curl -o ./get_block/15_declare_v2.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=788322"
+
 # ./get_code/1_code.txt
 curl -o ./get_code/1_code.txt "https://alpha4.starknet.io/feeder_gateway/get_code?contractAddress=0x05ffd28b3ff2eecd6da0fa64c90e928a9f46f1563976a4fe1770ab48ee43506a"
 
@@ -61,8 +64,11 @@ curl -o ./get_transaction/3_not_received.txt "https://alpha4.starknet.io/feeder_
 # ./get_transaction/4_failure.txt
 curl -o ./get_transaction/4_failure.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction?transactionHash=0x533d327336f28b973c7f06f7abf15af7f8fd5a1bd4e1991397ae59e49a59885"
 
-# ./get_transaction/5_declare.txt
-curl -o ./get_transaction/5_declare.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction?transactionHash=0x6943a2586593262662f04bfd45e4a144f18c80353a4129b854443b79197c0cc"
+# ./get_transaction/5_declare_v1.txt
+curl -o ./get_transaction/5_declare_v1.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction?transactionHash=0x6943a2586593262662f04bfd45e4a144f18c80353a4129b854443b79197c0cc"
+
+# ./get_transaction/6_declare_v2.txt
+curl -o ./get_transaction/6_declare_v2.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction?transactionHash=0x4c0955d59cd105eb916d0cf24eb12c01be435fe83d95cd184e32a035c85c1d3"
 
 # ./get_transaction_receipt/1_accepted.txt
 curl -o ./get_transaction_receipt/1_accepted.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_receipt?transactionHash=0x7cb73f737a8ea0c5c94d7799c2d01a47c81f4cb34287408741264d3f09655da"
@@ -75,6 +81,12 @@ curl -o ./get_transaction_receipt/3_with_events.txt "https://alpha4.starknet.io/
 
 # ./get_transaction_receipt/4_failure.txt
 curl -o ./get_transaction_receipt/4_failure.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_receipt?transactionHash=0x533d327336f28b973c7f06f7abf15af7f8fd5a1bd4e1991397ae59e49a59885"
+
+# ./get_transaction_receipt/5_declare_v1.txt
+curl -o ./get_transaction_receipt/5_declare_v1.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_receipt?transactionHash=0x6943a2586593262662f04bfd45e4a144f18c80353a4129b854443b79197c0cc"
+
+# ./get_transaction_receipt/6_declare_v2.txt
+curl -o ./get_transaction_receipt/6_declare_v2.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_receipt?transactionHash=0x4c0955d59cd105eb916d0cf24eb12c01be435fe83d95cd184e32a035c85c1d3"
 
 # ./get_transaction_status/1_accepted.txt
 curl -o ./get_transaction_status/1_accepted.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_status?transactionHash=0x7cb73f737a8ea0c5c94d7799c2d01a47c81f4cb34287408741264d3f09655da"
@@ -97,11 +109,17 @@ curl -o ./get_state_update/3_with_declarations.txt "https://alpha4.starknet.io/f
 # ./get_state_update/4_with_nonce_changes.txt
 curl -o ./get_state_update/4_with_nonce_changes.txt "https://alpha4.starknet.io/feeder_gateway/get_state_update?blockNumber=326608"
 
-# ./get_full_contract/1_code.txt
-curl -o ./get_full_contract/1_code.txt "https://alpha4.starknet.io/feeder_gateway/get_full_contract?contractAddress=0x05ffd28b3ff2eecd6da0fa64c90e928a9f46f1563976a4fe1770ab48ee43506a"
+# ./get_state_update/5_with_declare_v2.txt
+curl -o ./get_state_update/5_with_declare_v2.txt "https://alpha4.starknet.io/feeder_gateway/get_state_update?blockNumber=788322"
 
-# ./get_full_contract/2_all_abi_types.txt
-curl -o ./get_full_contract/2_all_abi_types.txt "https://alpha4.starknet.io/feeder_gateway/get_full_contract?contractAddress=0x06ef97a90be1c0458f6e7bd1faf05021f2d81211f658155df0c5c97a39eb2d12"
+# ./get_state_update/6_with_replaced_classes.txt
+curl -o ./get_state_update/6_with_replaced_classes.txt "https://alpha4.starknet.io/feeder_gateway/get_state_update?blockNumber=788504"
+
+# ./get_full_contract/1_cairo_0.txt
+curl -o ./get_full_contract/1_cairo_0.txt "https://alpha4.starknet.io/feeder_gateway/get_full_contract?contractAddress=0x06ef97a90be1c0458f6e7bd1faf05021f2d81211f658155df0c5c97a39eb2d12"
+
+# ./get_full_contract/2_cairo_1.txt
+curl -o ./get_full_contract/2_cairo_1.txt "https://alpha4.starknet.io/feeder_gateway/get_full_contract?contractAddress=0x4806a00281e11427558c2e3f6d6c036dbf9aa72a0cd6cf1037737a41357fe46"
 
 # ./get_transaction_trace/1_with_messages.txt
 curl -o ./get_transaction_trace/1_with_messages.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_trace?transactionHash=0x24052dd62bf28d6dfa7056fcc7208b27f7260099572bac42d716bf629f46991"
@@ -133,11 +151,14 @@ curl -o ./estimate_fee/1_success.txt "https://alpha4.starknet.io/feeder_gateway/
 # ./get_storage_at/1_empty.txt
 curl -o ./get_storage_at/1_empty.txt "https://alpha4.starknet.io/feeder_gateway/get_storage_at?contractAddress=0x1&key=2"
 
-# ./get_class_by_hash/1_success.txt
-curl -o ./get_class_by_hash/1_success.txt "https://alpha4.starknet.io/feeder_gateway/get_class_by_hash?classHash=0x051ad5a4a7944af79eb7bb7993f7f801c19ce0faaf855e6a17549b100c698122"
+# ./get_class_by_hash/1_cairo_0.txt
+curl -o ./get_class_by_hash/1_cairo_0.txt "https://alpha4.starknet.io/feeder_gateway/get_class_by_hash?classHash=0x051ad5a4a7944af79eb7bb7993f7f801c19ce0faaf855e6a17549b100c698122"
 
 # ./get_class_by_hash/2_not_declared.txt
 curl -o ./get_class_by_hash/2_not_declared.txt "https://alpha4.starknet.io/feeder_gateway/get_class_by_hash?classHash=0x111111111111111111111111"
+
+# ./get_class_by_hash/3_cairo_1.txt
+curl -o ./get_class_by_hash/3_cairo_1.txt "https://alpha4.starknet.io/feeder_gateway/get_class_by_hash?classHash=0x571f4a4a5caae490577d67870c431fa560d72038e4c7a270d91aee1112d55d0"
 
 # ./get_block_traces/1_success.txt
 curl -o ./get_block_traces/1_success.txt "https://alpha4.starknet.io/feeder_gateway/get_block_traces?blockNumber=267588"
