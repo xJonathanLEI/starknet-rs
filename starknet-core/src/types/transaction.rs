@@ -69,6 +69,8 @@ pub enum EntryPointType {
 pub struct DeclareTransaction {
     #[serde_as(as = "UfeHex")]
     pub class_hash: FieldElement,
+    #[serde_as(as = "Option<UfeHex>")]
+    pub compiled_class_hash: Option<FieldElement>,
     #[serde_as(as = "UfeHex")]
     pub sender_address: FieldElement,
     #[serde_as(as = "UfeHex")]
@@ -130,7 +132,9 @@ pub struct DeployAccountTransaction {
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct InvokeFunctionTransaction {
     #[serde_as(as = "UfeHex")]
-    pub contract_address: FieldElement,
+    // Need this alias because older blocks still use `contract_address`
+    #[serde(alias = "contract_address")]
+    pub sender_address: FieldElement,
     #[serde_as(as = "Option<UfeHex>")]
     pub entry_point_selector: Option<FieldElement>,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
@@ -225,9 +229,22 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_deser_full_declare_transaction() {
+    fn test_deser_declare_v1_transaction() {
         let raw =
-            include_str!("../../test-data/raw_gateway_responses/get_transaction/5_declare.txt");
+            include_str!("../../test-data/raw_gateway_responses/get_transaction/5_declare_v1.txt");
+        let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
+
+        match tx.r#type.unwrap() {
+            TransactionType::Declare(_) => {}
+            _ => panic!("Did not deserialize TransactionType::Declare properly"),
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_deser_declare_v2_transaction() {
+        let raw =
+            include_str!("../../test-data/raw_gateway_responses/get_transaction/6_declare_v2.txt");
         let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
 
         match tx.r#type.unwrap() {

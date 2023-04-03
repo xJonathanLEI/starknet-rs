@@ -5,7 +5,7 @@ use crate::{
 
 use async_trait::async_trait;
 use starknet_core::types::{
-    contract::legacy::{LegacyContractClass, LegacyContractCode},
+    contract::{legacy::LegacyContractCode, DeployedClass},
     AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
     CallFunction, CallL1Handler, ContractAddresses, FeeEstimate, FieldElement, StateUpdate,
     TransactionInfo, TransactionReceipt, TransactionRequest, TransactionSimulationInfo,
@@ -78,7 +78,12 @@ where
         &self,
         tx: AccountTransaction,
         block_identifier: BlockId,
+        skip_validate: bool,
     ) -> Result<FeeEstimate, ProviderError<Self::Error>> {
+        if skip_validate {
+            return Err(ProviderError::Other(Self::Error::NotSupported));
+        }
+
         let tx: BroadcastedTransaction = tx
             .try_into()
             .map_err(|_| ProviderError::Other(Self::Error::NotSupported))?;
@@ -92,6 +97,7 @@ where
         &self,
         _txs: &[AccountTransaction],
         _block_identifier: BlockId,
+        _skip_validate: bool,
     ) -> Result<Vec<FeeEstimate>, ProviderError<Self::Error>> {
         Err(ProviderError::Other(Self::Error::NotSupported))
     }
@@ -108,6 +114,7 @@ where
         &self,
         _tx: AccountTransaction,
         _block_identifier: BlockId,
+        _skip_validate: bool,
     ) -> Result<TransactionSimulationInfo, ProviderError<Self::Error>> {
         Err(ProviderError::Other(Self::Error::NotSupported))
     }
@@ -145,7 +152,7 @@ where
         &self,
         _contract_address: FieldElement,
         _block_identifier: BlockId,
-    ) -> Result<LegacyContractClass, ProviderError<Self::Error>> {
+    ) -> Result<DeployedClass, ProviderError<Self::Error>> {
         Err(ProviderError::Other(Self::Error::NotSupported))
     }
 
@@ -160,7 +167,8 @@ where
     async fn get_class_by_hash(
         &self,
         _class_hash: FieldElement,
-    ) -> Result<LegacyContractClass, ProviderError<Self::Error>> {
+        _block_identifier: BlockId,
+    ) -> Result<DeployedClass, ProviderError<Self::Error>> {
         Err(ProviderError::Other(Self::Error::NotSupported))
     }
 

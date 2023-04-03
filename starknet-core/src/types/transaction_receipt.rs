@@ -186,6 +186,24 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_receipt_deser_declare_v1() {
+        let raw = include_str!(
+            "../../test-data/raw_gateway_responses/get_transaction_receipt/5_declare_v1.txt"
+        );
+        serde_json::from_str::<Receipt>(raw).unwrap();
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_receipt_deser_declare_v2() {
+        let raw = include_str!(
+            "../../test-data/raw_gateway_responses/get_transaction_receipt/6_declare_v2.txt"
+        );
+        serde_json::from_str::<Receipt>(raw).unwrap();
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_transaction_status_deser_accepted_on_l2() {
         // note that the hashes coming from the API can be shorter
         // by a byte or two than the FieldElement into which we serialize into,

@@ -155,6 +155,7 @@ where
             .estimate_fee(
                 AccountTransaction::Declare(declare),
                 self.account.block_id(),
+                false,
             )
             .await
             .map_err(AccountError::Provider)
@@ -285,6 +286,7 @@ where
             .estimate_fee(
                 AccountTransaction::Declare(declare),
                 self.account.block_id(),
+                false,
             )
             .await
             .map_err(AccountError::Provider)

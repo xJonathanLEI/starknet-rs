@@ -156,6 +156,7 @@ where
             .estimate_fee(
                 AccountTransaction::InvokeFunction(invoke),
                 self.account.block_id(),
+                false,
             )
             .await
             .map_err(AccountError::Provider)
@@ -250,6 +251,7 @@ where
             .simulate_transaction(
                 AccountTransaction::InvokeFunction(tx_request),
                 self.account.block_id(),
+                false,
             )
             .await
             .map_err(AccountError::Provider)
@@ -261,7 +263,7 @@ where
         let signature = self.account.sign_execution(&self.inner).await?;
 
         Ok(InvokeFunctionTransactionRequest {
-            contract_address: self.account.address(),
+            sender_address: self.account.address(),
             calldata: self.raw_calldata(),
             signature,
             max_fee: self.inner.max_fee,

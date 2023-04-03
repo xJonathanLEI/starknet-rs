@@ -114,7 +114,7 @@ pub struct DeclareV2Transaction {
 
 #[derive(Debug)]
 pub struct InvokeFunctionTransaction {
-    pub contract_address: FieldElement,
+    pub sender_address: FieldElement,
     pub calldata: Vec<FieldElement>,
     pub signature: Vec<FieldElement>,
     pub max_fee: FieldElement,
@@ -214,7 +214,7 @@ impl Serialize for InvokeFunctionTransaction {
             #[serde_as(as = "UfeHex")]
             version: FieldElement,
             #[serde_as(as = "UfeHex")]
-            contract_address: &'a FieldElement,
+            sender_address: &'a FieldElement,
             calldata: &'a Vec<FieldElement>,
             signature: &'a Vec<FieldElement>,
             #[serde_as(as = "UfeHex")]
@@ -225,7 +225,7 @@ impl Serialize for InvokeFunctionTransaction {
 
         let versioned = Versioned {
             version: FieldElement::ONE,
-            contract_address: &self.contract_address,
+            sender_address: &self.sender_address,
             calldata: &self.calldata,
             signature: &self.signature,
             max_fee: &self.max_fee,

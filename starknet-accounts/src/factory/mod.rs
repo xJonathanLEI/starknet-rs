@@ -259,6 +259,7 @@ where
             .estimate_fee(
                 AccountTransaction::DeployAccount(deploy),
                 self.factory.block_id(),
+                false,
             )
             .await
             .map_err(AccountFactoryError::Provider)

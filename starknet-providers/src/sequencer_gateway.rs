@@ -8,7 +8,7 @@ use serde_with::serde_as;
 use starknet_core::{
     serde::unsigned_field_element::UfeHex,
     types::{
-        contract::legacy::{LegacyContractClass, LegacyContractCode},
+        contract::{legacy::LegacyContractCode, DeployedClass},
         AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
         CallFunction, CallL1Handler, ContractAddresses, FeeEstimate, FieldElement, StarknetError,
         StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest,
@@ -261,8 +261,12 @@ impl Provider for SequencerGatewayProvider {
         &self,
         tx: AccountTransaction,
         block_identifier: BlockId,
+        skip_validate: bool,
     ) -> Result<FeeEstimate, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("estimate_fee");
+        request_url
+            .query_pairs_mut()
+            .append_pair("skipValidate", if skip_validate { "true" } else { "false" });
         append_block_id(&mut request_url, block_identifier);
 
         self.send_post_request::<_, GatewayResponse<_>>(request_url, &tx)
@@ -274,8 +278,12 @@ impl Provider for SequencerGatewayProvider {
         &self,
         txs: &[AccountTransaction],
         block_identifier: BlockId,
+        skip_validate: bool,
     ) -> Result<Vec<FeeEstimate>, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("estimate_fee_bulk");
+        request_url
+            .query_pairs_mut()
+            .append_pair("skipValidate", if skip_validate { "true" } else { "false" });
         append_block_id(&mut request_url, block_identifier);
 
         self.send_post_request::<_, GatewayResponse<_>>(request_url, &txs)
@@ -300,8 +308,12 @@ impl Provider for SequencerGatewayProvider {
         &self,
         tx: AccountTransaction,
         block_identifier: BlockId,
+        skip_validate: bool,
     ) -> Result<TransactionSimulationInfo, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("simulate_transaction");
+        request_url
+            .query_pairs_mut()
+            .append_pair("skipValidate", if skip_validate { "true" } else { "false" });
         append_block_id(&mut request_url, block_identifier);
 
         self.send_post_request::<_, GatewayResponse<_>>(request_url, &tx)
@@ -378,7 +390,7 @@ impl Provider for SequencerGatewayProvider {
         &self,
         contract_address: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<LegacyContractClass, ProviderError<Self::Error>> {
+    ) -> Result<DeployedClass, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_full_contract");
         request_url
             .query_pairs_mut()
@@ -409,11 +421,13 @@ impl Provider for SequencerGatewayProvider {
     async fn get_class_by_hash(
         &self,
         class_hash: FieldElement,
-    ) -> Result<LegacyContractClass, ProviderError<Self::Error>> {
+        block_identifier: BlockId,
+    ) -> Result<DeployedClass, ProviderError<Self::Error>> {
         let mut request_url = self.extend_feeder_gateway_url("get_class_by_hash");
         request_url
             .query_pairs_mut()
             .append_pair("classHash", &format!("{class_hash:#x}"));
+        append_block_id(&mut request_url, block_identifier);
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
@@ -710,29 +724,33 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_full_contract_deser() {
-        serde_json::from_str::<GatewayResponse<LegacyContractClass>>(include_str!(
-            "../test-data/get_full_contract/1_code.txt"
-        ))
-        .unwrap();
+        for raw in [
+            include_str!("../test-data/get_full_contract/1_cairo_0.txt"),
+            include_str!("../test-data/get_full_contract/2_cairo_1.txt"),
+        ]
+        .into_iter()
+        {
+            serde_json::from_str::<GatewayResponse<DeployedClass>>(raw).unwrap();
+        }
     }
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_class_by_hash_deser_success() {
-        match serde_json::from_str::<GatewayResponse<LegacyContractClass>>(include_str!(
-            "../test-data/get_class_by_hash/1_success.txt"
-        ))
-        .unwrap()
+        for raw in [
+            include_str!("../test-data/get_class_by_hash/1_cairo_0.txt"),
+            include_str!("../test-data/get_class_by_hash/3_cairo_1.txt"),
+        ]
+        .into_iter()
         {
-            GatewayResponse::Data(_) => {}
-            _ => panic!("Unexpected result"),
+            serde_json::from_str::<GatewayResponse<DeployedClass>>(raw).unwrap();
         }
     }
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_class_by_hash_deser_not_declared() {
-        match serde_json::from_str::<GatewayResponse<LegacyContractClass>>(include_str!(
+        match serde_json::from_str::<GatewayResponse<DeployedClass>>(include_str!(
             "../test-data/get_class_by_hash/2_not_declared.txt"
         ))
         .unwrap()
