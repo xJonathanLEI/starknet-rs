@@ -219,36 +219,6 @@ pub enum ContractAbiEntry {
     Struct(StructAbiEntry),
 }
 
-impl Serialize for BlockId {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        #[serde_as]
-        #[derive(Serialize)]
-        struct BlockHash {
-            #[serde_as(as = "UfeHex")]
-            block_hash: FieldElement,
-        }
-
-        #[derive(Serialize)]
-        struct BlockNumber {
-            block_number: u64,
-        }
-
-        match self {
-            Self::Hash(hash) => BlockHash::serialize(&BlockHash { block_hash: *hash }, serializer),
-            Self::Number(number) => BlockNumber::serialize(
-                &BlockNumber {
-                    block_number: *number,
-                },
-                serializer,
-            ),
-            Self::Tag(tag) => BlockTag::serialize(tag, serializer),
-        }
-    }
-}
-
 impl AsRef<FunctionCall> for FunctionCall {
     fn as_ref(&self) -> &FunctionCall {
         self

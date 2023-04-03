@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#521667e90c981b224254a4114215dfc658004b23
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#ca92f96a5f50ee31a2be0eecc0d744be415e3f6e
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -75,7 +75,8 @@ pub struct Event {
 
 /// An event filter/query.
 #[serde_as]
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct EventFilter {
     /// From block
     #[serde(skip_serializing_if = "Option::is_none")]
