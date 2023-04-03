@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use auto_impl::auto_impl;
 use starknet_core::types::{
-    contract::{legacy::LegacyContractCode, DeployedClass},
+    contract::{legacy::LegacyContractCode, CompiledClass, DeployedClass},
     AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
     CallFunction, CallL1Handler, ContractAddresses, FeeEstimate, FieldElement, StarknetError,
     StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest,
@@ -82,6 +82,12 @@ pub trait Provider {
         contract_address: FieldElement,
         block_identifier: BlockId,
     ) -> Result<DeployedClass, ProviderError<Self::Error>>;
+
+    async fn get_compiled_class_by_class_hash(
+        &self,
+        class_hash: FieldElement,
+        block_identifier: BlockId,
+    ) -> Result<CompiledClass, ProviderError<Self::Error>>;
 
     async fn get_class_hash_at(
         &self,

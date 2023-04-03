@@ -5,7 +5,7 @@ use crate::{
 
 use async_trait::async_trait;
 use starknet_core::types::{
-    contract::{legacy::LegacyContractCode, DeployedClass},
+    contract::{legacy::LegacyContractCode, CompiledClass, DeployedClass},
     AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
     CallFunction, CallL1Handler, ContractAddresses, FeeEstimate, FieldElement, StateUpdate,
     TransactionInfo, TransactionReceipt, TransactionRequest, TransactionSimulationInfo,
@@ -153,6 +153,14 @@ where
         _contract_address: FieldElement,
         _block_identifier: BlockId,
     ) -> Result<DeployedClass, ProviderError<Self::Error>> {
+        Err(ProviderError::Other(Self::Error::NotSupported))
+    }
+
+    async fn get_compiled_class_by_class_hash(
+        &self,
+        _class_hash: FieldElement,
+        _block_identifier: BlockId,
+    ) -> Result<CompiledClass, ProviderError<Self::Error>> {
         Err(ProviderError::Other(Self::Error::NotSupported))
     }
 

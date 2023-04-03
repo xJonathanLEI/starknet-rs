@@ -8,7 +8,7 @@ use serde_with::serde_as;
 use starknet_core::{
     serde::unsigned_field_element::UfeHex,
     types::{
-        contract::{legacy::LegacyContractCode, DeployedClass},
+        contract::{legacy::LegacyContractCode, CompiledClass, DeployedClass},
         AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
         CallFunction, CallL1Handler, ContractAddresses, FeeEstimate, FieldElement, StarknetError,
         StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest,
@@ -395,6 +395,22 @@ impl Provider for SequencerGatewayProvider {
         request_url
             .query_pairs_mut()
             .append_pair("contractAddress", &format!("{contract_address:#x}"));
+        append_block_id(&mut request_url, block_identifier);
+
+        self.send_get_request::<GatewayResponse<_>>(request_url)
+            .await?
+            .into()
+    }
+
+    async fn get_compiled_class_by_class_hash(
+        &self,
+        class_hash: FieldElement,
+        block_identifier: BlockId,
+    ) -> Result<CompiledClass, ProviderError<Self::Error>> {
+        let mut request_url = self.extend_feeder_gateway_url("get_compiled_class_by_class_hash");
+        request_url
+            .query_pairs_mut()
+            .append_pair("classHash", &format!("{class_hash:#x}"));
         append_block_id(&mut request_url, block_identifier);
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
