@@ -4,7 +4,7 @@ set -x
 set -e
 
 compile () {
-  starknet-compile $1 --output "$2.txt" $3
+  starknet-compile-deprecated $1 --output "$2.txt" $3
   python3.9 /generate_hashes.py "$2.txt" > "$2.hashes.json"
   chown $USER_ID:$GROUP_ID "$2.txt"
   chown $USER_ID:$GROUP_ID "$2.hashes.json"
