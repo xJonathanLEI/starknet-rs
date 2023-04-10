@@ -29,6 +29,7 @@ serde_json = { version = "1.0.74", features = ["arbitrary_precision"] }
 serde_with = "2.2.0"
 sha3 = "0.10.0"
 thiserror = "1.0.30"
+crypto-bigint = { version = "0.4.9", default-features = false }
 
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false }
