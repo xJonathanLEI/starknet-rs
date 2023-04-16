@@ -9,7 +9,7 @@ documentation = "https://docs.rs/starknet"
 repository = "https://github.com/xJonathanLEI/starknet-rs"
 homepage = "https://starknet.rs/"
 description = """
-Complete Starknet library in Rust
+Complete Starknet library in Rust™
 """
 keywords = ["ethereum", "starknet", "web3"]
 exclude = [".github/**", "images/**"]

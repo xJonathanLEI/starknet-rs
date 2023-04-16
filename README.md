@@ -3,7 +3,7 @@
   <h1 align="center">starknet-rs</h1>
 </p>
 
-**Complete Starknet library in Rust**
+**Complete Starknet library in Rust[™](https://www.reddit.com/r/rust/comments/12e7tdb/rust_trademark_policy_feedback_form/)**
 
 ![starknet-version-v0.11.0](https://img.shields.io/badge/Starknet_Version-v0.11.0-2ea44f?logo=ethereum)
 [![jsonrpc-spec-v0.2.1](https://img.shields.io/badge/JSON--RPC-v0.2.1-2ea44f?logo=ethereum)](https://github.com/starkware-libs/starknet-specs/tree/v0.2.1)
