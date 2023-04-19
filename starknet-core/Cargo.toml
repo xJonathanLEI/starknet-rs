@@ -16,7 +16,7 @@ keywords = ["ethereum", "starknet", "web3"]
 all-features = true
 
 [dependencies]
-starknet-crypto = { version = "0.4.2", path = "../starknet-crypto" }
+starknet-crypto = { version = "0.4.3", path = "../starknet-crypto" }
 starknet-ff = { version = "0.3.1", path = "../starknet-ff", features = [
     "serde",
 ] }
