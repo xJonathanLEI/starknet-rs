@@ -1,6 +1,6 @@
 use starknet_curve::{
     curve_params::{EC_ORDER, GENERATOR},
-    AffinePoint,
+    AffinePoint, ProjectivePoint,
 };
 
 use crate::{
@@ -142,6 +142,8 @@ pub fn verify(
     }
 
     let full_public_key = AffinePoint::from_x(*public_key);
+    let full_public_key = ProjectivePoint::from(&full_public_key);
+    let generator = ProjectivePoint::from(&GENERATOR);
 
     let w = mod_inverse(s, &EC_ORDER);
     if w == FieldElement::ZERO || w >= ELEMENT_UPPER_BOUND {
@@ -149,10 +151,12 @@ pub fn verify(
     }
 
     let zw = mul_mod_floor(message, &w, &EC_ORDER);
-    let zw_g = &GENERATOR * &zw.to_bits_le();
+    let zw_g = &generator * &zw.to_bits_le();
+    let zw_g = AffinePoint::from(&zw_g);
 
     let rw = mul_mod_floor(r, &w, &EC_ORDER);
     let rw_q = &full_public_key * &rw.to_bits_le();
+    let rw_q = AffinePoint::from(&rw_q);
 
     Ok((&zw_g + &rw_q).x == *r || (&zw_g - &rw_q).x == *r)
 }
