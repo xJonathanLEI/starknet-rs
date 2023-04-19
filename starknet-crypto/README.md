@@ -21,14 +21,14 @@ For instructions on running the benchmarks yourself, check out [this page](../BE
 ### Native
 
 ```log
-ecdsa_get_public_key    time:   [1.3717 ms 1.3722 ms 1.3727 ms]
-ecdsa_sign              time:   [1.3782 ms 1.3788 ms 1.3794 ms]
-ecdsa_verify            time:   [2.9048 ms 2.9061 ms 2.9075 ms]
-pedersen_hash           time:   [29.558 µs 29.594 µs 29.635 µs]
-poseidon_hash           time:   [11.650 µs 11.657 µs 11.664 µs]
-poseidon_hash_single    time:   [11.609 µs 11.615 µs 11.620 µs]
-poseidon_hash_many      time:   [23.320 µs 23.344 µs 23.375 µs]
-rfc6979_generate_k      time:   [1.3761 µs 1.3769 µs 1.3779 µs]
+ecdsa_get_public_key    time:   [1.4787 ms 1.4878 ms 1.4979 ms]
+ecdsa_sign              time:   [1.4732 ms 1.4856 ms 1.4998 ms]
+ecdsa_verify            time:   [433.81 µs 435.56 µs 437.35 µs]
+pedersen_hash           time:   [30.661 µs 30.954 µs 31.298 µs]
+poseidon_hash           time:   [12.209 µs 12.252 µs 12.297 µs]
+poseidon_hash_single    time:   [12.159 µs 12.256 µs 12.362 µs]
+poseidon_hash_many      time:   [23.839 µs 23.945 µs 24.056 µs]
+rfc6979_generate_k      time:   [1.4203 µs 1.4244 µs 1.4290 µs]
 ```
 
 ### WebAssembly
@@ -39,20 +39,20 @@ Runtime version:
 
 ```console
 $ node --version
-v18.14.2
+v18.16.0
 ```
 
 Node.js results:
 
 ```log
-ecdsa_get_public_key    time:   [2.3087 ms 2.3096 ms 2.3105 ms]
-ecdsa_sign              time:   [2.3152 ms 2.3163 ms 2.3177 ms]
-ecdsa_verify            time:   [5.2511 ms 5.2533 ms 5.2556 ms]
-pedersen_hash           time:   [124.09 µs 124.20 µs 124.36 µs]
-poseidon_hash           time:   [43.965 µs 44.022 µs 44.084 µs]
-poseidon_hash_single    time:   [43.942 µs 43.992 µs 44.055 µs]
-poseidon_hash_many      time:   [87.895 µs 87.976 µs 88.063 µs]
-rfc6979_generate_k      time:   [8.6301 µs 8.6353 µs 8.6414 µs]
+ecdsa_get_public_key    time:   [2.6912 ms 2.6933 ms 2.6958 ms]
+ecdsa_sign              time:   [2.7180 ms 2.7341 ms 2.7516 ms]
+ecdsa_verify            time:   [3.0274 ms 3.0375 ms 3.0480 ms]
+pedersen_hash           time:   [228.55 µs 229.09 µs 229.68 µs]
+poseidon_hash           time:   [84.220 µs 84.399 µs 84.655 µs]
+poseidon_hash_single    time:   [84.330 µs 84.477 µs 84.640 µs]
+poseidon_hash_many      time:   [167.52 µs 167.86 µs 168.24 µs]
+rfc6979_generate_k      time:   [9.6608 µs 9.7225 µs 9.7981 µs]
 ```
 
 ## Credits
