@@ -101,23 +101,23 @@ jobs:
 
       - name: Run starknet-ff tests
         run: |
-          (cd ./starknet-ff && wasm-pack test --node)
+          (cd ./starknet-ff && wasm-pack test --release --node)
 
       - name: Run starknet-crypto tests
         run: |
-          (cd ./starknet-crypto && wasm-pack test --node)
+          (cd ./starknet-crypto && wasm-pack test --release --node)
 
       - name: Run starknet-core tests
         run: |
-          (cd ./starknet-core && wasm-pack test --node)
+          (cd ./starknet-core && wasm-pack test --release --node)
 
       - name: Run starknet-signers tests
         run: |
-          (cd ./starknet-signers && wasm-pack test --node)
+          (cd ./starknet-signers && wasm-pack test --release --node)
 
       - name: Run starknet-macros tests
         run: |
-          (cd ./starknet-macros && wasm-pack test --node)
+          (cd ./starknet-macros && wasm-pack test --release --node)
 
   no-std-build:
     name: no-std build
