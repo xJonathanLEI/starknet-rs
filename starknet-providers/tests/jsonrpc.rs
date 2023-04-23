@@ -166,8 +166,6 @@ async fn jsonrpc_get_transaction_receipt() {
 }
 
 #[tokio::test]
-// https://github.com/eqlabs/pathfinder/pull/986
-#[ignore = "Disabled until pathfinder releases the fix"]
 async fn jsonrpc_get_class() {
     let rpc_client = create_jsonrpc_client();
 
@@ -215,8 +213,6 @@ async fn jsonrpc_get_class_hash_at() {
 }
 
 #[tokio::test]
-// https://github.com/eqlabs/pathfinder/pull/986
-#[ignore = "Disabled until pathfinder releases the fix"]
 async fn jsonrpc_get_class_at() {
     let rpc_client = create_jsonrpc_client();
 
