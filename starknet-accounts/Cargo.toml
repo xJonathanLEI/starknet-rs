@@ -16,11 +16,11 @@ keywords = ["ethereum", "starknet", "web3"]
 starknet-core = { version = "0.2.0", path = "../starknet-core" }
 starknet-providers = { version = "0.2.0", path = "../starknet-providers" }
 starknet-signers = { version = "0.1.0", path = "../starknet-signers" }
-async-trait = "0.1.52"
-thiserror = "1.0.30"
+async-trait = "0.1.68"
+thiserror = "1.0.40"
 
 [dev-dependencies]
-serde = { version = "1.0.152", features = ["derive"] }
-serde_json = "1.0.74"
-tokio = { version = "1.15.0", features = ["full"] }
-url = "2.2.2"
+serde = { version = "1.0.160", features = ["derive"] }
+serde_json = "1.0.96"
+tokio = { version = "1.27.0", features = ["full"] }
+url = "2.3.1"
