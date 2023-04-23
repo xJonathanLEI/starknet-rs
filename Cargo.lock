@@ -377,6 +377,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "crypto-bigint"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7c2538c4e68e52548bacb3e83ac549f903d44f011ac9d5abb5e132e67d0808f7"
+dependencies = [
+ "generic-array",
+ "subtle",
+ "zeroize",
+]
+
+[[package]]
 name = "crypto-common"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1278,7 +1289,7 @@ version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7743f17af12fa0b03b803ba12cd6a8d9483a587e89c69445e3909655c0b9fabb"
 dependencies = [
- "crypto-bigint",
+ "crypto-bigint 0.4.9",
  "hmac",
  "zeroize",
 ]
@@ -1593,7 +1604,7 @@ name = "starknet-crypto"
 version = "0.4.3"
 dependencies = [
  "criterion",
- "crypto-bigint",
+ "crypto-bigint 0.5.1",
  "hex",
  "hex-literal",
  "hmac",
@@ -1642,7 +1653,7 @@ version = "0.3.1"
 dependencies = [
  "ark-ff",
  "bigdecimal",
- "crypto-bigint",
+ "crypto-bigint 0.5.1",
  "getrandom",
  "hex",
  "num-bigint",
