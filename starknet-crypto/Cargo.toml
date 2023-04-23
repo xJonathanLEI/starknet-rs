@@ -16,7 +16,7 @@ keywords = ["ethereum", "starknet", "web3", "no_std"]
 starknet-crypto-codegen = { version = "0.3.0", path = "../starknet-crypto-codegen" }
 starknet-curve = { version = "0.2.1", path = "../starknet-curve" }
 starknet-ff = { version = "0.3.1", path = "../starknet-ff", default-features = false }
-crypto-bigint = { version = "0.4.9", default-features = false }
+crypto-bigint = { version = "0.5.1", default-features = false, features = ["generic-array", "zeroize"] }
 hmac = { version = "0.12.1", default-features = false }
 num-bigint = { version = "0.4.3", default-features = false }
 num-integer = { version = "0.1.44", default-features = false }

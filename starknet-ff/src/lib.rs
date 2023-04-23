@@ -16,7 +16,7 @@ use ark_ff::{
     fields::{Field, Fp256, PrimeField},
     BigInteger, BigInteger256,
 };
-use crypto_bigint::{CheckedAdd, CheckedMul, Zero, U256};
+use crypto_bigint::{CheckedAdd, CheckedMul, NonZero, Zero, U256};
 
 mod fr;
 
@@ -273,10 +273,13 @@ impl FieldElement {
     pub fn floor_div(&self, rhs: FieldElement) -> FieldElement {
         let lhs: U256 = self.into();
         let rhs: U256 = (&rhs).into();
-        let div_result = lhs.div_rem(&rhs);
+        let is_rhs_zero: bool = rhs.is_zero().into();
 
-        if div_result.is_some().into() {
-            let (quotient, _) = div_result.unwrap();
+        if !is_rhs_zero {
+            let rhs = NonZero::from_uint(rhs);
+
+            let div_result = lhs.div_rem(&rhs);
+            let (quotient, _) = div_result;
 
             // It's safe to unwrap here since `rem` is never out of range
             FieldElement {
@@ -375,10 +378,12 @@ impl ops::Rem<FieldElement> for FieldElement {
 
         let lhs: U256 = (&self).into();
         let rhs: U256 = (&rhs).into();
-        let div_result = lhs.div_rem(&rhs);
+        let is_rhs_zero: bool = rhs.is_zero().into();
 
-        if div_result.is_some().into() {
-            let (_, rem) = div_result.unwrap();
+        if !is_rhs_zero {
+            let rhs = NonZero::from_uint(rhs);
+
+            let (_, rem) = lhs.div_rem(&rhs);
 
             // It's safe to unwrap here since `rem` is never out of range
             FieldElement {
