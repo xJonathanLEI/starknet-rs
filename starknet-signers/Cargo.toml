@@ -15,8 +15,8 @@ keywords = ["ethereum", "starknet", "web3"]
 [dependencies]
 starknet-core = { version = "0.2.0", path = "../starknet-core" }
 starknet-crypto = { version = "0.4.3", path = "../starknet-crypto" }
-async-trait = "0.1.52"
-thiserror = "1.0.30"
+async-trait = "0.1.68"
+thiserror = "1.0.40"
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
-wasm-bindgen-test = "0.3.29"
+wasm-bindgen-test = "0.3.34"

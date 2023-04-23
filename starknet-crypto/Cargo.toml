@@ -19,11 +19,11 @@ starknet-ff = { version = "0.3.1", path = "../starknet-ff", default-features = f
 crypto-bigint = { version = "0.5.1", default-features = false, features = ["generic-array", "zeroize"] }
 hmac = { version = "0.12.1", default-features = false }
 num-bigint = { version = "0.4.3", default-features = false }
-num-integer = { version = "0.1.44", default-features = false }
-num-traits = { version = "0.2.14", default-features = false }
-rfc6979 = { version = "0.3.1", default-features = false }
+num-integer = { version = "0.1.45", default-features = false }
+num-traits = { version = "0.2.15", default-features = false }
+rfc6979 = { version = "0.4.0", default-features = false }
 sha2 = { version = "0.10.6", default-features = false }
-zeroize = { version = "1.5.0", default-features = false }
+zeroize = { version = "1.6.0", default-features = false }
 hex = { version = "0.4.3", default-features = false, optional = true }
 
 [features]
@@ -36,12 +36,12 @@ bigdecimal = ["starknet-curve/bigdecimal", "starknet-ff/bigdecimal"]
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false }
 hex = "0.4.3"
-hex-literal = "0.3.4"
-serde = { version = "1.0.152", features = ["derive"] }
-serde_json = "1.0.74"
+hex-literal = "0.4.1"
+serde = { version = "1.0.160", features = ["derive"] }
+serde_json = "1.0.96"
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
-wasm-bindgen-test = "0.3.29"
+wasm-bindgen-test = "0.3.34"
 
 [[bench]]
 name = "pedersen_hash"
