@@ -46,6 +46,13 @@ impl<'a, A> Execution<'a, A> {
         }
     }
 
+    pub fn fee_estimate_multiplier(self, fee_estimate_multiplier: f64) -> Self {
+        Self {
+            fee_estimate_multiplier,
+            ..self
+        }
+    }
+
     /// Calling this function after manually specifying `nonce` and `max_fee` turns [Execution] into
     /// [PreparedExecution]. Returns `Err` if either field is `None`.
     pub fn prepared(self) -> Result<PreparedExecution<'a, A>, NotPreparedError> {

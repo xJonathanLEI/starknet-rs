@@ -54,6 +54,13 @@ impl<'a, A> Declaration<'a, A> {
         }
     }
 
+    pub fn fee_estimate_multiplier(self, fee_estimate_multiplier: f64) -> Self {
+        Self {
+            fee_estimate_multiplier,
+            ..self
+        }
+    }
+
     /// Calling this function after manually specifying `nonce` and `max_fee` turns [Declaration]
     /// into [PreparedDeclaration]. Returns `Err` if either field is `None`.
     pub fn prepared(self) -> Result<PreparedDeclaration<'a, A>, NotPreparedError> {
@@ -183,6 +190,13 @@ impl<'a, A> LegacyDeclaration<'a, A> {
     pub fn max_fee(self, max_fee: FieldElement) -> Self {
         Self {
             max_fee: Some(max_fee),
+            ..self
+        }
+    }
+
+    pub fn fee_estimate_multiplier(self, fee_estimate_multiplier: f64) -> Self {
+        Self {
+            fee_estimate_multiplier,
             ..self
         }
     }
