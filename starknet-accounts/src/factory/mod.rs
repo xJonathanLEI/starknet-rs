@@ -129,6 +129,13 @@ impl<'f, F> AccountDeployment<'f, F> {
         }
     }
 
+    pub fn fee_estimate_multiplier(self, fee_estimate_multiplier: f64) -> Self {
+        Self {
+            fee_estimate_multiplier,
+            ..self
+        }
+    }
+
     /// Calling this function after manually specifying `nonce` and `max_fee` turns
     /// [AccountDeployment] into [PreparedAccountDeployment]. Returns `Err` if either field is
     /// `None`.
