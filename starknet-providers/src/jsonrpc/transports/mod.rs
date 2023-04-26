@@ -12,7 +12,7 @@ pub use http::HttpTransport;
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[auto_impl(&, Box, Arc)]
 pub trait JsonRpcTransport {
-    type Error: Error + Send;
+    type Error: Error + Send + Sync;
 
     async fn send_request<P, R>(
         &self,
