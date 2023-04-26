@@ -1,7 +1,7 @@
 use crate::{Account, ConnectedAccount, RawDeclaration, RawExecution, RawLegacyDeclaration};
 
 use async_trait::async_trait;
-use starknet_core::types::{contract::ComputeClassHashError, FieldElement};
+use starknet_core::types::{contract::ComputeClassHashError, BlockId, FieldElement};
 use starknet_providers::Provider;
 use starknet_signers::Signer;
 
@@ -15,6 +15,7 @@ where
     signer: S,
     address: FieldElement,
     chain_id: FieldElement,
+    block_id: BlockId,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -36,7 +37,13 @@ where
             signer,
             address,
             chain_id,
+            block_id: BlockId::Latest,
         }
+    }
+
+    pub fn set_block_id(&mut self, block_id: BlockId) -> &Self {
+        self.block_id = block_id;
+        self
     }
 }
 
@@ -111,5 +118,9 @@ where
 
     fn provider(&self) -> &Self::Provider {
         &self.provider
+    }
+
+    fn block_id(&self) -> BlockId {
+        self.block_id
     }
 }

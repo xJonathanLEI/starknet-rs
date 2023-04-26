@@ -6,6 +6,7 @@ use super::{
 use serde::Deserialize;
 use serde_with::serde_as;
 
+#[derive(Debug, Clone, Copy)]
 pub enum BlockId {
     Hash(FieldElement),
     Number(u64),

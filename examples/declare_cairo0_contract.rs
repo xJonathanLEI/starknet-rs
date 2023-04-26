@@ -4,7 +4,7 @@ use starknet::{
     accounts::{Account, SingleOwnerAccount},
     core::{
         chain_id,
-        types::{contract::legacy::LegacyContractClass, FieldElement},
+        types::{contract::legacy::LegacyContractClass, BlockId, FieldElement},
     },
     providers::SequencerGatewayProvider,
     signers::{LocalWallet, SigningKey},
@@ -21,7 +21,11 @@ async fn main() {
     ));
     let address = FieldElement::from_hex_be("YOUR_ACCOUNT_CONTRACT_ADDRESS_IN_HEX_HERE").unwrap();
 
-    let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
+    let mut account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
+
+    // `SingleOwnerAccount` defaults to checking nonce and estimating fees against the latest
+    // block. Optionally change the target block to pending with the following line:
+    account.set_block_id(BlockId::Pending);
 
     let result = account
         .declare_legacy(Arc::new(contract_artifact))
