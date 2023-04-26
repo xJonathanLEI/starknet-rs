@@ -21,7 +21,7 @@ mod execution;
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait Account: Sized {
-    type SignError: Error;
+    type SignError: Error + Send + Sync;
 
     fn address(&self) -> FieldElement;
 

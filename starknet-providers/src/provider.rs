@@ -13,7 +13,7 @@ use std::error::Error;
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[auto_impl(&, Box, Arc)]
 pub trait Provider {
-    type Error: Error + Send;
+    type Error: Error + Send + Sync;
 
     async fn add_transaction(
         &self,

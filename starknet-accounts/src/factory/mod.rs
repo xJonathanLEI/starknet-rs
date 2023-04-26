@@ -43,7 +43,7 @@ const ADDR_BOUND: FieldElement = FieldElement::from_mont([
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait AccountFactory: Sized {
     type Provider: Provider;
-    type SignError: Error;
+    type SignError: Error + Send + Sync;
 
     fn class_hash(&self) -> FieldElement;
 
