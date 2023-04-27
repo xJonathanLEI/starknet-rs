@@ -1603,7 +1603,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-crypto"
-version = "0.4.3"
+version = "0.5.0"
 dependencies = [
  "criterion",
  "crypto-bigint",
@@ -1626,7 +1626,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-crypto-codegen"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "starknet-curve",
  "starknet-ff",
@@ -1635,7 +1635,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-curve"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "starknet-ff",
 ]
@@ -1651,7 +1651,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-ff"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "ark-ff",
  "bigdecimal",
