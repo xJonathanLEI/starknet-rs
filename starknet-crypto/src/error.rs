@@ -24,6 +24,7 @@ mod verify_error {
     /// Errors when performing ECDSA [`verify`](fn.verify) operations
     #[derive(Debug)]
     pub enum VerifyError {
+        InvalidPublicKey,
         InvalidMessageHash,
         InvalidR,
         InvalidS,
@@ -36,6 +37,7 @@ mod verify_error {
         fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
             match self {
                 Self::InvalidMessageHash => write!(f, "Invalid message hash"),
+                Self::InvalidPublicKey => write!(f, "Invalid public key"),
                 Self::InvalidR => write!(f, "Invalid r"),
                 Self::InvalidS => write!(f, "Invalid s"),
             }

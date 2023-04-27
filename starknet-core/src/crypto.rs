@@ -14,6 +14,8 @@ pub enum EcdsaSignError {
 pub enum EcdsaVerifyError {
     #[error("message hash out of range")]
     MessageHashOutOfRange,
+    #[error("invalid public key")]
+    InvalidPublicKey,
     #[error("signature r value out of range")]
     SignatureROutOfRange,
     #[error("signature s value out of range")]
@@ -66,6 +68,7 @@ pub fn ecdsa_verify(
     match verify(public_key, message_hash, &signature.r, &signature.s) {
         Ok(result) => Ok(result),
         Err(VerifyError::InvalidMessageHash) => Err(EcdsaVerifyError::MessageHashOutOfRange),
+        Err(VerifyError::InvalidPublicKey) => Err(EcdsaVerifyError::InvalidPublicKey),
         Err(VerifyError::InvalidR) => Err(EcdsaVerifyError::SignatureROutOfRange),
         Err(VerifyError::InvalidS) => Err(EcdsaVerifyError::SignatureSOutOfRange),
     }
