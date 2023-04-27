@@ -117,14 +117,15 @@ pub fn sign(
     Ok(ExtendedSignature { r, s, v })
 }
 
-/// Verifies if a signature is valid over a message hash given a Stark public key.
+/// Verifies if a signature is valid over a message hash given a public key. Returns an error
+/// instead of `false` if the public key is invalid.
 ///
 /// ### Arguments
 ///
-/// * `stark_key`: The public key
-/// * `msg_hash`: The message hash
-/// * `r_bytes`: The `r` value of the signature
-/// * `s_bytes`: The `s` value of the signature
+/// * `public_key`: The public key
+/// * `message`: The message hash
+/// * `r`: The `r` value of the signature
+/// * `s`: The `s` value of the signature
 pub fn verify(
     public_key: &FieldElement,
     message: &FieldElement,
@@ -141,7 +142,10 @@ pub fn verify(
         return Err(VerifyError::InvalidS);
     }
 
-    let full_public_key = AffinePoint::from_x(*public_key);
+    let full_public_key = match AffinePoint::from_x(*public_key) {
+        Some(value) => value,
+        None => return Err(VerifyError::InvalidPublicKey),
+    };
     let full_public_key = ProjectivePoint::from(&full_public_key);
     let generator = ProjectivePoint::from(&GENERATOR);
 
@@ -188,7 +192,7 @@ pub fn recover(
         return Err(RecoverError::InvalidV);
     }
 
-    let mut full_r = AffinePoint::from_x(*r);
+    let mut full_r = AffinePoint::from_x(*r).ok_or(RecoverError::InvalidR)?;
     if (full_r.y & FieldElement::ONE) != *v {
         full_r.y = -full_r.y;
     }
@@ -279,6 +283,28 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_verify_invalid_public_key() {
+        let stark_key = field_element_from_be_hex(
+            "03ee9bffffffffff26ffffffff60ffffffffffffffffffffffffffff004accff",
+        );
+        let msg_hash = field_element_from_be_hex(
+            "0000000000000000000000000000000000000000000000000000000000000002",
+        );
+        let r_bytes = field_element_from_be_hex(
+            "0411494b501a98abd8262b0da1351e17899a0c4ef23dd2f96fec5ba847310b20",
+        );
+        let s_bytes = field_element_from_be_hex(
+            "0405c3191ab3883ef2b763af35bc5f5d15b3b4e99461d70e84c654a351a7c81b",
+        );
+
+        match verify(&stark_key, &msg_hash, &r_bytes, &s_bytes) {
+            Err(VerifyError::InvalidPublicKey) => {}
+            _ => panic!("unexpected result"),
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_sign() {
         let private_key = field_element_from_be_hex(
             "0000000000000000000000000000000000000000000000000000000000000001",
@@ -313,5 +339,27 @@ mod tests {
         let public_key = recover(&message, &signature.r, &signature.s, &signature.v).unwrap();
 
         assert_eq!(get_public_key(&private_key), public_key);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_recover_invalid_r() {
+        let message = field_element_from_be_hex(
+            "0000000000000000000000000000000000000000000000000000000000000002",
+        );
+        let r = field_element_from_be_hex(
+            "03ee9bffffffffff26ffffffff60ffffffffffffffffffffffffffff004accff",
+        );
+        let s = field_element_from_be_hex(
+            "0405c3191ab3883ef2b763af35bc5f5d15b3b4e99461d70e84c654a351a7c81b",
+        );
+        let v = field_element_from_be_hex(
+            "0000000000000000000000000000000000000000000000000000000000000000",
+        );
+
+        match recover(&message, &r, &s, &v) {
+            Err(RecoverError::InvalidR) => {}
+            _ => panic!("unexpected result"),
+        }
     }
 }

@@ -21,13 +21,13 @@ pub struct ProjectivePoint {
 }
 
 impl AffinePoint {
-    pub fn from_x(x: FieldElement) -> Self {
+    pub fn from_x(x: FieldElement) -> Option<Self> {
         let y_squared = x * x * x + ALPHA * x + BETA;
-        Self {
+        y_squared.sqrt().map(|y| Self {
             x,
-            y: y_squared.sqrt().unwrap(), // TODO: check if calling `unwrap()` here is safe
+            y,
             infinity: false,
-        }
+        })
     }
 
     fn identity() -> AffinePoint {
