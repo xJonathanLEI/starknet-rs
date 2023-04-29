@@ -75,7 +75,7 @@ impl core::fmt::Display for ExtendedSignature {
 ///
 /// * `private_key`: The private key
 pub fn get_public_key(private_key: &FieldElement) -> FieldElement {
-    (&GENERATOR * &private_key.to_bits_le()).x
+    mul_by_bits(&GENERATOR, private_key).x
 }
 
 /// Computes ECDSA signature given a Stark private key and message hash.
@@ -97,7 +97,7 @@ pub fn sign(
         return Err(SignError::InvalidK);
     }
 
-    let full_r = &GENERATOR * &k.to_bits_le();
+    let full_r = mul_by_bits(&GENERATOR, k);
     let r = full_r.x;
     if r == FieldElement::ZERO || r >= ELEMENT_UPPER_BOUND {
         return Err(SignError::InvalidK);
@@ -146,8 +146,6 @@ pub fn verify(
         Some(value) => value,
         None => return Err(VerifyError::InvalidPublicKey),
     };
-    let full_public_key = ProjectivePoint::from(&full_public_key);
-    let generator = ProjectivePoint::from(&GENERATOR);
 
     let w = mod_inverse(s, &EC_ORDER);
     if w == FieldElement::ZERO || w >= ELEMENT_UPPER_BOUND {
@@ -155,12 +153,10 @@ pub fn verify(
     }
 
     let zw = mul_mod_floor(message, &w, &EC_ORDER);
-    let zw_g = &generator * &zw.to_bits_le();
-    let zw_g = AffinePoint::from(&zw_g);
+    let zw_g = mul_by_bits(&GENERATOR, &zw);
 
     let rw = mul_mod_floor(r, &w, &EC_ORDER);
-    let rw_q = &full_public_key * &rw.to_bits_le();
-    let rw_q = AffinePoint::from(&rw_q);
+    let rw_q = mul_by_bits(&full_public_key, &rw);
 
     Ok((&zw_g + &rw_q).x == *r || (&zw_g - &rw_q).x == *r)
 }
@@ -196,17 +192,24 @@ pub fn recover(
     if (full_r.y & FieldElement::ONE) != *v {
         full_r.y = -full_r.y;
     }
-
-    let full_rs = &full_r * &s.to_bits_le();
-    let zg = &GENERATOR * &message.to_bits_le();
+    let full_rs = mul_by_bits(&full_r, s);
+    let zg = mul_by_bits(&GENERATOR, message);
 
     let r_inv = mod_inverse(r, &EC_ORDER);
 
     let rs_zg = &full_rs - &zg;
 
-    let k = &rs_zg * &r_inv.to_bits_le();
+    let k = mul_by_bits(&rs_zg, &r_inv);
 
     Ok(k.x)
+}
+
+#[inline(always)]
+fn mul_by_bits(x: &AffinePoint, y: &FieldElement) -> AffinePoint {
+    let x = ProjectivePoint::from_affine_point(x);
+    let y = y.to_bits_le();
+    let z = &x * &y;
+    AffinePoint::from(&z)
 }
 
 #[cfg(test)]
