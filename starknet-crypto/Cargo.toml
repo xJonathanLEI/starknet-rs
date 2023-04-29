@@ -64,5 +64,9 @@ name = "ecdsa_verify"
 harness = false
 
 [[bench]]
+name = "ecdsa_recover"
+harness = false
+
+[[bench]]
 name = "rfc6979_generate_k"
 harness = false
