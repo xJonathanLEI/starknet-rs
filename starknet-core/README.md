@@ -11,7 +11,7 @@ For instructions on running the benchmarks yourself, check out [this page](../BE
 ### Native
 
 ```log
-class_hash              time:   [19.881 ms 19.946 ms 20.014 ms]
+class_hash              time:   [21.680 ms 21.684 ms 21.688 ms]
 ```
 
 ### WebAssembly
@@ -28,5 +28,5 @@ v18.16.0
 Node.js results:
 
 ```log
-class_hash              time:   [119.99 ms 120.48 ms 121.01 ms]
+class_hash              time:   [124.48 ms 124.58 ms 124.69 ms]
 ```
