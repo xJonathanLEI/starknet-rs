@@ -28,6 +28,7 @@ done
 cd $REPO_ROOT/starknet-crypto
 benches=(
   ecdsa_get_public_key
+  ecdsa_recover
   ecdsa_sign
   ecdsa_verify
   pedersen_hash
