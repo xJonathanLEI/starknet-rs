@@ -424,6 +424,22 @@ impl ops::BitOr<FieldElement> for FieldElement {
     }
 }
 
+impl core::iter::Sum for FieldElement {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        let mut sum = Self::ZERO;
+        iter.for_each(|item| {
+            sum += item;
+        });
+        sum
+    }
+}
+
+impl<'a> core::iter::Sum<&'a FieldElement> for FieldElement {
+    fn sum<I: Iterator<Item = &'a FieldElement>>(iter: I) -> Self {
+        iter.copied().sum()
+    }
+}
+
 impl fmt::Debug for FieldElement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("FieldElement")
@@ -857,6 +873,21 @@ mod tests {
             let rhs: FieldElement = item[1].into();
             assert_eq!(lhs | rhs, (item[0] | item[1]).into());
         }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_iter_sum() {
+        let elements = [FieldElement::ONE, FieldElement::TWO, FieldElement::THREE];
+
+        assert_eq!(
+            elements.iter().sum::<FieldElement>(),
+            FieldElement::from_dec_str("6").unwrap()
+        );
+        assert_eq!(
+            elements.into_iter().sum::<FieldElement>(),
+            FieldElement::from_dec_str("6").unwrap()
+        );
     }
 
     #[test]
