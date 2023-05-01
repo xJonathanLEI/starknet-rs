@@ -1,5 +1,7 @@
 use crate::{
-    jsonrpc::{models::*, JsonRpcClient, JsonRpcClientError, JsonRpcError, JsonRpcTransport},
+    jsonrpc::{
+        models::*, JsonRpcClient, JsonRpcClientError, JsonRpcError, JsonRpcTransport, RpcError,
+    },
     Provider, ProviderError,
 };
 
@@ -68,10 +70,16 @@ where
 
     async fn call_contract(
         &self,
-        _call_function: CallFunction,
-        _block_identifier: BlockId,
+        call_function: CallFunction,
+        block_identifier: BlockId,
     ) -> Result<CallContractResult, ProviderError<Self::Error>> {
-        Err(ProviderError::Other(Self::Error::NotSupported))
+        self.call(
+            <CallFunction as Into<FunctionCall>>::into(call_function),
+            &block_identifier.into(),
+        )
+        .await
+        .map(|result| CallContractResult { result })
+        .map_err(|err| err.into())
     }
 
     async fn estimate_fee(
@@ -182,11 +190,13 @@ where
 
     async fn get_storage_at(
         &self,
-        _contract_address: FieldElement,
-        _key: FieldElement,
-        _block_identifier: BlockId,
+        contract_address: FieldElement,
+        key: FieldElement,
+        block_identifier: BlockId,
     ) -> Result<FieldElement, ProviderError<Self::Error>> {
-        Err(ProviderError::Other(Self::Error::NotSupported))
+        self.get_storage_at(contract_address, key, &block_identifier.into())
+            .await
+            .map_err(|err| err.into())
     }
 
     async fn get_nonce(
@@ -201,9 +211,19 @@ where
 
     async fn get_transaction_status(
         &self,
-        _transaction_hash: FieldElement,
+        transaction_hash: FieldElement,
     ) -> Result<TransactionStatusInfo, ProviderError<Self::Error>> {
-        Err(ProviderError::Other(Self::Error::NotSupported))
+        match self.get_transaction_receipt(transaction_hash).await {
+            Ok(receipt) => Ok(receipt.into()),
+            Err(JsonRpcClientError::RpcError(RpcError::Code(
+                ErrorCode::TransactionHashNotFound,
+            ))) => Ok(TransactionStatusInfo {
+                block_hash: None,
+                status: starknet_core::types::TransactionStatus::NotReceived,
+                transaction_failure_reason: None,
+            }),
+            Err(err) => Err(err.into()),
+        }
     }
 
     async fn get_transaction(
