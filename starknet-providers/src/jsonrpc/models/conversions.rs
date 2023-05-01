@@ -31,6 +31,56 @@ impl From<FeeEstimate> for core::types::FeeEstimate {
     }
 }
 
+impl From<core::types::CallFunction> for FunctionCall {
+    fn from(value: core::types::CallFunction) -> Self {
+        Self {
+            contract_address: value.contract_address,
+            entry_point_selector: value.entry_point_selector,
+            calldata: value.calldata,
+        }
+    }
+}
+
+impl From<TransactionStatus> for core::types::TransactionStatus {
+    fn from(value: TransactionStatus) -> Self {
+        match value {
+            TransactionStatus::Pending => Self::Pending,
+            TransactionStatus::AcceptedOnL2 => Self::AcceptedOnL2,
+            TransactionStatus::AcceptedOnL1 => Self::AcceptedOnL1,
+            TransactionStatus::Rejected => Self::Rejected,
+        }
+    }
+}
+
+impl From<MaybePendingTransactionReceipt> for core::types::TransactionStatusInfo {
+    fn from(value: MaybePendingTransactionReceipt) -> Self {
+        match value {
+            MaybePendingTransactionReceipt::Receipt(receipt) => Self {
+                block_hash: Some(match &receipt {
+                    TransactionReceipt::Invoke(receipt) => receipt.block_hash,
+                    TransactionReceipt::L1Handler(receipt) => receipt.block_hash,
+                    TransactionReceipt::Declare(receipt) => receipt.block_hash,
+                    TransactionReceipt::Deploy(receipt) => receipt.block_hash,
+                    TransactionReceipt::DeployAccount(receipt) => receipt.block_hash,
+                }),
+                status: match receipt {
+                    TransactionReceipt::Invoke(receipt) => receipt.status.into(),
+                    TransactionReceipt::L1Handler(receipt) => receipt.status.into(),
+                    TransactionReceipt::Declare(receipt) => receipt.status.into(),
+                    TransactionReceipt::Deploy(receipt) => receipt.status.into(),
+                    TransactionReceipt::DeployAccount(receipt) => receipt.status.into(),
+                },
+                transaction_failure_reason: None,
+            },
+            MaybePendingTransactionReceipt::PendingReceipt(_) => Self {
+                block_hash: None,
+                status: starknet_core::types::TransactionStatus::Pending,
+                transaction_failure_reason: None,
+            },
+        }
+    }
+}
+
 impl From<core::types::DeclareV1TransactionRequest> for BroadcastedDeclareTransactionV1 {
     fn from(value: core::types::DeclareV1TransactionRequest) -> Self {
         Self {
