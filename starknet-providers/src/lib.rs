@@ -9,3 +9,6 @@ pub use sequencer_gateway::{
 };
 
 pub mod jsonrpc;
+
+mod any;
+pub use any::{AnyProvider, AnyProviderError};
