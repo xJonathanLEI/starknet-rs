@@ -246,6 +246,7 @@ impl From<ErrorCode> for StarknetError {
             ErrorCode::NoBlocks => Self::NoBlocks,
             ErrorCode::InvalidContinuationToken => Self::InvalidContinuationToken,
             ErrorCode::ContractError => Self::ContractError,
+            ErrorCode::InvalidContractClass => Self::InvalidContractClass,
         }
     }
 }
