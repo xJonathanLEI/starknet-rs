@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#9f20b4ec0882c03506862e13c85f74bb34d88a2e
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#3d2872ab5591673b8e9d3ee2c00bcd409e59aa9d
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -416,6 +416,9 @@ pub enum ErrorCode {
     /// Contract error
     #[error("Contract error")]
     ContractError,
+    /// Invalid contract class
+    #[error("Invalid contract class")]
+    InvalidContractClass,
 }
 
 /// A Starknet event.
@@ -462,7 +465,7 @@ pub struct EventFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde_as(as = "Option<UfeHex>")]
     pub address: Option<FieldElement>,
-    /// Filter key values
+    /// The values used to filter the events
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde_as(as = "Option<Vec<UfeHex>>")]
     pub keys: Option<Vec<FieldElement>>,
@@ -956,13 +959,13 @@ impl<'de> Deserialize<'de> for BroadcastedDeclareTransactionV1 {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "DECLARE" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
         if let Some(tag_field) = &tagged.version {
             if tag_field != &1 {
-                return Err(serde::de::Error::custom("Invalid `version` value"));
+                return Err(serde::de::Error::custom("invalid `version` value"));
             }
         }
 
@@ -1040,13 +1043,13 @@ impl<'de> Deserialize<'de> for BroadcastedDeclareTransactionV2 {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "DECLARE" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
         if let Some(tag_field) = &tagged.version {
             if tag_field != &2 {
-                return Err(serde::de::Error::custom("Invalid `version` value"));
+                return Err(serde::de::Error::custom("invalid `version` value"));
             }
         }
 
@@ -1126,7 +1129,7 @@ impl<'de> Deserialize<'de> for BroadcastedDeployAccountTransaction {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "DEPLOY_ACCOUNT" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
@@ -1190,7 +1193,7 @@ impl<'de> Deserialize<'de> for BroadcastedDeployTransaction {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "DEPLOY" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
@@ -1269,13 +1272,13 @@ impl<'de> Deserialize<'de> for BroadcastedInvokeTransactionV0 {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "INVOKE" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
         if let Some(tag_field) = &tagged.version {
             if tag_field != &0 {
-                return Err(serde::de::Error::custom("Invalid `version` value"));
+                return Err(serde::de::Error::custom("invalid `version` value"));
             }
         }
 
@@ -1351,13 +1354,13 @@ impl<'de> Deserialize<'de> for BroadcastedInvokeTransactionV1 {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "INVOKE" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
         if let Some(tag_field) = &tagged.version {
             if tag_field != &1 {
-                return Err(serde::de::Error::custom("Invalid `version` value"));
+                return Err(serde::de::Error::custom("invalid `version` value"));
             }
         }
 
@@ -1428,7 +1431,7 @@ impl<'de> Deserialize<'de> for DeclareTransactionReceipt {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "DECLARE" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
@@ -1510,13 +1513,13 @@ impl<'de> Deserialize<'de> for DeclareTransactionV1 {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "DECLARE" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
         if let Some(tag_field) = &tagged.version {
             if tag_field != &1 {
-                return Err(serde::de::Error::custom("Invalid `version` value"));
+                return Err(serde::de::Error::custom("invalid `version` value"));
             }
         }
 
@@ -1602,13 +1605,13 @@ impl<'de> Deserialize<'de> for DeclareTransactionV2 {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "DECLARE" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
         if let Some(tag_field) = &tagged.version {
             if tag_field != &2 {
-                return Err(serde::de::Error::custom("Invalid `version` value"));
+                return Err(serde::de::Error::custom("invalid `version` value"));
             }
         }
 
@@ -1694,7 +1697,7 @@ impl<'de> Deserialize<'de> for DeployAccountTransaction {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "DEPLOY_ACCOUNT" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
@@ -1773,7 +1776,7 @@ impl<'de> Deserialize<'de> for DeployAccountTransactionReceipt {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "DEPLOY_ACCOUNT" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
@@ -1845,7 +1848,7 @@ impl<'de> Deserialize<'de> for DeployTransaction {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "DEPLOY" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
@@ -1921,7 +1924,7 @@ impl<'de> Deserialize<'de> for DeployTransactionReceipt {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "DEPLOY" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
@@ -1995,7 +1998,7 @@ impl<'de> Deserialize<'de> for InvokeTransactionReceipt {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "INVOKE" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
@@ -2082,13 +2085,13 @@ impl<'de> Deserialize<'de> for InvokeTransactionV0 {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "INVOKE" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
         if let Some(tag_field) = &tagged.version {
             if tag_field != &0 {
-                return Err(serde::de::Error::custom("Invalid `version` value"));
+                return Err(serde::de::Error::custom("invalid `version` value"));
             }
         }
 
@@ -2170,13 +2173,13 @@ impl<'de> Deserialize<'de> for InvokeTransactionV1 {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "INVOKE" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
         if let Some(tag_field) = &tagged.version {
             if tag_field != &1 {
-                return Err(serde::de::Error::custom("Invalid `version` value"));
+                return Err(serde::de::Error::custom("invalid `version` value"));
             }
         }
 
@@ -2251,7 +2254,7 @@ impl<'de> Deserialize<'de> for L1HandlerTransaction {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "L1_HANDLER" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
@@ -2323,7 +2326,7 @@ impl<'de> Deserialize<'de> for L1HandlerTransactionReceipt {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "L1_HANDLER" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
@@ -2385,7 +2388,7 @@ impl<'de> Deserialize<'de> for PendingDeclareTransactionReceipt {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "DECLARE" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
@@ -2444,7 +2447,7 @@ impl<'de> Deserialize<'de> for PendingDeployAccountTransactionReceipt {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "DEPLOY_ACCOUNT" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
@@ -2508,7 +2511,7 @@ impl<'de> Deserialize<'de> for PendingDeployTransactionReceipt {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "DEPLOY" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
@@ -2568,7 +2571,7 @@ impl<'de> Deserialize<'de> for PendingInvokeTransactionReceipt {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "INVOKE" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
@@ -2627,7 +2630,7 @@ impl<'de> Deserialize<'de> for PendingL1HandlerTransactionReceipt {
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "L1_HANDLER" {
-                return Err(serde::de::Error::custom("Invalid `type` value"));
+                return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
