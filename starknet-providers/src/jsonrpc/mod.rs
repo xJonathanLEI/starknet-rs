@@ -23,7 +23,7 @@ pub struct JsonRpcClient<T> {
     transport: T,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum JsonRpcMethod {
     #[serde(rename = "starknet_getBlockWithTxHashes")]
     GetBlockWithTxHashes,
@@ -75,6 +75,40 @@ pub enum JsonRpcMethod {
     AddDeployAccountTransaction,
 }
 
+#[derive(Debug, Clone)]
+pub struct JsonRpcRequest {
+    pub id: u64,
+    pub data: JsonRpcRequestData,
+}
+
+#[derive(Debug, Clone)]
+pub enum JsonRpcRequestData {
+    GetBlockWithTxHashes(GetBlockWithTxHashesRequest),
+    GetBlockWithTxs(GetBlockWithTxsRequest),
+    GetStateUpdate(GetStateUpdateRequest),
+    GetStorageAt(GetStorageAtRequest),
+    GetTransactionByHash(GetTransactionByHashRequest),
+    GetTransactionByBlockIdAndIndex(GetTransactionByBlockIdAndIndexRequest),
+    GetTransactionReceipt(GetTransactionReceiptRequest),
+    GetClass(GetClassRequest),
+    GetClassHashAt(GetClassHashAtRequest),
+    GetClassAt(GetClassAtRequest),
+    GetBlockTransactionCount(GetBlockTransactionCountRequest),
+    Call(CallRequest),
+    EstimateFee(EstimateFeeRequest),
+    BlockNumber(BlockNumberRequest),
+    BlockHashAndNumber(BlockHashAndNumberRequest),
+    ChainId(ChainIdRequest),
+    PendingTransactions(PendingTransactionsRequest),
+    Syncing(SyncingRequest),
+    GetEvents(GetEventsRequest),
+    GetNonce(GetNonceRequest),
+    AddInvokeTransaction(AddInvokeTransactionRequest),
+    AddDeclareTransaction(AddDeclareTransactionRequest),
+    AddDeployTransaction(AddDeployTransactionRequest),
+    AddDeployAccountTransaction(AddDeployAccountTransactionRequest),
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum JsonRpcClientError<T> {
     #[error(transparent)]
@@ -105,14 +139,6 @@ pub struct JsonRpcError {
 pub enum JsonRpcResponse<T> {
     Success { id: u64, result: T },
     Error { id: u64, error: JsonRpcError },
-}
-
-#[derive(Debug, Serialize)]
-struct JsonRpcRequest<T> {
-    id: u64,
-    jsonrpc: &'static str,
-    method: JsonRpcMethod,
-    params: T,
 }
 
 #[serde_as]
@@ -557,6 +583,137 @@ where
                 }))
             }
         }
+    }
+}
+
+impl<'de> Deserialize<'de> for JsonRpcRequest {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct RawRequest {
+            id: u64,
+            method: JsonRpcMethod,
+            params: serde_json::Value,
+        }
+
+        let error_mapper =
+            |err| serde::de::Error::custom(format!("unable to decode params: {}", err));
+
+        let raw_request = RawRequest::deserialize(deserializer)?;
+        let request_data = match raw_request.method {
+            JsonRpcMethod::GetBlockWithTxHashes => JsonRpcRequestData::GetBlockWithTxHashes(
+                serde_json::from_value::<GetBlockWithTxHashesRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::GetBlockWithTxs => JsonRpcRequestData::GetBlockWithTxs(
+                serde_json::from_value::<GetBlockWithTxsRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::GetStateUpdate => JsonRpcRequestData::GetStateUpdate(
+                serde_json::from_value::<GetStateUpdateRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::GetStorageAt => JsonRpcRequestData::GetStorageAt(
+                serde_json::from_value::<GetStorageAtRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::GetTransactionByHash => JsonRpcRequestData::GetTransactionByHash(
+                serde_json::from_value::<GetTransactionByHashRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::GetTransactionByBlockIdAndIndex => {
+                JsonRpcRequestData::GetTransactionByBlockIdAndIndex(
+                    serde_json::from_value::<GetTransactionByBlockIdAndIndexRequest>(
+                        raw_request.params,
+                    )
+                    .map_err(error_mapper)?,
+                )
+            }
+            JsonRpcMethod::GetTransactionReceipt => JsonRpcRequestData::GetTransactionReceipt(
+                serde_json::from_value::<GetTransactionReceiptRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::GetClass => JsonRpcRequestData::GetClass(
+                serde_json::from_value::<GetClassRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::GetClassHashAt => JsonRpcRequestData::GetClassHashAt(
+                serde_json::from_value::<GetClassHashAtRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::GetClassAt => JsonRpcRequestData::GetClassAt(
+                serde_json::from_value::<GetClassAtRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::GetBlockTransactionCount => {
+                JsonRpcRequestData::GetBlockTransactionCount(
+                    serde_json::from_value::<GetBlockTransactionCountRequest>(raw_request.params)
+                        .map_err(error_mapper)?,
+                )
+            }
+            JsonRpcMethod::Call => JsonRpcRequestData::Call(
+                serde_json::from_value::<CallRequest>(raw_request.params).map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::EstimateFee => JsonRpcRequestData::EstimateFee(
+                serde_json::from_value::<EstimateFeeRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::BlockNumber => JsonRpcRequestData::BlockNumber(
+                serde_json::from_value::<BlockNumberRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::BlockHashAndNumber => JsonRpcRequestData::BlockHashAndNumber(
+                serde_json::from_value::<BlockHashAndNumberRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::ChainId => JsonRpcRequestData::ChainId(
+                serde_json::from_value::<ChainIdRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::PendingTransactions => JsonRpcRequestData::PendingTransactions(
+                serde_json::from_value::<PendingTransactionsRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::Syncing => JsonRpcRequestData::Syncing(
+                serde_json::from_value::<SyncingRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::GetEvents => JsonRpcRequestData::GetEvents(
+                serde_json::from_value::<GetEventsRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::GetNonce => JsonRpcRequestData::GetNonce(
+                serde_json::from_value::<GetNonceRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::AddInvokeTransaction => JsonRpcRequestData::AddInvokeTransaction(
+                serde_json::from_value::<AddInvokeTransactionRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::AddDeclareTransaction => JsonRpcRequestData::AddDeclareTransaction(
+                serde_json::from_value::<AddDeclareTransactionRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::AddDeployTransaction => JsonRpcRequestData::AddDeployTransaction(
+                serde_json::from_value::<AddDeployTransactionRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::AddDeployAccountTransaction => {
+                JsonRpcRequestData::AddDeployAccountTransaction(
+                    serde_json::from_value::<AddDeployAccountTransactionRequest>(
+                        raw_request.params,
+                    )
+                    .map_err(error_mapper)?,
+                )
+            }
+        };
+
+        Ok(Self {
+            id: raw_request.id,
+            data: request_data,
+        })
     }
 }
 

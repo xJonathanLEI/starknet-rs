@@ -96,6 +96,8 @@ Examples can be found in the [examples folder](./examples):
 
 8. [Deploy an Argent X account to a pre-funded address](./examples/deploy_argent_account.rs)
 
+9. [Parsing a JSON-RPC request on the server side](./examples/parse_jsonrpc_request.rs)
+
 ## License
 
 Licensed under either of
