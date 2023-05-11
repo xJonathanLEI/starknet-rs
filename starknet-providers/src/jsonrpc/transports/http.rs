@@ -2,14 +2,20 @@ use async_trait::async_trait;
 use reqwest::{Client, Url};
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::jsonrpc::{
-    transports::JsonRpcTransport, JsonRpcMethod, JsonRpcRequest, JsonRpcResponse,
-};
+use crate::jsonrpc::{transports::JsonRpcTransport, JsonRpcMethod, JsonRpcResponse};
 
 #[derive(Debug)]
 pub struct HttpTransport {
     client: Client,
     url: Url,
+}
+
+#[derive(Debug, Serialize)]
+struct JsonRpcRequest<T> {
+    id: u64,
+    jsonrpc: &'static str,
+    method: JsonRpcMethod,
+    params: T,
 }
 
 impl HttpTransport {
