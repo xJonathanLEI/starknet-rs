@@ -149,7 +149,6 @@ mod enum_ser_impls {
             match self {
                 Self::Invoke(variant) => variant.serialize(serializer),
                 Self::Declare(variant) => variant.serialize(serializer),
-                Self::Deploy(variant) => variant.serialize(serializer),
                 Self::DeployAccount(variant) => variant.serialize(serializer),
             }
         }

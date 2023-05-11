@@ -105,13 +105,22 @@ where
         let tx: BroadcastedTransaction = tx
             .try_into()
             .map_err(|_| ProviderError::Other(Self::Error::NotSupported))?;
-        self.estimate_fee(
-            tx,
-            <BlockId as Into<super::models::BlockId>>::into(block_identifier),
-        )
-        .await
-        .map(|est| est.into())
-        .map_err(|err| err.into())
+        match self
+            .estimate_fee(
+                [tx],
+                <BlockId as Into<super::models::BlockId>>::into(block_identifier),
+            )
+            .await
+        {
+            Ok(mut est) => {
+                if est.len() == 1 {
+                    Ok(est.remove(0).into())
+                } else {
+                    Err(ProviderError::Other(Self::Error::ConversionError))
+                }
+            }
+            Err(err) => Err(err.into()),
+        }
     }
 
     async fn estimate_fee_bulk(

@@ -69,8 +69,6 @@ pub enum JsonRpcMethod {
     AddInvokeTransaction,
     #[serde(rename = "starknet_addDeclareTransaction")]
     AddDeclareTransaction,
-    #[serde(rename = "starknet_addDeployTransaction")]
-    AddDeployTransaction,
     #[serde(rename = "starknet_addDeployAccountTransaction")]
     AddDeployAccountTransaction,
 }
@@ -105,7 +103,6 @@ pub enum JsonRpcRequestData {
     GetNonce(GetNonceRequest),
     AddInvokeTransaction(AddInvokeTransactionRequest),
     AddDeclareTransaction(AddDeclareTransactionRequest),
-    AddDeployTransaction(AddDeployTransactionRequest),
     AddDeployAccountTransaction(AddDeployAccountTransactionRequest),
 }
 
@@ -394,9 +391,9 @@ where
         &self,
         request: R,
         block_id: B,
-    ) -> Result<FeeEstimate, JsonRpcClientError<T::Error>>
+    ) -> Result<Vec<FeeEstimate>, JsonRpcClientError<T::Error>>
     where
-        R: AsRef<BroadcastedTransaction>,
+        R: AsRef<[BroadcastedTransaction]>,
         B: AsRef<BlockId>,
     {
         self.send_request(
@@ -521,23 +518,6 @@ where
             JsonRpcMethod::AddDeclareTransaction,
             AddDeclareTransactionRequestRef {
                 declare_transaction: declare_transaction.as_ref(),
-            },
-        )
-        .await
-    }
-
-    /// Submit a new deploy contract transaction
-    pub async fn add_deploy_transaction<D>(
-        &self,
-        deploy_transaction: D,
-    ) -> Result<DeployTransactionResult, JsonRpcClientError<T::Error>>
-    where
-        D: AsRef<BroadcastedDeployTransaction>,
-    {
-        self.send_request(
-            JsonRpcMethod::AddDeployTransaction,
-            AddDeployTransactionRequestRef {
-                deploy_transaction: deploy_transaction.as_ref(),
             },
         )
         .await
@@ -696,10 +676,6 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
                 serde_json::from_value::<AddDeclareTransactionRequest>(raw_request.params)
                     .map_err(error_mapper)?,
             ),
-            JsonRpcMethod::AddDeployTransaction => JsonRpcRequestData::AddDeployTransaction(
-                serde_json::from_value::<AddDeployTransactionRequest>(raw_request.params)
-                    .map_err(error_mapper)?,
-            ),
             JsonRpcMethod::AddDeployAccountTransaction => {
                 JsonRpcRequestData::AddDeployAccountTransaction(
                     serde_json::from_value::<AddDeployAccountTransactionRequest>(
@@ -730,8 +706,6 @@ impl TryFrom<i64> for ErrorCode {
         Ok(match value {
             1 => ErrorCode::FailedToReceiveTransaction,
             20 => ErrorCode::ContractNotFound,
-            21 => ErrorCode::InvalidMessageSelector,
-            22 => ErrorCode::InvalidCallData,
             24 => ErrorCode::BlockNotFound,
             25 => ErrorCode::TransactionHashNotFound,
             27 => ErrorCode::InvalidTransactionIndex,
@@ -739,8 +713,10 @@ impl TryFrom<i64> for ErrorCode {
             31 => ErrorCode::PageSizeTooBig,
             32 => ErrorCode::NoBlocks,
             33 => ErrorCode::InvalidContinuationToken,
+            34 => ErrorCode::TooManyKeysInFilter,
             40 => ErrorCode::ContractError,
             50 => ErrorCode::InvalidContractClass,
+            51 => ErrorCode::ClassAlreadyDeclared,
             _ => return Err(()),
         })
     }

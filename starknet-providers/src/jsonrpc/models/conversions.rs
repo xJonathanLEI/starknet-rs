@@ -274,7 +274,7 @@ impl From<core::types::contract::EntrypointList<core::types::contract::SierraCla
     }
 }
 
-impl From<core::types::contract::SierraClassEntrypoint> for ContractEntryPoint {
+impl From<core::types::contract::SierraClassEntrypoint> for SierraEntryPoint {
     fn from(value: core::types::contract::SierraClassEntrypoint) -> Self {
         Self {
             function_idx: value.function_idx,
@@ -283,15 +283,15 @@ impl From<core::types::contract::SierraClassEntrypoint> for ContractEntryPoint {
     }
 }
 
-impl From<LegacyContractClass> for ContractClass {
-    fn from(value: LegacyContractClass) -> Self {
+impl From<DeprecatedContractClass> for ContractClass {
+    fn from(value: DeprecatedContractClass) -> Self {
         Self::Legacy(value)
     }
 }
 
-impl From<legacy_contract::CompressedLegacyContractClass> for LegacyContractClass {
+impl From<legacy_contract::CompressedLegacyContractClass> for DeprecatedContractClass {
     fn from(value: legacy_contract::CompressedLegacyContractClass) -> Self {
-        LegacyContractClass {
+        DeprecatedContractClass {
             program: value.program,
             entry_points_by_type: value.entry_points_by_type.into(),
             abi: value
@@ -301,7 +301,7 @@ impl From<legacy_contract::CompressedLegacyContractClass> for LegacyContractClas
     }
 }
 
-impl From<legacy_contract::LegacyEntryPoints> for LegacyEntryPointsByType {
+impl From<legacy_contract::LegacyEntryPoints> for DeprecatedEntryPointsByType {
     fn from(value: legacy_contract::LegacyEntryPoints) -> Self {
         Self {
             constructor: value
@@ -319,7 +319,7 @@ impl From<legacy_contract::LegacyEntryPoints> for LegacyEntryPointsByType {
     }
 }
 
-impl From<legacy_contract::LegacyEntryPoint> for LegacyContractEntryPoint {
+impl From<legacy_contract::LegacyEntryPoint> for DeprecatedCairoEntryPoint {
     fn from(value: legacy_contract::LegacyEntryPoint) -> Self {
         Self {
             offset: value.offset.into(),

@@ -4,10 +4,6 @@ pub enum Error {
     FailedToReceiveTxn,
     #[error("Contract not found")]
     ContractNotFound,
-    #[error("Invalid message selector")]
-    InvalidMessageSelector,
-    #[error("Invalid call data")]
-    InvalidCallData,
     #[error("Block not found")]
     BlockNotFound,
     #[error("Transaction hash not found")]
@@ -22,8 +18,12 @@ pub enum Error {
     NoBlocks,
     #[error("The supplied continuation token is invalid or unknown")]
     InvalidContinuationToken,
+    #[error("Too many keys provided in a filter")]
+    TooManyKeysInFilter,
     #[error("Contract error")]
     ContractError,
     #[error("Invalid contract class")]
     InvalidContractClass,
+    #[error("Class already declared")]
+    ClassAlreadyDeclared,
 }

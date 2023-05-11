@@ -9,8 +9,7 @@ use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     JsonRpcClient::new(HttpTransport::new(
-        Url::parse("https://starknet-goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161")
-            .unwrap(),
+        Url::parse("https://rpc-goerli-1.starknet.rs/rpc/v0.3").unwrap(),
     ))
 }
 
@@ -279,8 +278,8 @@ async fn jsonrpc_estimate_fee() {
 
     let estimate = rpc_client
         .estimate_fee(
-            &BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction::V1(
-                BroadcastedInvokeTransactionV1 {
+            [BroadcastedTransaction::Invoke(
+                BroadcastedInvokeTransaction::V1(BroadcastedInvokeTransactionV1 {
                     max_fee: FieldElement::ZERO,
                     signature: vec![
                         FieldElement::from_hex_be(
@@ -317,16 +316,16 @@ async fn jsonrpc_estimate_fee() {
                         FieldElement::from_hex_be("3635c9adc5dea00000").unwrap(),
                         FieldElement::from_hex_be("0").unwrap(),
                     ],
-                },
-            )),
+                }),
+            )],
             &BlockId::Tag(BlockTag::Latest),
         )
         .await
         .unwrap();
 
-    assert!(estimate.gas_consumed > 0);
-    assert!(estimate.gas_price > 0);
-    assert!(estimate.overall_fee > 0);
+    assert!(estimate[0].gas_consumed > 0);
+    assert!(estimate[0].gas_price > 0);
+    assert!(estimate[0].overall_fee > 0);
 }
 
 #[tokio::test]

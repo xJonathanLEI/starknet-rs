@@ -114,7 +114,7 @@ pub enum BlockId {
 #[serde(untagged)]
 pub enum ContractClass {
     Sierra(SierraContractClass),
-    Legacy(LegacyContractClass),
+    Legacy(DeprecatedContractClass),
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -139,8 +139,6 @@ pub enum BroadcastedTransaction {
     Invoke(BroadcastedInvokeTransaction),
     #[serde(rename = "DECLARE")]
     Declare(BroadcastedDeclareTransaction),
-    #[serde(rename = "DEPLOY")]
-    Deploy(BroadcastedDeployTransaction),
     #[serde(rename = "DEPLOY_ACCOUNT")]
     DeployAccount(BroadcastedDeployAccountTransaction),
 }
@@ -249,12 +247,6 @@ impl AsRef<BroadcastedDeclareTransaction> for BroadcastedDeclareTransaction {
     }
 }
 
-impl AsRef<BroadcastedDeployTransaction> for BroadcastedDeployTransaction {
-    fn as_ref(&self) -> &BroadcastedDeployTransaction {
-        self
-    }
-}
-
 impl AsRef<BroadcastedDeployAccountTransaction> for BroadcastedDeployAccountTransaction {
     fn as_ref(&self) -> &BroadcastedDeployAccountTransaction {
         self
@@ -266,8 +258,6 @@ impl From<ErrorCode> for StarknetError {
         match value {
             ErrorCode::FailedToReceiveTransaction => Self::FailedToReceiveTxn,
             ErrorCode::ContractNotFound => Self::ContractNotFound,
-            ErrorCode::InvalidMessageSelector => Self::InvalidMessageSelector,
-            ErrorCode::InvalidCallData => Self::InvalidCallData,
             ErrorCode::BlockNotFound => Self::BlockNotFound,
             ErrorCode::TransactionHashNotFound => Self::TxnHashNotFound,
             ErrorCode::InvalidTransactionIndex => Self::InvalidTxnIndex,
@@ -275,8 +265,10 @@ impl From<ErrorCode> for StarknetError {
             ErrorCode::PageSizeTooBig => Self::PageSizeTooBig,
             ErrorCode::NoBlocks => Self::NoBlocks,
             ErrorCode::InvalidContinuationToken => Self::InvalidContinuationToken,
+            ErrorCode::TooManyKeysInFilter => Self::TooManyKeysInFilter,
             ErrorCode::ContractError => Self::ContractError,
             ErrorCode::InvalidContractClass => Self::InvalidContractClass,
+            ErrorCode::ClassAlreadyDeclared => Self::ClassAlreadyDeclared,
         }
     }
 }
