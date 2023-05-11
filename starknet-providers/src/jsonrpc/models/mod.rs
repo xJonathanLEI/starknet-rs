@@ -103,7 +103,7 @@ pub struct DeployAccountTransactionResult {
 }
 
 /// Block hash, number or tag
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BlockId {
     Hash(FieldElement),
     Number(u64),
@@ -219,6 +219,12 @@ pub enum ContractAbiEntry {
     Struct(StructAbiEntry),
 }
 
+impl AsRef<BlockId> for BlockId {
+    fn as_ref(&self) -> &BlockId {
+        self
+    }
+}
+
 impl AsRef<FunctionCall> for FunctionCall {
     fn as_ref(&self) -> &FunctionCall {
         self
@@ -227,6 +233,30 @@ impl AsRef<FunctionCall> for FunctionCall {
 
 impl AsRef<BroadcastedTransaction> for BroadcastedTransaction {
     fn as_ref(&self) -> &BroadcastedTransaction {
+        self
+    }
+}
+
+impl AsRef<BroadcastedInvokeTransaction> for BroadcastedInvokeTransaction {
+    fn as_ref(&self) -> &BroadcastedInvokeTransaction {
+        self
+    }
+}
+
+impl AsRef<BroadcastedDeclareTransaction> for BroadcastedDeclareTransaction {
+    fn as_ref(&self) -> &BroadcastedDeclareTransaction {
+        self
+    }
+}
+
+impl AsRef<BroadcastedDeployTransaction> for BroadcastedDeployTransaction {
+    fn as_ref(&self) -> &BroadcastedDeployTransaction {
+        self
+    }
+}
+
+impl AsRef<BroadcastedDeployAccountTransaction> for BroadcastedDeployAccountTransaction {
+    fn as_ref(&self) -> &BroadcastedDeployAccountTransaction {
         self
     }
 }

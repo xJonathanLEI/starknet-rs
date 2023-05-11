@@ -43,19 +43,29 @@ where
         match tx {
             TransactionRequest::Declare(tx) => self
                 .add_declare_transaction(
-                    &tx.try_into()
-                        .map_err(|_| ProviderError::Other(Self::Error::ConversionError))?,
+                    &<starknet_core::types::DeclareTransactionRequest as TryInto<
+                        BroadcastedDeclareTransaction,
+                    >>::try_into(tx)
+                    .map_err(|_| ProviderError::Other(Self::Error::ConversionError))?,
                 )
                 .await
                 .map(|result| result.into())
                 .map_err(|err| err.into()),
             TransactionRequest::InvokeFunction(tx) => self
-                .add_invoke_transaction(&tx.into())
+                .add_invoke_transaction(
+                    &<starknet_core::types::InvokeFunctionTransactionRequest as Into<
+                        BroadcastedInvokeTransaction,
+                    >>::into(tx),
+                )
                 .await
                 .map(|result| result.into())
                 .map_err(|err| err.into()),
             TransactionRequest::DeployAccount(tx) => self
-                .add_deploy_account_transaction(&tx.into())
+                .add_deploy_account_transaction(
+                    &<starknet_core::types::DeployAccountTransactionRequest as Into<
+                        BroadcastedDeployAccountTransaction,
+                    >>::into(tx),
+                )
                 .await
                 .map(|result| result.into())
                 .map_err(|err| err.into()),
@@ -75,7 +85,7 @@ where
     ) -> Result<CallContractResult, ProviderError<Self::Error>> {
         self.call(
             <CallFunction as Into<FunctionCall>>::into(call_function),
-            &block_identifier.into(),
+            <BlockId as Into<super::models::BlockId>>::into(block_identifier),
         )
         .await
         .map(|result| CallContractResult { result })
@@ -95,10 +105,13 @@ where
         let tx: BroadcastedTransaction = tx
             .try_into()
             .map_err(|_| ProviderError::Other(Self::Error::NotSupported))?;
-        self.estimate_fee(tx, &block_identifier.into())
-            .await
-            .map(|est| est.into())
-            .map_err(|err| err.into())
+        self.estimate_fee(
+            tx,
+            <BlockId as Into<super::models::BlockId>>::into(block_identifier),
+        )
+        .await
+        .map(|est| est.into())
+        .map_err(|err| err.into())
     }
 
     async fn estimate_fee_bulk(
@@ -194,9 +207,13 @@ where
         key: FieldElement,
         block_identifier: BlockId,
     ) -> Result<FieldElement, ProviderError<Self::Error>> {
-        self.get_storage_at(contract_address, key, &block_identifier.into())
-            .await
-            .map_err(|err| err.into())
+        self.get_storage_at(
+            contract_address,
+            key,
+            <BlockId as Into<super::models::BlockId>>::into(block_identifier),
+        )
+        .await
+        .map_err(|err| err.into())
     }
 
     async fn get_nonce(
@@ -204,9 +221,12 @@ where
         contract_address: FieldElement,
         block_identifier: BlockId,
     ) -> Result<FieldElement, ProviderError<Self::Error>> {
-        self.get_nonce(&block_identifier.into(), contract_address)
-            .await
-            .map_err(|err| err.into())
+        self.get_nonce(
+            <BlockId as Into<super::models::BlockId>>::into(block_identifier),
+            contract_address,
+        )
+        .await
+        .map_err(|err| err.into())
     }
 
     async fn get_transaction_status(
