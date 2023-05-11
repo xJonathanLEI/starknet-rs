@@ -740,6 +740,7 @@ impl TryFrom<i64> for ErrorCode {
             32 => ErrorCode::NoBlocks,
             33 => ErrorCode::InvalidContinuationToken,
             40 => ErrorCode::ContractError,
+            50 => ErrorCode::InvalidContractClass,
             _ => return Err(()),
         })
     }
