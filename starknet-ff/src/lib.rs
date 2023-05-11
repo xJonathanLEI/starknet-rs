@@ -312,6 +312,12 @@ impl Default for FieldElement {
     }
 }
 
+impl AsRef<FieldElement> for FieldElement {
+    fn as_ref(&self) -> &FieldElement {
+        self
+    }
+}
+
 impl ops::Add<FieldElement> for FieldElement {
     type Output = FieldElement;
 
