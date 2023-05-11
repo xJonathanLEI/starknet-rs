@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#d83f1719df5d79e9cbcf10816a734504679dd937
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#de2580793fb09d4c417996e11fe19adb07eae442
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -1208,8 +1208,8 @@ impl Serialize for BroadcastedDeclareTransactionV1 {
             pub max_fee: &'a FieldElement,
             #[serde_as(as = "NumAsHex")]
             pub version: &'a u64,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub signature: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
             pub nonce: &'a FieldElement,
             pub contract_class: &'a LegacyContractClass,
@@ -1287,8 +1287,8 @@ impl Serialize for BroadcastedDeclareTransactionV2 {
             pub max_fee: &'a FieldElement,
             #[serde_as(as = "NumAsHex")]
             pub version: &'a u64,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub signature: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
             pub nonce: &'a FieldElement,
             pub contract_class: &'a SierraContractClass,
@@ -1372,14 +1372,14 @@ impl Serialize for BroadcastedDeployAccountTransaction {
             pub max_fee: &'a FieldElement,
             #[serde_as(as = "NumAsHex")]
             pub version: &'a u64,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub signature: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
             pub nonce: &'a FieldElement,
             #[serde_as(as = "UfeHex")]
             pub contract_address_salt: &'a FieldElement,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub constructor_calldata: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub constructor_calldata: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
             pub class_hash: &'a FieldElement,
         }
@@ -1454,8 +1454,8 @@ impl Serialize for BroadcastedDeployTransaction {
             pub r#type: &'a str,
             #[serde_as(as = "UfeHex")]
             pub contract_address_salt: &'a FieldElement,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub constructor_calldata: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub constructor_calldata: &'a [FieldElement],
         }
 
         let tagged = Tagged {
@@ -1514,16 +1514,16 @@ impl Serialize for BroadcastedInvokeTransactionV0 {
             pub max_fee: &'a FieldElement,
             #[serde_as(as = "NumAsHex")]
             pub version: &'a u64,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub signature: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
             pub nonce: &'a FieldElement,
             #[serde_as(as = "UfeHex")]
             pub contract_address: &'a FieldElement,
             #[serde_as(as = "UfeHex")]
             pub entry_point_selector: &'a FieldElement,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub calldata: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub calldata: &'a [FieldElement],
         }
 
         let tagged = Tagged {
@@ -1601,14 +1601,14 @@ impl Serialize for BroadcastedInvokeTransactionV1 {
             pub max_fee: &'a FieldElement,
             #[serde_as(as = "NumAsHex")]
             pub version: &'a u64,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub signature: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
             pub nonce: &'a FieldElement,
             #[serde_as(as = "UfeHex")]
             pub sender_address: &'a FieldElement,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub calldata: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub calldata: &'a [FieldElement],
         }
 
         let tagged = Tagged {
@@ -1686,8 +1686,8 @@ impl Serialize for DeclareTransactionReceipt {
             pub block_hash: &'a FieldElement,
             pub block_number: &'a u64,
             pub r#type: &'a str,
-            pub messages_sent: &'a Vec<MsgToL1>,
-            pub events: &'a Vec<Event>,
+            pub messages_sent: &'a [MsgToL1],
+            pub events: &'a [Event],
         }
 
         let tagged = Tagged {
@@ -1757,8 +1757,8 @@ impl Serialize for DeclareTransactionV1 {
             pub max_fee: &'a FieldElement,
             #[serde_as(as = "NumAsHex")]
             pub version: &'a u64,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub signature: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
             pub nonce: &'a FieldElement,
             #[serde_as(as = "UfeHex")]
@@ -1844,8 +1844,8 @@ impl Serialize for DeclareTransactionV2 {
             pub max_fee: &'a FieldElement,
             #[serde_as(as = "NumAsHex")]
             pub version: &'a u64,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub signature: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
             pub nonce: &'a FieldElement,
             #[serde_as(as = "UfeHex")]
@@ -1937,14 +1937,14 @@ impl Serialize for DeployAccountTransaction {
             pub max_fee: &'a FieldElement,
             #[serde_as(as = "NumAsHex")]
             pub version: &'a u64,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub signature: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
             pub nonce: &'a FieldElement,
             #[serde_as(as = "UfeHex")]
             pub contract_address_salt: &'a FieldElement,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub constructor_calldata: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub constructor_calldata: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
             pub class_hash: &'a FieldElement,
         }
@@ -2026,8 +2026,8 @@ impl Serialize for DeployAccountTransactionReceipt {
             pub block_hash: &'a FieldElement,
             pub block_number: &'a u64,
             pub r#type: &'a str,
-            pub messages_sent: &'a Vec<MsgToL1>,
-            pub events: &'a Vec<Event>,
+            pub messages_sent: &'a [MsgToL1],
+            pub events: &'a [Event],
             #[serde_as(as = "UfeHex")]
             pub contract_address: &'a FieldElement,
         }
@@ -2105,8 +2105,8 @@ impl Serialize for DeployTransaction {
             pub r#type: &'a str,
             #[serde_as(as = "UfeHex")]
             pub contract_address_salt: &'a FieldElement,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub constructor_calldata: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub constructor_calldata: &'a [FieldElement],
         }
 
         let tagged = Tagged {
@@ -2174,8 +2174,8 @@ impl Serialize for DeployTransactionReceipt {
             pub block_hash: &'a FieldElement,
             pub block_number: &'a u64,
             pub r#type: &'a str,
-            pub messages_sent: &'a Vec<MsgToL1>,
-            pub events: &'a Vec<Event>,
+            pub messages_sent: &'a [MsgToL1],
+            pub events: &'a [Event],
             #[serde_as(as = "UfeHex")]
             pub contract_address: &'a FieldElement,
         }
@@ -2253,8 +2253,8 @@ impl Serialize for InvokeTransactionReceipt {
             pub block_hash: &'a FieldElement,
             pub block_number: &'a u64,
             pub r#type: &'a str,
-            pub messages_sent: &'a Vec<MsgToL1>,
-            pub events: &'a Vec<Event>,
+            pub messages_sent: &'a [MsgToL1],
+            pub events: &'a [Event],
         }
 
         let tagged = Tagged {
@@ -2324,16 +2324,16 @@ impl Serialize for InvokeTransactionV0 {
             pub max_fee: &'a FieldElement,
             #[serde_as(as = "NumAsHex")]
             pub version: &'a u64,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub signature: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
             pub nonce: &'a FieldElement,
             #[serde_as(as = "UfeHex")]
             pub contract_address: &'a FieldElement,
             #[serde_as(as = "UfeHex")]
             pub entry_point_selector: &'a FieldElement,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub calldata: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub calldata: &'a [FieldElement],
         }
 
         let tagged = Tagged {
@@ -2417,14 +2417,14 @@ impl Serialize for InvokeTransactionV1 {
             pub max_fee: &'a FieldElement,
             #[serde_as(as = "NumAsHex")]
             pub version: &'a u64,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub signature: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
             pub nonce: &'a FieldElement,
             #[serde_as(as = "UfeHex")]
             pub sender_address: &'a FieldElement,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub calldata: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub calldata: &'a [FieldElement],
         }
 
         let tagged = Tagged {
@@ -2508,8 +2508,8 @@ impl Serialize for L1HandlerTransaction {
             pub contract_address: &'a FieldElement,
             #[serde_as(as = "UfeHex")]
             pub entry_point_selector: &'a FieldElement,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub calldata: &'a Vec<FieldElement>,
+            #[serde_as(as = "[UfeHex]")]
+            pub calldata: &'a [FieldElement],
         }
 
         let tagged = Tagged {
@@ -2581,8 +2581,8 @@ impl Serialize for L1HandlerTransactionReceipt {
             pub block_hash: &'a FieldElement,
             pub block_number: &'a u64,
             pub r#type: &'a str,
-            pub messages_sent: &'a Vec<MsgToL1>,
-            pub events: &'a Vec<Event>,
+            pub messages_sent: &'a [MsgToL1],
+            pub events: &'a [Event],
         }
 
         let tagged = Tagged {
@@ -2650,8 +2650,8 @@ impl Serialize for PendingDeclareTransactionReceipt {
             #[serde_as(as = "UfeHex")]
             pub actual_fee: &'a FieldElement,
             pub r#type: &'a str,
-            pub messages_sent: &'a Vec<MsgToL1>,
-            pub events: &'a Vec<Event>,
+            pub messages_sent: &'a [MsgToL1],
+            pub events: &'a [Event],
         }
 
         let tagged = Tagged {
@@ -2709,8 +2709,8 @@ impl Serialize for PendingDeployAccountTransactionReceipt {
             #[serde_as(as = "UfeHex")]
             pub actual_fee: &'a FieldElement,
             pub r#type: &'a str,
-            pub messages_sent: &'a Vec<MsgToL1>,
-            pub events: &'a Vec<Event>,
+            pub messages_sent: &'a [MsgToL1],
+            pub events: &'a [Event],
         }
 
         let tagged = Tagged {
@@ -2768,8 +2768,8 @@ impl Serialize for PendingDeployTransactionReceipt {
             #[serde_as(as = "UfeHex")]
             pub actual_fee: &'a FieldElement,
             pub r#type: &'a str,
-            pub messages_sent: &'a Vec<MsgToL1>,
-            pub events: &'a Vec<Event>,
+            pub messages_sent: &'a [MsgToL1],
+            pub events: &'a [Event],
             #[serde_as(as = "UfeHex")]
             pub contract_address: &'a FieldElement,
         }
@@ -2833,8 +2833,8 @@ impl Serialize for PendingInvokeTransactionReceipt {
             #[serde_as(as = "UfeHex")]
             pub actual_fee: &'a FieldElement,
             pub r#type: &'a str,
-            pub messages_sent: &'a Vec<MsgToL1>,
-            pub events: &'a Vec<Event>,
+            pub messages_sent: &'a [MsgToL1],
+            pub events: &'a [Event],
         }
 
         let tagged = Tagged {
@@ -2892,8 +2892,8 @@ impl Serialize for PendingL1HandlerTransactionReceipt {
             #[serde_as(as = "UfeHex")]
             pub actual_fee: &'a FieldElement,
             pub r#type: &'a str,
-            pub messages_sent: &'a Vec<MsgToL1>,
-            pub events: &'a Vec<Event>,
+            pub messages_sent: &'a [MsgToL1],
+            pub events: &'a [Event],
         }
 
         let tagged = Tagged {
