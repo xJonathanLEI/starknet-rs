@@ -1785,6 +1785,7 @@ name = "starknet-signers"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "crypto-bigint",
  "eth-keystore",
  "rand",
  "starknet-core",
