@@ -14,9 +14,64 @@ pub struct VerifyingKey {
     scalar: FieldElement,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+#[derive(Debug, thiserror::Error)]
+pub enum KeystoreError {
+    #[error("invalid path")]
+    InvalidPath,
+    #[error("invalid decrypted secret scalar")]
+    InvalidScalar,
+    #[error(transparent)]
+    Inner(eth_keystore::KeystoreError),
+}
+
 impl SigningKey {
     pub fn from_secret_scalar(secret_scalar: FieldElement) -> Self {
         Self { secret_scalar }
+    }
+
+    /// Loads the private key from a Web3 Secret Storage Definition keystore.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn from_keystore<P>(path: P, password: &str) -> Result<Self, KeystoreError>
+    where
+        P: AsRef<std::path::Path>,
+    {
+        let key = eth_keystore::decrypt_key(path, password).map_err(KeystoreError::Inner)?;
+        let secret_scalar =
+            FieldElement::from_byte_slice_be(&key).map_err(|_| KeystoreError::InvalidScalar)?;
+        Ok(Self::from_secret_scalar(secret_scalar))
+    }
+
+    /// Encrypts and saves the private key to a Web3 Secret Storage Definition JSON file.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn save_as_keystore<P>(&self, path: P, password: &str) -> Result<(), KeystoreError>
+    where
+        P: AsRef<std::path::Path>,
+    {
+        use rand::{rngs::StdRng, SeedableRng};
+
+        // Work around the issue of `eth-keystore` not supporting full path.
+        // TODO: patch or fork `eth-keystore`
+        let mut path = path.as_ref().to_path_buf();
+        let file_name = path
+            .file_name()
+            .ok_or(KeystoreError::InvalidPath)?
+            .to_str()
+            .ok_or(KeystoreError::InvalidPath)?
+            .to_owned();
+        path.pop();
+
+        let mut rng = StdRng::from_entropy();
+        eth_keystore::encrypt_key(
+            path,
+            &mut rng,
+            self.secret_scalar.to_bytes_be(),
+            password,
+            Some(&file_name),
+        )
+        .map_err(KeystoreError::Inner)?;
+
+        Ok(())
     }
 
     pub fn secret_scalar(&self) -> FieldElement {
