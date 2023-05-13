@@ -48,6 +48,7 @@ url = "2.2.2"
 
 [features]
 default = ["bigdecimal"]
+blocking = ["starknet-providers/blocking"]
 bigdecimal = ["starknet-core/bigdecimal"]
 no_unknown_fields = [
     "starknet-core/no_unknown_fields",

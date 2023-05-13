@@ -30,4 +30,7 @@ tokio = { version = "1.27.0", features = ["full"] }
 
 [features]
 default = []
+blocking = [
+    "reqwest/blocking"
+]
 no_unknown_fields = []
