@@ -10,6 +10,13 @@ pub struct HttpTransport {
     url: Url,
 }
 
+#[cfg(feature = "blocking")]
+#[derive(Debug)]
+pub struct BlockingHttpTransport {
+    client: reqwest::blocking::Client,
+    url: Url,
+}
+
 #[derive(Debug, Serialize)]
 struct JsonRpcRequest<T> {
     id: u64,
@@ -24,6 +31,20 @@ impl HttpTransport {
     }
 
     pub fn new_with_client(url: impl Into<Url>, client: Client) -> Self {
+        Self {
+            client,
+            url: url.into(),
+        }
+    }
+}
+
+#[cfg(feature = "blocking")]
+impl BlockingHttpTransport {
+    pub fn new(url: impl Into<Url>) -> Self {
+        Self::new_with_client(url, reqwest::blocking::Client::new())
+    }
+
+    pub fn new_with_client(url: impl Into<Url>, client: reqwest::blocking::Client) -> Self {
         Self {
             client,
             url: url.into(),
@@ -53,5 +74,29 @@ impl JsonRpcTransport for HttpTransport {
         });
         let response = request.send().await?;
         response.json().await
+    }
+}
+
+#[cfg(feature = "blocking")]
+impl super::BlockingJsonRpcTransport for BlockingHttpTransport {
+    type Error = reqwest::Error;
+
+    fn send_request<P, R>(
+        &self,
+        method: JsonRpcMethod,
+        params: P,
+    ) -> Result<JsonRpcResponse<R>, Self::Error>
+    where
+        P: Serialize + Send,
+        R: DeserializeOwned,
+    {
+        let request = self.client.post(self.url.clone()).json(&JsonRpcRequest {
+            id: 1,
+            jsonrpc: "2.0",
+            method,
+            params,
+        });
+        let response = request.send()?;
+        response.json()
     }
 }

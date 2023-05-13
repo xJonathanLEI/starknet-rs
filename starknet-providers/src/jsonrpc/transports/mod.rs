@@ -8,6 +8,9 @@ use crate::jsonrpc::{JsonRpcMethod, JsonRpcResponse};
 mod http;
 pub use http::HttpTransport;
 
+#[cfg(feature = "blocking")]
+pub use http::BlockingHttpTransport;
+
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[auto_impl(&, Box, Arc)]
@@ -15,6 +18,20 @@ pub trait JsonRpcTransport {
     type Error: Error + Send + Sync;
 
     async fn send_request<P, R>(
+        &self,
+        method: JsonRpcMethod,
+        params: P,
+    ) -> Result<JsonRpcResponse<R>, Self::Error>
+    where
+        P: Serialize + Send,
+        R: DeserializeOwned;
+}
+
+#[cfg(feature = "blocking")]
+pub trait BlockingJsonRpcTransport {
+    type Error: Error;
+
+    fn send_request<P, R>(
         &self,
         method: JsonRpcMethod,
         params: P,

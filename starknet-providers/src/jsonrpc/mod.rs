@@ -7,6 +7,9 @@ use crate::jsonrpc::models::*;
 mod transports;
 pub use transports::{HttpTransport, JsonRpcTransport};
 
+#[cfg(feature = "blocking")]
+pub use transports::{BlockingHttpTransport, BlockingJsonRpcTransport};
+
 /// Temporary module for holding JSON-RPC data models until the provider switch:
 ///
 /// https://github.com/xJonathanLEI/starknet-rs/issues/77#issuecomment-1150184364
@@ -573,6 +576,415 @@ where
             .transport
             .send_request(method, params)
             .await
+            .map_err(JsonRpcClientError::TransportError)?
+        {
+            JsonRpcResponse::Success { result, .. } => Ok(result),
+            JsonRpcResponse::Error { error, .. } => {
+                Err(JsonRpcClientError::RpcError(match error.code.try_into() {
+                    Ok(code) => RpcError::Code(code),
+                    Err(_) => RpcError::Unknown(error),
+                }))
+            }
+        }
+    }
+}
+
+#[cfg(feature = "blocking")]
+mod blocking {
+    use super::*;
+
+    impl<T> crate::BlockingProvider for JsonRpcClient<T>
+    where
+        T: BlockingJsonRpcTransport,
+    {
+        type Error = JsonRpcClientError<T::Error>;
+
+        fn get_block_with_tx_hashes<B>(
+            &self,
+            block_id: B,
+        ) -> Result<MaybePendingBlockWithTxHashes, JsonRpcClientError<T::Error>>
+        where
+            B: AsRef<BlockId>,
+        {
+            send_blocking_request(
+                self,
+                JsonRpcMethod::GetBlockWithTxHashes,
+                GetBlockWithTxHashesRequestRef {
+                    block_id: block_id.as_ref(),
+                },
+            )
+        }
+
+        fn get_block_with_txs<B>(
+            &self,
+            block_id: B,
+        ) -> Result<MaybePendingBlockWithTxs, JsonRpcClientError<T::Error>>
+        where
+            B: AsRef<BlockId>,
+        {
+            send_blocking_request(
+                self,
+                JsonRpcMethod::GetBlockWithTxs,
+                GetBlockWithTxsRequestRef {
+                    block_id: block_id.as_ref(),
+                },
+            )
+        }
+
+        fn get_state_update<B>(
+            &self,
+            block_id: B,
+        ) -> Result<StateUpdate, JsonRpcClientError<T::Error>>
+        where
+            B: AsRef<BlockId>,
+        {
+            send_blocking_request(
+                self,
+                JsonRpcMethod::GetStateUpdate,
+                GetStateUpdateRequestRef {
+                    block_id: block_id.as_ref(),
+                },
+            )
+        }
+
+        fn get_storage_at<A, K, B>(
+            &self,
+            contract_address: A,
+            key: K,
+            block_id: B,
+        ) -> Result<FieldElement, JsonRpcClientError<T::Error>>
+        where
+            A: AsRef<FieldElement>,
+            K: AsRef<FieldElement>,
+            B: AsRef<BlockId>,
+        {
+            Ok(send_blocking_request::<_, _, Felt>(
+                self,
+                JsonRpcMethod::GetStorageAt,
+                GetStorageAtRequestRef {
+                    contract_address: contract_address.as_ref(),
+                    key: key.as_ref(),
+                    block_id: block_id.as_ref(),
+                },
+            )?
+            .0)
+        }
+
+        fn get_transaction_by_hash<H>(
+            &self,
+            transaction_hash: H,
+        ) -> Result<Transaction, JsonRpcClientError<T::Error>>
+        where
+            H: AsRef<FieldElement>,
+        {
+            send_blocking_request(
+                self,
+                JsonRpcMethod::GetTransactionByHash,
+                GetTransactionByHashRequestRef {
+                    transaction_hash: transaction_hash.as_ref(),
+                },
+            )
+        }
+
+        fn get_transaction_by_block_id_and_index<B>(
+            &self,
+            block_id: B,
+            index: u64,
+        ) -> Result<Transaction, JsonRpcClientError<T::Error>>
+        where
+            B: AsRef<BlockId>,
+        {
+            send_blocking_request(
+                self,
+                JsonRpcMethod::GetTransactionByBlockIdAndIndex,
+                GetTransactionByBlockIdAndIndexRequestRef {
+                    block_id: block_id.as_ref(),
+                    index: &index,
+                },
+            )
+        }
+
+        fn get_transaction_receipt<H>(
+            &self,
+            transaction_hash: H,
+        ) -> Result<MaybePendingTransactionReceipt, JsonRpcClientError<T::Error>>
+        where
+            H: AsRef<FieldElement>,
+        {
+            send_blocking_request(
+                self,
+                JsonRpcMethod::GetTransactionReceipt,
+                GetTransactionReceiptRequestRef {
+                    transaction_hash: transaction_hash.as_ref(),
+                },
+            )
+        }
+
+        fn get_class<B, H>(
+            &self,
+            block_id: B,
+            class_hash: H,
+        ) -> Result<ContractClass, JsonRpcClientError<T::Error>>
+        where
+            B: AsRef<BlockId>,
+            H: AsRef<FieldElement>,
+        {
+            send_blocking_request(
+                self,
+                JsonRpcMethod::GetClass,
+                GetClassRequestRef {
+                    block_id: block_id.as_ref(),
+                    class_hash: class_hash.as_ref(),
+                },
+            )
+        }
+
+        fn get_class_hash_at<B, A>(
+            &self,
+            block_id: B,
+            contract_address: A,
+        ) -> Result<FieldElement, JsonRpcClientError<T::Error>>
+        where
+            B: AsRef<BlockId>,
+            A: AsRef<FieldElement>,
+        {
+            Ok(send_blocking_request::<_, _, Felt>(
+                self,
+                JsonRpcMethod::GetClassHashAt,
+                GetClassHashAtRequestRef {
+                    block_id: block_id.as_ref(),
+                    contract_address: contract_address.as_ref(),
+                },
+            )?
+            .0)
+        }
+
+        fn get_class_at<B, A>(
+            &self,
+            block_id: B,
+            contract_address: A,
+        ) -> Result<ContractClass, JsonRpcClientError<T::Error>>
+        where
+            B: AsRef<BlockId>,
+            A: AsRef<FieldElement>,
+        {
+            send_blocking_request(
+                self,
+                JsonRpcMethod::GetClassAt,
+                GetClassAtRequestRef {
+                    block_id: block_id.as_ref(),
+                    contract_address: contract_address.as_ref(),
+                },
+            )
+        }
+
+        fn get_block_transaction_count<B>(
+            &self,
+            block_id: B,
+        ) -> Result<u64, JsonRpcClientError<T::Error>>
+        where
+            B: AsRef<BlockId>,
+        {
+            send_blocking_request(
+                self,
+                JsonRpcMethod::GetBlockTransactionCount,
+                GetBlockTransactionCountRequestRef {
+                    block_id: block_id.as_ref(),
+                },
+            )
+        }
+
+        fn call<R, B>(
+            &self,
+            request: R,
+            block_id: B,
+        ) -> Result<Vec<FieldElement>, JsonRpcClientError<T::Error>>
+        where
+            R: AsRef<FunctionCall>,
+            B: AsRef<BlockId>,
+        {
+            Ok(send_blocking_request::<_, _, FeltArray>(
+                self,
+                JsonRpcMethod::Call,
+                CallRequestRef {
+                    request: request.as_ref(),
+                    block_id: block_id.as_ref(),
+                },
+            )?
+            .0)
+        }
+
+        fn estimate_fee<R, B>(
+            &self,
+            request: R,
+            block_id: B,
+        ) -> Result<FeeEstimate, JsonRpcClientError<T::Error>>
+        where
+            R: AsRef<BroadcastedTransaction>,
+            B: AsRef<BlockId>,
+        {
+            send_blocking_request(
+                self,
+                JsonRpcMethod::EstimateFee,
+                EstimateFeeRequestRef {
+                    request: request.as_ref(),
+                    block_id: block_id.as_ref(),
+                },
+            )
+        }
+
+        fn block_number(&self) -> Result<u64, JsonRpcClientError<T::Error>> {
+            send_blocking_request(self, JsonRpcMethod::BlockNumber, BlockNumberRequest)
+        }
+
+        fn block_hash_and_number(
+            &self,
+        ) -> Result<BlockHashAndNumber, JsonRpcClientError<T::Error>> {
+            send_blocking_request(
+                self,
+                JsonRpcMethod::BlockHashAndNumber,
+                BlockHashAndNumberRequest,
+            )
+        }
+
+        fn chain_id(&self) -> Result<FieldElement, JsonRpcClientError<T::Error>> {
+            Ok(
+                send_blocking_request::<_, _, Felt>(self, JsonRpcMethod::ChainId, ChainIdRequest)?
+                    .0,
+            )
+        }
+
+        fn pending_transactions(&self) -> Result<Vec<Transaction>, JsonRpcClientError<T::Error>> {
+            send_blocking_request(
+                self,
+                JsonRpcMethod::PendingTransactions,
+                PendingTransactionsRequest,
+            )
+        }
+
+        fn syncing(&self) -> Result<SyncStatusType, JsonRpcClientError<T::Error>> {
+            send_blocking_request(self, JsonRpcMethod::Syncing, SyncingRequest)
+        }
+
+        fn get_events(
+            &self,
+            filter: EventFilter,
+            continuation_token: Option<String>,
+            chunk_size: u64,
+        ) -> Result<EventsPage, JsonRpcClientError<T::Error>> {
+            send_blocking_request(
+                self,
+                JsonRpcMethod::GetEvents,
+                GetEventsRequestRef {
+                    filter: &EventFilterWithPage {
+                        event_filter: filter,
+                        result_page_request: ResultPageRequest {
+                            continuation_token,
+                            chunk_size,
+                        },
+                    },
+                },
+            )
+        }
+
+        fn get_nonce<B, A>(
+            &self,
+            block_id: B,
+            contract_address: A,
+        ) -> Result<FieldElement, JsonRpcClientError<T::Error>>
+        where
+            B: AsRef<BlockId>,
+            A: AsRef<FieldElement>,
+        {
+            Ok(send_blocking_request::<_, _, Felt>(
+                self,
+                JsonRpcMethod::GetNonce,
+                GetNonceRequestRef {
+                    block_id: block_id.as_ref(),
+                    contract_address: contract_address.as_ref(),
+                },
+            )?
+            .0)
+        }
+
+        fn add_invoke_transaction<I>(
+            &self,
+            invoke_transaction: I,
+        ) -> Result<InvokeTransactionResult, JsonRpcClientError<T::Error>>
+        where
+            I: AsRef<BroadcastedInvokeTransaction>,
+        {
+            send_blocking_request(
+                self,
+                JsonRpcMethod::AddInvokeTransaction,
+                AddInvokeTransactionRequestRef {
+                    invoke_transaction: invoke_transaction.as_ref(),
+                },
+            )
+        }
+
+        fn add_declare_transaction<D>(
+            &self,
+            declare_transaction: D,
+        ) -> Result<DeclareTransactionResult, JsonRpcClientError<T::Error>>
+        where
+            D: AsRef<BroadcastedDeclareTransaction>,
+        {
+            send_blocking_request(
+                self,
+                JsonRpcMethod::AddDeclareTransaction,
+                AddDeclareTransactionRequestRef {
+                    declare_transaction: declare_transaction.as_ref(),
+                },
+            )
+        }
+
+        fn add_deploy_transaction<D>(
+            &self,
+            deploy_transaction: D,
+        ) -> Result<DeployTransactionResult, JsonRpcClientError<T::Error>>
+        where
+            D: AsRef<BroadcastedDeployTransaction>,
+        {
+            send_blocking_request(
+                self,
+                JsonRpcMethod::AddDeployTransaction,
+                AddDeployTransactionRequestRef {
+                    deploy_transaction: deploy_transaction.as_ref(),
+                },
+            )
+        }
+
+        fn add_deploy_account_transaction<D>(
+            &self,
+            deploy_account_transaction: D,
+        ) -> Result<DeployAccountTransactionResult, JsonRpcClientError<T::Error>>
+        where
+            D: AsRef<BroadcastedDeployAccountTransaction>,
+        {
+            send_blocking_request(
+                self,
+                JsonRpcMethod::AddDeployAccountTransaction,
+                AddDeployAccountTransactionRequestRef {
+                    deploy_account_transaction: deploy_account_transaction.as_ref(),
+                },
+            )
+        }
+    }
+
+    fn send_blocking_request<T, P, R>(
+        client: &JsonRpcClient<T>,
+        method: JsonRpcMethod,
+        params: P,
+    ) -> Result<R, JsonRpcClientError<T::Error>>
+    where
+        T: BlockingJsonRpcTransport,
+        P: Serialize + Send,
+        R: DeserializeOwned,
+    {
+        match client
+            .transport
+            .send_request(method, params)
             .map_err(JsonRpcClientError::TransportError)?
         {
             JsonRpcResponse::Success { result, .. } => Ok(result),

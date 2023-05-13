@@ -3,6 +3,9 @@
 mod provider;
 pub use provider::{Provider, ProviderError};
 
+#[cfg(feature = "blocking")]
+pub use provider::BlockingProvider;
+
 mod sequencer_gateway;
 pub use sequencer_gateway::{
     GatewayClientError as SequencerGatewayProviderError, SequencerGatewayProvider,
