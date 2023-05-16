@@ -113,8 +113,8 @@ pub enum BlockId {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ContractClass {
-    Sierra(SierraContractClass),
-    Legacy(LegacyContractClass),
+    Sierra(FlattenedSierraClass),
+    Legacy(CompressedLegacyContractClass),
 }
 
 #[derive(Debug, Clone, Deserialize)]
