@@ -1,1 +1,1 @@
-[{"overall_fee": 962416397557740, "gas_price": 193840160636, "gas_usage": 4965, "unit": "wei"}, {"overall_fee": 962416397557740, "gas_price": 193840160636, "gas_usage": 4965, "unit": "wei"}]
+[{"overall_fee": 47241426099390, "gas_price": 9514889446, "gas_usage": 4965, "unit": "wei"}, {"overall_fee": 47241426099390, "gas_price": 9514889446, "gas_usage": 4965, "unit": "wei"}]

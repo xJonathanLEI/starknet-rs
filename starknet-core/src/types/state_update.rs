@@ -10,8 +10,8 @@ use std::collections::HashMap;
 pub struct StateUpdate {
     #[serde_as(as = "Option<UfeHex>")]
     pub block_hash: Option<FieldElement>,
-    #[serde_as(as = "UfeHex")]
-    pub new_root: FieldElement,
+    #[serde_as(as = "Option<UfeHex>")]
+    pub new_root: Option<FieldElement>,
     #[serde_as(as = "UfeHex")]
     pub old_root: FieldElement,
     pub state_diff: StateDiff,
@@ -114,6 +114,16 @@ mod tests {
             )
             .unwrap()
         );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_pending_state_update_deser() {
+        let raw = include_str!(
+            "../../test-data/raw_gateway_responses/get_state_update/2_pending_block.txt"
+        );
+
+        serde_json::from_str::<StateUpdate>(raw).unwrap();
     }
 
     #[test]
