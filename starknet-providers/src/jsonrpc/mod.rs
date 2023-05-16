@@ -122,7 +122,7 @@ pub enum JsonRpcClientError<T> {
 #[derive(Debug, thiserror::Error)]
 pub enum RpcError {
     #[error(transparent)]
-    Code(ErrorCode),
+    Code(StarknetError),
     #[error(transparent)]
     Unknown(JsonRpcError),
 }
@@ -723,24 +723,24 @@ impl<T> From<serde_json::Error> for JsonRpcClientError<T> {
     }
 }
 
-impl TryFrom<i64> for ErrorCode {
+impl TryFrom<i64> for StarknetError {
     type Error = ();
 
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         Ok(match value {
-            1 => ErrorCode::FailedToReceiveTransaction,
-            20 => ErrorCode::ContractNotFound,
-            21 => ErrorCode::InvalidMessageSelector,
-            22 => ErrorCode::InvalidCallData,
-            24 => ErrorCode::BlockNotFound,
-            25 => ErrorCode::TransactionHashNotFound,
-            27 => ErrorCode::InvalidTransactionIndex,
-            28 => ErrorCode::ClassHashNotFound,
-            31 => ErrorCode::PageSizeTooBig,
-            32 => ErrorCode::NoBlocks,
-            33 => ErrorCode::InvalidContinuationToken,
-            40 => ErrorCode::ContractError,
-            50 => ErrorCode::InvalidContractClass,
+            1 => StarknetError::FailedToReceiveTransaction,
+            20 => StarknetError::ContractNotFound,
+            21 => StarknetError::InvalidMessageSelector,
+            22 => StarknetError::InvalidCallData,
+            24 => StarknetError::BlockNotFound,
+            25 => StarknetError::TransactionHashNotFound,
+            27 => StarknetError::InvalidTransactionIndex,
+            28 => StarknetError::ClassHashNotFound,
+            31 => StarknetError::PageSizeTooBig,
+            32 => StarknetError::NoBlocks,
+            33 => StarknetError::InvalidContinuationToken,
+            40 => StarknetError::ContractError,
+            50 => StarknetError::InvalidContractClass,
             _ => return Err(()),
         })
     }

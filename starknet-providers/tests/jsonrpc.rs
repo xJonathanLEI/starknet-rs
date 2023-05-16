@@ -136,7 +136,7 @@ async fn jsonrpc_get_transaction_by_hash_non_existent_tx() {
         .unwrap_err();
 
     match err {
-        JsonRpcClientError::RpcError(RpcError::Code(ErrorCode::TransactionHashNotFound)) => {
+        JsonRpcClientError::RpcError(RpcError::Code(StarknetError::TransactionHashNotFound)) => {
             // TXN_HASH_NOT_FOUND
         }
         _ => panic!("Unexpected error"),
