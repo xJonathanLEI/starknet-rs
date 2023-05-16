@@ -236,7 +236,7 @@ where
         match self.get_transaction_receipt(transaction_hash).await {
             Ok(receipt) => Ok(receipt.into()),
             Err(JsonRpcClientError::RpcError(RpcError::Code(
-                ErrorCode::TransactionHashNotFound,
+                StarknetError::TransactionHashNotFound,
             ))) => Ok(TransactionStatusInfo {
                 block_hash: None,
                 status: starknet_core::types::TransactionStatus::NotReceived,

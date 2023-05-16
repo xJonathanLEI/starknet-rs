@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#84c2cdcfa5276039a8294722df871ce6c97d7cdc
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#11f74a5c6045703a3fd40e157e38ed711227f6b7
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -389,50 +389,6 @@ pub struct EntryPointsByType {
     pub l1_handler: Vec<ContractEntryPoint>,
 }
 
-/// JSON-RPC error codes
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, thiserror::Error)]
-pub enum ErrorCode {
-    /// Failed to write transaction
-    #[error("Failed to write transaction")]
-    FailedToReceiveTransaction,
-    /// Contract not found
-    #[error("Contract not found")]
-    ContractNotFound,
-    /// Invalid message selector
-    #[error("Invalid message selector")]
-    InvalidMessageSelector,
-    /// Invalid call data
-    #[error("Invalid call data")]
-    InvalidCallData,
-    /// Block not found
-    #[error("Block not found")]
-    BlockNotFound,
-    /// Transaction hash not found
-    #[error("Transaction hash not found")]
-    TransactionHashNotFound,
-    /// Invalid transaction index in a block
-    #[error("Invalid transaction index in a block")]
-    InvalidTransactionIndex,
-    /// Class hash not found
-    #[error("Class hash not found")]
-    ClassHashNotFound,
-    /// Requested page size is too big
-    #[error("Requested page size is too big")]
-    PageSizeTooBig,
-    /// There are no blocks
-    #[error("There are no blocks")]
-    NoBlocks,
-    /// The supplied continuation token is invalid or unknown
-    #[error("The supplied continuation token is invalid or unknown")]
-    InvalidContinuationToken,
-    /// Contract error
-    #[error("Contract error")]
-    ContractError,
-    /// Invalid contract class
-    #[error("Invalid contract class")]
-    InvalidContractClass,
-}
-
 /// A Starknet event.
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -793,6 +749,50 @@ pub struct ResultPageRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub continuation_token: Option<String>,
     pub chunk_size: u64,
+}
+
+/// JSON-RPC error codes
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, thiserror::Error)]
+pub enum StarknetError {
+    /// Failed to write transaction
+    #[error("Failed to write transaction")]
+    FailedToReceiveTransaction,
+    /// Contract not found
+    #[error("Contract not found")]
+    ContractNotFound,
+    /// Invalid message selector
+    #[error("Invalid message selector")]
+    InvalidMessageSelector,
+    /// Invalid call data
+    #[error("Invalid call data")]
+    InvalidCallData,
+    /// Block not found
+    #[error("Block not found")]
+    BlockNotFound,
+    /// Transaction hash not found
+    #[error("Transaction hash not found")]
+    TransactionHashNotFound,
+    /// Invalid transaction index in a block
+    #[error("Invalid transaction index in a block")]
+    InvalidTransactionIndex,
+    /// Class hash not found
+    #[error("Class hash not found")]
+    ClassHashNotFound,
+    /// Requested page size is too big
+    #[error("Requested page size is too big")]
+    PageSizeTooBig,
+    /// There are no blocks
+    #[error("There are no blocks")]
+    NoBlocks,
+    /// The supplied continuation token is invalid or unknown
+    #[error("The supplied continuation token is invalid or unknown")]
+    InvalidContinuationToken,
+    /// Contract error
+    #[error("Contract error")]
+    ContractError,
+    /// Invalid contract class
+    #[error("Invalid contract class")]
+    InvalidContractClass,
 }
 
 #[serde_as]
