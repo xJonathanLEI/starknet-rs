@@ -470,7 +470,7 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_sierra_class_deser() {
-        // Artifacts generated from cairo v1.0.0-alpha.6
+        // Artifacts generated from cairo v1.0.0-rc0
         for raw_artifact in [
             include_str!("../../../test-data/contracts/cairo1/artifacts/abi_types_sierra.txt"),
             include_str!("../../../test-data/contracts/cairo1/artifacts/erc20_sierra.txt"),
@@ -487,7 +487,7 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_compiled_class_deser() {
-        // Artifacts generated from cairo v1.0.0-alpha.6
+        // Artifacts generated from cairo v1.0.0-rc0
         for raw_artifact in [
             include_str!("../../../test-data/contracts/cairo1/artifacts/abi_types_compiled.txt"),
             include_str!("../../../test-data/contracts/cairo1/artifacts/erc20_compiled.txt"),

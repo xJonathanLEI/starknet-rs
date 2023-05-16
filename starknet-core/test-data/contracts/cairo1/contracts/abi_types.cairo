@@ -6,13 +6,13 @@ mod AbiTypes {
 
     use starknet::ContractAddress;
 
-    #[derive(Drop)]
+    #[derive(Drop, Serde)]
     enum ExampleEnum {
         variant_a: felt252,
         variant_b: u256,
     }
 
-    #[derive(Drop)]
+    #[derive(Drop, Serde)]
     struct ExampleStruct {
         field_a: felt252,
         field_b: felt252,
@@ -20,25 +20,6 @@ mod AbiTypes {
         field_d: (),
     }
 
-    impl ExampleEnumSerde of Serde::<ExampleEnum> {
-        fn serialize(ref serialized: Array<felt252>, input: ExampleEnum) {
-            serialized.append(100);
-        }
-
-        fn deserialize(ref serialized: Span<felt252>) -> Option<ExampleEnum> {
-            Option::None(())
-        }
-    }
-
-    impl ExampleStructSerde of Serde::<ExampleStruct> {
-        fn serialize(ref serialized: Array<felt252>, input: ExampleStruct) {
-            serialized.append(100);
-        }
-
-        fn deserialize(ref serialized: Span<felt252>) -> Option<ExampleStruct> {
-            Option::None(())
-        }
-    }
 
     #[event]
     fn ExampleEvent(value_a: u256, value_b: ExampleStruct) {}
