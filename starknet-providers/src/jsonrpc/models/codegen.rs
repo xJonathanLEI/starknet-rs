@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#de2580793fb09d4c417996e11fe19adb07eae442
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#84c2cdcfa5276039a8294722df871ce6c97d7cdc
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -108,7 +108,7 @@ pub struct BroadcastedDeclareTransactionV1 {
     pub signature: Vec<FieldElement>,
     pub nonce: FieldElement,
     /// The class to be declared
-    pub contract_class: LegacyContractClass,
+    pub contract_class: CompressedLegacyContractClass,
     /// The address of the account contract sending the declaration transaction
     pub sender_address: FieldElement,
 }
@@ -121,7 +121,7 @@ pub struct BroadcastedDeclareTransactionV2 {
     pub signature: Vec<FieldElement>,
     pub nonce: FieldElement,
     /// The class to be declared
-    pub contract_class: SierraContractClass,
+    pub contract_class: FlattenedSierraClass,
     /// The hash of the compiled class
     pub compiled_class_hash: FieldElement,
     /// The address of the account contract sending the declaration transaction
@@ -189,6 +189,18 @@ pub struct BroadcastedInvokeTransactionV1 {
     /// The data expected by the account's `execute` function (in most usecases, this includes the
     /// called contract address and a function selector)
     pub calldata: Vec<FieldElement>,
+}
+
+/// The definition of a legacy (cairo 0) Starknet contract class.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct CompressedLegacyContractClass {
+    /// A base64 representation of the compressed program code
+    #[serde(with = "base64")]
+    pub program: Vec<u8>,
+    pub entry_points_by_type: LegacyEntryPointsByType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub abi: Option<Vec<ContractAbiEntry>>,
 }
 
 #[serde_as]
@@ -496,6 +508,21 @@ pub struct FeeEstimate {
     pub overall_fee: u64,
 }
 
+/// The definition of a sierra Starknet contract class.
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct FlattenedSierraClass {
+    /// Sierra program bytecode
+    #[serde_as(as = "Vec<UfeHex>")]
+    pub sierra_program: Vec<FieldElement>,
+    pub entry_points_by_type: EntryPointsByType,
+    /// String representation of the abi, uploaded by the declarer
+    pub abi: String,
+    /// Sierra contract class version
+    pub contract_class_version: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct FunctionAbiEntry {
@@ -610,18 +637,6 @@ pub struct L1HandlerTransactionReceipt {
     pub messages_sent: Vec<MsgToL1>,
     /// The events emitted as part of this transaction
     pub events: Vec<Event>,
-}
-
-/// The definition of a legacy (cairo 0) Starknet contract class.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct LegacyContractClass {
-    /// A base64 representation of the compressed program code
-    #[serde(with = "base64")]
-    pub program: Vec<u8>,
-    pub entry_points_by_type: LegacyEntryPointsByType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub abi: Option<Vec<ContractAbiEntry>>,
 }
 
 #[serde_as]
@@ -778,21 +793,6 @@ pub struct ResultPageRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub continuation_token: Option<String>,
     pub chunk_size: u64,
-}
-
-/// The definition of a sierra Starknet contract class.
-#[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct SierraContractClass {
-    /// Sierra program bytecode
-    #[serde_as(as = "Vec<UfeHex>")]
-    pub sierra_program: Vec<FieldElement>,
-    pub entry_points_by_type: EntryPointsByType,
-    /// String representation of the abi, uploaded by the declarer
-    pub abi: String,
-    /// Sierra contract class version
-    pub contract_class_version: String,
 }
 
 #[serde_as]
@@ -1212,7 +1212,7 @@ impl Serialize for BroadcastedDeclareTransactionV1 {
             pub signature: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
             pub nonce: &'a FieldElement,
-            pub contract_class: &'a LegacyContractClass,
+            pub contract_class: &'a CompressedLegacyContractClass,
             #[serde_as(as = "UfeHex")]
             pub sender_address: &'a FieldElement,
         }
@@ -1248,7 +1248,7 @@ impl<'de> Deserialize<'de> for BroadcastedDeclareTransactionV1 {
             pub signature: Vec<FieldElement>,
             #[serde_as(as = "UfeHex")]
             pub nonce: FieldElement,
-            pub contract_class: LegacyContractClass,
+            pub contract_class: CompressedLegacyContractClass,
             #[serde_as(as = "UfeHex")]
             pub sender_address: FieldElement,
         }
@@ -1291,7 +1291,7 @@ impl Serialize for BroadcastedDeclareTransactionV2 {
             pub signature: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
             pub nonce: &'a FieldElement,
-            pub contract_class: &'a SierraContractClass,
+            pub contract_class: &'a FlattenedSierraClass,
             #[serde_as(as = "UfeHex")]
             pub compiled_class_hash: &'a FieldElement,
             #[serde_as(as = "UfeHex")]
@@ -1330,7 +1330,7 @@ impl<'de> Deserialize<'de> for BroadcastedDeclareTransactionV2 {
             pub signature: Vec<FieldElement>,
             #[serde_as(as = "UfeHex")]
             pub nonce: FieldElement,
-            pub contract_class: SierraContractClass,
+            pub contract_class: FlattenedSierraClass,
             #[serde_as(as = "UfeHex")]
             pub compiled_class_hash: FieldElement,
             #[serde_as(as = "UfeHex")]

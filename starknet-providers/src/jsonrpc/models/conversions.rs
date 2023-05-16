@@ -216,13 +216,13 @@ impl From<DeployAccountTransactionResult> for core::types::AddTransactionResult 
     }
 }
 
-impl From<SierraContractClass> for ContractClass {
-    fn from(value: SierraContractClass) -> Self {
+impl From<FlattenedSierraClass> for ContractClass {
+    fn from(value: FlattenedSierraClass) -> Self {
         Self::Sierra(value)
     }
 }
 
-impl TryFrom<core::types::contract::CompressedSierraClass> for SierraContractClass {
+impl TryFrom<core::types::contract::CompressedSierraClass> for FlattenedSierraClass {
     type Error = DecompressionError;
 
     fn try_from(value: core::types::contract::CompressedSierraClass) -> Result<Self, Self::Error> {
@@ -243,7 +243,7 @@ impl TryFrom<core::types::contract::CompressedSierraClass> for SierraContractCla
             .read_to_string(&mut program_json)
             .map_err(|_| DecompressionError)?;
 
-        Ok(SierraContractClass {
+        Ok(FlattenedSierraClass {
             sierra_program: serde_json::from_str(&program_json).map_err(|_| DecompressionError)?,
             entry_points_by_type: value.entry_points_by_type.into(),
             abi: value.abi,
@@ -283,15 +283,15 @@ impl From<core::types::contract::SierraClassEntrypoint> for ContractEntryPoint {
     }
 }
 
-impl From<LegacyContractClass> for ContractClass {
-    fn from(value: LegacyContractClass) -> Self {
+impl From<CompressedLegacyContractClass> for ContractClass {
+    fn from(value: CompressedLegacyContractClass) -> Self {
         Self::Legacy(value)
     }
 }
 
-impl From<legacy_contract::CompressedLegacyContractClass> for LegacyContractClass {
+impl From<legacy_contract::CompressedLegacyContractClass> for CompressedLegacyContractClass {
     fn from(value: legacy_contract::CompressedLegacyContractClass) -> Self {
-        LegacyContractClass {
+        CompressedLegacyContractClass {
             program: value.program,
             entry_points_by_type: value.entry_points_by_type.into(),
             abi: value
