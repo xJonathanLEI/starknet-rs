@@ -68,6 +68,8 @@ async fn can_declare_cairo1_contract_with_sequencer() {
 }
 
 #[tokio::test]
+// https://github.com/eqlabs/pathfinder/issues/1085
+#[ignore = "disabled due to pathfinder bug"]
 async fn can_declare_cairo1_contract_with_jsonrpc() {
     can_declare_cairo1_contract_inner(create_jsonrpc_client()).await
 }
