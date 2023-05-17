@@ -85,7 +85,10 @@ impl Provider for SequencerGatewayProvider {
     where
         H: AsRef<FieldElement> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .get_transaction(*transaction_hash.as_ref())
+            .await?
+            .try_into()?)
     }
 
     async fn get_transaction_by_block_id_and_index<B>(

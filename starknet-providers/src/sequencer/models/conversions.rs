@@ -292,3 +292,14 @@ impl From<DeployedContract> for core::DeployedContractItem {
         }
     }
 }
+
+impl TryFrom<TransactionInfo> for core::Transaction {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionInfo) -> Result<Self, Self::Error> {
+        match value.r#type {
+            Some(tx) => tx.try_into(),
+            None => Err(ConversionError),
+        }
+    }
+}
