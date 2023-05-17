@@ -4,7 +4,7 @@ use starknet::{
     accounts::{Account, SingleOwnerAccount},
     core::{
         chain_id,
-        types::{contract::SierraClass, BlockId, FieldElement},
+        types::{contract::SierraClass, BlockId, BlockTag, FieldElement},
     },
     providers::SequencerGatewayProvider,
     signers::{LocalWallet, SigningKey},
@@ -31,7 +31,7 @@ async fn main() {
 
     // `SingleOwnerAccount` defaults to checking nonce and estimating fees against the latest
     // block. Optionally change the target block to pending with the following line:
-    account.set_block_id(BlockId::Pending);
+    account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     // We need to flatten the ABI into a string first
     let flattened_class = contract_artifact.flatten().unwrap();

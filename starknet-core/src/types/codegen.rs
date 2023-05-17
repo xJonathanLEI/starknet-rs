@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#11f74a5c6045703a3fd40e157e38ed711227f6b7
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#8662cd123c91eee9c02efe65eadad208657d6f04
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -20,7 +20,8 @@
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_with::serde_as;
-use starknet_core::{
+
+use crate::{
     serde::{byte_array::base64, unsigned_field_element::UfeHex},
     types::FieldElement,
 };
@@ -133,8 +134,6 @@ pub struct BroadcastedDeclareTransactionV2 {
 pub struct BroadcastedDeployAccountTransaction {
     /// The maximal fee that can be charged for including the transaction
     pub max_fee: FieldElement,
-    /// Version of the transaction scheme
-    pub version: u64,
     pub signature: Vec<FieldElement>,
     pub nonce: FieldElement,
     /// The salt for the address of the deployed contract
@@ -200,7 +199,7 @@ pub struct CompressedLegacyContractClass {
     pub program: Vec<u8>,
     pub entry_points_by_type: LegacyEntryPointsByType,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub abi: Option<Vec<ContractAbiEntry>>,
+    pub abi: Option<Vec<LegacyContractAbiEntry>>,
 }
 
 #[serde_as]
@@ -279,8 +278,6 @@ pub struct DeployAccountTransaction {
     pub transaction_hash: FieldElement,
     /// The maximal fee that can be charged for including the transaction
     pub max_fee: FieldElement,
-    /// Version of the transaction scheme
-    pub version: u64,
     pub signature: Vec<FieldElement>,
     pub nonce: FieldElement,
     /// The salt for the address of the deployed contract
@@ -402,22 +399,6 @@ pub struct Event {
     pub data: Vec<FieldElement>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct EventAbiEntry {
-    pub r#type: EventAbiType,
-    /// The event name
-    pub name: String,
-    pub keys: Vec<TypedParameter>,
-    pub data: Vec<TypedParameter>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum EventAbiType {
-    #[serde(rename = "event")]
-    Event,
-}
-
 /// An event filter/query.
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -477,29 +458,6 @@ pub struct FlattenedSierraClass {
     pub abi: String,
     /// Sierra contract class version
     pub contract_class_version: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct FunctionAbiEntry {
-    pub r#type: FunctionAbiType,
-    /// The function name
-    pub name: String,
-    pub inputs: Vec<TypedParameter>,
-    pub outputs: Vec<TypedParameter>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "stateMutability")]
-    pub state_mutability: Option<String>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum FunctionAbiType {
-    #[serde(rename = "function")]
-    Function,
-    #[serde(rename = "l1_handler")]
-    L1Handler,
-    #[serde(rename = "constructor")]
-    Constructor,
 }
 
 /// Function call information.
@@ -616,6 +574,81 @@ pub struct LegacyEntryPointsByType {
     pub external: Vec<LegacyContractEntryPoint>,
     #[serde(rename = "L1_HANDLER")]
     pub l1_handler: Vec<LegacyContractEntryPoint>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct LegacyEventAbiEntry {
+    pub r#type: LegacyEventAbiType,
+    /// The event name
+    pub name: String,
+    pub keys: Vec<LegacyTypedParameter>,
+    pub data: Vec<LegacyTypedParameter>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum LegacyEventAbiType {
+    #[serde(rename = "event")]
+    Event,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct LegacyFunctionAbiEntry {
+    pub r#type: LegacyFunctionAbiType,
+    /// The function name
+    pub name: String,
+    pub inputs: Vec<LegacyTypedParameter>,
+    pub outputs: Vec<LegacyTypedParameter>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "stateMutability")]
+    pub state_mutability: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum LegacyFunctionAbiType {
+    #[serde(rename = "function")]
+    Function,
+    #[serde(rename = "l1_handler")]
+    L1Handler,
+    #[serde(rename = "constructor")]
+    Constructor,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct LegacyStructAbiEntry {
+    pub r#type: LegacyStructAbiType,
+    /// The struct name
+    pub name: String,
+    pub size: u64,
+    pub members: Vec<LegacyStructMember>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum LegacyStructAbiType {
+    #[serde(rename = "struct")]
+    Struct,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct LegacyStructMember {
+    /// The parameter's name
+    pub name: String,
+    /// The parameter's type
+    pub r#type: String,
+    /// Offset of this property within the struct
+    pub offset: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct LegacyTypedParameter {
+    /// The parameter's name
+    pub name: String,
+    /// The parameter's type
+    pub r#type: String,
 }
 
 #[serde_as]
@@ -835,33 +868,6 @@ pub struct StorageEntry {
     pub value: FieldElement,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct StructAbiEntry {
-    pub r#type: StructAbiType,
-    /// The struct name
-    pub name: String,
-    pub size: u64,
-    pub members: Vec<StructMember>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum StructAbiType {
-    #[serde(rename = "struct")]
-    Struct,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct StructMember {
-    /// The parameter's name
-    pub name: String,
-    /// The parameter's type
-    pub r#type: String,
-    /// Offset of this property within the struct
-    pub offset: u64,
-}
-
 /// An object describing the node synchronization status.
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -898,15 +904,6 @@ pub enum TransactionStatus {
     AcceptedOnL1,
     #[serde(rename = "REJECTED")]
     Rejected,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct TypedParameter {
-    /// The parameter's name
-    pub name: String,
-    /// The parameter's type
-    pub r#type: String,
 }
 
 /// Request for method starknet_addDeclareTransaction
@@ -1387,7 +1384,7 @@ impl Serialize for BroadcastedDeployAccountTransaction {
         let tagged = Tagged {
             r#type: "DEPLOY_ACCOUNT",
             max_fee: &self.max_fee,
-            version: &self.version,
+            version: &1,
             signature: &self.signature,
             nonce: &self.nonce,
             contract_address_salt: &self.contract_address_salt,
@@ -1409,8 +1406,9 @@ impl<'de> Deserialize<'de> for BroadcastedDeployAccountTransaction {
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
-            #[serde_as(as = "NumAsHex")]
-            pub version: u64,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[serde_as(as = "Option<NumAsHex>")]
+            pub version: Option<u64>,
             #[serde_as(as = "Vec<UfeHex>")]
             pub signature: Vec<FieldElement>,
             #[serde_as(as = "UfeHex")]
@@ -1431,9 +1429,14 @@ impl<'de> Deserialize<'de> for BroadcastedDeployAccountTransaction {
             }
         }
 
+        if let Some(tag_field) = &tagged.version {
+            if tag_field != &1 {
+                return Err(serde::de::Error::custom("invalid `version` value"));
+            }
+        }
+
         Ok(Self {
             max_fee: tagged.max_fee,
-            version: tagged.version,
             signature: tagged.signature,
             nonce: tagged.nonce,
             contract_address_salt: tagged.contract_address_salt,
@@ -1953,7 +1956,7 @@ impl Serialize for DeployAccountTransaction {
             transaction_hash: &self.transaction_hash,
             r#type: "DEPLOY_ACCOUNT",
             max_fee: &self.max_fee,
-            version: &self.version,
+            version: &1,
             signature: &self.signature,
             nonce: &self.nonce,
             contract_address_salt: &self.contract_address_salt,
@@ -1977,8 +1980,9 @@ impl<'de> Deserialize<'de> for DeployAccountTransaction {
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
-            #[serde_as(as = "NumAsHex")]
-            pub version: u64,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[serde_as(as = "Option<NumAsHex>")]
+            pub version: Option<u64>,
             #[serde_as(as = "Vec<UfeHex>")]
             pub signature: Vec<FieldElement>,
             #[serde_as(as = "UfeHex")]
@@ -1999,10 +2003,15 @@ impl<'de> Deserialize<'de> for DeployAccountTransaction {
             }
         }
 
+        if let Some(tag_field) = &tagged.version {
+            if tag_field != &1 {
+                return Err(serde::de::Error::custom("invalid `version` value"));
+            }
+        }
+
         Ok(Self {
             transaction_hash: tagged.transaction_hash,
             max_fee: tagged.max_fee,
-            version: tagged.version,
             signature: tagged.signature,
             nonce: tagged.nonce,
             contract_address_salt: tagged.contract_address_salt,

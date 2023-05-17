@@ -65,11 +65,11 @@ impl<'de> Deserialize<'de> for SyncStatusType {
 }
 
 mod block_id {
+    use crate::{serde::unsigned_field_element::UfeHex, types::FieldElement};
     use serde::{Deserialize, Deserializer, Serialize};
     use serde_with::serde_as;
-    use starknet_core::{serde::unsigned_field_element::UfeHex, types::FieldElement};
 
-    use crate::jsonrpc::models::{BlockId, BlockTag};
+    use crate::types::{BlockId, BlockTag};
 
     #[derive(Deserialize)]
     #[serde(untagged)]
@@ -218,9 +218,7 @@ mod enum_ser_impls {
 
 #[cfg(test)]
 mod tests {
-    use starknet_core::types::FieldElement;
-
-    use super::super::{BlockId, BlockTag};
+    use super::super::{BlockId, BlockTag, FieldElement};
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]

@@ -4,8 +4,8 @@ use async_trait::async_trait;
 use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
-        AccountTransaction, AddTransactionResult, BlockId, DeployAccountTransactionRequest,
-        FeeEstimate, FieldElement, StarknetError, TransactionRequest,
+        BlockId, BlockTag, BroadcastedDeployAccountTransaction, BroadcastedTransaction,
+        DeployAccountTransactionResult, FeeEstimate, FieldElement, StarknetError,
     },
 };
 use starknet_providers::{Provider, ProviderError};
@@ -55,7 +55,7 @@ pub trait AccountFactory: Sized {
 
     /// Block ID to use when estimating fees.
     fn block_id(&self) -> BlockId {
-        BlockId::Latest
+        BlockId::Tag(BlockTag::Latest)
     }
 
     async fn sign_deployment(
@@ -173,7 +173,7 @@ where
         match self
             .factory
             .provider()
-            .get_nonce(self.address(), self.factory.block_id())
+            .get_nonce(self.factory.block_id(), self.address())
             .await
         {
             Ok(nonce) => Ok(nonce),
@@ -203,7 +203,7 @@ where
     pub async fn send(
         &self,
     ) -> Result<
-        AddTransactionResult,
+        DeployAccountTransactionResult,
         AccountFactoryError<F::SignError, <F::Provider as Provider>::Error>,
     > {
         self.prepare().await?.send().await
@@ -264,9 +264,8 @@ where
         self.factory
             .provider()
             .estimate_fee(
-                AccountTransaction::DeployAccount(deploy),
+                BroadcastedTransaction::DeployAccount(deploy),
                 self.factory.block_id(),
-                false,
             )
             .await
             .map_err(AccountFactoryError::Provider)
@@ -314,7 +313,7 @@ where
     pub async fn send(
         &self,
     ) -> Result<
-        AddTransactionResult,
+        DeployAccountTransactionResult,
         AccountFactoryError<F::SignError, <F::Provider as Provider>::Error>,
     > {
         let tx_request = self
@@ -323,21 +322,23 @@ where
             .map_err(AccountFactoryError::Signing)?;
         self.factory
             .provider()
-            .add_transaction(TransactionRequest::DeployAccount(tx_request))
+            .add_deploy_account_transaction(tx_request)
             .await
             .map_err(AccountFactoryError::Provider)
     }
 
-    async fn get_deploy_request(&self) -> Result<DeployAccountTransactionRequest, F::SignError> {
+    async fn get_deploy_request(
+        &self,
+    ) -> Result<BroadcastedDeployAccountTransaction, F::SignError> {
         let signature = self.factory.sign_deployment(&self.inner).await?;
 
-        Ok(DeployAccountTransactionRequest {
-            class_hash: self.factory.class_hash(),
-            contract_address_salt: self.inner.salt,
-            constructor_calldata: self.factory.calldata(),
+        Ok(BroadcastedDeployAccountTransaction {
             max_fee: self.inner.max_fee,
             signature,
             nonce: self.inner.nonce,
+            contract_address_salt: self.inner.salt,
+            constructor_calldata: self.factory.calldata(),
+            class_hash: self.factory.class_hash(),
         })
     }
 }

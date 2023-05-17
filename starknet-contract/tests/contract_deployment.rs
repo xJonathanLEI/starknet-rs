@@ -5,12 +5,16 @@ use starknet_core::{
     chain_id,
     types::{contract::legacy::LegacyContractClass, FieldElement},
 };
-use starknet_providers::SequencerGatewayProvider;
+use starknet_providers::{jsonrpc::HttpTransport, JsonRpcClient};
 use starknet_signers::{LocalWallet, SigningKey};
+use url::Url;
 
 #[tokio::test]
 async fn can_deploy_contract_to_alpha_goerli() {
-    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
+    let provider = JsonRpcClient::new(HttpTransport::new(
+        Url::parse("https://starknet-goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161")
+            .unwrap(),
+    ));
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be(
             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",

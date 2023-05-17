@@ -1,5 +1,5 @@
 use starknet::{
-    core::types::{BlockId, CallFunction, FieldElement},
+    core::types::{BlockId, BlockTag, FieldElement, FunctionCall},
     macros::{felt, selector},
     providers::{Provider, SequencerGatewayProvider},
 };
@@ -11,8 +11,8 @@ async fn main() {
         felt!("0x07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10");
 
     let call_result = provider
-        .call_contract(
-            CallFunction {
+        .call(
+            FunctionCall {
                 contract_address: tst_token_address,
                 entry_point_selector: selector!("balanceOf"),
                 calldata: vec![FieldElement::from_hex_be(
@@ -20,7 +20,7 @@ async fn main() {
                 )
                 .unwrap()],
             },
-            BlockId::Latest,
+            BlockId::Tag(BlockTag::Latest),
         )
         .await
         .expect("failed to call contract");

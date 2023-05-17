@@ -7,8 +7,8 @@ use crate::Call;
 use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
-        AccountTransaction, AddTransactionResult, FeeEstimate, FieldElement,
-        InvokeFunctionTransactionRequest, TransactionRequest, TransactionSimulationInfo,
+        BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1, BroadcastedTransaction,
+        FeeEstimate, FieldElement, InvokeTransactionResult,
     },
 };
 use starknet_providers::Provider;
@@ -90,18 +90,12 @@ where
         self.estimate_fee_with_nonce(nonce).await
     }
 
-    pub async fn simulate(
-        &self,
-    ) -> Result<
-        TransactionSimulationInfo,
-        AccountError<A::SignError, <A::Provider as Provider>::Error>,
-    > {
-        self.prepare().await?.simulate().await
-    }
+    // The `simulate` function is temporarily removed until it's supported in [Provider]
+    // TODO: add `simulate` back once transaction simulation in supported
 
     pub async fn send(
         &self,
-    ) -> Result<AddTransactionResult, AccountError<A::SignError, <A::Provider as Provider>::Error>>
+    ) -> Result<InvokeTransactionResult, AccountError<A::SignError, <A::Provider as Provider>::Error>>
     {
         self.prepare().await?.send().await
     }
@@ -161,9 +155,8 @@ where
         self.account
             .provider()
             .estimate_fee(
-                AccountTransaction::InvokeFunction(invoke),
+                BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction::V1(invoke)),
                 self.account.block_id(),
-                false,
             )
             .await
             .map_err(AccountError::Provider)
@@ -230,7 +223,7 @@ where
 {
     pub async fn send(
         &self,
-    ) -> Result<AddTransactionResult, AccountError<A::SignError, <A::Provider as Provider>::Error>>
+    ) -> Result<InvokeTransactionResult, AccountError<A::SignError, <A::Provider as Provider>::Error>>
     {
         let tx_request = self
             .get_invoke_request()
@@ -238,43 +231,23 @@ where
             .map_err(AccountError::Signing)?;
         self.account
             .provider()
-            .add_transaction(TransactionRequest::InvokeFunction(tx_request))
+            .add_invoke_transaction(BroadcastedInvokeTransaction::V1(tx_request))
             .await
             .map_err(AccountError::Provider)
     }
 
-    pub async fn simulate(
-        &self,
-    ) -> Result<
-        TransactionSimulationInfo,
-        AccountError<A::SignError, <A::Provider as Provider>::Error>,
-    > {
-        let tx_request = self
-            .get_invoke_request()
-            .await
-            .map_err(AccountError::Signing)?;
-        self.account
-            .provider()
-            .simulate_transaction(
-                AccountTransaction::InvokeFunction(tx_request),
-                self.account.block_id(),
-                false,
-            )
-            .await
-            .map_err(AccountError::Provider)
-    }
+    // The `simulate` function is temporarily removed until it's supported in [Provider]
+    // TODO: add `simulate` back once transaction simulation in supported
 
-    pub async fn get_invoke_request(
-        &self,
-    ) -> Result<InvokeFunctionTransactionRequest, A::SignError> {
+    pub async fn get_invoke_request(&self) -> Result<BroadcastedInvokeTransactionV1, A::SignError> {
         let signature = self.account.sign_execution(&self.inner).await?;
 
-        Ok(InvokeFunctionTransactionRequest {
+        Ok(BroadcastedInvokeTransactionV1 {
+            max_fee: self.inner.max_fee,
+            signature,
+            nonce: self.inner.nonce,
             sender_address: self.account.address(),
             calldata: self.raw_calldata(),
-            signature,
-            max_fee: self.inner.max_fee,
-            nonce: self.inner.nonce,
         })
     }
 }

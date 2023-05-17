@@ -1,10 +1,12 @@
 use async_trait::async_trait;
 use starknet_core::types::{
-    contract::{legacy::LegacyContractCode, CompiledClass, DeployedClass},
-    AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
-    CallFunction, CallL1Handler, ContractAddresses, FeeEstimate, FieldElement, StateUpdate,
-    TransactionInfo, TransactionReceipt, TransactionRequest, TransactionSimulationInfo,
-    TransactionStatusInfo, TransactionTrace,
+    BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
+    BroadcastedDeployAccountTransaction, BroadcastedDeployTransaction,
+    BroadcastedInvokeTransaction, BroadcastedTransaction, ContractClass, DeclareTransactionResult,
+    DeployAccountTransactionResult, DeployTransactionResult, EventFilter, EventsPage, FeeEstimate,
+    FieldElement, FunctionCall, InvokeTransactionResult, MaybePendingBlockWithTxHashes,
+    MaybePendingBlockWithTxs, MaybePendingTransactionReceipt, StateUpdate, SyncStatusType,
+    Transaction,
 };
 
 use crate::{
@@ -36,357 +38,81 @@ pub enum AnyProviderError {
 impl Provider for AnyProvider {
     type Error = AnyProviderError;
 
-    async fn add_transaction(
+    async fn get_block_with_tx_hashes<B>(
         &self,
-        tx: TransactionRequest,
-    ) -> Result<AddTransactionResult, ProviderError<Self::Error>> {
-        match self {
-            Self::JsonRpcHttp(inner) => {
-                Ok(<JsonRpcClient<HttpTransport> as Provider>::add_transaction(inner, tx).await?)
-            }
-            Self::SequencerGateway(inner) => {
-                Ok(<SequencerGatewayProvider as Provider>::add_transaction(inner, tx).await?)
-            }
-        }
-    }
-
-    async fn get_contract_addresses(
-        &self,
-    ) -> Result<ContractAddresses, ProviderError<Self::Error>> {
+        block_id: B,
+    ) -> Result<MaybePendingBlockWithTxHashes, ProviderError<Self::Error>>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+    {
         match self {
             Self::JsonRpcHttp(inner) => Ok(
-                <JsonRpcClient<HttpTransport> as Provider>::get_contract_addresses(inner).await?,
-            ),
-            Self::SequencerGateway(inner) => {
-                Ok(<SequencerGatewayProvider as Provider>::get_contract_addresses(inner).await?)
-            }
-        }
-    }
-
-    async fn call_contract(
-        &self,
-        call_function: CallFunction,
-        block_identifier: BlockId,
-    ) -> Result<CallContractResult, ProviderError<Self::Error>> {
-        match self {
-            Self::JsonRpcHttp(inner) => {
-                Ok(<JsonRpcClient<HttpTransport> as Provider>::call_contract(
-                    inner,
-                    call_function,
-                    block_identifier,
-                )
-                .await?)
-            }
-            Self::SequencerGateway(inner) => {
-                Ok(<SequencerGatewayProvider as Provider>::call_contract(
-                    inner,
-                    call_function,
-                    block_identifier,
-                )
-                .await?)
-            }
-        }
-    }
-
-    async fn estimate_fee(
-        &self,
-        tx: AccountTransaction,
-        block_identifier: BlockId,
-        skip_validate: bool,
-    ) -> Result<FeeEstimate, ProviderError<Self::Error>> {
-        match self {
-            Self::JsonRpcHttp(inner) => {
-                Ok(<JsonRpcClient<HttpTransport> as Provider>::estimate_fee(
-                    inner,
-                    tx,
-                    block_identifier,
-                    skip_validate,
-                )
-                .await?)
-            }
-            Self::SequencerGateway(inner) => {
-                Ok(<SequencerGatewayProvider as Provider>::estimate_fee(
-                    inner,
-                    tx,
-                    block_identifier,
-                    skip_validate,
-                )
-                .await?)
-            }
-        }
-    }
-
-    async fn estimate_fee_bulk(
-        &self,
-        txs: &[AccountTransaction],
-        block_identifier: BlockId,
-        skip_validate: bool,
-    ) -> Result<Vec<FeeEstimate>, ProviderError<Self::Error>> {
-        match self {
-            Self::JsonRpcHttp(inner) => Ok(
-                <JsonRpcClient<HttpTransport> as Provider>::estimate_fee_bulk(
-                    inner,
-                    txs,
-                    block_identifier,
-                    skip_validate,
-                )
-                .await?,
-            ),
-            Self::SequencerGateway(inner) => {
-                Ok(<SequencerGatewayProvider as Provider>::estimate_fee_bulk(
-                    inner,
-                    txs,
-                    block_identifier,
-                    skip_validate,
-                )
-                .await?)
-            }
-        }
-    }
-
-    async fn estimate_message_fee(
-        &self,
-        call_l1_handler: CallL1Handler,
-        block_identifier: BlockId,
-    ) -> Result<FeeEstimate, ProviderError<Self::Error>> {
-        match self {
-            Self::JsonRpcHttp(inner) => Ok(
-                <JsonRpcClient<HttpTransport> as Provider>::estimate_message_fee(
-                    inner,
-                    call_l1_handler,
-                    block_identifier,
+                <JsonRpcClient<HttpTransport> as Provider>::get_block_with_tx_hashes(
+                    inner, block_id,
                 )
                 .await?,
             ),
             Self::SequencerGateway(inner) => Ok(
-                <SequencerGatewayProvider as Provider>::estimate_message_fee(
-                    inner,
-                    call_l1_handler,
-                    block_identifier,
-                )
-                .await?,
-            ),
-        }
-    }
-
-    async fn simulate_transaction(
-        &self,
-        tx: AccountTransaction,
-        block_identifier: BlockId,
-        skip_validate: bool,
-    ) -> Result<TransactionSimulationInfo, ProviderError<Self::Error>> {
-        match self {
-            Self::JsonRpcHttp(inner) => Ok(
-                <JsonRpcClient<HttpTransport> as Provider>::simulate_transaction(
-                    inner,
-                    tx,
-                    block_identifier,
-                    skip_validate,
-                )
-                .await?,
-            ),
-            Self::SequencerGateway(inner) => Ok(
-                <SequencerGatewayProvider as Provider>::simulate_transaction(
-                    inner,
-                    tx,
-                    block_identifier,
-                    skip_validate,
-                )
-                .await?,
-            ),
-        }
-    }
-
-    async fn get_block(
-        &self,
-        block_identifier: BlockId,
-    ) -> Result<Block, ProviderError<Self::Error>> {
-        match self {
-            Self::JsonRpcHttp(inner) => Ok(<JsonRpcClient<HttpTransport> as Provider>::get_block(
-                inner,
-                block_identifier,
-            )
-            .await?),
-            Self::SequencerGateway(inner) => Ok(<SequencerGatewayProvider as Provider>::get_block(
-                inner,
-                block_identifier,
-            )
-            .await?),
-        }
-    }
-
-    async fn get_block_traces(
-        &self,
-        block_identifier: BlockId,
-    ) -> Result<BlockTraces, ProviderError<Self::Error>> {
-        match self {
-            Self::JsonRpcHttp(inner) => Ok(
-                <JsonRpcClient<HttpTransport> as Provider>::get_block_traces(
-                    inner,
-                    block_identifier,
-                )
-                .await?,
-            ),
-            Self::SequencerGateway(inner) => Ok(
-                <SequencerGatewayProvider as Provider>::get_block_traces(inner, block_identifier)
+                <SequencerGatewayProvider as Provider>::get_block_with_tx_hashes(inner, block_id)
                     .await?,
             ),
         }
     }
 
-    async fn get_state_update(
+    async fn get_block_with_txs<B>(
         &self,
-        block_identifier: BlockId,
-    ) -> Result<StateUpdate, ProviderError<Self::Error>> {
+        block_id: B,
+    ) -> Result<MaybePendingBlockWithTxs, ProviderError<Self::Error>>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+    {
         match self {
             Self::JsonRpcHttp(inner) => Ok(
-                <JsonRpcClient<HttpTransport> as Provider>::get_state_update(
-                    inner,
-                    block_identifier,
-                )
-                .await?,
-            ),
-            Self::SequencerGateway(inner) => Ok(
-                <SequencerGatewayProvider as Provider>::get_state_update(inner, block_identifier)
+                <JsonRpcClient<HttpTransport> as Provider>::get_block_with_txs(inner, block_id)
                     .await?,
             ),
-        }
-    }
-
-    async fn get_code(
-        &self,
-        contract_address: FieldElement,
-        block_identifier: BlockId,
-    ) -> Result<LegacyContractCode, ProviderError<Self::Error>> {
-        match self {
-            Self::JsonRpcHttp(inner) => Ok(<JsonRpcClient<HttpTransport> as Provider>::get_code(
-                inner,
-                contract_address,
-                block_identifier,
-            )
-            .await?),
-            Self::SequencerGateway(inner) => Ok(<SequencerGatewayProvider as Provider>::get_code(
-                inner,
-                contract_address,
-                block_identifier,
-            )
-            .await?),
-        }
-    }
-
-    async fn get_full_contract(
-        &self,
-        contract_address: FieldElement,
-        block_identifier: BlockId,
-    ) -> Result<DeployedClass, ProviderError<Self::Error>> {
-        match self {
-            Self::JsonRpcHttp(inner) => Ok(
-                <JsonRpcClient<HttpTransport> as Provider>::get_full_contract(
-                    inner,
-                    contract_address,
-                    block_identifier,
-                )
-                .await?,
+            Self::SequencerGateway(inner) => Ok(
+                <SequencerGatewayProvider as Provider>::get_block_with_txs(inner, block_id).await?,
             ),
-            Self::SequencerGateway(inner) => {
-                Ok(<SequencerGatewayProvider as Provider>::get_full_contract(
-                    inner,
-                    contract_address,
-                    block_identifier,
-                )
-                .await?)
-            }
         }
     }
 
-    async fn get_compiled_class_by_class_hash(
+    async fn get_state_update<B>(
         &self,
-        class_hash: FieldElement,
-        block_identifier: BlockId,
-    ) -> Result<CompiledClass, ProviderError<Self::Error>> {
+        block_id: B,
+    ) -> Result<StateUpdate, ProviderError<Self::Error>>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+    {
         match self {
             Self::JsonRpcHttp(inner) => Ok(
-                <JsonRpcClient<HttpTransport> as Provider>::get_compiled_class_by_class_hash(
-                    inner,
-                    class_hash,
-                    block_identifier,
-                )
-                .await?,
+                <JsonRpcClient<HttpTransport> as Provider>::get_state_update(inner, block_id)
+                    .await?,
             ),
             Self::SequencerGateway(inner) => Ok(
-                <SequencerGatewayProvider as Provider>::get_compiled_class_by_class_hash(
-                    inner,
-                    class_hash,
-                    block_identifier,
-                )
-                .await?,
+                <SequencerGatewayProvider as Provider>::get_state_update(inner, block_id).await?,
             ),
         }
     }
 
-    async fn get_class_hash_at(
+    async fn get_storage_at<A, K, B>(
         &self,
-        contract_address: FieldElement,
-        block_identifier: BlockId,
-    ) -> Result<FieldElement, ProviderError<Self::Error>> {
-        match self {
-            Self::JsonRpcHttp(inner) => Ok(
-                <JsonRpcClient<HttpTransport> as Provider>::get_class_hash_at(
-                    inner,
-                    contract_address,
-                    block_identifier,
-                )
-                .await?,
-            ),
-            Self::SequencerGateway(inner) => {
-                Ok(<SequencerGatewayProvider as Provider>::get_class_hash_at(
-                    inner,
-                    contract_address,
-                    block_identifier,
-                )
-                .await?)
-            }
-        }
-    }
-
-    async fn get_class_by_hash(
-        &self,
-        class_hash: FieldElement,
-        block_identifier: BlockId,
-    ) -> Result<DeployedClass, ProviderError<Self::Error>> {
-        match self {
-            Self::JsonRpcHttp(inner) => Ok(
-                <JsonRpcClient<HttpTransport> as Provider>::get_class_by_hash(
-                    inner,
-                    class_hash,
-                    block_identifier,
-                )
-                .await?,
-            ),
-            Self::SequencerGateway(inner) => {
-                Ok(<SequencerGatewayProvider as Provider>::get_class_by_hash(
-                    inner,
-                    class_hash,
-                    block_identifier,
-                )
-                .await?)
-            }
-        }
-    }
-
-    async fn get_storage_at(
-        &self,
-        contract_address: FieldElement,
-        key: FieldElement,
-        block_identifier: BlockId,
-    ) -> Result<FieldElement, ProviderError<Self::Error>> {
+        contract_address: A,
+        key: K,
+        block_id: B,
+    ) -> Result<FieldElement, ProviderError<Self::Error>>
+    where
+        A: AsRef<FieldElement> + Send + Sync,
+        K: AsRef<FieldElement> + Send + Sync,
+        B: AsRef<BlockId> + Send + Sync,
+    {
         match self {
             Self::JsonRpcHttp(inner) => {
                 Ok(<JsonRpcClient<HttpTransport> as Provider>::get_storage_at(
                     inner,
                     contract_address,
                     key,
-                    block_identifier,
+                    block_id,
                 )
                 .await?)
             }
@@ -395,48 +121,30 @@ impl Provider for AnyProvider {
                     inner,
                     contract_address,
                     key,
-                    block_identifier,
+                    block_id,
                 )
                 .await?)
             }
         }
     }
 
-    async fn get_nonce(
+    async fn get_transaction_by_hash<H>(
         &self,
-        contract_address: FieldElement,
-        block_identifier: BlockId,
-    ) -> Result<FieldElement, ProviderError<Self::Error>> {
-        match self {
-            Self::JsonRpcHttp(inner) => Ok(<JsonRpcClient<HttpTransport> as Provider>::get_nonce(
-                inner,
-                contract_address,
-                block_identifier,
-            )
-            .await?),
-            Self::SequencerGateway(inner) => Ok(<SequencerGatewayProvider as Provider>::get_nonce(
-                inner,
-                contract_address,
-                block_identifier,
-            )
-            .await?),
-        }
-    }
-
-    async fn get_transaction_status(
-        &self,
-        transaction_hash: FieldElement,
-    ) -> Result<TransactionStatusInfo, ProviderError<Self::Error>> {
+        transaction_hash: H,
+    ) -> Result<Transaction, ProviderError<Self::Error>>
+    where
+        H: AsRef<FieldElement> + Send + Sync,
+    {
         match self {
             Self::JsonRpcHttp(inner) => Ok(
-                <JsonRpcClient<HttpTransport> as Provider>::get_transaction_status(
+                <JsonRpcClient<HttpTransport> as Provider>::get_transaction_by_hash(
                     inner,
                     transaction_hash,
                 )
                 .await?,
             ),
             Self::SequencerGateway(inner) => Ok(
-                <SequencerGatewayProvider as Provider>::get_transaction_status(
+                <SequencerGatewayProvider as Provider>::get_transaction_by_hash(
                     inner,
                     transaction_hash,
                 )
@@ -445,29 +153,37 @@ impl Provider for AnyProvider {
         }
     }
 
-    async fn get_transaction(
+    async fn get_transaction_by_block_id_and_index<B>(
         &self,
-        transaction_hash: FieldElement,
-    ) -> Result<TransactionInfo, ProviderError<Self::Error>> {
+        block_id: B,
+        index: u64,
+    ) -> Result<Transaction, ProviderError<Self::Error>>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+    {
         match self {
-            Self::JsonRpcHttp(inner) => {
-                Ok(<JsonRpcClient<HttpTransport> as Provider>::get_transaction(
-                    inner,
-                    transaction_hash,
+            Self::JsonRpcHttp(inner) => Ok(
+                <JsonRpcClient<HttpTransport> as Provider>::get_transaction_by_block_id_and_index(
+                    inner, block_id, index,
                 )
-                .await?)
-            }
+                .await?,
+            ),
             Self::SequencerGateway(inner) => Ok(
-                <SequencerGatewayProvider as Provider>::get_transaction(inner, transaction_hash)
-                    .await?,
+                <SequencerGatewayProvider as Provider>::get_transaction_by_block_id_and_index(
+                    inner, block_id, index,
+                )
+                .await?,
             ),
         }
     }
 
-    async fn get_transaction_receipt(
+    async fn get_transaction_receipt<H>(
         &self,
-        transaction_hash: FieldElement,
-    ) -> Result<TransactionReceipt, ProviderError<Self::Error>> {
+        transaction_hash: H,
+    ) -> Result<MaybePendingTransactionReceipt, ProviderError<Self::Error>>
+    where
+        H: AsRef<FieldElement> + Send + Sync,
+    {
         match self {
             Self::JsonRpcHttp(inner) => Ok(
                 <JsonRpcClient<HttpTransport> as Provider>::get_transaction_receipt(
@@ -486,126 +202,354 @@ impl Provider for AnyProvider {
         }
     }
 
-    async fn get_transaction_trace(
+    async fn get_class<B, H>(
         &self,
-        transaction_hash: FieldElement,
-    ) -> Result<TransactionTrace, ProviderError<Self::Error>> {
+        block_id: B,
+        class_hash: H,
+    ) -> Result<ContractClass, ProviderError<Self::Error>>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+        H: AsRef<FieldElement> + Send + Sync,
+    {
         match self {
-            Self::JsonRpcHttp(inner) => Ok(
-                <JsonRpcClient<HttpTransport> as Provider>::get_transaction_trace(
-                    inner,
-                    transaction_hash,
-                )
-                .await?,
-            ),
-            Self::SequencerGateway(inner) => Ok(
-                <SequencerGatewayProvider as Provider>::get_transaction_trace(
-                    inner,
-                    transaction_hash,
-                )
-                .await?,
-            ),
+            Self::JsonRpcHttp(inner) => Ok(<JsonRpcClient<HttpTransport> as Provider>::get_class(
+                inner, block_id, class_hash,
+            )
+            .await?),
+            Self::SequencerGateway(inner) => Ok(<SequencerGatewayProvider as Provider>::get_class(
+                inner, block_id, class_hash,
+            )
+            .await?),
         }
     }
 
-    async fn get_block_hash_by_id(
+    async fn get_class_hash_at<B, A>(
         &self,
-        block_number: u64,
-    ) -> Result<FieldElement, ProviderError<Self::Error>> {
+        block_id: B,
+        contract_address: A,
+    ) -> Result<FieldElement, ProviderError<Self::Error>>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+        A: AsRef<FieldElement> + Send + Sync,
+    {
         match self {
             Self::JsonRpcHttp(inner) => Ok(
-                <JsonRpcClient<HttpTransport> as Provider>::get_block_hash_by_id(
+                <JsonRpcClient<HttpTransport> as Provider>::get_class_hash_at(
                     inner,
-                    block_number,
+                    block_id,
+                    contract_address,
                 )
                 .await?,
             ),
-            Self::SequencerGateway(inner) => Ok(
-                <SequencerGatewayProvider as Provider>::get_block_hash_by_id(inner, block_number)
-                    .await?,
-            ),
+            Self::SequencerGateway(inner) => {
+                Ok(<SequencerGatewayProvider as Provider>::get_class_hash_at(
+                    inner,
+                    block_id,
+                    contract_address,
+                )
+                .await?)
+            }
         }
     }
 
-    async fn get_block_id_by_hash(
+    async fn get_class_at<B, A>(
         &self,
-        block_hash: FieldElement,
-    ) -> Result<u64, ProviderError<Self::Error>> {
-        match self {
-            Self::JsonRpcHttp(inner) => Ok(
-                <JsonRpcClient<HttpTransport> as Provider>::get_block_id_by_hash(inner, block_hash)
-                    .await?,
-            ),
-            Self::SequencerGateway(inner) => Ok(
-                <SequencerGatewayProvider as Provider>::get_block_id_by_hash(inner, block_hash)
-                    .await?,
-            ),
-        }
-    }
-
-    async fn get_transaction_hash_by_id(
-        &self,
-        transaction_number: u64,
-    ) -> Result<FieldElement, ProviderError<Self::Error>> {
-        match self {
-            Self::JsonRpcHttp(inner) => Ok(
-                <JsonRpcClient<HttpTransport> as Provider>::get_transaction_hash_by_id(
-                    inner,
-                    transaction_number,
-                )
-                .await?,
-            ),
-            Self::SequencerGateway(inner) => Ok(
-                <SequencerGatewayProvider as Provider>::get_transaction_hash_by_id(
-                    inner,
-                    transaction_number,
-                )
-                .await?,
-            ),
-        }
-    }
-
-    async fn get_transaction_id_by_hash(
-        &self,
-        transaction_hash: FieldElement,
-    ) -> Result<u64, ProviderError<Self::Error>> {
-        match self {
-            Self::JsonRpcHttp(inner) => Ok(
-                <JsonRpcClient<HttpTransport> as Provider>::get_transaction_id_by_hash(
-                    inner,
-                    transaction_hash,
-                )
-                .await?,
-            ),
-            Self::SequencerGateway(inner) => Ok(
-                <SequencerGatewayProvider as Provider>::get_transaction_id_by_hash(
-                    inner,
-                    transaction_hash,
-                )
-                .await?,
-            ),
-        }
-    }
-
-    async fn get_last_batch_id(&self) -> Result<u64, ProviderError<Self::Error>> {
+        block_id: B,
+        contract_address: A,
+    ) -> Result<ContractClass, ProviderError<Self::Error>>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+        A: AsRef<FieldElement> + Send + Sync,
+    {
         match self {
             Self::JsonRpcHttp(inner) => {
-                Ok(<JsonRpcClient<HttpTransport> as Provider>::get_last_batch_id(inner).await?)
+                Ok(<JsonRpcClient<HttpTransport> as Provider>::get_class_at(
+                    inner,
+                    block_id,
+                    contract_address,
+                )
+                .await?)
             }
             Self::SequencerGateway(inner) => {
-                Ok(<SequencerGatewayProvider as Provider>::get_last_batch_id(inner).await?)
+                Ok(<SequencerGatewayProvider as Provider>::get_class_at(
+                    inner,
+                    block_id,
+                    contract_address,
+                )
+                .await?)
             }
         }
     }
 
-    async fn get_l1_blockchain_id(&self) -> Result<u64, ProviderError<Self::Error>> {
+    async fn get_block_transaction_count<B>(
+        &self,
+        block_id: B,
+    ) -> Result<u64, ProviderError<Self::Error>>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => Ok(
+                <JsonRpcClient<HttpTransport> as Provider>::get_block_transaction_count(
+                    inner, block_id,
+                )
+                .await?,
+            ),
+            Self::SequencerGateway(inner) => Ok(
+                <SequencerGatewayProvider as Provider>::get_block_transaction_count(
+                    inner, block_id,
+                )
+                .await?,
+            ),
+        }
+    }
+
+    async fn call<R, B>(
+        &self,
+        request: R,
+        block_id: B,
+    ) -> Result<Vec<FieldElement>, ProviderError<Self::Error>>
+    where
+        R: AsRef<FunctionCall> + Send + Sync,
+        B: AsRef<BlockId> + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => Ok(<JsonRpcClient<HttpTransport> as Provider>::call(
+                inner, request, block_id,
+            )
+            .await?),
+            Self::SequencerGateway(inner) => {
+                Ok(<SequencerGatewayProvider as Provider>::call(inner, request, block_id).await?)
+            }
+        }
+    }
+
+    async fn estimate_fee<R, B>(
+        &self,
+        request: R,
+        block_id: B,
+    ) -> Result<FeeEstimate, ProviderError<Self::Error>>
+    where
+        R: AsRef<BroadcastedTransaction> + Send + Sync,
+        B: AsRef<BlockId> + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => Ok(
+                <JsonRpcClient<HttpTransport> as Provider>::estimate_fee(inner, request, block_id)
+                    .await?,
+            ),
+            Self::SequencerGateway(inner) => Ok(
+                <SequencerGatewayProvider as Provider>::estimate_fee(inner, request, block_id)
+                    .await?,
+            ),
+        }
+    }
+
+    async fn block_number(&self) -> Result<u64, ProviderError<Self::Error>> {
         match self {
             Self::JsonRpcHttp(inner) => {
-                Ok(<JsonRpcClient<HttpTransport> as Provider>::get_l1_blockchain_id(inner).await?)
+                Ok(<JsonRpcClient<HttpTransport> as Provider>::block_number(inner).await?)
             }
             Self::SequencerGateway(inner) => {
-                Ok(<SequencerGatewayProvider as Provider>::get_l1_blockchain_id(inner).await?)
+                Ok(<SequencerGatewayProvider as Provider>::block_number(inner).await?)
             }
+        }
+    }
+
+    async fn block_hash_and_number(
+        &self,
+    ) -> Result<BlockHashAndNumber, ProviderError<Self::Error>> {
+        match self {
+            Self::JsonRpcHttp(inner) => Ok(
+                <JsonRpcClient<HttpTransport> as Provider>::block_hash_and_number(inner).await?,
+            ),
+            Self::SequencerGateway(inner) => {
+                Ok(<SequencerGatewayProvider as Provider>::block_hash_and_number(inner).await?)
+            }
+        }
+    }
+
+    async fn chain_id(&self) -> Result<FieldElement, ProviderError<Self::Error>> {
+        match self {
+            Self::JsonRpcHttp(inner) => {
+                Ok(<JsonRpcClient<HttpTransport> as Provider>::chain_id(inner).await?)
+            }
+            Self::SequencerGateway(inner) => {
+                Ok(<SequencerGatewayProvider as Provider>::chain_id(inner).await?)
+            }
+        }
+    }
+
+    async fn pending_transactions(&self) -> Result<Vec<Transaction>, ProviderError<Self::Error>> {
+        match self {
+            Self::JsonRpcHttp(inner) => {
+                Ok(<JsonRpcClient<HttpTransport> as Provider>::pending_transactions(inner).await?)
+            }
+            Self::SequencerGateway(inner) => {
+                Ok(<SequencerGatewayProvider as Provider>::pending_transactions(inner).await?)
+            }
+        }
+    }
+
+    async fn syncing(&self) -> Result<SyncStatusType, ProviderError<Self::Error>> {
+        match self {
+            Self::JsonRpcHttp(inner) => {
+                Ok(<JsonRpcClient<HttpTransport> as Provider>::syncing(inner).await?)
+            }
+            Self::SequencerGateway(inner) => {
+                Ok(<SequencerGatewayProvider as Provider>::syncing(inner).await?)
+            }
+        }
+    }
+
+    async fn get_events(
+        &self,
+        filter: EventFilter,
+        continuation_token: Option<String>,
+        chunk_size: u64,
+    ) -> Result<EventsPage, ProviderError<Self::Error>> {
+        match self {
+            Self::JsonRpcHttp(inner) => Ok(<JsonRpcClient<HttpTransport> as Provider>::get_events(
+                inner,
+                filter,
+                continuation_token,
+                chunk_size,
+            )
+            .await?),
+            Self::SequencerGateway(inner) => {
+                Ok(<SequencerGatewayProvider as Provider>::get_events(
+                    inner,
+                    filter,
+                    continuation_token,
+                    chunk_size,
+                )
+                .await?)
+            }
+        }
+    }
+
+    async fn get_nonce<B, A>(
+        &self,
+        block_id: B,
+        contract_address: A,
+    ) -> Result<FieldElement, ProviderError<Self::Error>>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+        A: AsRef<FieldElement> + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => Ok(<JsonRpcClient<HttpTransport> as Provider>::get_nonce(
+                inner,
+                block_id,
+                contract_address,
+            )
+            .await?),
+            Self::SequencerGateway(inner) => Ok(<SequencerGatewayProvider as Provider>::get_nonce(
+                inner,
+                block_id,
+                contract_address,
+            )
+            .await?),
+        }
+    }
+
+    async fn add_invoke_transaction<I>(
+        &self,
+        invoke_transaction: I,
+    ) -> Result<InvokeTransactionResult, ProviderError<Self::Error>>
+    where
+        I: AsRef<BroadcastedInvokeTransaction> + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => Ok(
+                <JsonRpcClient<HttpTransport> as Provider>::add_invoke_transaction(
+                    inner,
+                    invoke_transaction,
+                )
+                .await?,
+            ),
+            Self::SequencerGateway(inner) => Ok(
+                <SequencerGatewayProvider as Provider>::add_invoke_transaction(
+                    inner,
+                    invoke_transaction,
+                )
+                .await?,
+            ),
+        }
+    }
+
+    async fn add_declare_transaction<D>(
+        &self,
+        declare_transaction: D,
+    ) -> Result<DeclareTransactionResult, ProviderError<Self::Error>>
+    where
+        D: AsRef<BroadcastedDeclareTransaction> + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => Ok(
+                <JsonRpcClient<HttpTransport> as Provider>::add_declare_transaction(
+                    inner,
+                    declare_transaction,
+                )
+                .await?,
+            ),
+            Self::SequencerGateway(inner) => Ok(
+                <SequencerGatewayProvider as Provider>::add_declare_transaction(
+                    inner,
+                    declare_transaction,
+                )
+                .await?,
+            ),
+        }
+    }
+
+    async fn add_deploy_transaction<D>(
+        &self,
+        deploy_transaction: D,
+    ) -> Result<DeployTransactionResult, ProviderError<Self::Error>>
+    where
+        D: AsRef<BroadcastedDeployTransaction> + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => Ok(
+                <JsonRpcClient<HttpTransport> as Provider>::add_deploy_transaction(
+                    inner,
+                    deploy_transaction,
+                )
+                .await?,
+            ),
+            Self::SequencerGateway(inner) => Ok(
+                <SequencerGatewayProvider as Provider>::add_deploy_transaction(
+                    inner,
+                    deploy_transaction,
+                )
+                .await?,
+            ),
+        }
+    }
+
+    async fn add_deploy_account_transaction<D>(
+        &self,
+        deploy_account_transaction: D,
+    ) -> Result<DeployAccountTransactionResult, ProviderError<Self::Error>>
+    where
+        D: AsRef<BroadcastedDeployAccountTransaction> + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => Ok(
+                <JsonRpcClient<HttpTransport> as Provider>::add_deploy_account_transaction(
+                    inner,
+                    deploy_account_transaction,
+                )
+                .await?,
+            ),
+            Self::SequencerGateway(inner) => Ok(
+                <SequencerGatewayProvider as Provider>::add_deploy_account_transaction(
+                    inner,
+                    deploy_account_transaction,
+                )
+                .await?,
+            ),
         }
     }
 }

@@ -1,9 +1,16 @@
 use starknet_core::{
-    types::FieldElement,
+    types::{
+        BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1,
+        BroadcastedTransaction, ContractClass, EventFilter, FieldElement, FunctionCall,
+        InvokeTransaction, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
+        MaybePendingTransactionReceipt, StarknetError, SyncStatusType, Transaction,
+        TransactionReceipt,
+    },
     utils::{get_selector_from_name, get_storage_var_address},
 };
-use starknet_providers::jsonrpc::{
-    models::*, HttpTransport, JsonRpcClient, JsonRpcClientError, RpcError,
+use starknet_providers::{
+    jsonrpc::{HttpTransport, JsonRpcClient},
+    Provider, ProviderError,
 };
 use url::Url;
 
@@ -19,7 +26,7 @@ async fn jsonrpc_get_block_with_tx_hashes() {
     let rpc_client = create_jsonrpc_client();
 
     let block = rpc_client
-        .get_block_with_tx_hashes(&BlockId::Tag(BlockTag::Latest))
+        .get_block_with_tx_hashes(BlockId::Tag(BlockTag::Latest))
         .await
         .unwrap();
 
@@ -36,7 +43,7 @@ async fn jsonrpc_get_block_with_txs() {
     let rpc_client = create_jsonrpc_client();
 
     let block = rpc_client
-        .get_block_with_txs(&BlockId::Tag(BlockTag::Latest))
+        .get_block_with_txs(BlockId::Tag(BlockTag::Latest))
         .await
         .unwrap();
 
@@ -53,7 +60,7 @@ async fn jsonrpc_get_state_update() {
     let rpc_client = create_jsonrpc_client();
 
     let state_update = rpc_client
-        .get_state_update(&BlockId::Tag(BlockTag::Latest))
+        .get_state_update(BlockId::Tag(BlockTag::Latest))
         .await
         .unwrap();
 
@@ -79,7 +86,7 @@ async fn jsonrpc_get_storage_at() {
                 .unwrap()],
             )
             .unwrap(),
-            &BlockId::Tag(BlockTag::Latest),
+            BlockId::Tag(BlockTag::Latest),
         )
         .await
         .unwrap();
@@ -114,7 +121,7 @@ async fn jsonrpc_get_transaction_by_block_id_and_index() {
     let rpc_client = create_jsonrpc_client();
 
     let tx = rpc_client
-        .get_transaction_by_block_id_and_index(&BlockId::Number(10_000), 1)
+        .get_transaction_by_block_id_and_index(BlockId::Number(10_000), 1)
         .await
         .unwrap();
 
@@ -136,7 +143,7 @@ async fn jsonrpc_get_transaction_by_hash_non_existent_tx() {
         .unwrap_err();
 
     match err {
-        JsonRpcClientError::RpcError(RpcError::Code(StarknetError::TransactionHashNotFound)) => {
+        ProviderError::StarknetError(StarknetError::TransactionHashNotFound) => {
             // TXN_HASH_NOT_FOUND
         }
         _ => panic!("Unexpected error"),
@@ -171,7 +178,7 @@ async fn jsonrpc_get_class() {
 
     let class = rpc_client
         .get_class(
-            &BlockId::Tag(BlockTag::Latest),
+            BlockId::Tag(BlockTag::Latest),
             FieldElement::from_hex_be(
                 "025ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918",
             )
@@ -194,7 +201,7 @@ async fn jsonrpc_get_class_hash_at() {
 
     let class_hash = rpc_client
         .get_class_hash_at(
-            &BlockId::Tag(BlockTag::Latest),
+            BlockId::Tag(BlockTag::Latest),
             FieldElement::from_hex_be(
                 "06b3dab9c563083e7e74d9a7ab7649f7af4564cfef397f8e44233a1feffc7049",
             )
@@ -218,7 +225,7 @@ async fn jsonrpc_get_class_at() {
 
     let class = rpc_client
         .get_class_at(
-            &BlockId::Tag(BlockTag::Latest),
+            BlockId::Tag(BlockTag::Latest),
             FieldElement::from_hex_be(
                 "06b3dab9c563083e7e74d9a7ab7649f7af4564cfef397f8e44233a1feffc7049",
             )
@@ -240,7 +247,7 @@ async fn jsonrpc_get_block_transaction_count() {
     let rpc_client = create_jsonrpc_client();
 
     let count = rpc_client
-        .get_block_transaction_count(&BlockId::Number(20_000))
+        .get_block_transaction_count(BlockId::Number(20_000))
         .await
         .unwrap();
 
@@ -265,7 +272,7 @@ async fn jsonrpc_call() {
                 )
                 .unwrap()],
             },
-            &BlockId::Tag(BlockTag::Latest),
+            BlockId::Tag(BlockTag::Latest),
         )
         .await
         .unwrap();
@@ -319,7 +326,7 @@ async fn jsonrpc_estimate_fee() {
                     ],
                 },
             )),
-            &BlockId::Tag(BlockTag::Latest),
+            BlockId::Tag(BlockTag::Latest),
         )
         .await
         .unwrap();
@@ -399,7 +406,7 @@ async fn jsonrpc_get_nonce() {
 
     let nonce = rpc_client
         .get_nonce(
-            &BlockId::Tag(BlockTag::Latest),
+            BlockId::Tag(BlockTag::Latest),
             FieldElement::from_hex_be(
                 "0661d341c2ba6f3c2b277e54d507e4b49b0c4d8973ac7366a035d0d3e8bdec47",
             )

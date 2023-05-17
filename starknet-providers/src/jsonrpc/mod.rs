@@ -1,22 +1,24 @@
+use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_with::serde_as;
-use starknet_core::{serde::unsigned_field_element::UfeHex, types::FieldElement};
+use starknet_core::{
+    serde::unsigned_field_element::UfeHex,
+    types::{
+        requests::*, BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
+        BroadcastedDeployAccountTransaction, BroadcastedDeployTransaction,
+        BroadcastedInvokeTransaction, BroadcastedTransaction, ContractClass,
+        DeclareTransactionResult, DeployAccountTransactionResult, DeployTransactionResult,
+        EventFilter, EventFilterWithPage, EventsPage, FeeEstimate, FieldElement, FunctionCall,
+        InvokeTransactionResult, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
+        MaybePendingTransactionReceipt, ResultPageRequest, StarknetError, StateUpdate,
+        SyncStatusType, Transaction,
+    },
+};
 
-use crate::jsonrpc::models::*;
+use crate::{Provider, ProviderError};
 
 mod transports;
 pub use transports::{HttpTransport, JsonRpcTransport};
-
-/// Temporary module for holding JSON-RPC data models until the provider switch:
-///
-/// https://github.com/xJonathanLEI/starknet-rs/issues/77#issuecomment-1150184364
-pub mod models;
-
-/// Temporary module for bridging the client and the `Provider` trait until:
-///
-/// https://github.com/xJonathanLEI/starknet-rs/issues/77#issuecomment-1150184364
-mod provider;
-pub use provider::JsonRpcProviderError;
 
 #[derive(Debug)]
 pub struct JsonRpcClient<T> {
@@ -159,13 +161,47 @@ impl<T> JsonRpcClient<T>
 where
     T: JsonRpcTransport,
 {
+    async fn send_request<P, R>(
+        &self,
+        method: JsonRpcMethod,
+        params: P,
+    ) -> Result<R, ProviderError<JsonRpcClientError<T::Error>>>
+    where
+        P: Serialize + Send,
+        R: DeserializeOwned,
+    {
+        match self
+            .transport
+            .send_request(method, params)
+            .await
+            .map_err(|err| ProviderError::Other(JsonRpcClientError::TransportError(err)))?
+        {
+            JsonRpcResponse::Success { result, .. } => Ok(result),
+            JsonRpcResponse::Error { error, .. } => Err(match error.code.try_into() {
+                Ok(code) => ProviderError::StarknetError(code),
+                Err(_) => {
+                    ProviderError::Other(JsonRpcClientError::RpcError(RpcError::Unknown(error)))
+                }
+            }),
+        }
+    }
+}
+
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+impl<T> Provider for JsonRpcClient<T>
+where
+    T: JsonRpcTransport + Sync + Send,
+{
+    type Error = JsonRpcClientError<T::Error>;
+
     /// Get block information with transaction hashes given the block id
-    pub async fn get_block_with_tx_hashes<B>(
+    async fn get_block_with_tx_hashes<B>(
         &self,
         block_id: B,
-    ) -> Result<MaybePendingBlockWithTxHashes, JsonRpcClientError<T::Error>>
+    ) -> Result<MaybePendingBlockWithTxHashes, ProviderError<Self::Error>>
     where
-        B: AsRef<BlockId>,
+        B: AsRef<BlockId> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::GetBlockWithTxHashes,
@@ -177,12 +213,12 @@ where
     }
 
     /// Get block information with full transactions given the block id
-    pub async fn get_block_with_txs<B>(
+    async fn get_block_with_txs<B>(
         &self,
         block_id: B,
-    ) -> Result<MaybePendingBlockWithTxs, JsonRpcClientError<T::Error>>
+    ) -> Result<MaybePendingBlockWithTxs, ProviderError<Self::Error>>
     where
-        B: AsRef<BlockId>,
+        B: AsRef<BlockId> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::GetBlockWithTxs,
@@ -194,12 +230,12 @@ where
     }
 
     /// Get the information about the result of executing the requested block
-    pub async fn get_state_update<B>(
+    async fn get_state_update<B>(
         &self,
         block_id: B,
-    ) -> Result<StateUpdate, JsonRpcClientError<T::Error>>
+    ) -> Result<StateUpdate, ProviderError<Self::Error>>
     where
-        B: AsRef<BlockId>,
+        B: AsRef<BlockId> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::GetStateUpdate,
@@ -211,16 +247,16 @@ where
     }
 
     /// Get the value of the storage at the given address and key
-    pub async fn get_storage_at<A, K, B>(
+    async fn get_storage_at<A, K, B>(
         &self,
         contract_address: A,
         key: K,
         block_id: B,
-    ) -> Result<FieldElement, JsonRpcClientError<T::Error>>
+    ) -> Result<FieldElement, ProviderError<Self::Error>>
     where
-        A: AsRef<FieldElement>,
-        K: AsRef<FieldElement>,
-        B: AsRef<BlockId>,
+        A: AsRef<FieldElement> + Send + Sync,
+        K: AsRef<FieldElement> + Send + Sync,
+        B: AsRef<BlockId> + Send + Sync,
     {
         Ok(self
             .send_request::<_, Felt>(
@@ -236,12 +272,12 @@ where
     }
 
     /// Get the details and status of a submitted transaction
-    pub async fn get_transaction_by_hash<H>(
+    async fn get_transaction_by_hash<H>(
         &self,
         transaction_hash: H,
-    ) -> Result<Transaction, JsonRpcClientError<T::Error>>
+    ) -> Result<Transaction, ProviderError<Self::Error>>
     where
-        H: AsRef<FieldElement>,
+        H: AsRef<FieldElement> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::GetTransactionByHash,
@@ -253,13 +289,13 @@ where
     }
 
     /// Get the details of a transaction by a given block id and index
-    pub async fn get_transaction_by_block_id_and_index<B>(
+    async fn get_transaction_by_block_id_and_index<B>(
         &self,
         block_id: B,
         index: u64,
-    ) -> Result<Transaction, JsonRpcClientError<T::Error>>
+    ) -> Result<Transaction, ProviderError<Self::Error>>
     where
-        B: AsRef<BlockId>,
+        B: AsRef<BlockId> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::GetTransactionByBlockIdAndIndex,
@@ -272,12 +308,12 @@ where
     }
 
     /// Get the details of a transaction by a given block number and index
-    pub async fn get_transaction_receipt<H>(
+    async fn get_transaction_receipt<H>(
         &self,
         transaction_hash: H,
-    ) -> Result<MaybePendingTransactionReceipt, JsonRpcClientError<T::Error>>
+    ) -> Result<MaybePendingTransactionReceipt, ProviderError<Self::Error>>
     where
-        H: AsRef<FieldElement>,
+        H: AsRef<FieldElement> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::GetTransactionReceipt,
@@ -289,14 +325,14 @@ where
     }
 
     /// Get the contract class definition in the given block associated with the given hash
-    pub async fn get_class<B, H>(
+    async fn get_class<B, H>(
         &self,
         block_id: B,
         class_hash: H,
-    ) -> Result<ContractClass, JsonRpcClientError<T::Error>>
+    ) -> Result<ContractClass, ProviderError<Self::Error>>
     where
-        B: AsRef<BlockId>,
-        H: AsRef<FieldElement>,
+        B: AsRef<BlockId> + Send + Sync,
+        H: AsRef<FieldElement> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::GetClass,
@@ -309,14 +345,14 @@ where
     }
 
     /// Get the contract class hash in the given block for the contract deployed at the given address
-    pub async fn get_class_hash_at<B, A>(
+    async fn get_class_hash_at<B, A>(
         &self,
         block_id: B,
         contract_address: A,
-    ) -> Result<FieldElement, JsonRpcClientError<T::Error>>
+    ) -> Result<FieldElement, ProviderError<Self::Error>>
     where
-        B: AsRef<BlockId>,
-        A: AsRef<FieldElement>,
+        B: AsRef<BlockId> + Send + Sync,
+        A: AsRef<FieldElement> + Send + Sync,
     {
         Ok(self
             .send_request::<_, Felt>(
@@ -331,14 +367,14 @@ where
     }
 
     /// Get the contract class definition in the given block at the given address
-    pub async fn get_class_at<B, A>(
+    async fn get_class_at<B, A>(
         &self,
         block_id: B,
         contract_address: A,
-    ) -> Result<ContractClass, JsonRpcClientError<T::Error>>
+    ) -> Result<ContractClass, ProviderError<Self::Error>>
     where
-        B: AsRef<BlockId>,
-        A: AsRef<FieldElement>,
+        B: AsRef<BlockId> + Send + Sync,
+        A: AsRef<FieldElement> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::GetClassAt,
@@ -351,12 +387,12 @@ where
     }
 
     /// Get the number of transactions in a block given a block id
-    pub async fn get_block_transaction_count<B>(
+    async fn get_block_transaction_count<B>(
         &self,
         block_id: B,
-    ) -> Result<u64, JsonRpcClientError<T::Error>>
+    ) -> Result<u64, ProviderError<Self::Error>>
     where
-        B: AsRef<BlockId>,
+        B: AsRef<BlockId> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::GetBlockTransactionCount,
@@ -368,14 +404,14 @@ where
     }
 
     /// Call a starknet function without creating a Starknet transaction
-    pub async fn call<R, B>(
+    async fn call<R, B>(
         &self,
         request: R,
         block_id: B,
-    ) -> Result<Vec<FieldElement>, JsonRpcClientError<T::Error>>
+    ) -> Result<Vec<FieldElement>, ProviderError<Self::Error>>
     where
-        R: AsRef<FunctionCall>,
-        B: AsRef<BlockId>,
+        R: AsRef<FunctionCall> + Send + Sync,
+        B: AsRef<BlockId> + Send + Sync,
     {
         Ok(self
             .send_request::<_, FeltArray>(
@@ -390,14 +426,14 @@ where
     }
 
     /// Estimate the fee for a given Starknet transaction
-    pub async fn estimate_fee<R, B>(
+    async fn estimate_fee<R, B>(
         &self,
         request: R,
         block_id: B,
-    ) -> Result<FeeEstimate, JsonRpcClientError<T::Error>>
+    ) -> Result<FeeEstimate, ProviderError<Self::Error>>
     where
-        R: AsRef<BroadcastedTransaction>,
-        B: AsRef<BlockId>,
+        R: AsRef<BroadcastedTransaction> + Send + Sync,
+        B: AsRef<BlockId> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::EstimateFee,
@@ -410,21 +446,21 @@ where
     }
 
     /// Get the most recent accepted block number
-    pub async fn block_number(&self) -> Result<u64, JsonRpcClientError<T::Error>> {
+    async fn block_number(&self) -> Result<u64, ProviderError<Self::Error>> {
         self.send_request(JsonRpcMethod::BlockNumber, BlockNumberRequest)
             .await
     }
 
     /// Get the most recent accepted block hash and number
-    pub async fn block_hash_and_number(
+    async fn block_hash_and_number(
         &self,
-    ) -> Result<BlockHashAndNumber, JsonRpcClientError<T::Error>> {
+    ) -> Result<BlockHashAndNumber, ProviderError<Self::Error>> {
         self.send_request(JsonRpcMethod::BlockHashAndNumber, BlockHashAndNumberRequest)
             .await
     }
 
     /// Return the currently configured Starknet chain id
-    pub async fn chain_id(&self) -> Result<FieldElement, JsonRpcClientError<T::Error>> {
+    async fn chain_id(&self) -> Result<FieldElement, ProviderError<Self::Error>> {
         Ok(self
             .send_request::<_, Felt>(JsonRpcMethod::ChainId, ChainIdRequest)
             .await?
@@ -432,9 +468,7 @@ where
     }
 
     /// Returns the transactions in the transaction pool, recognized by this sequencer
-    pub async fn pending_transactions(
-        &self,
-    ) -> Result<Vec<Transaction>, JsonRpcClientError<T::Error>> {
+    async fn pending_transactions(&self) -> Result<Vec<Transaction>, ProviderError<Self::Error>> {
         self.send_request(
             JsonRpcMethod::PendingTransactions,
             PendingTransactionsRequest,
@@ -443,18 +477,18 @@ where
     }
 
     /// Returns an object about the sync status, or false if the node is not synching
-    pub async fn syncing(&self) -> Result<SyncStatusType, JsonRpcClientError<T::Error>> {
+    async fn syncing(&self) -> Result<SyncStatusType, ProviderError<Self::Error>> {
         self.send_request(JsonRpcMethod::Syncing, SyncingRequest)
             .await
     }
 
     /// Returns all events matching the given filter
-    pub async fn get_events(
+    async fn get_events(
         &self,
         filter: EventFilter,
         continuation_token: Option<String>,
         chunk_size: u64,
-    ) -> Result<EventsPage, JsonRpcClientError<T::Error>> {
+    ) -> Result<EventsPage, ProviderError<Self::Error>> {
         self.send_request(
             JsonRpcMethod::GetEvents,
             GetEventsRequestRef {
@@ -471,14 +505,14 @@ where
     }
 
     /// Get the nonce associated with the given address in the given block
-    pub async fn get_nonce<B, A>(
+    async fn get_nonce<B, A>(
         &self,
         block_id: B,
         contract_address: A,
-    ) -> Result<FieldElement, JsonRpcClientError<T::Error>>
+    ) -> Result<FieldElement, ProviderError<Self::Error>>
     where
-        B: AsRef<BlockId>,
-        A: AsRef<FieldElement>,
+        B: AsRef<BlockId> + Send + Sync,
+        A: AsRef<FieldElement> + Send + Sync,
     {
         Ok(self
             .send_request::<_, Felt>(
@@ -493,12 +527,12 @@ where
     }
 
     /// Submit a new transaction to be added to the chain
-    pub async fn add_invoke_transaction<I>(
+    async fn add_invoke_transaction<I>(
         &self,
         invoke_transaction: I,
-    ) -> Result<InvokeTransactionResult, JsonRpcClientError<T::Error>>
+    ) -> Result<InvokeTransactionResult, ProviderError<Self::Error>>
     where
-        I: AsRef<BroadcastedInvokeTransaction>,
+        I: AsRef<BroadcastedInvokeTransaction> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::AddInvokeTransaction,
@@ -510,12 +544,12 @@ where
     }
 
     /// Submit a new transaction to be added to the chain
-    pub async fn add_declare_transaction<D>(
+    async fn add_declare_transaction<D>(
         &self,
         declare_transaction: D,
-    ) -> Result<DeclareTransactionResult, JsonRpcClientError<T::Error>>
+    ) -> Result<DeclareTransactionResult, ProviderError<Self::Error>>
     where
-        D: AsRef<BroadcastedDeclareTransaction>,
+        D: AsRef<BroadcastedDeclareTransaction> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::AddDeclareTransaction,
@@ -527,12 +561,12 @@ where
     }
 
     /// Submit a new deploy contract transaction
-    pub async fn add_deploy_transaction<D>(
+    async fn add_deploy_transaction<D>(
         &self,
         deploy_transaction: D,
-    ) -> Result<DeployTransactionResult, JsonRpcClientError<T::Error>>
+    ) -> Result<DeployTransactionResult, ProviderError<Self::Error>>
     where
-        D: AsRef<BroadcastedDeployTransaction>,
+        D: AsRef<BroadcastedDeployTransaction> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::AddDeployTransaction,
@@ -544,12 +578,12 @@ where
     }
 
     /// Submit a new deploy account transaction
-    pub async fn add_deploy_account_transaction<D>(
+    async fn add_deploy_account_transaction<D>(
         &self,
         deploy_account_transaction: D,
-    ) -> Result<DeployAccountTransactionResult, JsonRpcClientError<T::Error>>
+    ) -> Result<DeployAccountTransactionResult, ProviderError<Self::Error>>
     where
-        D: AsRef<BroadcastedDeployAccountTransaction>,
+        D: AsRef<BroadcastedDeployAccountTransaction> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::AddDeployAccountTransaction,
@@ -558,31 +592,6 @@ where
             },
         )
         .await
-    }
-
-    async fn send_request<P, R>(
-        &self,
-        method: JsonRpcMethod,
-        params: P,
-    ) -> Result<R, JsonRpcClientError<T::Error>>
-    where
-        P: Serialize + Send,
-        R: DeserializeOwned,
-    {
-        match self
-            .transport
-            .send_request(method, params)
-            .await
-            .map_err(JsonRpcClientError::TransportError)?
-        {
-            JsonRpcResponse::Success { result, .. } => Ok(result),
-            JsonRpcResponse::Error { error, .. } => {
-                Err(JsonRpcClientError::RpcError(match error.code.try_into() {
-                    Ok(code) => RpcError::Code(code),
-                    Err(_) => RpcError::Unknown(error),
-                }))
-            }
-        }
     }
 }
 
@@ -720,28 +729,5 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
 impl<T> From<serde_json::Error> for JsonRpcClientError<T> {
     fn from(value: serde_json::Error) -> Self {
         Self::JsonError(value)
-    }
-}
-
-impl TryFrom<i64> for StarknetError {
-    type Error = ();
-
-    fn try_from(value: i64) -> Result<Self, Self::Error> {
-        Ok(match value {
-            1 => StarknetError::FailedToReceiveTransaction,
-            20 => StarknetError::ContractNotFound,
-            21 => StarknetError::InvalidMessageSelector,
-            22 => StarknetError::InvalidCallData,
-            24 => StarknetError::BlockNotFound,
-            25 => StarknetError::TransactionHashNotFound,
-            27 => StarknetError::InvalidTransactionIndex,
-            28 => StarknetError::ClassHashNotFound,
-            31 => StarknetError::PageSizeTooBig,
-            32 => StarknetError::NoBlocks,
-            33 => StarknetError::InvalidContinuationToken,
-            40 => StarknetError::ContractError,
-            50 => StarknetError::InvalidContractClass,
-            _ => return Err(()),
-        })
     }
 }

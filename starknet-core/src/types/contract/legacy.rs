@@ -1,12 +1,12 @@
 use crate::{
     crypto::compute_hash_on_elements,
-    serde::{
-        byte_array::base64::serialize as base64_ser, json::to_string_pythonic,
-        num_hex::u64 as u64_hex, unsigned_field_element::UfeHex,
-    },
+    serde::{json::to_string_pythonic, num_hex::u64 as u64_hex, unsigned_field_element::UfeHex},
     types::{
         contract::{CompressProgramError, ComputeClassHashError},
-        FieldElement,
+        CompressedLegacyContractClass, FieldElement, LegacyContractAbiEntry,
+        LegacyContractEntryPoint, LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType,
+        LegacyFunctionAbiEntry, LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType,
+        LegacyStructMember, LegacyTypedParameter,
     },
     utils::{cairo_short_string_to_felt, starknet_keccak},
 };
@@ -23,27 +23,18 @@ const API_VERSION: FieldElement = FieldElement::ZERO;
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyContractClass {
-    pub abi: Vec<LegacyAbiEntry>,
-    pub entry_points_by_type: LegacyEntryPoints,
+    pub abi: Vec<RawLegacyAbiEntry>,
+    pub entry_points_by_type: RawLegacyEntryPoints,
     pub program: LegacyProgram,
-}
-
-#[derive(Debug, Serialize, Clone)]
-pub struct CompressedLegacyContractClass {
-    #[serde(serialize_with = "base64_ser")]
-    pub program: Vec<u8>,
-    pub entry_points_by_type: LegacyEntryPoints,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub abi: Option<Vec<LegacyAbiEntry>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct LegacyEntryPoints {
-    pub constructor: Vec<LegacyEntryPoint>,
-    pub external: Vec<LegacyEntryPoint>,
-    pub l1_handler: Vec<LegacyEntryPoint>,
+pub struct RawLegacyEntryPoints {
+    pub constructor: Vec<RawLegacyEntryPoint>,
+    pub external: Vec<RawLegacyEntryPoint>,
+    pub l1_handler: Vec<RawLegacyEntryPoint>,
 }
 
 #[serde_as]
@@ -72,7 +63,7 @@ pub struct LegacyProgram {
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct LegacyEntryPoint {
+pub struct RawLegacyEntryPoint {
     pub offset: LegacyEntrypointOffset,
     #[serde_as(as = "UfeHex")]
     pub selector: FieldElement,
@@ -227,80 +218,59 @@ pub struct LegacyParentLocation {
 pub struct LegacyContractCode {
     #[serde_as(as = "Vec<UfeHex>")]
     pub bytecode: Vec<FieldElement>,
-    pub abi: Option<Vec<LegacyAbiEntry>>,
+    pub abi: Option<Vec<RawLegacyAbiEntry>>,
 }
 
 #[derive(Debug, Clone)]
-pub enum LegacyAbiEntry {
-    Constructor(LegacyConstructor),
-    Function(LegacyFunction),
-    Struct(LegacyStruct),
-    L1Handler(LegacyL1Handler),
-    Event(LegacyEvent),
+pub enum RawLegacyAbiEntry {
+    Constructor(RawLegacyConstructor),
+    Function(RawLegacyFunction),
+    Struct(RawLegacyStruct),
+    L1Handler(RawLegacyL1Handler),
+    Event(RawLegacyEvent),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LegacyConstructor {
-    pub inputs: Vec<LegacyInput>,
+pub struct RawLegacyConstructor {
+    pub inputs: Vec<LegacyTypedParameter>,
     pub name: String,
-    pub outputs: Vec<LegacyOutput>,
+    pub outputs: Vec<LegacyTypedParameter>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct LegacyFunction {
-    pub inputs: Vec<LegacyInput>,
+pub struct RawLegacyFunction {
+    pub inputs: Vec<LegacyTypedParameter>,
     pub name: String,
-    pub outputs: Vec<LegacyOutput>,
+    pub outputs: Vec<LegacyTypedParameter>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub state_mutability: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LegacyStruct {
-    pub members: Vec<LegacyMember>,
+pub struct RawLegacyStruct {
+    pub members: Vec<RawLegacyMember>,
     pub name: String,
     pub size: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LegacyL1Handler {
-    pub inputs: Vec<LegacyInput>,
+pub struct RawLegacyL1Handler {
+    pub inputs: Vec<LegacyTypedParameter>,
     pub name: String,
-    pub outputs: Vec<LegacyOutput>,
+    pub outputs: Vec<LegacyTypedParameter>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LegacyEvent {
-    pub data: Vec<LegacyEventData>,
-    pub keys: Vec<LegacyEventData>,
+pub struct RawLegacyEvent {
+    pub data: Vec<LegacyTypedParameter>,
+    pub keys: Vec<LegacyTypedParameter>,
     pub name: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct LegacyInput {
-    pub name: String,
-    pub r#type: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct LegacyOutput {
-    pub name: String,
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct LegacyEventData {
-    pub name: String,
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct LegacyMember {
+pub struct RawLegacyMember {
     pub name: String,
     pub offset: u64,
     pub r#type: String,
@@ -329,7 +299,7 @@ impl From<LegacyEntrypointOffset> for FieldElement {
 
 // Manually implementing this so we can put `type` at the end:
 // https://github.com/xJonathanLEI/starknet-rs/issues/216
-impl Serialize for LegacyAbiEntry {
+impl Serialize for RawLegacyAbiEntry {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -383,7 +353,7 @@ impl Serialize for LegacyAbiEntry {
 
 // We need to manually implement this because `arbitrary_precision` doesn't work with `tag`:
 //   https://github.com/serde-rs/serde/issues/1183
-impl<'de> Deserialize<'de> for LegacyAbiEntry {
+impl<'de> Deserialize<'de> for RawLegacyAbiEntry {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -391,27 +361,27 @@ impl<'de> Deserialize<'de> for LegacyAbiEntry {
         let temp_value = serde_json::Value::deserialize(deserializer)?;
         match &temp_value["type"] {
             serde_json::Value::String(type_str) => match &type_str[..] {
-                "constructor" => Ok(LegacyAbiEntry::Constructor(
-                    LegacyConstructor::deserialize(temp_value).map_err(|err| {
+                "constructor" => Ok(RawLegacyAbiEntry::Constructor(
+                    RawLegacyConstructor::deserialize(temp_value).map_err(|err| {
                         DeError::custom(format!("invalid constructor variant: {err}"))
                     })?,
                 )),
-                "function" => Ok(LegacyAbiEntry::Function(
-                    LegacyFunction::deserialize(temp_value).map_err(|err| {
+                "function" => Ok(RawLegacyAbiEntry::Function(
+                    RawLegacyFunction::deserialize(temp_value).map_err(|err| {
                         DeError::custom(format!("invalid function variant: {err}"))
                     })?,
                 )),
-                "struct" => Ok(LegacyAbiEntry::Struct(
-                    LegacyStruct::deserialize(temp_value)
+                "struct" => Ok(RawLegacyAbiEntry::Struct(
+                    RawLegacyStruct::deserialize(temp_value)
                         .map_err(|err| DeError::custom(format!("invalid struct variant: {err}")))?,
                 )),
-                "l1_handler" => Ok(LegacyAbiEntry::L1Handler(
-                    LegacyL1Handler::deserialize(temp_value).map_err(|err| {
+                "l1_handler" => Ok(RawLegacyAbiEntry::L1Handler(
+                    RawLegacyL1Handler::deserialize(temp_value).map_err(|err| {
                         DeError::custom(format!("invalid l1_handler variant: {err}"))
                     })?,
                 )),
-                "event" => Ok(LegacyAbiEntry::Event(
-                    LegacyEvent::deserialize(temp_value)
+                "event" => Ok(RawLegacyAbiEntry::Event(
+                    RawLegacyEvent::deserialize(temp_value)
                         .map_err(|err| DeError::custom(format!("invalid event variant: {err}")))?,
                 )),
                 _ => Err(DeError::custom(format!(
@@ -483,7 +453,7 @@ impl LegacyContractClass {
         #[serde_as]
         #[derive(Serialize)]
         struct ContractArtifactForHash<'a> {
-            abi: &'a Vec<LegacyAbiEntry>,
+            abi: &'a Vec<RawLegacyAbiEntry>,
             #[serde_as(as = "ProgramForHintedHash")]
             program: &'a LegacyProgram,
         }
@@ -502,8 +472,14 @@ impl LegacyContractClass {
     pub fn compress(&self) -> Result<CompressedLegacyContractClass, CompressProgramError> {
         Ok(CompressedLegacyContractClass {
             program: self.program.compress()?,
-            entry_points_by_type: self.entry_points_by_type.clone(),
-            abi: Some(self.abi.clone()),
+            entry_points_by_type: self.entry_points_by_type.clone().into(),
+            abi: Some(
+                self.abi
+                    .clone()
+                    .into_iter()
+                    .map(|item| item.into())
+                    .collect(),
+            ),
         })
     }
 }
@@ -667,6 +643,113 @@ impl SerializeAs<LegacyAttribute> for AttributeForHintedHash {
     }
 }
 
+impl From<RawLegacyEntryPoints> for LegacyEntryPointsByType {
+    fn from(value: RawLegacyEntryPoints) -> Self {
+        Self {
+            constructor: value
+                .constructor
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+            external: value.external.into_iter().map(|item| item.into()).collect(),
+            l1_handler: value
+                .l1_handler
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+        }
+    }
+}
+
+impl From<RawLegacyEntryPoint> for LegacyContractEntryPoint {
+    fn from(value: RawLegacyEntryPoint) -> Self {
+        Self {
+            offset: value.offset.into(),
+            selector: value.selector,
+        }
+    }
+}
+
+impl From<RawLegacyAbiEntry> for LegacyContractAbiEntry {
+    fn from(value: RawLegacyAbiEntry) -> Self {
+        match value {
+            RawLegacyAbiEntry::Constructor(entry) => Self::Function(entry.into()),
+            RawLegacyAbiEntry::Function(entry) => Self::Function(entry.into()),
+            RawLegacyAbiEntry::Struct(entry) => Self::Struct(entry.into()),
+            RawLegacyAbiEntry::L1Handler(entry) => Self::Function(entry.into()),
+            RawLegacyAbiEntry::Event(entry) => Self::Event(entry.into()),
+        }
+    }
+}
+
+impl From<RawLegacyConstructor> for LegacyFunctionAbiEntry {
+    fn from(value: RawLegacyConstructor) -> Self {
+        Self {
+            r#type: LegacyFunctionAbiType::Constructor,
+            name: value.name,
+            inputs: value.inputs,
+            outputs: value.outputs,
+            state_mutability: None,
+        }
+    }
+}
+
+impl From<RawLegacyFunction> for LegacyFunctionAbiEntry {
+    fn from(value: RawLegacyFunction) -> Self {
+        Self {
+            r#type: LegacyFunctionAbiType::Function,
+            name: value.name,
+            inputs: value.inputs,
+            outputs: value.outputs,
+            state_mutability: value.state_mutability,
+        }
+    }
+}
+
+impl From<RawLegacyStruct> for LegacyStructAbiEntry {
+    fn from(value: RawLegacyStruct) -> Self {
+        Self {
+            r#type: LegacyStructAbiType::Struct,
+            name: value.name,
+            size: value.size,
+            members: value.members.into_iter().map(|item| item.into()).collect(),
+        }
+    }
+}
+
+impl From<RawLegacyL1Handler> for LegacyFunctionAbiEntry {
+    fn from(value: RawLegacyL1Handler) -> Self {
+        Self {
+            r#type: LegacyFunctionAbiType::L1Handler,
+            name: value.name,
+            inputs: value.inputs,
+            outputs: value.outputs,
+            state_mutability: None,
+        }
+    }
+}
+
+impl From<RawLegacyEvent> for LegacyEventAbiEntry {
+    fn from(value: RawLegacyEvent) -> Self {
+        Self {
+            r#type: LegacyEventAbiType::Event,
+            name: value.name,
+            keys: value.keys,
+            data: value.data,
+        }
+    }
+}
+
+impl From<RawLegacyMember> for LegacyStructMember {
+    fn from(value: RawLegacyMember) -> Self {
+        Self {
+            name: value.name,
+            r#type: value.r#type,
+            offset: value.offset,
+        }
+    }
+}
+
 fn should_skip_attributes_for_hinted_hash(value: &Option<Vec<LegacyAttribute>>) -> bool {
     match value {
         Some(value) => value.is_empty(),
@@ -676,8 +759,6 @@ fn should_skip_attributes_for_hinted_hash(value: &Option<Vec<LegacyAttribute>>) 
 
 #[cfg(test)]
 mod tests {
-    use crate::types::contract::DeployedClass;
-
     use super::*;
 
     #[derive(serde::Deserialize)]
@@ -701,46 +782,6 @@ mod tests {
         {
             serde_json::from_str::<LegacyContractClass>(raw_artifact).unwrap();
         }
-    }
-
-    #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_get_full_contract_deser_cairo_0() {
-        let class = serde_json::from_str::<DeployedClass>(include_str!(
-            "../../../test-data/raw_gateway_responses/get_full_contract/1_cairo_0.txt"
-        ))
-        .unwrap();
-        assert!(matches!(class, DeployedClass::LegacyClass(_)));
-    }
-
-    #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_get_full_contract_deser_cairo_1() {
-        let class = serde_json::from_str::<DeployedClass>(include_str!(
-            "../../../test-data/raw_gateway_responses/get_full_contract/2_cairo_1.txt"
-        ))
-        .unwrap();
-        assert!(matches!(class, DeployedClass::SierraClass(_)));
-    }
-
-    #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_get_class_by_hash_deser_cairo_0() {
-        let class = serde_json::from_str::<DeployedClass>(include_str!(
-            "../../../test-data/raw_gateway_responses/get_class_by_hash/1_cairo_0.txt"
-        ))
-        .unwrap();
-        assert!(matches!(class, DeployedClass::LegacyClass(_)));
-    }
-
-    #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_get_class_by_hash_deser_cairo_1() {
-        let class = serde_json::from_str::<DeployedClass>(include_str!(
-            "../../../test-data/raw_gateway_responses/get_class_by_hash/3_cairo_1.txt"
-        ))
-        .unwrap();
-        assert!(matches!(class, DeployedClass::SierraClass(_)));
     }
 
     #[test]
@@ -830,14 +871,14 @@ mod tests {
         let abi = cc.abi.unwrap();
 
         assert_eq!(cc.bytecode.len(), 1347);
-        if let LegacyAbiEntry::Constructor(c) = &abi[0] {
+        if let RawLegacyAbiEntry::Constructor(c) = &abi[0] {
             assert_eq!(c.name, "constructor");
             assert_eq!(c.inputs.len(), 2);
         } else {
             panic!("Did not deserialize AbiEntry::Constructor properly")
         }
 
-        if let LegacyAbiEntry::Function(f) = &abi[1] {
+        if let RawLegacyAbiEntry::Function(f) = &abi[1] {
             assert_eq!(f.name, "execute");
             assert_eq!(f.inputs.len(), 5);
             assert_eq!(f.state_mutability, None);
@@ -845,7 +886,7 @@ mod tests {
             panic!("Did not deserialize AbiEntry::Function properly");
         }
 
-        if let LegacyAbiEntry::Function(f) = &abi[9] {
+        if let RawLegacyAbiEntry::Function(f) = &abi[9] {
             assert_eq!(f.name, "is_valid_signature");
             assert_eq!(f.inputs.len(), 3);
             assert_eq!(f.state_mutability, Some(String::from("view")));
@@ -864,20 +905,20 @@ mod tests {
         let cc: LegacyContractCode = serde_json::from_str(raw).unwrap();
         let abi = cc.abi.unwrap();
 
-        if let LegacyAbiEntry::Struct(s) = &abi[0] {
+        if let RawLegacyAbiEntry::Struct(s) = &abi[0] {
             assert_eq!(s.name, "ExternalStruct3");
             assert_eq!(s.size, 1);
         } else {
             panic!("Did not deserialize AbiEntry::Struct properly");
         }
 
-        if let LegacyAbiEntry::Constructor(c) = &abi[3] {
+        if let RawLegacyAbiEntry::Constructor(c) = &abi[3] {
             assert_eq!(c.name, "constructor");
         } else {
             panic!("Did not deserialize AbiEntry::Constructor properly");
         }
 
-        if let LegacyAbiEntry::Function(f) = &abi[5] {
+        if let RawLegacyAbiEntry::Function(f) = &abi[5] {
             assert_eq!(f.name, "g");
             assert_eq!(f.outputs.len(), 1);
             assert_eq!(f.state_mutability, Some(String::from("view")));
@@ -885,7 +926,7 @@ mod tests {
             panic!("Did not deserialize AbiEntry::Function properly");
         }
 
-        if let LegacyAbiEntry::L1Handler(h) = &abi[6] {
+        if let RawLegacyAbiEntry::L1Handler(h) = &abi[6] {
             assert_eq!(h.name, "handler");
             assert_eq!(h.inputs.len(), 2);
         } else {
