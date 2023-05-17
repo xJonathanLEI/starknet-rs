@@ -1,4 +1,6 @@
-use starknet_core::types::{self as core, FieldElement};
+use std::sync::Arc;
+
+use starknet_core::types::{self as core, contract::legacy as contract_legacy, FieldElement};
 
 use super::{
     state_update::{DeployedContract, StateDiff, StorageDiff},
@@ -608,5 +610,159 @@ impl From<core::FunctionCall> for CallFunction {
             entry_point_selector: value.entry_point_selector,
             calldata: value.calldata,
         }
+    }
+}
+
+impl TryFrom<core::BroadcastedTransaction> for AccountTransaction {
+    type Error = ConversionError;
+
+    fn try_from(value: core::BroadcastedTransaction) -> Result<Self, Self::Error> {
+        match value {
+            core::BroadcastedTransaction::Invoke(inner) => Ok(Self::InvokeFunction(inner.into())),
+            core::BroadcastedTransaction::Declare(inner) => Ok(Self::Declare(inner.try_into()?)),
+            core::BroadcastedTransaction::Deploy(_) => Err(ConversionError),
+            core::BroadcastedTransaction::DeployAccount(inner) => {
+                Ok(Self::DeployAccount(inner.into()))
+            }
+        }
+    }
+}
+
+impl From<core::BroadcastedInvokeTransaction> for InvokeFunctionTransactionRequest {
+    fn from(value: core::BroadcastedInvokeTransaction) -> Self {
+        match value {
+            core::BroadcastedInvokeTransaction::V0(inner) => inner.into(),
+            core::BroadcastedInvokeTransaction::V1(inner) => inner.into(),
+        }
+    }
+}
+
+impl From<core::BroadcastedInvokeTransactionV0> for InvokeFunctionTransactionRequest {
+    fn from(value: core::BroadcastedInvokeTransactionV0) -> Self {
+        Self {
+            sender_address: value.contract_address,
+            calldata: value.calldata,
+            signature: value.signature,
+            max_fee: value.max_fee,
+            nonce: value.nonce,
+        }
+    }
+}
+
+impl From<core::BroadcastedInvokeTransactionV1> for InvokeFunctionTransactionRequest {
+    fn from(value: core::BroadcastedInvokeTransactionV1) -> Self {
+        Self {
+            sender_address: value.sender_address,
+            calldata: value.calldata,
+            signature: value.signature,
+            max_fee: value.max_fee,
+            nonce: value.nonce,
+        }
+    }
+}
+
+impl TryFrom<core::BroadcastedDeclareTransaction> for DeclareTransactionRequest {
+    type Error = ConversionError;
+
+    fn try_from(value: core::BroadcastedDeclareTransaction) -> Result<Self, Self::Error> {
+        match value {
+            core::BroadcastedDeclareTransaction::V1(inner) => Ok(Self::V1(inner.into())),
+            core::BroadcastedDeclareTransaction::V2(inner) => Ok(Self::V2(inner.try_into()?)),
+        }
+    }
+}
+
+impl From<core::BroadcastedDeclareTransactionV1> for DeclareV1TransactionRequest {
+    fn from(value: core::BroadcastedDeclareTransactionV1) -> Self {
+        Self {
+            contract_class: Arc::new((*value.contract_class).clone().into()),
+            sender_address: value.sender_address,
+            max_fee: value.max_fee,
+            signature: value.signature,
+            nonce: value.nonce,
+        }
+    }
+}
+
+impl TryFrom<core::BroadcastedDeclareTransactionV2> for DeclareV2TransactionRequest {
+    type Error = ConversionError;
+
+    fn try_from(value: core::BroadcastedDeclareTransactionV2) -> Result<Self, Self::Error> {
+        Ok(Self {
+            contract_class: Arc::new(
+                contract::CompressedSierraClass::from_flattened(&value.contract_class)
+                    .map_err(|_| ConversionError)?,
+            ),
+            compiled_class_hash: value.compiled_class_hash,
+            sender_address: value.sender_address,
+            max_fee: value.max_fee,
+            signature: value.signature,
+            nonce: value.nonce,
+        })
+    }
+}
+
+impl From<core::BroadcastedDeployAccountTransaction> for DeployAccountTransactionRequest {
+    fn from(value: core::BroadcastedDeployAccountTransaction) -> Self {
+        Self {
+            class_hash: value.class_hash,
+            contract_address_salt: value.contract_address_salt,
+            constructor_calldata: value.constructor_calldata,
+            max_fee: value.max_fee,
+            signature: value.signature,
+            nonce: value.nonce,
+        }
+    }
+}
+
+impl From<FeeEstimate> for core::FeeEstimate {
+    fn from(value: FeeEstimate) -> Self {
+        Self {
+            gas_consumed: value.gas_usage,
+            gas_price: value.gas_price,
+            overall_fee: value.overall_fee,
+        }
+    }
+}
+
+impl From<core::CompressedLegacyContractClass> for CompressedLegacyContractClass {
+    fn from(value: core::CompressedLegacyContractClass) -> Self {
+        Self {
+            program: value.program,
+            entry_points_by_type: contract_legacy::RawLegacyEntryPoints {
+                constructor: value
+                    .entry_points_by_type
+                    .constructor
+                    .into_iter()
+                    .map(convert_legacy_entry_point)
+                    .collect(),
+                external: value
+                    .entry_points_by_type
+                    .external
+                    .into_iter()
+                    .map(convert_legacy_entry_point)
+                    .collect(),
+                l1_handler: value
+                    .entry_points_by_type
+                    .l1_handler
+                    .into_iter()
+                    .map(convert_legacy_entry_point)
+                    .collect(),
+            },
+            abi: value
+                .abi
+                .map(|abi| abi.into_iter().map(|item| item.into()).collect()),
+        }
+    }
+}
+
+fn convert_legacy_entry_point(
+    value: core::LegacyContractEntryPoint,
+) -> contract_legacy::RawLegacyEntryPoint {
+    // WARNING: this causes pre-0.11.0 contract declaration to fail due to `offset` issue
+    // TODO: support declaring pre-0.11.0 contracts here (do we even care though?)
+    contract_legacy::RawLegacyEntryPoint {
+        offset: contract_legacy::LegacyEntrypointOffset::U64AsInt(value.offset),
+        selector: value.selector,
     }
 }

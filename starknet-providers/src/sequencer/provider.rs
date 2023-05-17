@@ -223,7 +223,14 @@ impl Provider for SequencerGatewayProvider {
         R: AsRef<BroadcastedTransaction> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .estimate_fee(
+                request.as_ref().to_owned().try_into()?,
+                block_id.as_ref().to_owned().into(),
+                false,
+            )
+            .await?
+            .into())
     }
 
     async fn block_number(&self) -> Result<u64, ProviderError<Self::Error>> {
