@@ -205,7 +205,13 @@ impl Provider for SequencerGatewayProvider {
         R: AsRef<FunctionCall> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .call_contract(
+                request.as_ref().to_owned().into(),
+                block_id.as_ref().to_owned().into(),
+            )
+            .await?
+            .result)
     }
 
     async fn estimate_fee<R, B>(

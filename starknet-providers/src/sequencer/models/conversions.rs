@@ -600,3 +600,13 @@ impl TryFrom<TransactionStatus> for core::TransactionStatus {
         }
     }
 }
+
+impl From<core::FunctionCall> for CallFunction {
+    fn from(value: core::FunctionCall) -> Self {
+        Self {
+            contract_address: value.contract_address,
+            entry_point_selector: value.entry_point_selector,
+            calldata: value.calldata,
+        }
+    }
+}
