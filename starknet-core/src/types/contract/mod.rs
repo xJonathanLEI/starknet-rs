@@ -10,7 +10,7 @@ use crate::{
         byte_array::base64::serialize as base64_ser, json::to_string_pythonic,
         unsigned_field_element::UfeHex,
     },
-    types::FieldElement,
+    types::{ContractEntryPoint, EntryPointsByType, FieldElement, FlattenedSierraClass},
     utils::{
         cairo_short_string_to_felt, normalize_address, starknet_keccak, CairoShortStringToFeltError,
     },
@@ -44,14 +44,6 @@ pub enum ContractArtifact {
     LegacyClass(legacy::LegacyContractClass),
 }
 
-#[derive(Debug, Serialize)]
-#[serde(untagged)]
-#[allow(clippy::large_enum_variant)]
-pub enum DeployedClass {
-    SierraClass(FlattenedSierraClass),
-    LegacyClass(legacy::LegacyContractClass),
-}
-
 #[serde_as]
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
@@ -60,7 +52,7 @@ pub struct SierraClass {
     pub sierra_program: Vec<FieldElement>,
     pub sierra_program_debug_info: SierraClassDebugInfo,
     pub contract_class_version: String,
-    pub entry_points_by_type: EntrypointList<SierraClassEntrypoint>,
+    pub entry_points_by_type: EntryPointsByType,
     pub abi: Vec<AbiEntry>,
 }
 
@@ -74,18 +66,7 @@ pub struct CompiledClass {
     pub bytecode: Vec<FieldElement>,
     pub hints: Vec<Hint>,
     pub pythonic_hints: Option<Vec<PythonicHint>>,
-    pub entry_points_by_type: EntrypointList<CompiledClassEntrypoint>,
-}
-
-#[serde_as]
-#[derive(Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct FlattenedSierraClass {
-    #[serde_as(as = "Vec<UfeHex>")]
-    pub sierra_program: Vec<FieldElement>,
-    pub contract_class_version: String,
-    pub entry_points_by_type: EntrypointList<SierraClassEntrypoint>,
-    pub abi: String,
+    pub entry_points_by_type: CompiledClassEntrypointList,
 }
 
 #[serde_as]
@@ -95,7 +76,7 @@ pub struct CompressedSierraClass {
     #[serde(serialize_with = "base64_ser")]
     pub sierra_program: Vec<u8>,
     pub contract_class_version: String,
-    pub entry_points_by_type: EntrypointList<SierraClassEntrypoint>,
+    pub entry_points_by_type: EntryPointsByType,
     pub abi: String,
 }
 
@@ -110,19 +91,10 @@ pub struct SierraClassDebugInfo {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct EntrypointList<E> {
-    pub external: Vec<E>,
-    pub l1_handler: Vec<E>,
-    pub constructor: Vec<E>,
-}
-
-#[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct SierraClassEntrypoint {
-    #[serde_as(as = "UfeHex")]
-    pub selector: FieldElement,
-    pub function_idx: u64,
+pub struct CompiledClassEntrypointList {
+    pub external: Vec<CompiledClassEntrypoint>,
+    pub l1_handler: Vec<CompiledClassEntrypoint>,
+    pub constructor: Vec<CompiledClassEntrypoint>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -259,9 +231,9 @@ impl SierraClass {
 
         Ok(FlattenedSierraClass {
             sierra_program: self.sierra_program,
-            contract_class_version: self.contract_class_version,
             entry_points_by_type: self.entry_points_by_type,
             abi,
+            contract_class_version: self.contract_class_version,
         })
     }
 }
@@ -383,26 +355,6 @@ impl<'de> Deserialize<'de> for ContractArtifact {
     }
 }
 
-// We need to manually implement this because `arbitrary_precision` doesn't work with `untagged`:
-//   https://github.com/serde-rs/serde/issues/1183
-impl<'de> Deserialize<'de> for DeployedClass {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let temp_value = serde_json::Value::deserialize(deserializer)?;
-        if let Ok(value) = FlattenedSierraClass::deserialize(&temp_value) {
-            return Ok(Self::SierraClass(value));
-        }
-        if let Ok(value) = legacy::LegacyContractClass::deserialize(&temp_value) {
-            return Ok(Self::LegacyClass(value));
-        }
-        Err(serde::de::Error::custom(
-            "data did not match any variant of enum DeployedClass",
-        ))
-    }
-}
-
 impl Serialize for PythonicHint {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -446,7 +398,7 @@ impl<'de> Deserialize<'de> for PythonicHint {
     }
 }
 
-fn hash_sierra_entrypoints(entrypoints: &[SierraClassEntrypoint]) -> FieldElement {
+fn hash_sierra_entrypoints(entrypoints: &[ContractEntryPoint]) -> FieldElement {
     let mut hasher = PoseidonHasher::new();
 
     for entry in entrypoints.iter() {

@@ -1,10 +1,11 @@
-use super::{
-    super::serde::unsigned_field_element::{UfeHex, UfeHexOption},
-    ConfirmedTransactionReceipt, FieldElement, TransactionType,
-};
-
 use serde::Deserialize;
 use serde_with::serde_as;
+use starknet_core::{
+    serde::unsigned_field_element::{UfeHex, UfeHexOption},
+    types::FieldElement,
+};
+
+use super::{ConfirmedTransactionReceipt, TransactionType};
 
 #[derive(Debug, Clone, Copy)]
 pub enum BlockId {
@@ -64,8 +65,9 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_with_transactions() {
-        let raw =
-            include_str!("../../test-data/raw_gateway_responses/get_block/1_with_transactions.txt");
+        let raw = include_str!(
+            "../../../test-data/raw_gateway_responses/get_block/1_with_transactions.txt"
+        );
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
@@ -100,7 +102,7 @@ mod tests {
     fn test_block_deser_with_messages() {
         // has an L2 to L1 message
         let raw =
-            include_str!("../../test-data/raw_gateway_responses/get_block/2_with_messages.txt");
+            include_str!("../../../test-data/raw_gateway_responses/get_block/2_with_messages.txt");
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
@@ -116,7 +118,7 @@ mod tests {
     fn test_block_deser_with_messages_without_nonce() {
         // has an L2 to L1 message
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_block/9_with_messages_without_nonce.txt"
+            "../../../test-data/raw_gateway_responses/get_block/9_with_messages_without_nonce.txt"
         );
 
         let block: Block = serde_json::from_str(raw).unwrap();
@@ -135,7 +137,8 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_with_events() {
         // has events introduced with Starknet v0.7.0
-        let raw = include_str!("../../test-data/raw_gateway_responses/get_block/3_with_events.txt");
+        let raw =
+            include_str!("../../../test-data/raw_gateway_responses/get_block/3_with_events.txt");
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
@@ -150,7 +153,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_pending() {
         // pending blocks don't have `block_hash`, `block_number`, or `state_root`
-        let raw = include_str!("../../test-data/raw_gateway_responses/get_block/4_pending.txt");
+        let raw = include_str!("../../../test-data/raw_gateway_responses/get_block/4_pending.txt");
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
@@ -165,13 +168,13 @@ mod tests {
     fn test_block_deser_new_attributes_0_8_2() {
         // This block contains new fields introduced in Starknet v0.8.2
         let new_block: Block = serde_json::from_str(include_str!(
-            "../../test-data/raw_gateway_responses/get_block/6_with_sequencer_address.txt"
+            "../../../test-data/raw_gateway_responses/get_block/6_with_sequencer_address.txt"
         ))
         .unwrap();
         assert!(new_block.sequencer_address.is_some());
 
         let old_block: Block = serde_json::from_str(include_str!(
-            "../../test-data/raw_gateway_responses/get_block/2_with_messages.txt"
+            "../../../test-data/raw_gateway_responses/get_block/2_with_messages.txt"
         ))
         .unwrap();
         assert!(old_block.sequencer_address.is_none());
@@ -182,13 +185,13 @@ mod tests {
     fn test_block_deser_new_attributes_0_9_1() {
         // This block contains new fields introduced in Starknet v0.9.1
         let new_block: Block = serde_json::from_str(include_str!(
-            "../../test-data/raw_gateway_responses/get_block/8_with_starknet_version.txt"
+            "../../../test-data/raw_gateway_responses/get_block/8_with_starknet_version.txt"
         ))
         .unwrap();
         assert!(new_block.starknet_version.is_some());
 
         let old_block: Block = serde_json::from_str(include_str!(
-            "../../test-data/raw_gateway_responses/get_block/2_with_messages.txt"
+            "../../../test-data/raw_gateway_responses/get_block/2_with_messages.txt"
         ))
         .unwrap();
         assert!(old_block.starknet_version.is_none());
@@ -197,8 +200,9 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_with_declare_tx() {
-        let raw =
-            include_str!("../../test-data/raw_gateway_responses/get_block/7_with_declare_tx.txt");
+        let raw = include_str!(
+            "../../../test-data/raw_gateway_responses/get_block/7_with_declare_tx.txt"
+        );
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
@@ -213,8 +217,9 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_with_l1_handler() {
-        let raw =
-            include_str!("../../test-data/raw_gateway_responses/get_block/10_with_l1_handler.txt");
+        let raw = include_str!(
+            "../../../test-data/raw_gateway_responses/get_block/10_with_l1_handler.txt"
+        );
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
@@ -236,7 +241,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_without_execution_resources() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_block/11_without_execution_resources.txt"
+            "../../../test-data/raw_gateway_responses/get_block/11_without_execution_resources.txt"
         );
 
         let block: Block = serde_json::from_str(raw).unwrap();
@@ -250,7 +255,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_l1_handler_without_nonce() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_block/12_l1_handler_without_nonce.txt"
+            "../../../test-data/raw_gateway_responses/get_block/12_l1_handler_without_nonce.txt"
         );
 
         let block: Block = serde_json::from_str(raw).unwrap();
@@ -267,7 +272,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_without_entry_point() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_block/13_without_entry_point.txt"
+            "../../../test-data/raw_gateway_responses/get_block/13_without_entry_point.txt"
         );
 
         let block: Block = serde_json::from_str(raw).unwrap();
@@ -283,8 +288,9 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_with_deploy_account() {
-        let raw =
-            include_str!("../../test-data/raw_gateway_responses/get_block/14_deploy_account.txt");
+        let raw = include_str!(
+            "../../../test-data/raw_gateway_responses/get_block/14_deploy_account.txt"
+        );
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
@@ -299,7 +305,8 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_with_declare_v2() {
-        let raw = include_str!("../../test-data/raw_gateway_responses/get_block/15_declare_v2.txt");
+        let raw =
+            include_str!("../../../test-data/raw_gateway_responses/get_block/15_declare_v2.txt");
 
         let block: Block = serde_json::from_str(raw).unwrap();
 

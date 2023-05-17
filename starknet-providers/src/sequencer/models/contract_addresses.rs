@@ -1,12 +1,12 @@
-use ethereum_types::Address;
 use serde::Deserialize;
+use starknet_core::types::L1Address;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ContractAddresses {
-    pub starknet: Address,
-    pub gps_statement_verifier: Address,
+    pub starknet: L1Address,
+    pub gps_statement_verifier: L1Address,
 }
 
 #[cfg(test)]
@@ -22,11 +22,11 @@ mod tests {
         let ca: ContractAddresses = serde_json::from_str(raw).unwrap();
         assert_eq!(
             ca.starknet,
-            Address::from_str("0xde29d060D45901Fb19ED6C6e959EB22d8626708e").unwrap()
+            L1Address::from_str("0xde29d060D45901Fb19ED6C6e959EB22d8626708e").unwrap()
         );
         assert_eq!(
             ca.gps_statement_verifier,
-            Address::from_str("0xAB43bA48c9edF4C2C4bB01237348D1D7B28ef168").unwrap()
+            L1Address::from_str("0xAB43bA48c9edF4C2C4bB01237348D1D7B28ef168").unwrap()
         );
     }
 }

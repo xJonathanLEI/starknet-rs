@@ -34,7 +34,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_fee_estimate_deser() {
         serde_json::from_str::<FeeEstimate>(include_str!(
-            "../../test-data/raw_gateway_responses/estimate_fee/1_success.txt"
+            "../../../test-data/raw_gateway_responses/estimate_fee/1_success.txt"
         ))
         .unwrap();
     }

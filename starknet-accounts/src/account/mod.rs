@@ -2,11 +2,8 @@ use crate::Call;
 
 use async_trait::async_trait;
 use starknet_core::types::{
-    contract::{
-        legacy::LegacyContractClass, CompressProgramError, ComputeClassHashError,
-        FlattenedSierraClass,
-    },
-    BlockId, FieldElement,
+    contract::{legacy::LegacyContractClass, CompressProgramError, ComputeClassHashError},
+    BlockId, BlockTag, FieldElement, FlattenedSierraClass,
 };
 use starknet_providers::{Provider, ProviderError};
 use std::{error::Error, sync::Arc};
@@ -71,14 +68,14 @@ pub trait ConnectedAccount: Account {
 
     /// Block ID to use when checking nonce and estimating fees.
     fn block_id(&self) -> BlockId {
-        BlockId::Latest
+        BlockId::Tag(BlockTag::Latest)
     }
 
     async fn get_nonce(
         &self,
     ) -> Result<FieldElement, ProviderError<<Self::Provider as Provider>::Error>> {
         self.provider()
-            .get_nonce(self.address(), self.block_id())
+            .get_nonce(self.block_id(), self.address())
             .await
     }
 }

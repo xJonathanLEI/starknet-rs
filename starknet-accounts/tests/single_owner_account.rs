@@ -3,7 +3,7 @@ use starknet_core::{
     chain_id,
     types::{
         contract::{legacy::LegacyContractClass, SierraClass},
-        AddTransactionResultCode, FieldElement,
+        FieldElement,
     },
     utils::get_selector_from_name,
 };
@@ -26,6 +26,7 @@ fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
 }
 
 #[tokio::test]
+#[ignore = "disabled until sequencer properly implements the Provider trait"]
 async fn can_get_nonce_with_sequencer() {
     can_get_nonce_inner(create_sequencer_client()).await
 }
@@ -36,6 +37,7 @@ async fn can_get_nonce_with_jsonrpc() {
 }
 
 #[tokio::test]
+#[ignore = "disabled until sequencer properly implements the Provider trait"]
 async fn can_estimate_fee_with_sequencer() {
     can_estimate_fee_inner(create_sequencer_client()).await
 }
@@ -45,14 +47,11 @@ async fn can_estimate_fee_with_jsonrpc() {
     can_estimate_fee_inner(create_jsonrpc_client()).await
 }
 
-#[tokio::test]
-async fn can_simulate_execution_with_sequencer() {
-    can_simulate_execution_inner(create_sequencer_client()).await
-}
-
-// TODO: add `can_simulate_execution` case when it's supported in pathfinder
+// The `simulate`-related test cases are temporarily removed until it's supported in [Provider]
+// TODO: add `simulate` test cases back once transaction simulation in supported
 
 #[tokio::test]
+#[ignore = "disabled until sequencer properly implements the Provider trait"]
 async fn can_execute_tst_mint_with_sequencer() {
     can_execute_tst_mint_inner(create_sequencer_client()).await
 }
@@ -63,6 +62,7 @@ async fn can_execute_tst_mint_with_jsonrpc() {
 }
 
 #[tokio::test]
+#[ignore = "disabled until sequencer properly implements the Provider trait"]
 async fn can_declare_cairo1_contract_with_sequencer() {
     can_declare_cairo1_contract_inner(create_sequencer_client()).await
 }
@@ -75,6 +75,7 @@ async fn can_declare_cairo1_contract_with_jsonrpc() {
 }
 
 #[tokio::test]
+#[ignore = "disabled until sequencer properly implements the Provider trait"]
 async fn can_declare_cairo0_contract_with_sequencer() {
     can_declare_cairo0_contract_inner(create_sequencer_client()).await
 }
@@ -147,59 +148,6 @@ async fn can_estimate_fee_inner<P: Provider + Send + Sync>(provider: P) {
     assert!(fee_estimate.overall_fee > 0);
 }
 
-async fn can_simulate_execution_inner<P: Provider + Send + Sync>(provider: P) {
-    // Simulates the tx in `can_execute_tst_mint()` without actually sending
-
-    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
-    ));
-    let address = FieldElement::from_hex_be(
-        "02da37a17affbd2df4ede7120dae305ec36dfe94ec96a8c3f49bbf59f4e9a9fa",
-    )
-    .unwrap();
-    let tst_token_address = FieldElement::from_hex_be(
-        "07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
-    )
-    .unwrap();
-
-    let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
-
-    let result = account
-        .execute(vec![
-            Call {
-                to: tst_token_address,
-                selector: get_selector_from_name("mint").unwrap(),
-                calldata: vec![
-                    address,
-                    FieldElement::from_dec_str("1000000000000000000000").unwrap(),
-                    FieldElement::ZERO,
-                ],
-            },
-            Call {
-                to: tst_token_address,
-                selector: get_selector_from_name("mint").unwrap(),
-                calldata: vec![
-                    address,
-                    FieldElement::from_dec_str("2000000000000000000000").unwrap(),
-                    FieldElement::ZERO,
-                ],
-            },
-        ])
-        .simulate()
-        .await
-        .unwrap();
-
-    assert!(!result
-        .trace
-        .function_invocation
-        .unwrap()
-        .internal_calls
-        .is_empty());
-}
-
 async fn can_execute_tst_mint_inner<P: Provider + Send + Sync>(provider: P) {
     // This test case is not very useful as the sequencer will always respond with
     // `TransactionReceived` even if the transaction will eventually fail, just like how
@@ -250,7 +198,7 @@ async fn can_execute_tst_mint_inner<P: Provider + Send + Sync>(provider: P) {
         .await
         .unwrap();
 
-    assert_eq!(result.code, AddTransactionResultCode::TransactionReceived);
+    assert!(result.transaction_hash > FieldElement::ZERO);
 }
 
 async fn can_declare_cairo1_contract_inner<P: Provider + Send + Sync>(provider: P) {
@@ -304,7 +252,7 @@ async fn can_declare_cairo1_contract_inner<P: Provider + Send + Sync>(provider: 
 
     dbg!(&result);
 
-    assert_eq!(result.code, AddTransactionResultCode::TransactionReceived);
+    assert!(result.transaction_hash > FieldElement::ZERO);
 }
 
 async fn can_declare_cairo0_contract_inner<P: Provider + Send + Sync>(provider: P) {
@@ -331,5 +279,5 @@ async fn can_declare_cairo0_contract_inner<P: Provider + Send + Sync>(provider: 
         .await
         .unwrap();
 
-    assert_eq!(result.code, AddTransactionResultCode::TransactionReceived);
+    assert!(result.transaction_hash > FieldElement::ZERO);
 }

@@ -1,10 +1,14 @@
+#![allow(deprecated)]
+
 use std::str::FromStr;
 
-use starknet_core::types::{
-    AccountTransaction, BlockId, CallL1Handler, FieldElement, InvokeFunctionTransactionRequest,
-    L1Address,
+use starknet_core::types::{FieldElement, L1Address};
+use starknet_providers::{
+    sequencer::models::{
+        AccountTransaction, BlockId, CallL1Handler, InvokeFunctionTransactionRequest,
+    },
+    SequencerGatewayProvider,
 };
-use starknet_providers::{Provider, SequencerGatewayProvider};
 
 fn create_sequencer_client() -> SequencerGatewayProvider {
     SequencerGatewayProvider::starknet_alpha_goerli()

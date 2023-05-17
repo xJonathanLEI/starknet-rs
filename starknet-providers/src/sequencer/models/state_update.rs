@@ -1,7 +1,6 @@
-use super::{super::serde::unsigned_field_element::UfeHex, FieldElement};
-
 use serde::Deserialize;
 use serde_with::serde_as;
+use starknet_core::{serde::unsigned_field_element::UfeHex, types::FieldElement};
 use std::collections::HashMap;
 
 #[serde_as]
@@ -71,7 +70,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_state_update_deser() {
         let raw =
-            include_str!("../../test-data/raw_gateway_responses/get_state_update/1_success.txt");
+            include_str!("../../../test-data/raw_gateway_responses/get_state_update/1_success.txt");
 
         let state_update: StateUpdate = serde_json::from_str(raw).unwrap();
 
@@ -120,7 +119,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_pending_state_update_deser() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_state_update/2_pending_block.txt"
+            "../../../test-data/raw_gateway_responses/get_state_update/2_pending_block.txt"
         );
 
         serde_json::from_str::<StateUpdate>(raw).unwrap();
@@ -130,7 +129,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_state_update_deser_with_nonce_changes() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_state_update/4_with_nonce_changes.txt"
+            "../../../test-data/raw_gateway_responses/get_state_update/4_with_nonce_changes.txt"
         );
 
         let state_update: StateUpdate = serde_json::from_str(raw).unwrap();
@@ -141,7 +140,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_state_update_deser_with_declare_v2() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_state_update/5_with_declare_v2.txt"
+            "../../../test-data/raw_gateway_responses/get_state_update/5_with_declare_v2.txt"
         );
         serde_json::from_str::<StateUpdate>(raw).unwrap();
     }
@@ -150,7 +149,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_state_update_deser_with_replaced_classes() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_state_update/6_with_replaced_classes.txt"
+            "../../../test-data/raw_gateway_responses/get_state_update/6_with_replaced_classes.txt"
         );
 
         let state_update: StateUpdate = serde_json::from_str(raw).unwrap();

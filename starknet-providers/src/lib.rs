@@ -3,12 +3,13 @@
 mod provider;
 pub use provider::{Provider, ProviderError};
 
-mod sequencer_gateway;
-pub use sequencer_gateway::{
+pub mod sequencer;
+pub use sequencer::{
     GatewayClientError as SequencerGatewayProviderError, SequencerGatewayProvider,
 };
 
 pub mod jsonrpc;
+pub use jsonrpc::JsonRpcClient;
 
 mod any;
 pub use any::{AnyProvider, AnyProviderError};

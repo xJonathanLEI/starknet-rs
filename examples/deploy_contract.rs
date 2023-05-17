@@ -5,7 +5,7 @@ use starknet::{
     contract::ContractFactory,
     core::{
         chain_id,
-        types::{contract::legacy::LegacyContractClass, BlockId, FieldElement},
+        types::{contract::legacy::LegacyContractClass, BlockId, BlockTag, FieldElement},
     },
     macros::felt,
     providers::SequencerGatewayProvider,
@@ -29,7 +29,7 @@ async fn main() {
 
     // `SingleOwnerAccount` defaults to checking nonce and estimating fees against the latest
     // block. Optionally change the target block to pending with the following line:
-    account.set_block_id(BlockId::Pending);
+    account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     // Wrapping in `Arc` is meaningless here. It's just showcasing it could be done as
     // `Arc<Account>` implements `Account` too.

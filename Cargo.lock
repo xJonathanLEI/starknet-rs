@@ -1670,6 +1670,7 @@ dependencies = [
  "starknet-signers",
  "thiserror",
  "tokio",
+ "url",
 ]
 
 [[package]]

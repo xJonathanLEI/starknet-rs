@@ -1,6 +1,5 @@
-use crate::provider::{Provider, ProviderError};
+use crate::provider::ProviderError;
 
-use async_trait::async_trait;
 use reqwest::{Client, Error as ReqwestError, StatusCode};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Error as SerdeJsonError;
@@ -8,14 +7,19 @@ use serde_with::serde_as;
 use starknet_core::{
     serde::unsigned_field_element::UfeHex,
     types::{
-        contract::{legacy::LegacyContractCode, CompiledClass, DeployedClass},
-        AccountTransaction, AddTransactionResult, Block, BlockId, BlockTraces, CallContractResult,
-        CallFunction, CallL1Handler, ContractAddresses, FeeEstimate, FieldElement, StarknetError,
-        StateUpdate, TransactionInfo, TransactionReceipt, TransactionRequest,
-        TransactionSimulationInfo, TransactionStatusInfo, TransactionTrace,
+        contract::{legacy::LegacyContractCode, CompiledClass},
+        FieldElement, StarknetError,
     },
 };
 use url::Url;
+
+// Sequencer specific model types. Not exposed by design to discourage sequencer usage.
+#[allow(unused)]
+pub mod models;
+use models::*;
+
+// Allows sequencer gateway to be used as if it's jsonrpc.
+mod provider;
 
 #[derive(Debug, Clone)]
 pub struct SequencerGatewayProvider {
@@ -35,6 +39,12 @@ pub enum GatewayClientError {
     /// Sequencer error responses not parsable into [StarknetError]
     #[error(transparent)]
     SequencerError(SequencerError),
+    /// Method is not supported (only when using as [Provider])
+    #[error("method not supported")]
+    MethodNotSupported,
+    /// Model conversion error (only when using as [Provider])
+    #[error("unable to convert gateway models to jsonrpc types")]
+    ModelConversionError,
 }
 
 #[derive(Debug, thiserror::Error, Deserialize)]
@@ -218,15 +228,14 @@ impl SequencerGatewayProvider {
     }
 }
 
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-impl Provider for SequencerGatewayProvider {
-    type Error = GatewayClientError;
-
-    async fn add_transaction(
+impl SequencerGatewayProvider {
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn add_transaction(
         &self,
         tx: TransactionRequest,
-    ) -> Result<AddTransactionResult, ProviderError<Self::Error>> {
+    ) -> Result<AddTransactionResult, ProviderError<GatewayClientError>> {
         let request_url = self.extend_gateway_url("add_transaction");
 
         self.send_post_request::<_, GatewayResponse<_>>(request_url, &tx)
@@ -234,9 +243,12 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_contract_addresses(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_contract_addresses(
         &self,
-    ) -> Result<ContractAddresses, ProviderError<Self::Error>> {
+    ) -> Result<ContractAddresses, ProviderError<GatewayClientError>> {
         let request_url = self.extend_feeder_gateway_url("get_contract_addresses");
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
@@ -244,11 +256,14 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn call_contract(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn call_contract(
         &self,
         call_function: CallFunction,
         block_identifier: BlockId,
-    ) -> Result<CallContractResult, ProviderError<Self::Error>> {
+    ) -> Result<CallContractResult, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("call_contract");
         append_block_id(&mut request_url, block_identifier);
 
@@ -257,12 +272,15 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn estimate_fee(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn estimate_fee(
         &self,
         tx: AccountTransaction,
         block_identifier: BlockId,
         skip_validate: bool,
-    ) -> Result<FeeEstimate, ProviderError<Self::Error>> {
+    ) -> Result<FeeEstimate, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("estimate_fee");
         request_url
             .query_pairs_mut()
@@ -274,12 +292,15 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn estimate_fee_bulk(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn estimate_fee_bulk(
         &self,
         txs: &[AccountTransaction],
         block_identifier: BlockId,
         skip_validate: bool,
-    ) -> Result<Vec<FeeEstimate>, ProviderError<Self::Error>> {
+    ) -> Result<Vec<FeeEstimate>, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("estimate_fee_bulk");
         request_url
             .query_pairs_mut()
@@ -291,11 +312,14 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn estimate_message_fee(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn estimate_message_fee(
         &self,
         call_l1_handler: CallL1Handler,
         block_identifier: BlockId,
-    ) -> Result<FeeEstimate, ProviderError<Self::Error>> {
+    ) -> Result<FeeEstimate, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("estimate_message_fee");
         append_block_id(&mut request_url, block_identifier);
 
@@ -304,12 +328,15 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn simulate_transaction(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn simulate_transaction(
         &self,
         tx: AccountTransaction,
         block_identifier: BlockId,
         skip_validate: bool,
-    ) -> Result<TransactionSimulationInfo, ProviderError<Self::Error>> {
+    ) -> Result<TransactionSimulationInfo, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("simulate_transaction");
         request_url
             .query_pairs_mut()
@@ -321,10 +348,13 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_block(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_block(
         &self,
         block_identifier: BlockId,
-    ) -> Result<Block, ProviderError<Self::Error>> {
+    ) -> Result<Block, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_block");
         append_block_id(&mut request_url, block_identifier);
 
@@ -333,10 +363,13 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_block_traces(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_block_traces(
         &self,
         block_identifier: BlockId,
-    ) -> Result<BlockTraces, ProviderError<Self::Error>> {
+    ) -> Result<BlockTraces, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_block_traces");
         append_block_id(&mut request_url, block_identifier);
 
@@ -345,10 +378,13 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_state_update(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_state_update(
         &self,
         block_identifier: BlockId,
-    ) -> Result<StateUpdate, ProviderError<Self::Error>> {
+    ) -> Result<StateUpdate, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_state_update");
         append_block_id(&mut request_url, block_identifier);
 
@@ -357,11 +393,14 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_code(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_code(
         &self,
         contract_address: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<LegacyContractCode, ProviderError<Self::Error>> {
+    ) -> Result<LegacyContractCode, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_code");
         request_url
             .query_pairs_mut()
@@ -386,11 +425,14 @@ impl Provider for SequencerGatewayProvider {
         }
     }
 
-    async fn get_full_contract(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_full_contract(
         &self,
         contract_address: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<DeployedClass, ProviderError<Self::Error>> {
+    ) -> Result<DeployedClass, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_full_contract");
         request_url
             .query_pairs_mut()
@@ -402,11 +444,14 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_compiled_class_by_class_hash(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_compiled_class_by_class_hash(
         &self,
         class_hash: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<CompiledClass, ProviderError<Self::Error>> {
+    ) -> Result<CompiledClass, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_compiled_class_by_class_hash");
         request_url
             .query_pairs_mut()
@@ -418,11 +463,14 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_class_hash_at(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_class_hash_at(
         &self,
         contract_address: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<FieldElement, ProviderError<Self::Error>> {
+    ) -> Result<FieldElement, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_class_hash_at");
         request_url
             .query_pairs_mut()
@@ -434,11 +482,14 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_class_by_hash(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_class_by_hash(
         &self,
         class_hash: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<DeployedClass, ProviderError<Self::Error>> {
+    ) -> Result<DeployedClass, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_class_by_hash");
         request_url
             .query_pairs_mut()
@@ -450,12 +501,15 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_storage_at(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_storage_at(
         &self,
         contract_address: FieldElement,
         key: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<FieldElement, ProviderError<Self::Error>> {
+    ) -> Result<FieldElement, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_storage_at");
         request_url
             .query_pairs_mut()
@@ -468,11 +522,14 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_nonce(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_nonce(
         &self,
         contract_address: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<FieldElement, ProviderError<Self::Error>> {
+    ) -> Result<FieldElement, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_nonce");
         request_url
             .query_pairs_mut()
@@ -484,10 +541,13 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_transaction_status(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_transaction_status(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<TransactionStatusInfo, ProviderError<Self::Error>> {
+    ) -> Result<TransactionStatusInfo, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_status");
         request_url
             .query_pairs_mut()
@@ -498,10 +558,13 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_transaction(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_transaction(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<TransactionInfo, ProviderError<Self::Error>> {
+    ) -> Result<TransactionInfo, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction");
         request_url
             .query_pairs_mut()
@@ -512,10 +575,13 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_transaction_receipt(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_transaction_receipt(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<TransactionReceipt, ProviderError<Self::Error>> {
+    ) -> Result<TransactionReceipt, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_receipt");
         request_url
             .query_pairs_mut()
@@ -526,10 +592,13 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_transaction_trace(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_transaction_trace(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<TransactionTrace, ProviderError<Self::Error>> {
+    ) -> Result<TransactionTrace, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_trace");
         request_url
             .query_pairs_mut()
@@ -540,10 +609,13 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_block_hash_by_id(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_block_hash_by_id(
         &self,
         block_number: u64,
-    ) -> Result<FieldElement, ProviderError<Self::Error>> {
+    ) -> Result<FieldElement, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_block_hash_by_id");
         request_url
             .query_pairs_mut()
@@ -554,10 +626,13 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_block_id_by_hash(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_block_id_by_hash(
         &self,
         block_hash: FieldElement,
-    ) -> Result<u64, ProviderError<Self::Error>> {
+    ) -> Result<u64, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_block_id_by_hash");
         request_url
             .query_pairs_mut()
@@ -568,10 +643,13 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_transaction_hash_by_id(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_transaction_hash_by_id(
         &self,
         transaction_number: u64,
-    ) -> Result<FieldElement, ProviderError<Self::Error>> {
+    ) -> Result<FieldElement, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_hash_by_id");
         request_url
             .query_pairs_mut()
@@ -582,10 +660,13 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_transaction_id_by_hash(
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_transaction_id_by_hash(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<u64, ProviderError<Self::Error>> {
+    ) -> Result<u64, ProviderError<GatewayClientError>> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_id_by_hash");
         request_url
             .query_pairs_mut()
@@ -596,7 +677,10 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_last_batch_id(&self) -> Result<u64, ProviderError<Self::Error>> {
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_last_batch_id(&self) -> Result<u64, ProviderError<GatewayClientError>> {
         let request_url = self.extend_feeder_gateway_url("get_last_batch_id");
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
@@ -604,7 +688,10 @@ impl Provider for SequencerGatewayProvider {
             .into()
     }
 
-    async fn get_l1_blockchain_id(&self) -> Result<u64, ProviderError<Self::Error>> {
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
+    pub async fn get_l1_blockchain_id(&self) -> Result<u64, ProviderError<GatewayClientError>> {
         let request_url = self.extend_feeder_gateway_url("get_l1_blockchain_id");
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
@@ -714,7 +801,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_estimate_fee_deser() {
         serde_json::from_str::<GatewayResponse<FeeEstimate>>(include_str!(
-            "../test-data/estimate_fee/1_success.txt"
+            "../../test-data/raw_gateway_responses/estimate_fee/1_success.txt"
         ))
         .unwrap();
     }
@@ -723,7 +810,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_estimate_fee_bulk_deser() {
         serde_json::from_str::<GatewayResponse<Vec<FeeEstimate>>>(include_str!(
-            "../test-data/estimate_fee_bulk/1_success.txt"
+            "../../test-data/raw_gateway_responses/estimate_fee_bulk/1_success.txt"
         ))
         .unwrap();
     }
@@ -732,7 +819,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_storage_at_deser() {
         serde_json::from_str::<RawFieldElementResponse>(include_str!(
-            "../test-data/get_storage_at/1_empty.txt"
+            "../../test-data/raw_gateway_responses/get_storage_at/1_empty.txt"
         ))
         .unwrap();
     }
@@ -741,8 +828,8 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_full_contract_deser() {
         for raw in [
-            include_str!("../test-data/get_full_contract/1_cairo_0.txt"),
-            include_str!("../test-data/get_full_contract/2_cairo_1.txt"),
+            include_str!("../../test-data/raw_gateway_responses/get_full_contract/1_cairo_0.txt"),
+            include_str!("../../test-data/raw_gateway_responses/get_full_contract/2_cairo_1.txt"),
         ]
         .into_iter()
         {
@@ -754,8 +841,8 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_class_by_hash_deser_success() {
         for raw in [
-            include_str!("../test-data/get_class_by_hash/1_cairo_0.txt"),
-            include_str!("../test-data/get_class_by_hash/3_cairo_1.txt"),
+            include_str!("../../test-data/raw_gateway_responses/get_class_by_hash/1_cairo_0.txt"),
+            include_str!("../../test-data/raw_gateway_responses/get_class_by_hash/3_cairo_1.txt"),
         ]
         .into_iter()
         {
@@ -767,7 +854,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_class_by_hash_deser_not_declared() {
         match serde_json::from_str::<GatewayResponse<DeployedClass>>(include_str!(
-            "../test-data/get_class_by_hash/2_not_declared.txt"
+            "../../test-data/raw_gateway_responses/get_class_by_hash/2_not_declared.txt"
         ))
         .unwrap()
         {

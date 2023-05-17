@@ -7,10 +7,10 @@ use super::{
 use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
-        contract::{legacy::LegacyContractClass, ComputeClassHashError, FlattenedSierraClass},
-        AccountTransaction, AddTransactionResult, DeclareTransactionRequest,
-        DeclareV1TransactionRequest, DeclareV2TransactionRequest, FeeEstimate, FieldElement,
-        TransactionRequest,
+        contract::{legacy::LegacyContractClass, ComputeClassHashError},
+        BroadcastedDeclareTransaction, BroadcastedDeclareTransactionV1,
+        BroadcastedDeclareTransactionV2, BroadcastedTransaction, DeclareTransactionResult,
+        FeeEstimate, FieldElement, FlattenedSierraClass,
     },
 };
 use starknet_providers::Provider;
@@ -101,8 +101,10 @@ where
 
     pub async fn send(
         &self,
-    ) -> Result<AddTransactionResult, AccountError<A::SignError, <A::Provider as Provider>::Error>>
-    {
+    ) -> Result<
+        DeclareTransactionResult,
+        AccountError<A::SignError, <A::Provider as Provider>::Error>,
+    > {
         self.prepare().await?.send().await
     }
 
@@ -160,9 +162,8 @@ where
         self.account
             .provider()
             .estimate_fee(
-                AccountTransaction::Declare(declare),
+                BroadcastedTransaction::Declare(BroadcastedDeclareTransaction::V2(declare)),
                 self.account.block_id(),
-                false,
             )
             .await
             .map_err(AccountError::Provider)
@@ -241,8 +242,10 @@ where
 
     pub async fn send(
         &self,
-    ) -> Result<AddTransactionResult, AccountError<A::SignError, <A::Provider as Provider>::Error>>
-    {
+    ) -> Result<
+        DeclareTransactionResult,
+        AccountError<A::SignError, <A::Provider as Provider>::Error>,
+    > {
         self.prepare().await?.send().await
     }
 
@@ -298,9 +301,8 @@ where
         self.account
             .provider()
             .estimate_fee(
-                AccountTransaction::Declare(declare),
+                BroadcastedTransaction::Declare(BroadcastedDeclareTransaction::V1(declare)),
                 self.account.block_id(),
-                false,
             )
             .await
             .map_err(AccountError::Provider)
@@ -360,12 +362,14 @@ where
 {
     pub async fn send(
         &self,
-    ) -> Result<AddTransactionResult, AccountError<A::SignError, <A::Provider as Provider>::Error>>
-    {
+    ) -> Result<
+        DeclareTransactionResult,
+        AccountError<A::SignError, <A::Provider as Provider>::Error>,
+    > {
         let tx_request = self.get_declare_request().await?;
         self.account
             .provider()
-            .add_transaction(TransactionRequest::Declare(tx_request))
+            .add_declare_transaction(BroadcastedDeclareTransaction::V2(tx_request))
             .await
             .map_err(AccountError::Provider)
     }
@@ -373,7 +377,7 @@ where
     pub async fn get_declare_request(
         &self,
     ) -> Result<
-        DeclareTransactionRequest,
+        BroadcastedDeclareTransactionV2,
         AccountError<A::SignError, <A::Provider as Provider>::Error>,
     > {
         let signature = self
@@ -382,16 +386,14 @@ where
             .await
             .map_err(AccountError::Signing)?;
 
-        let compressed_class = self.inner.contract_class.compress().unwrap();
-
-        Ok(DeclareTransactionRequest::V2(DeclareV2TransactionRequest {
-            contract_class: Arc::new(compressed_class),
-            compiled_class_hash: self.inner.compiled_class_hash,
-            sender_address: self.account.address(),
+        Ok(BroadcastedDeclareTransactionV2 {
             max_fee: self.inner.max_fee,
             signature,
             nonce: self.inner.nonce,
-        }))
+            contract_class: (*self.inner.contract_class).clone(),
+            compiled_class_hash: self.inner.compiled_class_hash,
+            sender_address: self.account.address(),
+        })
     }
 }
 
@@ -413,12 +415,14 @@ where
 {
     pub async fn send(
         &self,
-    ) -> Result<AddTransactionResult, AccountError<A::SignError, <A::Provider as Provider>::Error>>
-    {
+    ) -> Result<
+        DeclareTransactionResult,
+        AccountError<A::SignError, <A::Provider as Provider>::Error>,
+    > {
         let tx_request = self.get_declare_request().await?;
         self.account
             .provider()
-            .add_transaction(TransactionRequest::Declare(tx_request))
+            .add_declare_transaction(BroadcastedDeclareTransaction::V1(tx_request))
             .await
             .map_err(AccountError::Provider)
     }
@@ -426,7 +430,7 @@ where
     pub async fn get_declare_request(
         &self,
     ) -> Result<
-        DeclareTransactionRequest,
+        BroadcastedDeclareTransactionV1,
         AccountError<A::SignError, <A::Provider as Provider>::Error>,
     > {
         let signature = self
@@ -437,12 +441,12 @@ where
 
         let compressed_class = self.inner.contract_class.compress().unwrap();
 
-        Ok(DeclareTransactionRequest::V1(DeclareV1TransactionRequest {
-            contract_class: Arc::new(compressed_class),
-            sender_address: self.account.address(),
+        Ok(BroadcastedDeclareTransactionV1 {
             max_fee: self.inner.max_fee,
             signature,
             nonce: self.inner.nonce,
-        }))
+            contract_class: compressed_class,
+            sender_address: self.account.address(),
+        })
     }
 }

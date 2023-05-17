@@ -2,7 +2,7 @@ use starknet::{
     accounts::{Account, Call, SingleOwnerAccount},
     core::{
         chain_id,
-        types::{BlockId, FieldElement},
+        types::{BlockId, BlockTag, FieldElement},
         utils::get_selector_from_name,
     },
     providers::SequencerGatewayProvider,
@@ -25,7 +25,7 @@ async fn main() {
 
     // `SingleOwnerAccount` defaults to checking nonce and estimating fees against the latest
     // block. Optionally change the target block to pending with the following line:
-    account.set_block_id(BlockId::Pending);
+    account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let result = account
         .execute(vec![Call {

@@ -1,9 +1,11 @@
-use super::{super::serde::unsigned_field_element::UfeHex, EntryPointType, ExecutionResources};
-
-use ethereum_types::Address;
 use serde::Deserialize;
 use serde_with::serde_as;
-use starknet_crypto::FieldElement;
+use starknet_core::{
+    serde::unsigned_field_element::UfeHex,
+    types::{FieldElement, L1Address},
+};
+
+use super::{EntryPointType, ExecutionResources};
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
@@ -93,7 +95,7 @@ pub struct OrderedEventResponse {
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct OrderedL2ToL1MessageResponse {
     pub order: u64,
-    pub to_address: Address,
+    pub to_address: L1Address,
     #[serde_as(as = "Vec<UfeHex>")]
     pub payload: Vec<FieldElement>,
 }
@@ -106,7 +108,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_traces_deser() {
         serde_json::from_str::<BlockTraces>(include_str!(
-            "../../test-data/raw_gateway_responses/get_block_traces/1_success.txt"
+            "../../../test-data/raw_gateway_responses/get_block_traces/1_success.txt"
         ))
         .unwrap();
     }
@@ -115,7 +117,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_trace_deser_with_messages() {
         serde_json::from_str::<TransactionTrace>(include_str!(
-            "../../test-data/raw_gateway_responses/get_transaction_trace/1_with_messages.txt"
+            "../../../test-data/raw_gateway_responses/get_transaction_trace/1_with_messages.txt"
         ))
         .unwrap();
     }
@@ -124,7 +126,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_trace_deser_with_events() {
         serde_json::from_str::<TransactionTrace>(include_str!(
-            "../../test-data/raw_gateway_responses/get_transaction_trace/2_with_events.txt"
+            "../../../test-data/raw_gateway_responses/get_transaction_trace/2_with_events.txt"
         ))
         .unwrap();
     }
@@ -133,7 +135,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_trace_deser_with_validation() {
         let trace = serde_json::from_str::<TransactionTrace>(include_str!(
-            "../../test-data/raw_gateway_responses/get_transaction_trace/4_with_validation.txt"
+            "../../../test-data/raw_gateway_responses/get_transaction_trace/4_with_validation.txt"
         ))
         .unwrap();
 
@@ -145,7 +147,7 @@ mod tests {
     fn test_trace_deser_new_attributes_0_9_0() {
         // This tx contains new fields introduced in Starknet v0.9.0
         let new_tx: TransactionTrace = serde_json::from_str(include_str!(
-            "../../test-data/raw_gateway_responses/get_transaction_trace/3_with_call_type.txt"
+            "../../../test-data/raw_gateway_responses/get_transaction_trace/3_with_call_type.txt"
         ))
         .unwrap();
         match &new_tx.function_invocation.as_ref().unwrap().call_type {
@@ -155,7 +157,7 @@ mod tests {
         assert!(&new_tx.function_invocation.unwrap().class_hash.is_some());
 
         let old_tx: TransactionTrace = serde_json::from_str(include_str!(
-            "../../test-data/raw_gateway_responses/get_transaction_trace/1_with_messages.txt"
+            "../../../test-data/raw_gateway_responses/get_transaction_trace/1_with_messages.txt"
         ))
         .unwrap();
         assert!(&old_tx

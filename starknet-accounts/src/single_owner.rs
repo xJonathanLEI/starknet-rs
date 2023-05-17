@@ -1,7 +1,7 @@
 use crate::{Account, ConnectedAccount, RawDeclaration, RawExecution, RawLegacyDeclaration};
 
 use async_trait::async_trait;
-use starknet_core::types::{contract::ComputeClassHashError, BlockId, FieldElement};
+use starknet_core::types::{contract::ComputeClassHashError, BlockId, BlockTag, FieldElement};
 use starknet_providers::Provider;
 use starknet_signers::Signer;
 
@@ -37,7 +37,7 @@ where
             signer,
             address,
             chain_id,
-            block_id: BlockId::Latest,
+            block_id: BlockId::Tag(BlockTag::Latest),
         }
     }
 

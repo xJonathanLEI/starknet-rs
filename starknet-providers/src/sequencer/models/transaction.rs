@@ -1,13 +1,11 @@
-use super::{
-    FieldElement,
-    {
-        super::serde::unsigned_field_element::{UfeHex, UfePendingBlockHash},
-        TransactionStatus,
-    },
-};
-
 use serde::Deserialize;
 use serde_with::serde_as;
+use starknet_core::{
+    serde::unsigned_field_element::{UfeHex, UfePendingBlockHash},
+    types::FieldElement,
+};
+
+use super::TransactionStatus;
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
@@ -177,7 +175,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_full_invoke_transaction() {
         let raw =
-            include_str!("../../test-data/raw_gateway_responses/get_transaction/1_invoke.txt");
+            include_str!("../../../test-data/raw_gateway_responses/get_transaction/1_invoke.txt");
         let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
 
         assert_eq!(tx.block_number, Some(39099));
@@ -192,7 +190,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_full_deploy_transaction() {
         let raw =
-            include_str!("../../test-data/raw_gateway_responses/get_transaction/2_deploy.txt");
+            include_str!("../../../test-data/raw_gateway_responses/get_transaction/2_deploy.txt");
         let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
 
         assert_eq!(tx.block_number, Some(39181));
@@ -207,7 +205,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_not_received() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_transaction/3_not_received.txt"
+            "../../../test-data/raw_gateway_responses/get_transaction/3_not_received.txt"
         );
         let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
 
@@ -219,7 +217,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_failure() {
         let raw =
-            include_str!("../../test-data/raw_gateway_responses/get_transaction/4_failure.txt");
+            include_str!("../../../test-data/raw_gateway_responses/get_transaction/4_failure.txt");
         let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
 
         assert!(tx.transaction_failure_reason.is_some());
@@ -230,8 +228,9 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_declare_v1_transaction() {
-        let raw =
-            include_str!("../../test-data/raw_gateway_responses/get_transaction/5_declare_v1.txt");
+        let raw = include_str!(
+            "../../../test-data/raw_gateway_responses/get_transaction/5_declare_v1.txt"
+        );
         let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
 
         match tx.r#type.unwrap() {
@@ -243,8 +242,9 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_declare_v2_transaction() {
-        let raw =
-            include_str!("../../test-data/raw_gateway_responses/get_transaction/6_declare_v2.txt");
+        let raw = include_str!(
+            "../../../test-data/raw_gateway_responses/get_transaction/6_declare_v2.txt"
+        );
         let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
 
         match tx.r#type.unwrap() {
@@ -257,7 +257,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_brief_accepted() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_transaction_status/1_accepted.txt"
+            "../../../test-data/raw_gateway_responses/get_transaction_status/1_accepted.txt"
         );
 
         let tx: TransactionStatusInfo = serde_json::from_str(raw).unwrap();
@@ -278,7 +278,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_brief_not_received() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_transaction_status/2_not_received.txt"
+            "../../../test-data/raw_gateway_responses/get_transaction_status/2_not_received.txt"
         );
 
         let tx: TransactionStatusInfo = serde_json::from_str(raw).unwrap();
@@ -291,7 +291,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_brief_failure() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_transaction_status/3_failure.txt"
+            "../../../test-data/raw_gateway_responses/get_transaction_status/3_failure.txt"
         );
 
         let tx: TransactionStatusInfo = serde_json::from_str(raw).unwrap();
@@ -305,7 +305,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_brief_pending() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_transaction_status/manual/1_pending.txt"
+            "../../../test-data/raw_gateway_responses/get_transaction_status/manual/1_pending.txt"
         );
 
         let tx: TransactionStatusInfo = serde_json::from_str(raw).unwrap();

@@ -1,12 +1,11 @@
-use super::{
-    super::serde::unsigned_field_element::{UfeHex, UfePendingBlockHash},
-    transaction::TransactionFailureReason,
-    FieldElement,
-};
-
-use ethereum_types::Address as L1Address;
 use serde::Deserialize;
 use serde_with::serde_as;
+use starknet_core::{
+    serde::unsigned_field_element::{UfeHex, UfePendingBlockHash},
+    types::{FieldElement, L1Address},
+};
+
+use super::TransactionFailureReason;
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
@@ -124,15 +123,13 @@ pub struct Event {
 
 #[cfg(test)]
 mod tests {
-    use crate::types::TransactionStatusInfo;
-
-    use super::*;
+    use super::{super::TransactionStatusInfo, *};
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_receipt_deser_accepted() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_transaction_receipt/1_accepted.txt"
+            "../../../test-data/raw_gateway_responses/get_transaction_receipt/1_accepted.txt"
         );
 
         let receipt: Receipt = serde_json::from_str(raw).unwrap();
@@ -146,7 +143,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_receipt_deser_not_received() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_transaction_receipt/2_not_received.txt"
+            "../../../test-data/raw_gateway_responses/get_transaction_receipt/2_not_received.txt"
         );
         let receipt: Receipt = serde_json::from_str(raw).unwrap();
 
@@ -165,7 +162,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_receipt_deser_with_events() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_transaction_receipt/3_with_events.txt"
+            "../../../test-data/raw_gateway_responses/get_transaction_receipt/3_with_events.txt"
         );
         let receipt: Receipt = serde_json::from_str(raw).unwrap();
 
@@ -176,7 +173,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_receipt_deser_failure() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_transaction_receipt/4_failure.txt"
+            "../../../test-data/raw_gateway_responses/get_transaction_receipt/4_failure.txt"
         );
         let receipt: Receipt = serde_json::from_str(raw).unwrap();
 
@@ -188,7 +185,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_receipt_deser_declare_v1() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_transaction_receipt/5_declare_v1.txt"
+            "../../../test-data/raw_gateway_responses/get_transaction_receipt/5_declare_v1.txt"
         );
         serde_json::from_str::<Receipt>(raw).unwrap();
     }
@@ -197,7 +194,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_receipt_deser_declare_v2() {
         let raw = include_str!(
-            "../../test-data/raw_gateway_responses/get_transaction_receipt/6_declare_v2.txt"
+            "../../../test-data/raw_gateway_responses/get_transaction_receipt/6_declare_v2.txt"
         );
         serde_json::from_str::<Receipt>(raw).unwrap();
     }
