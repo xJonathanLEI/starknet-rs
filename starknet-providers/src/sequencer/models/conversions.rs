@@ -1,6 +1,9 @@
 use starknet_core::types::{self as core, FieldElement};
 
-use super::*;
+use super::{
+    state_update::{DeployedContract, StateDiff, StorageDiff},
+    *,
+};
 
 #[derive(Debug, thiserror::Error)]
 #[error("unable to convert type")]
@@ -225,5 +228,67 @@ impl TryFrom<L1HandlerTransaction> for core::L1HandlerTransaction {
             entry_point_selector: value.entry_point_selector,
             calldata: value.calldata,
         })
+    }
+}
+
+impl From<StateUpdate> for core::StateUpdate {
+    fn from(value: StateUpdate) -> Self {
+        Self {
+            block_hash: value.block_hash,
+            new_root: value.new_root,
+            old_root: value.old_root,
+            state_diff: value.state_diff.into(),
+        }
+    }
+}
+
+impl From<StateDiff> for core::StateDiff {
+    fn from(value: StateDiff) -> Self {
+        Self {
+            storage_diffs: value
+                .storage_diffs
+                .into_iter()
+                .map(|(key, value)| core::ContractStorageDiffItem {
+                    address: key,
+                    storage_entries: value.into_iter().map(|item| item.into()).collect(),
+                })
+                .collect(),
+            declared_contract_hashes: value
+                .declared_classes
+                .into_iter()
+                .map(|item| item.class_hash)
+                .collect(),
+            deployed_contracts: value
+                .deployed_contracts
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+            nonces: value
+                .nonces
+                .into_iter()
+                .map(|(key, value)| core::NonceUpdate {
+                    contract_address: key,
+                    nonce: value,
+                })
+                .collect(),
+        }
+    }
+}
+
+impl From<StorageDiff> for core::StorageEntry {
+    fn from(value: StorageDiff) -> Self {
+        Self {
+            key: value.key,
+            value: value.value,
+        }
+    }
+}
+
+impl From<DeployedContract> for core::DeployedContractItem {
+    fn from(value: DeployedContract) -> Self {
+        Self {
+            address: value.address,
+            class_hash: value.class_hash,
+        }
     }
 }

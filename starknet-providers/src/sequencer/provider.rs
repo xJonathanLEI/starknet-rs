@@ -52,7 +52,10 @@ impl Provider for SequencerGatewayProvider {
     where
         B: AsRef<BlockId> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .get_state_update(block_id.as_ref().to_owned().into())
+            .await?
+            .into())
     }
 
     async fn get_storage_at<A, K, B>(
