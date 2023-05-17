@@ -390,7 +390,7 @@ where
             max_fee: self.inner.max_fee,
             signature,
             nonce: self.inner.nonce,
-            contract_class: (*self.inner.contract_class).clone(),
+            contract_class: self.inner.contract_class.clone(),
             compiled_class_hash: self.inner.compiled_class_hash,
             sender_address: self.account.address(),
         })
@@ -445,7 +445,7 @@ where
             max_fee: self.inner.max_fee,
             signature,
             nonce: self.inner.nonce,
-            contract_class: compressed_class,
+            contract_class: Arc::new(compressed_class),
             sender_address: self.account.address(),
         })
     }
