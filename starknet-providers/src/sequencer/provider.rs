@@ -192,7 +192,8 @@ impl Provider for SequencerGatewayProvider {
     where
         B: AsRef<BlockId> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        let block = self.get_block(block_id.as_ref().to_owned().into()).await?;
+        Ok(block.transactions.len() as u64)
     }
 
     async fn call<R, B>(
