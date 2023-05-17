@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#8662cd123c91eee9c02efe65eadad208657d6f04
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#3728a718d67fc9039763a309f31a6ed379699460
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -17,6 +17,8 @@
 // - `PENDING_TXN_RECEIPT`
 // - `TXN`
 // - `TXN_RECEIPT`
+
+use std::sync::Arc;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_with::serde_as;
@@ -109,7 +111,7 @@ pub struct BroadcastedDeclareTransactionV1 {
     pub signature: Vec<FieldElement>,
     pub nonce: FieldElement,
     /// The class to be declared
-    pub contract_class: CompressedLegacyContractClass,
+    pub contract_class: Arc<CompressedLegacyContractClass>,
     /// The address of the account contract sending the declaration transaction
     pub sender_address: FieldElement,
 }
@@ -122,7 +124,7 @@ pub struct BroadcastedDeclareTransactionV2 {
     pub signature: Vec<FieldElement>,
     pub nonce: FieldElement,
     /// The class to be declared
-    pub contract_class: FlattenedSierraClass,
+    pub contract_class: Arc<FlattenedSierraClass>,
     /// The hash of the compiled class
     pub compiled_class_hash: FieldElement,
     /// The address of the account contract sending the declaration transaction
@@ -1268,7 +1270,7 @@ impl<'de> Deserialize<'de> for BroadcastedDeclareTransactionV1 {
             max_fee: tagged.max_fee,
             signature: tagged.signature,
             nonce: tagged.nonce,
-            contract_class: tagged.contract_class,
+            contract_class: Arc::new(tagged.contract_class),
             sender_address: tagged.sender_address,
         })
     }
@@ -1352,7 +1354,7 @@ impl<'de> Deserialize<'de> for BroadcastedDeclareTransactionV2 {
             max_fee: tagged.max_fee,
             signature: tagged.signature,
             nonce: tagged.nonce,
-            contract_class: tagged.contract_class,
+            contract_class: Arc::new(tagged.contract_class),
             compiled_class_hash: tagged.compiled_class_hash,
             sender_address: tagged.sender_address,
         })
