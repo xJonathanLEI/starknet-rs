@@ -11,7 +11,10 @@ use starknet_core::types::{
     SyncStatusType, Transaction,
 };
 
-use crate::{sequencer::GatewayClientError, Provider, ProviderError, SequencerGatewayProvider};
+use crate::{
+    sequencer::{models::conversions::TransactionWithReceipt, GatewayClientError},
+    Provider, ProviderError, SequencerGatewayProvider,
+};
 
 #[allow(unused)]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
@@ -118,7 +121,27 @@ impl Provider for SequencerGatewayProvider {
     where
         H: AsRef<FieldElement> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        let receipt = self
+            .get_transaction_receipt(*transaction_hash.as_ref())
+            .await?;
+
+        // Even if it's `Received` we pretend it's not found to align with JSON-RPC
+        if receipt.status == super::models::TransactionStatus::NotReceived
+            || receipt.status == super::models::TransactionStatus::Received
+        {
+            Err(ProviderError::<Self::Error>::StarknetError(
+                StarknetError::TransactionHashNotFound,
+            ))
+        } else {
+            // JSON-RPC also sends tx type, which is not available in our receipt type
+            let tx = self.get_transaction(*transaction_hash.as_ref()).await?;
+            let tx = TransactionWithReceipt {
+                transaction: tx,
+                receipt,
+            };
+
+            Ok(tx.try_into()?)
+        }
     }
 
     async fn get_class<B, H>(

@@ -9,6 +9,11 @@ use super::{
 #[error("unable to convert type")]
 pub struct ConversionError;
 
+pub(crate) struct TransactionWithReceipt {
+    pub transaction: TransactionInfo,
+    pub receipt: TransactionReceipt,
+}
+
 impl From<core::BlockId> for BlockId {
     fn from(value: core::BlockId) -> Self {
         match value {
@@ -300,6 +305,298 @@ impl TryFrom<TransactionInfo> for core::Transaction {
         match value.r#type {
             Some(tx) => tx.try_into(),
             None => Err(ConversionError),
+        }
+    }
+}
+
+impl TryFrom<TransactionWithReceipt> for core::MaybePendingTransactionReceipt {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionWithReceipt) -> Result<Self, Self::Error> {
+        match value.receipt.status {
+            // The caller should have directly returned a tx not found error instead in these cases
+            TransactionStatus::NotReceived | TransactionStatus::Received => Err(ConversionError),
+            TransactionStatus::Pending => Ok(Self::PendingReceipt(value.try_into()?)),
+            TransactionStatus::Rejected
+            | TransactionStatus::AcceptedOnL2
+            | TransactionStatus::AcceptedOnL1 => Ok(Self::Receipt(value.try_into()?)),
+        }
+    }
+}
+
+impl TryFrom<TransactionWithReceipt> for core::PendingTransactionReceipt {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionWithReceipt) -> Result<Self, Self::Error> {
+        match value.transaction.r#type.as_ref().ok_or(ConversionError)? {
+            TransactionType::Declare(_) => Ok(Self::Declare(value.receipt.try_into()?)),
+            TransactionType::Deploy(_) => Ok(Self::Deploy(value.try_into()?)),
+            TransactionType::DeployAccount(_) => Ok(Self::DeployAccount(value.receipt.try_into()?)),
+            TransactionType::InvokeFunction(_) => Ok(Self::Invoke(value.receipt.try_into()?)),
+            TransactionType::L1Handler(_) => Ok(Self::L1Handler(value.receipt.try_into()?)),
+        }
+    }
+}
+
+impl TryFrom<TransactionWithReceipt> for core::TransactionReceipt {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionWithReceipt) -> Result<Self, Self::Error> {
+        match value.transaction.r#type.as_ref().ok_or(ConversionError)? {
+            TransactionType::Declare(_) => Ok(Self::Declare(value.receipt.try_into()?)),
+            TransactionType::Deploy(_) => Ok(Self::Deploy(value.try_into()?)),
+            TransactionType::DeployAccount(_) => Ok(Self::DeployAccount(value.try_into()?)),
+            TransactionType::InvokeFunction(_) => Ok(Self::Invoke(value.receipt.try_into()?)),
+            TransactionType::L1Handler(_) => Ok(Self::L1Handler(value.receipt.try_into()?)),
+        }
+    }
+}
+
+impl TryFrom<TransactionReceipt> for core::PendingDeclareTransactionReceipt {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionReceipt) -> Result<Self, Self::Error> {
+        Ok(Self {
+            transaction_hash: value.transaction_hash,
+            actual_fee: value.actual_fee.ok_or(ConversionError)?,
+            messages_sent: value
+                .l2_to_l1_messages
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+            events: value.events.into_iter().map(|item| item.into()).collect(),
+        })
+    }
+}
+
+impl TryFrom<TransactionWithReceipt> for core::PendingDeployTransactionReceipt {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionWithReceipt) -> Result<Self, Self::Error> {
+        Ok(Self {
+            transaction_hash: value.receipt.transaction_hash,
+            actual_fee: value.receipt.actual_fee.ok_or(ConversionError)?,
+            messages_sent: value
+                .receipt
+                .l2_to_l1_messages
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+            events: value
+                .receipt
+                .events
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+            contract_address: match value.transaction.r#type {
+                Some(TransactionType::Deploy(inner)) => inner.contract_address,
+                _ => return Err(ConversionError),
+            },
+        })
+    }
+}
+
+impl TryFrom<TransactionReceipt> for core::PendingDeployAccountTransactionReceipt {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionReceipt) -> Result<Self, Self::Error> {
+        Ok(Self {
+            transaction_hash: value.transaction_hash,
+            actual_fee: value.actual_fee.ok_or(ConversionError)?,
+            messages_sent: value
+                .l2_to_l1_messages
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+            events: value.events.into_iter().map(|item| item.into()).collect(),
+        })
+    }
+}
+
+impl TryFrom<TransactionReceipt> for core::PendingInvokeTransactionReceipt {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionReceipt) -> Result<Self, Self::Error> {
+        Ok(Self {
+            transaction_hash: value.transaction_hash,
+            actual_fee: value.actual_fee.ok_or(ConversionError)?,
+            messages_sent: value
+                .l2_to_l1_messages
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+            events: value.events.into_iter().map(|item| item.into()).collect(),
+        })
+    }
+}
+
+impl TryFrom<TransactionReceipt> for core::PendingL1HandlerTransactionReceipt {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionReceipt) -> Result<Self, Self::Error> {
+        Ok(Self {
+            transaction_hash: value.transaction_hash,
+            actual_fee: value.actual_fee.ok_or(ConversionError)?,
+            messages_sent: value
+                .l2_to_l1_messages
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+            events: value.events.into_iter().map(|item| item.into()).collect(),
+        })
+    }
+}
+
+impl TryFrom<TransactionReceipt> for core::DeclareTransactionReceipt {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionReceipt) -> Result<Self, Self::Error> {
+        Ok(Self {
+            transaction_hash: value.transaction_hash,
+            actual_fee: value.actual_fee.ok_or(ConversionError)?,
+            status: value.status.try_into()?,
+            block_hash: value.block_hash.ok_or(ConversionError)?,
+            block_number: value.block_number.ok_or(ConversionError)?,
+            messages_sent: value
+                .l2_to_l1_messages
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+            events: value.events.into_iter().map(|item| item.into()).collect(),
+        })
+    }
+}
+
+impl TryFrom<TransactionWithReceipt> for core::DeployTransactionReceipt {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionWithReceipt) -> Result<Self, Self::Error> {
+        Ok(Self {
+            transaction_hash: value.receipt.transaction_hash,
+            actual_fee: value.receipt.actual_fee.ok_or(ConversionError)?,
+            status: value.receipt.status.try_into()?,
+            block_hash: value.receipt.block_hash.ok_or(ConversionError)?,
+            block_number: value.receipt.block_number.ok_or(ConversionError)?,
+            messages_sent: value
+                .receipt
+                .l2_to_l1_messages
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+            events: value
+                .receipt
+                .events
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+            contract_address: match value.transaction.r#type {
+                Some(TransactionType::Deploy(inner)) => inner.contract_address,
+                _ => return Err(ConversionError),
+            },
+        })
+    }
+}
+
+impl TryFrom<TransactionWithReceipt> for core::DeployAccountTransactionReceipt {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionWithReceipt) -> Result<Self, Self::Error> {
+        Ok(Self {
+            transaction_hash: value.receipt.transaction_hash,
+            actual_fee: value.receipt.actual_fee.ok_or(ConversionError)?,
+            status: value.receipt.status.try_into()?,
+            block_hash: value.receipt.block_hash.ok_or(ConversionError)?,
+            block_number: value.receipt.block_number.ok_or(ConversionError)?,
+            messages_sent: value
+                .receipt
+                .l2_to_l1_messages
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+            events: value
+                .receipt
+                .events
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+            contract_address: match value.transaction.r#type {
+                Some(TransactionType::Deploy(inner)) => inner.contract_address,
+                _ => return Err(ConversionError),
+            },
+        })
+    }
+}
+
+impl TryFrom<TransactionReceipt> for core::InvokeTransactionReceipt {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionReceipt) -> Result<Self, Self::Error> {
+        Ok(Self {
+            transaction_hash: value.transaction_hash,
+            actual_fee: value.actual_fee.ok_or(ConversionError)?,
+            status: value.status.try_into()?,
+            block_hash: value.block_hash.ok_or(ConversionError)?,
+            block_number: value.block_number.ok_or(ConversionError)?,
+            messages_sent: value
+                .l2_to_l1_messages
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+            events: value.events.into_iter().map(|item| item.into()).collect(),
+        })
+    }
+}
+
+impl TryFrom<TransactionReceipt> for core::L1HandlerTransactionReceipt {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionReceipt) -> Result<Self, Self::Error> {
+        Ok(Self {
+            transaction_hash: value.transaction_hash,
+            actual_fee: value.actual_fee.ok_or(ConversionError)?,
+            status: value.status.try_into()?,
+            block_hash: value.block_hash.ok_or(ConversionError)?,
+            block_number: value.block_number.ok_or(ConversionError)?,
+            messages_sent: value
+                .l2_to_l1_messages
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+            events: value.events.into_iter().map(|item| item.into()).collect(),
+        })
+    }
+}
+
+impl From<L2ToL1Message> for core::MsgToL1 {
+    fn from(value: L2ToL1Message) -> Self {
+        Self {
+            // Unwrapping here is safe
+            to_address: FieldElement::from_byte_slice_be(&value.to_address.0).unwrap(),
+            payload: value.payload,
+        }
+    }
+}
+
+impl From<Event> for core::Event {
+    fn from(value: Event) -> Self {
+        Self {
+            from_address: value.from_address,
+            keys: value.keys,
+            data: value.data,
+        }
+    }
+}
+
+impl TryFrom<TransactionStatus> for core::TransactionStatus {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionStatus) -> Result<Self, Self::Error> {
+        match value {
+            TransactionStatus::NotReceived | TransactionStatus::Received => Err(ConversionError),
+            TransactionStatus::Pending => Ok(Self::Pending),
+            TransactionStatus::Rejected => Ok(Self::Rejected),
+            TransactionStatus::AcceptedOnL2 => Ok(Self::AcceptedOnL2),
+            TransactionStatus::AcceptedOnL1 => Ok(Self::AcceptedOnL1),
         }
     }
 }
