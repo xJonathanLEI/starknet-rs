@@ -16,7 +16,7 @@ use url::Url;
 // Sequencer specific model types. Not exposed by design to discourage sequencer usage.
 #[allow(unused)]
 pub mod models;
-use models::*;
+use models::{conversions::ConversionError, *};
 
 // Allows sequencer gateway to be used as if it's jsonrpc.
 mod provider;
@@ -716,6 +716,12 @@ impl TryFrom<ErrorCode> for StarknetError {
             ErrorCode::InvalidTransactionNonce => Err(()),
             ErrorCode::ClassAlreadyDeclared => Err(()),
         }
+    }
+}
+
+impl From<ConversionError> for ProviderError<GatewayClientError> {
+    fn from(_value: ConversionError) -> Self {
+        Self::Other(GatewayClientError::ModelConversionError)
     }
 }
 

@@ -2,6 +2,8 @@
 // migration to becoming jsonrpc-centric. This file, along with all other sequencer-related types,
 // will be removed after the sequencer API is removed from the network.
 
+pub(crate) mod conversions;
+
 mod block;
 pub use block::{Block, BlockId, BlockStatus};
 

@@ -167,6 +167,18 @@ pub struct L1HandlerTransaction {
     pub version: FieldElement,
 }
 
+impl TransactionType {
+    pub fn transaction_hash(&self) -> FieldElement {
+        match self {
+            TransactionType::Declare(inner) => inner.transaction_hash,
+            TransactionType::Deploy(inner) => inner.transaction_hash,
+            TransactionType::DeployAccount(inner) => inner.transaction_hash,
+            TransactionType::InvokeFunction(inner) => inner.transaction_hash,
+            TransactionType::L1Handler(inner) => inner.transaction_hash,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
