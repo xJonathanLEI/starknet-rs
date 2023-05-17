@@ -7,8 +7,8 @@ use starknet_core::types::{
     BroadcastedInvokeTransaction, BroadcastedTransaction, ContractClass, DeclareTransactionResult,
     DeployAccountTransactionResult, DeployTransactionResult, EventFilter, EventsPage, FeeEstimate,
     FieldElement, FunctionCall, InvokeTransactionResult, MaybePendingBlockWithTxHashes,
-    MaybePendingBlockWithTxs, MaybePendingTransactionReceipt, StateUpdate, SyncStatusType,
-    Transaction,
+    MaybePendingBlockWithTxs, MaybePendingTransactionReceipt, StarknetError, StateUpdate,
+    SyncStatusType, Transaction,
 };
 
 use crate::{sequencer::GatewayClientError, Provider, ProviderError, SequencerGatewayProvider};
@@ -99,7 +99,16 @@ impl Provider for SequencerGatewayProvider {
     where
         B: AsRef<BlockId> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        let mut block = self.get_block(block_id.as_ref().to_owned().into()).await?;
+
+        let index = index as usize;
+        if index < block.transactions.len() {
+            Ok(block.transactions.remove(index).try_into()?)
+        } else {
+            Err(ProviderError::<Self::Error>::StarknetError(
+                StarknetError::InvalidTransactionIndex,
+            ))
+        }
     }
 
     async fn get_transaction_receipt<H>(
