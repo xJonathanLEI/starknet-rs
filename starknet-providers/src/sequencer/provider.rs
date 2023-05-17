@@ -69,7 +69,13 @@ impl Provider for SequencerGatewayProvider {
         K: AsRef<FieldElement> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .get_storage_at(
+                *contract_address.as_ref(),
+                *key.as_ref(),
+                block_id.as_ref().to_owned().into(),
+            )
+            .await?)
     }
 
     async fn get_transaction_by_hash<H>(
