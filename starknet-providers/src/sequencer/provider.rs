@@ -12,7 +12,10 @@ use starknet_core::types::{
 };
 
 use crate::{
-    sequencer::{models::conversions::TransactionWithReceipt, GatewayClientError},
+    sequencer::{
+        models::conversions::{ConversionError, TransactionWithReceipt},
+        GatewayClientError,
+    },
     Provider, ProviderError, SequencerGatewayProvider,
 };
 
@@ -234,7 +237,8 @@ impl Provider for SequencerGatewayProvider {
     }
 
     async fn block_number(&self) -> Result<u64, ProviderError<Self::Error>> {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        let block = self.get_block(super::models::BlockId::Latest).await?;
+        Ok(block.block_number.ok_or(ConversionError)?)
     }
 
     async fn block_hash_and_number(
