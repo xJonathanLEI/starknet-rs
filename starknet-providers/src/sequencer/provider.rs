@@ -269,7 +269,7 @@ impl Provider for SequencerGatewayProvider {
     }
 
     async fn syncing(&self) -> Result<SyncStatusType, ProviderError<Self::Error>> {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(SyncStatusType::NotSyncing)
     }
 
     async fn get_events(
