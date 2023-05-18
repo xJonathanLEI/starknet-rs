@@ -522,7 +522,7 @@ impl TryFrom<TransactionWithReceipt> for core::DeployAccountTransactionReceipt {
                 .map(|item| item.into())
                 .collect(),
             contract_address: match value.transaction.r#type {
-                Some(TransactionType::Deploy(inner)) => inner.contract_address,
+                Some(TransactionType::DeployAccount(inner)) => inner.contract_address,
                 _ => return Err(ConversionError),
             },
         })
