@@ -8,6 +8,8 @@ pub use ethereum_types::Address as L1Address;
 
 pub use starknet_ff::*;
 
+mod conversions;
+
 mod serde_impls;
 
 // TODO: better namespacing of exports?

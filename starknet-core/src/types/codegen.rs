@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#3728a718d67fc9039763a309f31a6ed379699460
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#8fd635c4ef0fcde33b138f3a3b3c580c37e2e378
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -845,11 +845,13 @@ pub struct StateDiff {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct StateUpdate {
-    #[serde_as(as = "UfeHex")]
-    pub block_hash: FieldElement,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub block_hash: Option<FieldElement>,
     /// The new global state root
-    #[serde_as(as = "UfeHex")]
-    pub new_root: FieldElement,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub new_root: Option<FieldElement>,
     /// The previous global state root
     #[serde_as(as = "UfeHex")]
     pub old_root: FieldElement,

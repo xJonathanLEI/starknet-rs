@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use async_trait::async_trait;
 use starknet_core::types::{
     BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
@@ -5,11 +7,17 @@ use starknet_core::types::{
     BroadcastedInvokeTransaction, BroadcastedTransaction, ContractClass, DeclareTransactionResult,
     DeployAccountTransactionResult, DeployTransactionResult, EventFilter, EventsPage, FeeEstimate,
     FieldElement, FunctionCall, InvokeTransactionResult, MaybePendingBlockWithTxHashes,
-    MaybePendingBlockWithTxs, MaybePendingTransactionReceipt, StateUpdate, SyncStatusType,
-    Transaction,
+    MaybePendingBlockWithTxs, MaybePendingTransactionReceipt, StarknetError, StateUpdate,
+    SyncStatusType, Transaction,
 };
 
-use crate::{sequencer::GatewayClientError, Provider, ProviderError, SequencerGatewayProvider};
+use crate::{
+    sequencer::{
+        models::conversions::{ConversionError, TransactionWithReceipt},
+        GatewayClientError,
+    },
+    Provider, ProviderError, SequencerGatewayProvider,
+};
 
 #[allow(unused)]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
@@ -24,7 +32,10 @@ impl Provider for SequencerGatewayProvider {
     where
         B: AsRef<BlockId> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .get_block(block_id.as_ref().to_owned().into())
+            .await?
+            .try_into()?)
     }
 
     async fn get_block_with_txs<B>(
@@ -34,7 +45,10 @@ impl Provider for SequencerGatewayProvider {
     where
         B: AsRef<BlockId> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .get_block(block_id.as_ref().to_owned().into())
+            .await?
+            .try_into()?)
     }
 
     async fn get_state_update<B>(
@@ -44,7 +58,10 @@ impl Provider for SequencerGatewayProvider {
     where
         B: AsRef<BlockId> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .get_state_update(block_id.as_ref().to_owned().into())
+            .await?
+            .into())
     }
 
     async fn get_storage_at<A, K, B>(
@@ -58,7 +75,13 @@ impl Provider for SequencerGatewayProvider {
         K: AsRef<FieldElement> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .get_storage_at(
+                *contract_address.as_ref(),
+                *key.as_ref(),
+                block_id.as_ref().to_owned().into(),
+            )
+            .await?)
     }
 
     async fn get_transaction_by_hash<H>(
@@ -68,7 +91,10 @@ impl Provider for SequencerGatewayProvider {
     where
         H: AsRef<FieldElement> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .get_transaction(*transaction_hash.as_ref())
+            .await?
+            .try_into()?)
     }
 
     async fn get_transaction_by_block_id_and_index<B>(
@@ -79,7 +105,16 @@ impl Provider for SequencerGatewayProvider {
     where
         B: AsRef<BlockId> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        let mut block = self.get_block(block_id.as_ref().to_owned().into()).await?;
+
+        let index = index as usize;
+        if index < block.transactions.len() {
+            Ok(block.transactions.remove(index).try_into()?)
+        } else {
+            Err(ProviderError::<Self::Error>::StarknetError(
+                StarknetError::InvalidTransactionIndex,
+            ))
+        }
     }
 
     async fn get_transaction_receipt<H>(
@@ -89,7 +124,27 @@ impl Provider for SequencerGatewayProvider {
     where
         H: AsRef<FieldElement> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        let receipt = self
+            .get_transaction_receipt(*transaction_hash.as_ref())
+            .await?;
+
+        // Even if it's `Received` we pretend it's not found to align with JSON-RPC
+        if receipt.status == super::models::TransactionStatus::NotReceived
+            || receipt.status == super::models::TransactionStatus::Received
+        {
+            Err(ProviderError::<Self::Error>::StarknetError(
+                StarknetError::TransactionHashNotFound,
+            ))
+        } else {
+            // JSON-RPC also sends tx type, which is not available in our receipt type
+            let tx = self.get_transaction(*transaction_hash.as_ref()).await?;
+            let tx = TransactionWithReceipt {
+                transaction: tx,
+                receipt,
+            };
+
+            Ok(tx.try_into()?)
+        }
     }
 
     async fn get_class<B, H>(
@@ -101,7 +156,10 @@ impl Provider for SequencerGatewayProvider {
         B: AsRef<BlockId> + Send + Sync,
         H: AsRef<FieldElement> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .get_class_by_hash(*class_hash.as_ref(), block_id.as_ref().to_owned().into())
+            .await?
+            .try_into()?)
     }
 
     async fn get_class_hash_at<B, A>(
@@ -113,7 +171,12 @@ impl Provider for SequencerGatewayProvider {
         B: AsRef<BlockId> + Send + Sync,
         A: AsRef<FieldElement> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .get_class_hash_at(
+                *contract_address.as_ref(),
+                block_id.as_ref().to_owned().into(),
+            )
+            .await?)
     }
 
     async fn get_class_at<B, A>(
@@ -125,7 +188,13 @@ impl Provider for SequencerGatewayProvider {
         B: AsRef<BlockId> + Send + Sync,
         A: AsRef<FieldElement> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .get_full_contract(
+                *contract_address.as_ref(),
+                block_id.as_ref().to_owned().into(),
+            )
+            .await?
+            .try_into()?)
     }
 
     async fn get_block_transaction_count<B>(
@@ -135,7 +204,8 @@ impl Provider for SequencerGatewayProvider {
     where
         B: AsRef<BlockId> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        let block = self.get_block(block_id.as_ref().to_owned().into()).await?;
+        Ok(block.transactions.len() as u64)
     }
 
     async fn call<R, B>(
@@ -147,7 +217,13 @@ impl Provider for SequencerGatewayProvider {
         R: AsRef<FunctionCall> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .call_contract(
+                request.as_ref().to_owned().into(),
+                block_id.as_ref().to_owned().into(),
+            )
+            .await?
+            .result)
     }
 
     async fn estimate_fee<R, B>(
@@ -159,29 +235,50 @@ impl Provider for SequencerGatewayProvider {
         R: AsRef<BroadcastedTransaction> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .estimate_fee(
+                request.as_ref().to_owned().try_into()?,
+                block_id.as_ref().to_owned().into(),
+                false,
+            )
+            .await?
+            .into())
     }
 
     async fn block_number(&self) -> Result<u64, ProviderError<Self::Error>> {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        let block = self.get_block(super::models::BlockId::Latest).await?;
+        Ok(block.block_number.ok_or(ConversionError)?)
     }
 
     async fn block_hash_and_number(
         &self,
     ) -> Result<BlockHashAndNumber, ProviderError<Self::Error>> {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        let block = self.get_block(super::models::BlockId::Latest).await?;
+        Ok(BlockHashAndNumber {
+            block_hash: block.block_hash.ok_or(ConversionError)?,
+            block_number: block.block_number.ok_or(ConversionError)?,
+        })
     }
 
     async fn chain_id(&self) -> Result<FieldElement, ProviderError<Self::Error>> {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self.chain_id)
     }
 
     async fn pending_transactions(&self) -> Result<Vec<Transaction>, ProviderError<Self::Error>> {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        let block = self.get_block(super::models::BlockId::Pending).await?;
+        if block.status == super::models::BlockStatus::Pending {
+            Ok(block
+                .transactions
+                .into_iter()
+                .map(|tx| tx.try_into())
+                .collect::<Result<_, _>>()?)
+        } else {
+            Ok(vec![])
+        }
     }
 
     async fn syncing(&self) -> Result<SyncStatusType, ProviderError<Self::Error>> {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(SyncStatusType::NotSyncing)
     }
 
     async fn get_events(
@@ -202,7 +299,12 @@ impl Provider for SequencerGatewayProvider {
         B: AsRef<BlockId> + Send + Sync,
         A: AsRef<FieldElement> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .get_nonce(
+                *contract_address.as_ref(),
+                block_id.as_ref().to_owned().into(),
+            )
+            .await?)
     }
 
     async fn add_invoke_transaction<I>(
@@ -212,7 +314,15 @@ impl Provider for SequencerGatewayProvider {
     where
         I: AsRef<BroadcastedInvokeTransaction> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        let result = self
+            .add_transaction(super::models::TransactionRequest::InvokeFunction(
+                invoke_transaction.as_ref().to_owned().into(),
+            ))
+            .await?;
+
+        Ok(InvokeTransactionResult {
+            transaction_hash: result.transaction_hash,
+        })
     }
 
     async fn add_declare_transaction<D>(
@@ -222,7 +332,16 @@ impl Provider for SequencerGatewayProvider {
     where
         D: AsRef<BroadcastedDeclareTransaction> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        let result = self
+            .add_transaction(super::models::TransactionRequest::Declare(
+                declare_transaction.as_ref().to_owned().try_into()?,
+            ))
+            .await?;
+
+        Ok(DeclareTransactionResult {
+            transaction_hash: result.transaction_hash,
+            class_hash: result.class_hash.ok_or(ConversionError)?,
+        })
     }
 
     async fn add_deploy_transaction<D>(
@@ -242,6 +361,15 @@ impl Provider for SequencerGatewayProvider {
     where
         D: AsRef<BroadcastedDeployAccountTransaction> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        let result = self
+            .add_transaction(super::models::TransactionRequest::DeployAccount(
+                deploy_account_transaction.as_ref().to_owned().into(),
+            ))
+            .await?;
+
+        Ok(DeployAccountTransactionResult {
+            transaction_hash: result.transaction_hash,
+            contract_address: result.address.ok_or(ConversionError)?,
+        })
     }
 }

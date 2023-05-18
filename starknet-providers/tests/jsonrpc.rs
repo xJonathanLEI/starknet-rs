@@ -64,7 +64,7 @@ async fn jsonrpc_get_state_update() {
         .await
         .unwrap();
 
-    assert!(state_update.new_root > FieldElement::ZERO);
+    assert!(state_update.new_root.unwrap() > FieldElement::ZERO);
 }
 
 #[tokio::test]
