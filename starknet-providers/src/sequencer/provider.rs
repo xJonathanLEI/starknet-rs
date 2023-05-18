@@ -323,7 +323,16 @@ impl Provider for SequencerGatewayProvider {
     where
         D: AsRef<BroadcastedDeclareTransaction> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        let result = self
+            .add_transaction(super::models::TransactionRequest::Declare(
+                declare_transaction.as_ref().to_owned().try_into()?,
+            ))
+            .await?;
+
+        Ok(DeclareTransactionResult {
+            transaction_hash: result.transaction_hash,
+            class_hash: result.class_hash.ok_or(ConversionError)?,
+        })
     }
 
     async fn add_deploy_transaction<D>(
