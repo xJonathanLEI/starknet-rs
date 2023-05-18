@@ -156,7 +156,10 @@ impl Provider for SequencerGatewayProvider {
         B: AsRef<BlockId> + Send + Sync,
         H: AsRef<FieldElement> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .get_class_by_hash(*class_hash.as_ref(), block_id.as_ref().to_owned().into())
+            .await?
+            .try_into()?)
     }
 
     async fn get_class_hash_at<B, A>(

@@ -756,6 +756,19 @@ impl From<core::CompressedLegacyContractClass> for CompressedLegacyContractClass
     }
 }
 
+impl TryFrom<DeployedClass> for core::ContractClass {
+    type Error = ConversionError;
+
+    fn try_from(value: DeployedClass) -> Result<Self, Self::Error> {
+        match value {
+            DeployedClass::SierraClass(inner) => Ok(Self::Sierra(inner)),
+            DeployedClass::LegacyClass(inner) => {
+                Ok(Self::Legacy(inner.compress().map_err(|_| ConversionError)?))
+            }
+        }
+    }
+}
+
 fn convert_legacy_entry_point(
     value: core::LegacyContractEntryPoint,
 ) -> contract_legacy::RawLegacyEntryPoint {
