@@ -244,7 +244,11 @@ impl Provider for SequencerGatewayProvider {
     async fn block_hash_and_number(
         &self,
     ) -> Result<BlockHashAndNumber, ProviderError<Self::Error>> {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        let block = self.get_block(super::models::BlockId::Latest).await?;
+        Ok(BlockHashAndNumber {
+            block_hash: block.block_hash.ok_or(ConversionError)?,
+            block_number: block.block_number.ok_or(ConversionError)?,
+        })
     }
 
     async fn chain_id(&self) -> Result<FieldElement, ProviderError<Self::Error>> {
