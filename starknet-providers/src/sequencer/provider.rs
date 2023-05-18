@@ -290,7 +290,12 @@ impl Provider for SequencerGatewayProvider {
         B: AsRef<BlockId> + Send + Sync,
         A: AsRef<FieldElement> + Send + Sync,
     {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self
+            .get_nonce(
+                *contract_address.as_ref(),
+                block_id.as_ref().to_owned().into(),
+            )
+            .await?)
     }
 
     async fn add_invoke_transaction<I>(
