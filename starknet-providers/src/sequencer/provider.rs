@@ -256,7 +256,16 @@ impl Provider for SequencerGatewayProvider {
     }
 
     async fn pending_transactions(&self) -> Result<Vec<Transaction>, ProviderError<Self::Error>> {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        let block = self.get_block(super::models::BlockId::Pending).await?;
+        if block.status == super::models::BlockStatus::Pending {
+            Ok(block
+                .transactions
+                .into_iter()
+                .map(|tx| tx.try_into())
+                .collect::<Result<_, _>>()?)
+        } else {
+            Ok(vec![])
+        }
     }
 
     async fn syncing(&self) -> Result<SyncStatusType, ProviderError<Self::Error>> {
