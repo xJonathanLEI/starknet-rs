@@ -252,7 +252,7 @@ impl Provider for SequencerGatewayProvider {
     }
 
     async fn chain_id(&self) -> Result<FieldElement, ProviderError<Self::Error>> {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+        Ok(self.chain_id)
     }
 
     async fn pending_transactions(&self) -> Result<Vec<Transaction>, ProviderError<Self::Error>> {

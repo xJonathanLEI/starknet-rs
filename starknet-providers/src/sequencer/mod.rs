@@ -5,6 +5,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Error as SerdeJsonError;
 use serde_with::serde_as;
 use starknet_core::{
+    chain_id,
     serde::unsigned_field_element::UfeHex,
     types::{
         contract::{legacy::LegacyContractCode, CompiledClass},
@@ -26,6 +27,7 @@ pub struct SequencerGatewayProvider {
     client: Client,
     gateway_url: Url,
     feeder_gateway_url: Url,
+    chain_id: FieldElement,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -81,19 +83,25 @@ pub enum ErrorCode {
 }
 
 impl SequencerGatewayProvider {
-    pub fn new(gateway_url: impl Into<Url>, feeder_gateway_url: impl Into<Url>) -> Self {
-        Self::new_with_client(gateway_url, feeder_gateway_url, Client::new())
+    pub fn new(
+        gateway_url: impl Into<Url>,
+        feeder_gateway_url: impl Into<Url>,
+        chain_id: FieldElement,
+    ) -> Self {
+        Self::new_with_client(gateway_url, feeder_gateway_url, chain_id, Client::new())
     }
 
     pub fn new_with_client(
         gateway_url: impl Into<Url>,
         feeder_gateway_url: impl Into<Url>,
+        chain_id: FieldElement,
         client: Client,
     ) -> Self {
         Self {
             client,
             gateway_url: gateway_url.into(),
             feeder_gateway_url: feeder_gateway_url.into(),
+            chain_id,
         }
     }
 
@@ -101,6 +109,7 @@ impl SequencerGatewayProvider {
         Self::new(
             Url::parse("https://alpha-mainnet.starknet.io/gateway").unwrap(),
             Url::parse("https://alpha-mainnet.starknet.io/feeder_gateway").unwrap(),
+            chain_id::MAINNET,
         )
     }
 
@@ -108,6 +117,7 @@ impl SequencerGatewayProvider {
         Self::new(
             Url::parse("https://alpha4.starknet.io/gateway").unwrap(),
             Url::parse("https://alpha4.starknet.io/feeder_gateway").unwrap(),
+            chain_id::TESTNET,
         )
     }
 
@@ -115,13 +125,7 @@ impl SequencerGatewayProvider {
         Self::new(
             Url::parse("https://alpha4-2.starknet.io/gateway").unwrap(),
             Url::parse("https://alpha4-2.starknet.io/feeder_gateway").unwrap(),
-        )
-    }
-
-    pub fn starknet_nile_localhost() -> Self {
-        Self::new(
-            Url::parse("http://127.0.0.1:5050/gateway").unwrap(),
-            Url::parse("http://127.0.0.1:5050/feeder_gateway").unwrap(),
+            chain_id::TESTNET2,
         )
     }
 }
