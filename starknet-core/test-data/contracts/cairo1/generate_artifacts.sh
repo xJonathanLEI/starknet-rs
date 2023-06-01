@@ -11,7 +11,7 @@ docker run -it --rm \
     --env "USER_ID=$(id -u)" \
     --env "GROUP_ID=$(id -g)" \
     --entrypoint "/entry.sh" \
-    starknet/cairo:1.0.0-rc0
+    starknet/cairo:1.1.0
 
 
 docker run -it --rm \
@@ -21,4 +21,4 @@ docker run -it --rm \
     --env "USER_ID=$(id -u)" \
     --env "GROUP_ID=$(id -g)" \
     --entrypoint "/entry.sh" \
-    starknet/cairo-lang:0.11.1
+    starknet/cairo-lang:0.11.2
