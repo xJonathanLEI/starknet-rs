@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#8fd635c4ef0fcde33b138f3a3b3c580c37e2e378
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#91e3a82e65d6a47f05418b6d9acc326e3d0b19c5
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -2996,24 +2996,38 @@ impl<'a> Serialize for AddDeclareTransactionRequestRef<'a> {
 
 impl<'de> Deserialize<'de> for AddDeclareTransactionRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        struct AsObject {
+            pub declare_transaction: BroadcastedDeclareTransaction,
+        }
+
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
             pub declare_transaction: BroadcastedDeclareTransaction,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            declare_transaction: field0.declare_transaction,
-        })
+            Ok(Self {
+                declare_transaction: field0.declare_transaction,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                declare_transaction: object.declare_transaction,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -3059,24 +3073,38 @@ impl<'a> Serialize for AddDeployAccountTransactionRequestRef<'a> {
 
 impl<'de> Deserialize<'de> for AddDeployAccountTransactionRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        struct AsObject {
+            pub deploy_account_transaction: BroadcastedDeployAccountTransaction,
+        }
+
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
             pub deploy_account_transaction: BroadcastedDeployAccountTransaction,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            deploy_account_transaction: field0.deploy_account_transaction,
-        })
+            Ok(Self {
+                deploy_account_transaction: field0.deploy_account_transaction,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                deploy_account_transaction: object.deploy_account_transaction,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -3122,24 +3150,38 @@ impl<'a> Serialize for AddDeployTransactionRequestRef<'a> {
 
 impl<'de> Deserialize<'de> for AddDeployTransactionRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        struct AsObject {
+            pub deploy_transaction: BroadcastedDeployTransaction,
+        }
+
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
             pub deploy_transaction: BroadcastedDeployTransaction,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            deploy_transaction: field0.deploy_transaction,
-        })
+            Ok(Self {
+                deploy_transaction: field0.deploy_transaction,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                deploy_transaction: object.deploy_transaction,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -3185,24 +3227,38 @@ impl<'a> Serialize for AddInvokeTransactionRequestRef<'a> {
 
 impl<'de> Deserialize<'de> for AddInvokeTransactionRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        struct AsObject {
+            pub invoke_transaction: BroadcastedInvokeTransaction,
+        }
+
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
             pub invoke_transaction: BroadcastedInvokeTransaction,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            invoke_transaction: field0.invoke_transaction,
-        })
+            Ok(Self {
+                invoke_transaction: field0.invoke_transaction,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                invoke_transaction: object.invoke_transaction,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -3304,6 +3360,13 @@ impl<'a> Serialize for CallRequestRef<'a> {
 
 impl<'de> Deserialize<'de> for CallRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        struct AsObject {
+            pub request: FunctionCall,
+            pub block_id: BlockId,
+        }
+
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
@@ -3316,25 +3379,34 @@ impl<'de> Deserialize<'de> for CallRequest {
             pub block_id: BlockId,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field1 = serde_json::from_value::<Field1>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field1 = serde_json::from_value::<Field1>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            request: field0.request,
-            block_id: field1.block_id,
-        })
+            Ok(Self {
+                request: field0.request,
+                block_id: field1.block_id,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                request: object.request,
+                block_id: object.block_id,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -3417,6 +3489,13 @@ impl<'a> Serialize for EstimateFeeRequestRef<'a> {
 
 impl<'de> Deserialize<'de> for EstimateFeeRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        struct AsObject {
+            pub request: BroadcastedTransaction,
+            pub block_id: BlockId,
+        }
+
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
@@ -3429,25 +3508,34 @@ impl<'de> Deserialize<'de> for EstimateFeeRequest {
             pub block_id: BlockId,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field1 = serde_json::from_value::<Field1>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field1 = serde_json::from_value::<Field1>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            request: field0.request,
-            block_id: field1.block_id,
-        })
+            Ok(Self {
+                request: field0.request,
+                block_id: field1.block_id,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                request: object.request,
+                block_id: object.block_id,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -3493,24 +3581,38 @@ impl<'a> Serialize for GetBlockTransactionCountRequestRef<'a> {
 
 impl<'de> Deserialize<'de> for GetBlockTransactionCountRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        struct AsObject {
+            pub block_id: BlockId,
+        }
+
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
             pub block_id: BlockId,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            block_id: field0.block_id,
-        })
+            Ok(Self {
+                block_id: field0.block_id,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                block_id: object.block_id,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -3556,24 +3658,38 @@ impl<'a> Serialize for GetBlockWithTxHashesRequestRef<'a> {
 
 impl<'de> Deserialize<'de> for GetBlockWithTxHashesRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        struct AsObject {
+            pub block_id: BlockId,
+        }
+
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
             pub block_id: BlockId,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            block_id: field0.block_id,
-        })
+            Ok(Self {
+                block_id: field0.block_id,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                block_id: object.block_id,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -3619,24 +3735,38 @@ impl<'a> Serialize for GetBlockWithTxsRequestRef<'a> {
 
 impl<'de> Deserialize<'de> for GetBlockWithTxsRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        struct AsObject {
+            pub block_id: BlockId,
+        }
+
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
             pub block_id: BlockId,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            block_id: field0.block_id,
-        })
+            Ok(Self {
+                block_id: field0.block_id,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                block_id: object.block_id,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -3704,6 +3834,14 @@ impl<'a> Serialize for GetClassAtRequestRef<'a> {
 
 impl<'de> Deserialize<'de> for GetClassAtRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        struct AsObject {
+            pub block_id: BlockId,
+            #[serde_as(as = "UfeHex")]
+            pub contract_address: FieldElement,
+        }
+
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
@@ -3718,25 +3856,34 @@ impl<'de> Deserialize<'de> for GetClassAtRequest {
             pub contract_address: FieldElement,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field1 = serde_json::from_value::<Field1>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field1 = serde_json::from_value::<Field1>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            block_id: field0.block_id,
-            contract_address: field1.contract_address,
-        })
+            Ok(Self {
+                block_id: field0.block_id,
+                contract_address: field1.contract_address,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                block_id: object.block_id,
+                contract_address: object.contract_address,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -3804,6 +3951,14 @@ impl<'a> Serialize for GetClassHashAtRequestRef<'a> {
 
 impl<'de> Deserialize<'de> for GetClassHashAtRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        struct AsObject {
+            pub block_id: BlockId,
+            #[serde_as(as = "UfeHex")]
+            pub contract_address: FieldElement,
+        }
+
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
@@ -3818,25 +3973,34 @@ impl<'de> Deserialize<'de> for GetClassHashAtRequest {
             pub contract_address: FieldElement,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field1 = serde_json::from_value::<Field1>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field1 = serde_json::from_value::<Field1>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            block_id: field0.block_id,
-            contract_address: field1.contract_address,
-        })
+            Ok(Self {
+                block_id: field0.block_id,
+                contract_address: field1.contract_address,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                block_id: object.block_id,
+                contract_address: object.contract_address,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -3904,6 +4068,14 @@ impl<'a> Serialize for GetClassRequestRef<'a> {
 
 impl<'de> Deserialize<'de> for GetClassRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        struct AsObject {
+            pub block_id: BlockId,
+            #[serde_as(as = "UfeHex")]
+            pub class_hash: FieldElement,
+        }
+
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
@@ -3918,25 +4090,34 @@ impl<'de> Deserialize<'de> for GetClassRequest {
             pub class_hash: FieldElement,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field1 = serde_json::from_value::<Field1>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field1 = serde_json::from_value::<Field1>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            block_id: field0.block_id,
-            class_hash: field1.class_hash,
-        })
+            Ok(Self {
+                block_id: field0.block_id,
+                class_hash: field1.class_hash,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                block_id: object.block_id,
+                class_hash: object.class_hash,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -3982,24 +4163,38 @@ impl<'a> Serialize for GetEventsRequestRef<'a> {
 
 impl<'de> Deserialize<'de> for GetEventsRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        struct AsObject {
+            pub filter: EventFilterWithPage,
+        }
+
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
             pub filter: EventFilterWithPage,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            filter: field0.filter,
-        })
+            Ok(Self {
+                filter: field0.filter,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                filter: object.filter,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -4067,6 +4262,14 @@ impl<'a> Serialize for GetNonceRequestRef<'a> {
 
 impl<'de> Deserialize<'de> for GetNonceRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        struct AsObject {
+            pub block_id: BlockId,
+            #[serde_as(as = "UfeHex")]
+            pub contract_address: FieldElement,
+        }
+
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
@@ -4081,25 +4284,34 @@ impl<'de> Deserialize<'de> for GetNonceRequest {
             pub contract_address: FieldElement,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field1 = serde_json::from_value::<Field1>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field1 = serde_json::from_value::<Field1>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            block_id: field0.block_id,
-            contract_address: field1.contract_address,
-        })
+            Ok(Self {
+                block_id: field0.block_id,
+                contract_address: field1.contract_address,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                block_id: object.block_id,
+                contract_address: object.contract_address,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -4145,24 +4357,38 @@ impl<'a> Serialize for GetStateUpdateRequestRef<'a> {
 
 impl<'de> Deserialize<'de> for GetStateUpdateRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        struct AsObject {
+            pub block_id: BlockId,
+        }
+
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
             pub block_id: BlockId,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            block_id: field0.block_id,
-        })
+            Ok(Self {
+                block_id: field0.block_id,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                block_id: object.block_id,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -4250,6 +4476,16 @@ impl<'de> Deserialize<'de> for GetStorageAtRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        struct AsObject {
+            #[serde_as(as = "UfeHex")]
+            pub contract_address: FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub key: FieldElement,
+            pub block_id: BlockId,
+        }
+
+        #[serde_as]
+        #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
             #[serde_as(as = "UfeHex")]
@@ -4270,32 +4506,42 @@ impl<'de> Deserialize<'de> for GetStorageAtRequest {
             pub block_id: BlockId,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field2 = serde_json::from_value::<Field2>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
-        let field1 = serde_json::from_value::<Field1>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field2 = serde_json::from_value::<Field2>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            let field1 = serde_json::from_value::<Field1>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            contract_address: field0.contract_address,
-            key: field1.key,
-            block_id: field2.block_id,
-        })
+            Ok(Self {
+                contract_address: field0.contract_address,
+                key: field1.key,
+                block_id: field2.block_id,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                contract_address: object.contract_address,
+                key: object.key,
+                block_id: object.block_id,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -4355,6 +4601,13 @@ impl<'a> Serialize for GetTransactionByBlockIdAndIndexRequestRef<'a> {
 
 impl<'de> Deserialize<'de> for GetTransactionByBlockIdAndIndexRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        struct AsObject {
+            pub block_id: BlockId,
+            pub index: u64,
+        }
+
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
@@ -4367,25 +4620,34 @@ impl<'de> Deserialize<'de> for GetTransactionByBlockIdAndIndexRequest {
             pub index: u64,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field1 = serde_json::from_value::<Field1>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field1 = serde_json::from_value::<Field1>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            block_id: field0.block_id,
-            index: field1.index,
-        })
+            Ok(Self {
+                block_id: field0.block_id,
+                index: field1.index,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                block_id: object.block_id,
+                index: object.index,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -4437,24 +4699,39 @@ impl<'de> Deserialize<'de> for GetTransactionByHashRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        struct AsObject {
+            #[serde_as(as = "UfeHex")]
+            pub transaction_hash: FieldElement,
+        }
+
+        #[serde_as]
+        #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            transaction_hash: field0.transaction_hash,
-        })
+            Ok(Self {
+                transaction_hash: field0.transaction_hash,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                transaction_hash: object.transaction_hash,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
@@ -4506,24 +4783,39 @@ impl<'de> Deserialize<'de> for GetTransactionReceiptRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
+        struct AsObject {
+            #[serde_as(as = "UfeHex")]
+            pub transaction_hash: FieldElement,
+        }
+
+        #[serde_as]
+        #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
         }
 
-        let mut elements = Vec::<serde_json::Value>::deserialize(deserializer)?;
+        let temp = serde_json::Value::deserialize(deserializer)?;
 
-        let field0 = serde_json::from_value::<Field0>(
-            elements
-                .pop()
-                .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-        )
-        .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
 
-        Ok(Self {
-            transaction_hash: field0.transaction_hash,
-        })
+            Ok(Self {
+                transaction_hash: field0.transaction_hash,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                transaction_hash: object.transaction_hash,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
     }
 }
 
