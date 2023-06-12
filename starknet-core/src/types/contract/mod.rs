@@ -4,7 +4,7 @@ use starknet_crypto::{poseidon_hash_many, PoseidonHasher};
 
 use crate::{
     serde::{json::to_string_pythonic, unsigned_field_element::UfeHex},
-    types::{ContractEntryPoint, EntryPointsByType, FieldElement, FlattenedSierraClass},
+    types::{EntryPointsByType, FieldElement, FlattenedSierraClass, SierraEntryPoint},
     utils::{
         cairo_short_string_to_felt, normalize_address, starknet_keccak, CairoShortStringToFeltError,
     },
@@ -357,7 +357,7 @@ impl<'de> Deserialize<'de> for PythonicHint {
     }
 }
 
-fn hash_sierra_entrypoints(entrypoints: &[ContractEntryPoint]) -> FieldElement {
+fn hash_sierra_entrypoints(entrypoints: &[SierraEntryPoint]) -> FieldElement {
     let mut hasher = PoseidonHasher::new();
 
     for entry in entrypoints.iter() {

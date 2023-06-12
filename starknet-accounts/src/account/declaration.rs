@@ -161,7 +161,7 @@ where
 
         self.account
             .provider()
-            .estimate_fee(
+            .estimate_fee_single(
                 BroadcastedTransaction::Declare(BroadcastedDeclareTransaction::V2(declare)),
                 self.account.block_id(),
             )
@@ -300,7 +300,7 @@ where
 
         self.account
             .provider()
-            .estimate_fee(
+            .estimate_fee_single(
                 BroadcastedTransaction::Declare(BroadcastedDeclareTransaction::V1(declare)),
                 self.account.block_id(),
             )

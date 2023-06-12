@@ -3,7 +3,7 @@ use std::sync::Arc;
 use starknet_core::types::{self as core, contract::legacy as contract_legacy, FieldElement};
 
 use super::{
-    state_update::{DeployedContract, StateDiff, StorageDiff},
+    state_update::{DeclaredContract, DeployedContract, StateDiff, StorageDiff},
     *,
 };
 
@@ -238,13 +238,22 @@ impl TryFrom<L1HandlerTransaction> for core::L1HandlerTransaction {
     }
 }
 
-impl From<StateUpdate> for core::StateUpdate {
-    fn from(value: StateUpdate) -> Self {
-        Self {
-            block_hash: value.block_hash,
-            new_root: value.new_root,
-            old_root: value.old_root,
-            state_diff: value.state_diff.into(),
+impl TryFrom<StateUpdate> for core::MaybePendingStateUpdate {
+    type Error = ConversionError;
+
+    fn try_from(value: StateUpdate) -> Result<Self, Self::Error> {
+        match (value.block_hash, value.new_root) {
+            (Some(block_hash), Some(new_root)) => Ok(Self::Update(core::StateUpdate {
+                block_hash,
+                new_root,
+                old_root: value.old_root,
+                state_diff: value.state_diff.into(),
+            })),
+            (None, None) => Ok(Self::PendingUpdate(core::PendingStateUpdate {
+                old_root: value.old_root,
+                state_diff: value.state_diff.into(),
+            })),
+            _ => Err(ConversionError),
         }
     }
 }
@@ -260,13 +269,19 @@ impl From<StateDiff> for core::StateDiff {
                     storage_entries: value.into_iter().map(|item| item.into()).collect(),
                 })
                 .collect(),
-            declared_contract_hashes: value
+            deprecated_declared_classes: value.old_declared_contracts,
+            declared_classes: value
                 .declared_classes
                 .into_iter()
-                .map(|item| item.class_hash)
+                .map(|item| item.into())
                 .collect(),
             deployed_contracts: value
                 .deployed_contracts
+                .into_iter()
+                .map(|item| item.into())
+                .collect(),
+            replaced_classes: value
+                .replaced_classes
                 .into_iter()
                 .map(|item| item.into())
                 .collect(),
@@ -291,10 +306,28 @@ impl From<StorageDiff> for core::StorageEntry {
     }
 }
 
+impl From<DeclaredContract> for core::DeclaredClassItem {
+    fn from(value: DeclaredContract) -> Self {
+        Self {
+            class_hash: value.class_hash,
+            compiled_class_hash: value.compiled_class_hash,
+        }
+    }
+}
+
 impl From<DeployedContract> for core::DeployedContractItem {
     fn from(value: DeployedContract) -> Self {
         Self {
             address: value.address,
+            class_hash: value.class_hash,
+        }
+    }
+}
+
+impl From<DeployedContract> for core::ReplacedClassItem {
+    fn from(value: DeployedContract) -> Self {
+        Self {
+            contract_address: value.address,
             class_hash: value.class_hash,
         }
     }
@@ -572,6 +605,7 @@ impl TryFrom<TransactionReceipt> for core::L1HandlerTransactionReceipt {
 impl From<L2ToL1Message> for core::MsgToL1 {
     fn from(value: L2ToL1Message) -> Self {
         Self {
+            from_address: value.from_address,
             // Unwrapping here is safe
             to_address: FieldElement::from_byte_slice_be(&value.to_address.0).unwrap(),
             payload: value.payload,
@@ -620,7 +654,6 @@ impl TryFrom<core::BroadcastedTransaction> for AccountTransaction {
         match value {
             core::BroadcastedTransaction::Invoke(inner) => Ok(Self::InvokeFunction(inner.into())),
             core::BroadcastedTransaction::Declare(inner) => Ok(Self::Declare(inner.try_into()?)),
-            core::BroadcastedTransaction::Deploy(_) => Err(ConversionError),
             core::BroadcastedTransaction::DeployAccount(inner) => {
                 Ok(Self::DeployAccount(inner.into()))
             }

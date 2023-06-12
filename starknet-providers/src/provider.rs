@@ -2,12 +2,11 @@ use async_trait::async_trait;
 use auto_impl::auto_impl;
 use starknet_core::types::{
     BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
-    BroadcastedDeployAccountTransaction, BroadcastedDeployTransaction,
-    BroadcastedInvokeTransaction, BroadcastedTransaction, ContractClass, DeclareTransactionResult,
-    DeployAccountTransactionResult, DeployTransactionResult, EventFilter, EventsPage, FeeEstimate,
-    FieldElement, FunctionCall, InvokeTransactionResult, MaybePendingBlockWithTxHashes,
-    MaybePendingBlockWithTxs, MaybePendingTransactionReceipt, StarknetError, StateUpdate,
-    SyncStatusType, Transaction,
+    BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
+    ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
+    EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
+    MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
+    MaybePendingTransactionReceipt, StarknetError, SyncStatusType, Transaction,
 };
 use std::error::Error;
 
@@ -37,7 +36,7 @@ pub trait Provider {
     async fn get_state_update<B>(
         &self,
         block_id: B,
-    ) -> Result<StateUpdate, ProviderError<Self::Error>>
+    ) -> Result<MaybePendingStateUpdate, ProviderError<Self::Error>>
     where
         B: AsRef<BlockId> + Send + Sync;
 
@@ -131,9 +130,9 @@ pub trait Provider {
         &self,
         request: R,
         block_id: B,
-    ) -> Result<FeeEstimate, ProviderError<Self::Error>>
+    ) -> Result<Vec<FeeEstimate>, ProviderError<Self::Error>>
     where
-        R: AsRef<BroadcastedTransaction> + Send + Sync,
+        R: AsRef<[BroadcastedTransaction]> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync;
 
     /// Get the most recent accepted block number
@@ -186,14 +185,6 @@ pub trait Provider {
     where
         D: AsRef<BroadcastedDeclareTransaction> + Send + Sync;
 
-    /// Submit a new deploy contract transaction
-    async fn add_deploy_transaction<D>(
-        &self,
-        deploy_transaction: D,
-    ) -> Result<DeployTransactionResult, ProviderError<Self::Error>>
-    where
-        D: AsRef<BroadcastedDeployTransaction> + Send + Sync;
-
     /// Submit a new deploy account transaction
     async fn add_deploy_account_transaction<D>(
         &self,
@@ -201,6 +192,28 @@ pub trait Provider {
     ) -> Result<DeployAccountTransactionResult, ProviderError<Self::Error>>
     where
         D: AsRef<BroadcastedDeployAccountTransaction> + Send + Sync;
+
+    /// Same as [estimate_fee], but only with one estimate.
+    async fn estimate_fee_single<R, B>(
+        &self,
+        request: R,
+        block_id: B,
+    ) -> Result<FeeEstimate, ProviderError<Self::Error>>
+    where
+        R: AsRef<BroadcastedTransaction> + Send + Sync,
+        B: AsRef<BlockId> + Send + Sync,
+    {
+        let mut result = self
+            .estimate_fee([request.as_ref().to_owned()], block_id)
+            .await?;
+
+        if result.len() == 1 {
+            // Unwrapping here is safe becuase we already checked length
+            Ok(result.pop().unwrap())
+        } else {
+            Err(ProviderError::ArrayLengthMismatch)
+        }
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -209,6 +222,8 @@ pub enum ProviderError<E> {
     StarknetError(StarknetError),
     #[error("Request rate limited")]
     RateLimited,
+    #[error("Array length mismatch")]
+    ArrayLengthMismatch,
     #[error(transparent)]
     Other(E),
 }
