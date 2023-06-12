@@ -3,10 +3,10 @@ use crate::{
     serde::{json::to_string_pythonic, num_hex::u64 as u64_hex, unsigned_field_element::UfeHex},
     types::{
         contract::{CompressProgramError, ComputeClassHashError},
-        CompressedLegacyContractClass, FieldElement, LegacyContractAbiEntry,
-        LegacyContractEntryPoint, LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType,
-        LegacyFunctionAbiEntry, LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType,
-        LegacyStructMember, LegacyTypedParameter,
+        CompressedLegacyContractClass, FieldElement, FunctionStateMutability,
+        LegacyContractAbiEntry, LegacyContractEntryPoint, LegacyEntryPointsByType,
+        LegacyEventAbiEntry, LegacyEventAbiType, LegacyFunctionAbiEntry, LegacyFunctionAbiType,
+        LegacyStructAbiEntry, LegacyStructAbiType, LegacyStructMember, LegacyTypedParameter,
     },
     utils::{cairo_short_string_to_felt, starknet_keccak},
 };
@@ -244,7 +244,7 @@ pub struct RawLegacyFunction {
     pub name: String,
     pub outputs: Vec<LegacyTypedParameter>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub state_mutability: Option<String>,
+    pub state_mutability: Option<FunctionStateMutability>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -889,7 +889,7 @@ mod tests {
         if let RawLegacyAbiEntry::Function(f) = &abi[9] {
             assert_eq!(f.name, "is_valid_signature");
             assert_eq!(f.inputs.len(), 3);
-            assert_eq!(f.state_mutability, Some(String::from("view")));
+            assert_eq!(f.state_mutability, Some(FunctionStateMutability::View));
         } else {
             panic!("Did not deserialize AbiEntry::Function properly");
         }
@@ -921,7 +921,7 @@ mod tests {
         if let RawLegacyAbiEntry::Function(f) = &abi[5] {
             assert_eq!(f.name, "g");
             assert_eq!(f.outputs.len(), 1);
-            assert_eq!(f.state_mutability, Some(String::from("view")));
+            assert_eq!(f.state_mutability, Some(FunctionStateMutability::View));
         } else {
             panic!("Did not deserialize AbiEntry::Function properly");
         }

@@ -154,7 +154,7 @@ where
 
         self.account
             .provider()
-            .estimate_fee(
+            .estimate_fee_single(
                 BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction::V1(invoke)),
                 self.account.block_id(),
             )

@@ -5,12 +5,11 @@ use starknet_core::{
     serde::unsigned_field_element::UfeHex,
     types::{
         requests::*, BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
-        BroadcastedDeployAccountTransaction, BroadcastedDeployTransaction,
-        BroadcastedInvokeTransaction, BroadcastedTransaction, ContractClass,
-        DeclareTransactionResult, DeployAccountTransactionResult, DeployTransactionResult,
-        EventFilter, EventFilterWithPage, EventsPage, FeeEstimate, FieldElement, FunctionCall,
+        BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
+        ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
+        EventFilterWithPage, EventsPage, FeeEstimate, FieldElement, FunctionCall,
         InvokeTransactionResult, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
-        MaybePendingTransactionReceipt, ResultPageRequest, StarknetError, StateUpdate,
+        MaybePendingStateUpdate, MaybePendingTransactionReceipt, ResultPageRequest, StarknetError,
         SyncStatusType, Transaction,
     },
 };
@@ -71,8 +70,6 @@ pub enum JsonRpcMethod {
     AddInvokeTransaction,
     #[serde(rename = "starknet_addDeclareTransaction")]
     AddDeclareTransaction,
-    #[serde(rename = "starknet_addDeployTransaction")]
-    AddDeployTransaction,
     #[serde(rename = "starknet_addDeployAccountTransaction")]
     AddDeployAccountTransaction,
 }
@@ -107,7 +104,6 @@ pub enum JsonRpcRequestData {
     GetNonce(GetNonceRequest),
     AddInvokeTransaction(AddInvokeTransactionRequest),
     AddDeclareTransaction(AddDeclareTransactionRequest),
-    AddDeployTransaction(AddDeployTransactionRequest),
     AddDeployAccountTransaction(AddDeployAccountTransactionRequest),
 }
 
@@ -233,7 +229,7 @@ where
     async fn get_state_update<B>(
         &self,
         block_id: B,
-    ) -> Result<StateUpdate, ProviderError<Self::Error>>
+    ) -> Result<MaybePendingStateUpdate, ProviderError<Self::Error>>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
@@ -430,9 +426,9 @@ where
         &self,
         request: R,
         block_id: B,
-    ) -> Result<FeeEstimate, ProviderError<Self::Error>>
+    ) -> Result<Vec<FeeEstimate>, ProviderError<Self::Error>>
     where
-        R: AsRef<BroadcastedTransaction> + Send + Sync,
+        R: AsRef<[BroadcastedTransaction]> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
         self.send_request(
@@ -555,23 +551,6 @@ where
             JsonRpcMethod::AddDeclareTransaction,
             AddDeclareTransactionRequestRef {
                 declare_transaction: declare_transaction.as_ref(),
-            },
-        )
-        .await
-    }
-
-    /// Submit a new deploy contract transaction
-    async fn add_deploy_transaction<D>(
-        &self,
-        deploy_transaction: D,
-    ) -> Result<DeployTransactionResult, ProviderError<Self::Error>>
-    where
-        D: AsRef<BroadcastedDeployTransaction> + Send + Sync,
-    {
-        self.send_request(
-            JsonRpcMethod::AddDeployTransaction,
-            AddDeployTransactionRequestRef {
-                deploy_transaction: deploy_transaction.as_ref(),
             },
         )
         .await
@@ -703,10 +682,6 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
             ),
             JsonRpcMethod::AddDeclareTransaction => JsonRpcRequestData::AddDeclareTransaction(
                 serde_json::from_value::<AddDeclareTransactionRequest>(raw_request.params)
-                    .map_err(error_mapper)?,
-            ),
-            JsonRpcMethod::AddDeployTransaction => JsonRpcRequestData::AddDeployTransaction(
-                serde_json::from_value::<AddDeployTransactionRequest>(raw_request.params)
                     .map_err(error_mapper)?,
             ),
             JsonRpcMethod::AddDeployAccountTransaction => {

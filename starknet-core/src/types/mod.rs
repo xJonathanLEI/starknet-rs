@@ -17,20 +17,21 @@ mod codegen;
 pub use codegen::{
     BlockStatus, BlockTag, BlockWithTxHashes, BlockWithTxs, BroadcastedDeclareTransactionV1,
     BroadcastedDeclareTransactionV2, BroadcastedDeployAccountTransaction,
-    BroadcastedDeployTransaction, BroadcastedInvokeTransactionV0, BroadcastedInvokeTransactionV1,
-    CompressedLegacyContractClass, ContractEntryPoint, ContractStorageDiffItem,
-    DeclareTransactionReceipt, DeclareTransactionV1, DeclareTransactionV2,
-    DeployAccountTransaction, DeployAccountTransactionReceipt, DeployTransaction,
-    DeployTransactionReceipt, DeployedContractItem, EmittedEvent, EntryPointsByType, Event,
-    EventFilter, EventFilterWithPage, FeeEstimate, FlattenedSierraClass, FunctionCall,
-    InvokeTransactionReceipt, InvokeTransactionV0, InvokeTransactionV1, L1HandlerTransaction,
-    L1HandlerTransactionReceipt, LegacyContractEntryPoint, LegacyEntryPointsByType,
-    LegacyEventAbiEntry, LegacyEventAbiType, LegacyFunctionAbiEntry, LegacyFunctionAbiType,
-    LegacyStructAbiEntry, LegacyStructAbiType, LegacyStructMember, LegacyTypedParameter, MsgToL1,
-    NonceUpdate, PendingBlockWithTxHashes, PendingBlockWithTxs, PendingDeclareTransactionReceipt,
-    PendingDeployAccountTransactionReceipt, PendingDeployTransactionReceipt,
-    PendingInvokeTransactionReceipt, PendingL1HandlerTransactionReceipt, ResultPageRequest,
-    StarknetError, StateDiff, StateUpdate, StorageEntry, SyncStatus, TransactionStatus,
+    BroadcastedInvokeTransactionV0, BroadcastedInvokeTransactionV1, CompressedLegacyContractClass,
+    ContractStorageDiffItem, DeclareTransactionReceipt, DeclareTransactionV1, DeclareTransactionV2,
+    DeclaredClassItem, DeployAccountTransaction, DeployAccountTransactionReceipt,
+    DeployTransaction, DeployTransactionReceipt, DeployedContractItem, EmittedEvent,
+    EntryPointsByType, Event, EventFilter, EventFilterWithPage, EventsChunk, FeeEstimate,
+    FlattenedSierraClass, FunctionCall, FunctionStateMutability, InvokeTransactionReceipt,
+    InvokeTransactionV0, InvokeTransactionV1, L1HandlerTransaction, L1HandlerTransactionReceipt,
+    LegacyContractEntryPoint, LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType,
+    LegacyFunctionAbiEntry, LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType,
+    LegacyStructMember, LegacyTypedParameter, MsgToL1, NonceUpdate, PendingBlockWithTxHashes,
+    PendingBlockWithTxs, PendingDeclareTransactionReceipt, PendingDeployAccountTransactionReceipt,
+    PendingDeployTransactionReceipt, PendingInvokeTransactionReceipt,
+    PendingL1HandlerTransactionReceipt, PendingStateUpdate, ReplacedClassItem, ResultPageRequest,
+    SierraEntryPoint, StarknetError, StateDiff, StateUpdate, StorageEntry, SyncStatus,
+    TransactionStatus,
 };
 
 // TODO: move generated request code to `starknet-providers`
@@ -58,6 +59,13 @@ pub enum MaybePendingBlockWithTxs {
 pub enum MaybePendingTransactionReceipt {
     Receipt(TransactionReceipt),
     PendingReceipt(PendingTransactionReceipt),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum MaybePendingStateUpdate {
+    Update(StateUpdate),
+    PendingUpdate(PendingStateUpdate),
 }
 
 #[serde_as]
@@ -161,8 +169,6 @@ pub enum BroadcastedTransaction {
     Invoke(BroadcastedInvokeTransaction),
     #[serde(rename = "DECLARE")]
     Declare(BroadcastedDeclareTransaction),
-    #[serde(rename = "DEPLOY")]
-    Deploy(BroadcastedDeployTransaction),
     #[serde(rename = "DEPLOY_ACCOUNT")]
     DeployAccount(BroadcastedDeployAccountTransaction),
 }
@@ -271,12 +277,6 @@ impl AsRef<BroadcastedDeclareTransaction> for BroadcastedDeclareTransaction {
     }
 }
 
-impl AsRef<BroadcastedDeployTransaction> for BroadcastedDeployTransaction {
-    fn as_ref(&self) -> &BroadcastedDeployTransaction {
-        self
-    }
-}
-
 impl AsRef<BroadcastedDeployAccountTransaction> for BroadcastedDeployAccountTransaction {
     fn as_ref(&self) -> &BroadcastedDeployAccountTransaction {
         self
@@ -290,8 +290,6 @@ impl TryFrom<i64> for StarknetError {
         Ok(match value {
             1 => StarknetError::FailedToReceiveTransaction,
             20 => StarknetError::ContractNotFound,
-            21 => StarknetError::InvalidMessageSelector,
-            22 => StarknetError::InvalidCallData,
             24 => StarknetError::BlockNotFound,
             25 => StarknetError::TransactionHashNotFound,
             27 => StarknetError::InvalidTransactionIndex,
@@ -299,8 +297,10 @@ impl TryFrom<i64> for StarknetError {
             31 => StarknetError::PageSizeTooBig,
             32 => StarknetError::NoBlocks,
             33 => StarknetError::InvalidContinuationToken,
+            34 => StarknetError::TooManyKeysInFilter,
             40 => StarknetError::ContractError,
             50 => StarknetError::InvalidContractClass,
+            51 => StarknetError::ClassAlreadyDeclared,
             _ => return Err(()),
         })
     }

@@ -3,12 +3,11 @@
 use async_trait::async_trait;
 use starknet_core::types::{
     BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
-    BroadcastedDeployAccountTransaction, BroadcastedDeployTransaction,
-    BroadcastedInvokeTransaction, BroadcastedTransaction, ContractClass, DeclareTransactionResult,
-    DeployAccountTransactionResult, DeployTransactionResult, EventFilter, EventsPage, FeeEstimate,
-    FieldElement, FunctionCall, InvokeTransactionResult, MaybePendingBlockWithTxHashes,
-    MaybePendingBlockWithTxs, MaybePendingTransactionReceipt, StarknetError, StateUpdate,
-    SyncStatusType, Transaction,
+    BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
+    ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
+    EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
+    MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
+    MaybePendingTransactionReceipt, StarknetError, SyncStatusType, Transaction,
 };
 
 use crate::{
@@ -54,14 +53,14 @@ impl Provider for SequencerGatewayProvider {
     async fn get_state_update<B>(
         &self,
         block_id: B,
-    ) -> Result<StateUpdate, ProviderError<Self::Error>>
+    ) -> Result<MaybePendingStateUpdate, ProviderError<Self::Error>>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
         Ok(self
             .get_state_update(block_id.as_ref().to_owned().into())
             .await?
-            .into())
+            .try_into()?)
     }
 
     async fn get_storage_at<A, K, B>(
@@ -230,19 +229,25 @@ impl Provider for SequencerGatewayProvider {
         &self,
         request: R,
         block_id: B,
-    ) -> Result<FeeEstimate, ProviderError<Self::Error>>
+    ) -> Result<Vec<FeeEstimate>, ProviderError<Self::Error>>
     where
-        R: AsRef<BroadcastedTransaction> + Send + Sync,
+        R: AsRef<[BroadcastedTransaction]> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
         Ok(self
-            .estimate_fee(
-                request.as_ref().to_owned().try_into()?,
+            .estimate_fee_bulk(
+                &request
+                    .as_ref()
+                    .iter()
+                    .map(|tx| tx.to_owned().try_into())
+                    .collect::<Result<Vec<_>, _>>()?,
                 block_id.as_ref().to_owned().into(),
                 false,
             )
             .await?
-            .into())
+            .into_iter()
+            .map(|est| est.into())
+            .collect())
     }
 
     async fn block_number(&self) -> Result<u64, ProviderError<Self::Error>> {
@@ -342,16 +347,6 @@ impl Provider for SequencerGatewayProvider {
             transaction_hash: result.transaction_hash,
             class_hash: result.class_hash.ok_or(ConversionError)?,
         })
-    }
-
-    async fn add_deploy_transaction<D>(
-        &self,
-        deploy_transaction: D,
-    ) -> Result<DeployTransactionResult, ProviderError<Self::Error>>
-    where
-        D: AsRef<BroadcastedDeployTransaction> + Send + Sync,
-    {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
     }
 
     async fn add_deploy_account_transaction<D>(

@@ -3,8 +3,8 @@ use starknet_core::{
         BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1,
         BroadcastedTransaction, ContractClass, EventFilter, FieldElement, FunctionCall,
         InvokeTransaction, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
-        MaybePendingTransactionReceipt, StarknetError, SyncStatusType, Transaction,
-        TransactionReceipt,
+        MaybePendingStateUpdate, MaybePendingTransactionReceipt, StarknetError, SyncStatusType,
+        Transaction, TransactionReceipt,
     },
     utils::{get_selector_from_name, get_storage_var_address},
 };
@@ -16,8 +16,7 @@ use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     JsonRpcClient::new(HttpTransport::new(
-        Url::parse("https://starknet-goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161")
-            .unwrap(),
+        Url::parse("https://rpc-goerli-1.starknet.rs/rpc/v0.3").unwrap(),
     ))
 }
 
@@ -64,7 +63,12 @@ async fn jsonrpc_get_state_update() {
         .await
         .unwrap();
 
-    assert!(state_update.new_root.unwrap() > FieldElement::ZERO);
+    let state_update = match state_update {
+        MaybePendingStateUpdate::Update(value) => value,
+        _ => panic!("unexpected data type"),
+    };
+
+    assert!(state_update.new_root > FieldElement::ZERO);
 }
 
 #[tokio::test]
@@ -285,7 +289,7 @@ async fn jsonrpc_estimate_fee() {
     let rpc_client = create_jsonrpc_client();
 
     let estimate = rpc_client
-        .estimate_fee(
+        .estimate_fee_single(
             &BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction::V1(
                 BroadcastedInvokeTransactionV1 {
                     max_fee: FieldElement::ZERO,

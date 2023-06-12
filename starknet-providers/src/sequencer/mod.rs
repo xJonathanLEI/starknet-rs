@@ -718,7 +718,7 @@ impl TryFrom<ErrorCode> for StarknetError {
             ErrorCode::MalformedRequest => Err(()),
             ErrorCode::UndeclaredClass => Ok(Self::ClassHashNotFound),
             ErrorCode::InvalidTransactionNonce => Err(()),
-            ErrorCode::ClassAlreadyDeclared => Err(()),
+            ErrorCode::ClassAlreadyDeclared => Ok(Self::ClassAlreadyDeclared),
         }
     }
 }

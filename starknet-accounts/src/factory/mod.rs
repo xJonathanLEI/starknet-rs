@@ -42,7 +42,7 @@ const ADDR_BOUND: FieldElement = FieldElement::from_mont([
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait AccountFactory: Sized {
-    type Provider: Provider;
+    type Provider: Provider + Sync;
     type SignError: Error + Send + Sync;
 
     fn class_hash(&self) -> FieldElement;
@@ -263,7 +263,7 @@ where
 
         self.factory
             .provider()
-            .estimate_fee(
+            .estimate_fee_single(
                 BroadcastedTransaction::DeployAccount(deploy),
                 self.factory.block_id(),
             )

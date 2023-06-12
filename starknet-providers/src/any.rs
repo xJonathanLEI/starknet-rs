@@ -1,12 +1,11 @@
 use async_trait::async_trait;
 use starknet_core::types::{
     BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
-    BroadcastedDeployAccountTransaction, BroadcastedDeployTransaction,
-    BroadcastedInvokeTransaction, BroadcastedTransaction, ContractClass, DeclareTransactionResult,
-    DeployAccountTransactionResult, DeployTransactionResult, EventFilter, EventsPage, FeeEstimate,
-    FieldElement, FunctionCall, InvokeTransactionResult, MaybePendingBlockWithTxHashes,
-    MaybePendingBlockWithTxs, MaybePendingTransactionReceipt, StateUpdate, SyncStatusType,
-    Transaction,
+    BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
+    ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
+    EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
+    MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
+    MaybePendingTransactionReceipt, SyncStatusType, Transaction,
 };
 
 use crate::{
@@ -80,7 +79,7 @@ impl Provider for AnyProvider {
     async fn get_state_update<B>(
         &self,
         block_id: B,
-    ) -> Result<StateUpdate, ProviderError<Self::Error>>
+    ) -> Result<MaybePendingStateUpdate, ProviderError<Self::Error>>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
@@ -328,9 +327,9 @@ impl Provider for AnyProvider {
         &self,
         request: R,
         block_id: B,
-    ) -> Result<FeeEstimate, ProviderError<Self::Error>>
+    ) -> Result<Vec<FeeEstimate>, ProviderError<Self::Error>>
     where
-        R: AsRef<BroadcastedTransaction> + Send + Sync,
+        R: AsRef<[BroadcastedTransaction]> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
         match self {
@@ -503,31 +502,6 @@ impl Provider for AnyProvider {
         }
     }
 
-    async fn add_deploy_transaction<D>(
-        &self,
-        deploy_transaction: D,
-    ) -> Result<DeployTransactionResult, ProviderError<Self::Error>>
-    where
-        D: AsRef<BroadcastedDeployTransaction> + Send + Sync,
-    {
-        match self {
-            Self::JsonRpcHttp(inner) => Ok(
-                <JsonRpcClient<HttpTransport> as Provider>::add_deploy_transaction(
-                    inner,
-                    deploy_transaction,
-                )
-                .await?,
-            ),
-            Self::SequencerGateway(inner) => Ok(
-                <SequencerGatewayProvider as Provider>::add_deploy_transaction(
-                    inner,
-                    deploy_transaction,
-                )
-                .await?,
-            ),
-        }
-    }
-
     async fn add_deploy_account_transaction<D>(
         &self,
         deploy_account_transaction: D,
@@ -561,6 +535,7 @@ impl From<ProviderError<<JsonRpcClient<HttpTransport> as Provider>::Error>>
         match value {
             ProviderError::StarknetError(inner) => Self::StarknetError(inner),
             ProviderError::RateLimited => Self::RateLimited,
+            ProviderError::ArrayLengthMismatch => Self::ArrayLengthMismatch,
             ProviderError::Other(inner) => Self::Other(AnyProviderError::JsonRpcHttp(inner)),
         }
     }
@@ -573,6 +548,7 @@ impl From<ProviderError<<SequencerGatewayProvider as Provider>::Error>>
         match value {
             ProviderError::StarknetError(inner) => Self::StarknetError(inner),
             ProviderError::RateLimited => Self::RateLimited,
+            ProviderError::ArrayLengthMismatch => Self::ArrayLengthMismatch,
             ProviderError::Other(inner) => Self::Other(AnyProviderError::SequencerGateway(inner)),
         }
     }
