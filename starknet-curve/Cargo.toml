@@ -13,7 +13,7 @@ Stark curve
 keywords = ["ethereum", "starknet", "web3", "no_std"]
 
 [dependencies]
-starknet-ff = { version = "0.3.2", path = "../starknet-ff", default-features = false }
+starknet-ff = { version = "0.3.3", path = "../starknet-ff", default-features = false }
 
 [features]
 bigdecimal = ["starknet-ff/bigdecimal"]
