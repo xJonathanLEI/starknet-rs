@@ -1757,7 +1757,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-macros"
-version = "0.2.0"
+version = "0.1.0"
 dependencies = [
  "starknet-core",
  "syn 2.0.15",
