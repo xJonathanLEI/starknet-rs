@@ -1,11 +1,13 @@
 use crate::VerifyingKey;
 
 use async_trait::async_trait;
+use auto_impl::auto_impl;
 use starknet_core::{crypto::Signature, types::FieldElement};
 use std::error::Error;
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[auto_impl(&, Box, Arc)]
 pub trait Signer {
     type GetPublicKeyError: Error + Send + Sync;
     type SignError: Error + Send + Sync;
