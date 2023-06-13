@@ -20,7 +20,7 @@ use std::{collections::BTreeMap, io::Write};
 
 const API_VERSION: FieldElement = FieldElement::ZERO;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyContractClass {
     pub abi: Vec<RawLegacyAbiEntry>,
@@ -38,7 +38,7 @@ pub struct RawLegacyEntryPoints {
 }
 
 #[serde_as]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyProgram {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -69,7 +69,7 @@ pub struct RawLegacyEntryPoint {
     pub selector: FieldElement,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyAttribute {
     pub accessible_scopes: Vec<String>,
@@ -81,7 +81,7 @@ pub struct LegacyAttribute {
     pub value: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyDebugInfo {
     /// A partial map from file name to its content. Files that are not in the map, are assumed to
@@ -91,7 +91,7 @@ pub struct LegacyDebugInfo {
     pub instruction_locations: BTreeMap<u64, LegacyInstructionLocation>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyHint {
     pub accessible_scopes: Vec<String>,
@@ -99,7 +99,7 @@ pub struct LegacyHint {
     pub flow_tracking_data: LegacyFlowTrackingData,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyIdentifier {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -123,7 +123,7 @@ pub struct LegacyIdentifier {
     pub value: Option<serde_json::Number>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyReferenceManager {
     pub references: Vec<LegacyReference>,
@@ -138,7 +138,7 @@ pub enum LegacyEntrypointOffset {
     U64AsInt(u64),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyInstructionLocation {
     pub accessible_scopes: Vec<String>,
@@ -148,14 +148,14 @@ pub struct LegacyInstructionLocation {
     pub inst: LegacyLocation,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyIdentifierMember {
     pub cairo_type: String,
     pub offset: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyReference {
     pub ap_tracking_data: LegacyApTrackingData,
@@ -163,14 +163,14 @@ pub struct LegacyReference {
     pub value: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyFlowTrackingData {
     pub ap_tracking: LegacyApTrackingData,
     pub reference_ids: BTreeMap<String, u64>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyHintLocation {
     pub location: LegacyLocation,
@@ -178,7 +178,7 @@ pub struct LegacyHintLocation {
     pub n_prefix_newlines: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyLocation {
     pub end_col: u64,
@@ -190,14 +190,14 @@ pub struct LegacyLocation {
     pub start_line: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyApTrackingData {
     pub group: u64,
     pub offset: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyInputFile {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -206,14 +206,14 @@ pub struct LegacyInputFile {
     pub content: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LegacyParentLocation {
     pub location: Box<LegacyLocation>,
     pub remark: String,
 }
 
 #[serde_as]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyContractCode {
     #[serde_as(as = "Vec<UfeHex>")]

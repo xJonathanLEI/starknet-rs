@@ -29,7 +29,7 @@ const PREFIX_COMPILED_CLASS_V1: FieldElement = FieldElement::from_mont([
     324306817650036332,
 ]);
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 #[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
 pub enum ContractArtifact {
@@ -39,7 +39,7 @@ pub enum ContractArtifact {
 }
 
 #[serde_as]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct SierraClass {
     #[serde_as(as = "Vec<UfeHex>")]
@@ -51,7 +51,7 @@ pub struct SierraClass {
 }
 
 #[serde_as]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct CompiledClass {
     pub prime: String,
@@ -63,7 +63,7 @@ pub struct CompiledClass {
     pub entry_points_by_type: CompiledClassEntrypointList,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct SierraClassDebugInfo {
     pub type_names: Vec<(u64, String)>,
@@ -80,7 +80,7 @@ pub struct CompiledClassEntrypointList {
     pub constructor: Vec<CompiledClassEntrypoint>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub enum AbiEntry {
@@ -90,7 +90,7 @@ pub enum AbiEntry {
     Enum(AbiEnum),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Hint {
     pub id: u64,
     // For convenience we just treat it as an opaque JSON value here, unless a use case justifies
@@ -98,7 +98,7 @@ pub struct Hint {
     pub code: Vec<serde_json::Value>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PythonicHint {
     pub id: u64,
     pub code: Vec<String>,
@@ -114,7 +114,7 @@ pub struct CompiledClassEntrypoint {
     pub builtins: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct AbiFunction {
     pub name: String,
@@ -123,41 +123,41 @@ pub struct AbiFunction {
     pub state_mutability: StateMutability,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct AbiEvent {
     pub name: String,
     pub inputs: Vec<AbiNamedMember>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct AbiStruct {
     pub name: String,
     pub members: Vec<AbiNamedMember>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct AbiEnum {
     pub name: String,
     pub variants: Vec<AbiNamedMember>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct AbiNamedMember {
     pub name: String,
     pub r#type: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct AbiOutput {
     pub r#type: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum StateMutability {
     External,
