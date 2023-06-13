@@ -1783,7 +1783,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-signers"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "async-trait",
  "auto_impl",
