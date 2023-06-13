@@ -89,6 +89,9 @@ pub enum AbiEntry {
     Event(AbiEvent),
     Struct(AbiStruct),
     Enum(AbiEnum),
+    Constructor(AbiConstructor),
+    Impl(AbiImpl),
+    Interface(AbiInterface),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -126,9 +129,41 @@ pub struct AbiFunction {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct AbiEvent {
+#[serde(untagged)]
+pub enum AbiEvent {
+    /// Cairo 2.x ABI event entry
+    Typed(TypedAbiEvent),
+    /// Cairo 1.x ABI event entry
+    Untyped(UntypedAbiEvent),
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub enum TypedAbiEvent {
+    Struct(AbiEventStruct),
+    Enum(AbiEventEnum),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct UntypedAbiEvent {
     pub name: String,
     pub inputs: Vec<AbiNamedMember>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct AbiEventStruct {
+    pub name: String,
+    pub members: Vec<EventField>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct AbiEventEnum {
+    pub name: String,
+    pub variants: Vec<EventField>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -136,6 +171,27 @@ pub struct AbiEvent {
 pub struct AbiStruct {
     pub name: String,
     pub members: Vec<AbiNamedMember>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct AbiConstructor {
+    pub name: String,
+    pub inputs: Vec<AbiNamedMember>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct AbiImpl {
+    pub name: String,
+    pub interface_name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct AbiInterface {
+    pub name: String,
+    pub items: Vec<AbiEntry>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -159,10 +215,26 @@ pub struct AbiOutput {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct EventField {
+    pub name: String,
+    pub r#type: String,
+    pub kind: EventFieldKind,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum StateMutability {
     External,
     View,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EventFieldKind {
+    Key,
+    Data,
+    Nested,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -370,6 +442,47 @@ impl<'de> Deserialize<'de> for PythonicHint {
     }
 }
 
+// Manually implementing this so we can put `kind` in the middle:
+impl Serialize for TypedAbiEvent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        #[derive(Serialize)]
+        struct StructRef<'a> {
+            name: &'a str,
+            kind: &'static str,
+            members: &'a [EventField],
+        }
+
+        #[derive(Serialize)]
+        struct EnumRef<'a> {
+            name: &'a str,
+            kind: &'static str,
+            variants: &'a [EventField],
+        }
+
+        match self {
+            TypedAbiEvent::Struct(inner) => StructRef::serialize(
+                &StructRef {
+                    name: &inner.name,
+                    kind: "struct",
+                    members: &inner.members,
+                },
+                serializer,
+            ),
+            TypedAbiEvent::Enum(inner) => EnumRef::serialize(
+                &EnumRef {
+                    name: &inner.name,
+                    kind: "enum",
+                    variants: &inner.variants,
+                },
+                serializer,
+            ),
+        }
+    }
+}
+
 fn hash_sierra_entrypoints(entrypoints: &[SierraEntryPoint]) -> FieldElement {
     let mut hasher = PoseidonHasher::new();
 
@@ -394,10 +507,10 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_sierra_class_deser() {
-        // Artifacts generated from cairo v1.0.0-rc0
         for raw_artifact in [
             include_str!("../../../test-data/contracts/cairo1/artifacts/abi_types_sierra.txt"),
             include_str!("../../../test-data/contracts/cairo1/artifacts/erc20_sierra.txt"),
+            include_str!("../../../test-data/contracts/cairo2/artifacts/erc20_sierra.txt"),
         ]
         .into_iter()
         {
@@ -411,10 +524,10 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_compiled_class_deser() {
-        // Artifacts generated from cairo v1.0.0-rc0
         for raw_artifact in [
             include_str!("../../../test-data/contracts/cairo1/artifacts/abi_types_compiled.txt"),
             include_str!("../../../test-data/contracts/cairo1/artifacts/erc20_compiled.txt"),
+            include_str!("../../../test-data/contracts/cairo2/artifacts/erc20_compiled.txt"),
         ]
         .into_iter()
         {
@@ -448,6 +561,10 @@ mod tests {
                 include_str!("../../../test-data/contracts/cairo1/artifacts/abi_types_sierra.txt"),
                 include_str!("../../../test-data/contracts/cairo1/artifacts/abi_types.hashes.json"),
             ),
+            (
+                include_str!("../../../test-data/contracts/cairo2/artifacts/erc20_sierra.txt"),
+                include_str!("../../../test-data/contracts/cairo2/artifacts/erc20.hashes.json"),
+            ),
         ]
         .into_iter()
         {
@@ -474,6 +591,10 @@ mod tests {
                     "../../../test-data/contracts/cairo1/artifacts/abi_types_compiled.txt"
                 ),
                 include_str!("../../../test-data/contracts/cairo1/artifacts/abi_types.hashes.json"),
+            ),
+            (
+                include_str!("../../../test-data/contracts/cairo2/artifacts/erc20_compiled.txt"),
+                include_str!("../../../test-data/contracts/cairo2/artifacts/erc20.hashes.json"),
             ),
         ]
         .into_iter()
