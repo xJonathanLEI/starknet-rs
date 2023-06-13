@@ -23,6 +23,6 @@ thiserror = "1.0.40"
 
 [dev-dependencies]
 rand = { version = "0.8.5", features=["std_rng"] }
-starknet-signers = { version = "0.2.0", path = "../starknet-signers" }
+starknet-signers = { version = "0.2.1", path = "../starknet-signers" }
 tokio = { version = "1.27.0", features = ["full"] }
 url = "2.3.1"

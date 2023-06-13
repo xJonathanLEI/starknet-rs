@@ -37,7 +37,7 @@ all-features = true
 starknet-core = { version = "0.3.0", path = "./starknet-core", default-features = false }
 starknet-providers = { version = "0.3.0", path = "./starknet-providers" }
 starknet-contract = { version = "0.2.0", path = "./starknet-contract" }
-starknet-signers = { version = "0.2.0", path = "./starknet-signers" }
+starknet-signers = { version = "0.2.1", path = "./starknet-signers" }
 starknet-accounts = { version = "0.2.0", path = "./starknet-accounts" }
 starknet-macros = { version = "0.1.0", path = "./starknet-macros" }
 
