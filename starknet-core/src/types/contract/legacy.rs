@@ -795,6 +795,12 @@ mod tests {
                 ),
             ),
             (
+                include_str!("../../../test-data/contracts/cairo0/artifacts/emoji.txt"),
+                include_str!(
+                    "../../../test-data/contracts/cairo0/artifacts/emoji.hashes.json"
+                ),
+            ),
+            (
                 include_str!(
                     "../../../test-data/contracts/cairo0/artifacts/pre-0.11.0/oz_account.txt"
                 ),
@@ -823,6 +829,12 @@ mod tests {
                 include_str!("../../../test-data/contracts/cairo0/artifacts/oz_account.txt"),
                 include_str!(
                     "../../../test-data/contracts/cairo0/artifacts/oz_account.hashes.json"
+                ),
+            ),
+            (
+                include_str!("../../../test-data/contracts/cairo0/artifacts/emoji.txt"),
+                include_str!(
+                    "../../../test-data/contracts/cairo0/artifacts/emoji.hashes.json"
                 ),
             ),
             (
