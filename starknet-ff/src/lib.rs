@@ -609,6 +609,17 @@ impl From<u64> for FieldElement {
     }
 }
 
+impl From<u128> for FieldElement {
+    fn from(value: u128) -> Self {
+        let low = value % (u64::MAX as u128 + 1);
+        let high = value / (u64::MAX as u128 + 1);
+
+        Self {
+            inner: Fr::from_bigint(BigInteger256::new([low as u64, high as u64, 0, 0])).unwrap(),
+        }
+    }
+}
+
 impl From<usize> for FieldElement {
     fn from(value: usize) -> Self {
         Self {
@@ -677,6 +688,19 @@ impl TryFrom<FieldElement> for u64 {
             Err(ValueOutOfRangeError)
         } else {
             Ok(repr[0])
+        }
+    }
+}
+
+impl TryFrom<FieldElement> for u128 {
+    type Error = ValueOutOfRangeError;
+
+    fn try_from(value: FieldElement) -> Result<Self, Self::Error> {
+        let repr = value.inner.into_bigint().0;
+        if repr[2] > 0 || repr[3] > 0 {
+            Err(ValueOutOfRangeError)
+        } else {
+            Ok((repr[0] as u128) + (repr[1] as u128) * (u64::MAX as u128 + 1))
         }
     }
 }
@@ -985,6 +1009,76 @@ mod tests {
                 num.0.parse::<FieldElement>().unwrap(),
                 FieldElement::from_byte_slice_be(&num.1).unwrap()
             );
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_u8_conversion() {
+        let nums = [u8::MAX, u8::MAX / 3 * 2, u8::MAX / 3];
+
+        for num in nums.into_iter() {
+            let felt: FieldElement = num.into();
+            assert_eq!(format!("{}", felt), format!("{}", num));
+
+            let back_to_num: u8 = felt.try_into().unwrap();
+            assert_eq!(num, back_to_num);
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_u16_conversion() {
+        let nums = [u16::MAX, u16::MAX / 3 * 2, u16::MAX / 3];
+
+        for num in nums.into_iter() {
+            let felt: FieldElement = num.into();
+            assert_eq!(format!("{}", felt), format!("{}", num));
+
+            let back_to_num: u16 = felt.try_into().unwrap();
+            assert_eq!(num, back_to_num);
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_u32_conversion() {
+        let nums = [u32::MAX, u32::MAX / 3 * 2, u32::MAX / 3];
+
+        for num in nums.into_iter() {
+            let felt: FieldElement = num.into();
+            assert_eq!(format!("{}", felt), format!("{}", num));
+
+            let back_to_num: u32 = felt.try_into().unwrap();
+            assert_eq!(num, back_to_num);
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_u64_conversion() {
+        let nums = [u64::MAX, u64::MAX / 3 * 2, u64::MAX / 3];
+
+        for num in nums.into_iter() {
+            let felt: FieldElement = num.into();
+            assert_eq!(format!("{}", felt), format!("{}", num));
+
+            let back_to_num: u64 = felt.try_into().unwrap();
+            assert_eq!(num, back_to_num);
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_u128_conversion() {
+        let nums = [u128::MAX, u128::MAX / 3 * 2, u128::MAX / 3];
+
+        for num in nums.into_iter() {
+            let felt: FieldElement = num.into();
+            assert_eq!(format!("{}", felt), format!("{}", num));
+
+            let back_to_num: u128 = felt.try_into().unwrap();
+            assert_eq!(num, back_to_num);
         }
     }
 }
