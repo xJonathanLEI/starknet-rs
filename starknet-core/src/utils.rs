@@ -32,7 +32,7 @@ pub enum UdcUniqueness {
 
 #[derive(Debug, Clone)]
 pub struct UdcUniqueSettings {
-    pub deploy_address: FieldElement,
+    pub deployer_address: FieldElement,
     pub udc_contract_address: FieldElement,
 }
 
@@ -170,7 +170,7 @@ pub fn get_udc_deployed_address(
             get_contract_address(salt, class_hash, constructor_calldata, FieldElement::ZERO)
         }
         UdcUniqueness::Unique(settings) => {
-            let unique_salt = pedersen_hash(&settings.deploy_address, &salt);
+            let unique_salt = pedersen_hash(&settings.deployer_address, &salt);
             get_contract_address(
                 unique_salt,
                 class_hash,
@@ -429,7 +429,7 @@ mod tests {
             )
             .unwrap(),
             &UdcUniqueness::Unique(UdcUniqueSettings {
-                deploy_address: FieldElement::from_hex_be(
+                deployer_address: FieldElement::from_hex_be(
                     "0x00b1461de04c6a1aa3375bdf9b7723a8779c082ffe21311d683a0b15c078b5dc",
                 )
                 .unwrap(),
