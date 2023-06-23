@@ -361,9 +361,20 @@ impl TryFrom<TransactionWithReceipt> for core::MaybePendingTransactionReceipt {
             // The caller should have directly returned a tx not found error instead in these cases
             TransactionStatus::NotReceived | TransactionStatus::Received => Err(ConversionError),
             TransactionStatus::Pending => Ok(Self::PendingReceipt(value.try_into()?)),
-            TransactionStatus::Rejected
-            | TransactionStatus::AcceptedOnL2
-            | TransactionStatus::AcceptedOnL1 => Ok(Self::Receipt(value.try_into()?)),
+            // Starting from Starknet v0.12.0 transactions no longer have a `PENDING` state.
+            // Transactions with `AcceptedOnL2` can live in a pending block and thus not have block
+            // hash. The JSON-RPC side requires `block_hash` to be present so we can only interpret
+            // it as pending if `block_hash` is missing.
+            TransactionStatus::AcceptedOnL2 => {
+                if value.receipt.block_hash.is_some() {
+                    Ok(Self::Receipt(value.try_into()?))
+                } else {
+                    Ok(Self::PendingReceipt(value.try_into()?))
+                }
+            }
+            TransactionStatus::Rejected | TransactionStatus::AcceptedOnL1 => {
+                Ok(Self::Receipt(value.try_into()?))
+            }
         }
     }
 }
