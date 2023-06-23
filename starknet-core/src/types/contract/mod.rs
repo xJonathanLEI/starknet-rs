@@ -127,6 +127,7 @@ pub struct AbiFunction {
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct AbiEvent {
     pub name: String,
+    #[serde(default)]
     pub inputs: Vec<AbiNamedMember>,
 }
 
