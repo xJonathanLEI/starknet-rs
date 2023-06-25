@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
 use crate::serde::unsigned_field_element::UfeHex;
+use crate::stdlib::string::String;
+use crate::stdlib::vec::Vec;
 
 // Re-export commonly used upstream types
 pub use ethereum_types::Address as L1Address;

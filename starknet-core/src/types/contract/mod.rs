@@ -1,14 +1,18 @@
-use serde::{ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer};
-use serde_with::serde_as;
-use starknet_crypto::{poseidon_hash_many, PoseidonHasher};
-
+#[cfg(feature = "std")]
+use crate::serde::json::to_string_pythonic;
 use crate::{
-    serde::{json::to_string_pythonic, unsigned_field_element::UfeHex},
+    serde::unsigned_field_element::UfeHex,
+    stdlib::string::String,
+    stdlib::vec::Vec,
+    stdlib::Error,
     types::{EntryPointsByType, FieldElement, FlattenedSierraClass, SierraEntryPoint},
     utils::{
         cairo_short_string_to_felt, normalize_address, starknet_keccak, CairoShortStringToFeltError,
     },
 };
+use serde::{ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer};
+use serde_with::serde_as;
+use starknet_crypto::{poseidon_hash_many, PoseidonHasher};
 
 /// Module containing types related to artifacts of contracts compiled with a Cairo 0.x compiler.
 pub mod legacy;
@@ -164,7 +168,7 @@ pub enum StateMutability {
     View,
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Error)]
 pub enum ComputeClassHashError {
     #[error("invalid builtin name")]
     InvalidBuiltinName,
@@ -172,7 +176,8 @@ pub enum ComputeClassHashError {
     Json(serde_json::Error),
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Error)]
+#[cfg(feature = "compression")]
 pub enum CompressProgramError {
     #[error("json serialization error: {0}")]
     Json(serde_json::Error),
@@ -180,6 +185,7 @@ pub enum CompressProgramError {
     Io(std::io::Error),
 }
 
+#[cfg(feature = "std")]
 impl SierraClass {
     pub fn class_hash(&self) -> Result<FieldElement, ComputeClassHashError> {
         // Technically we don't have to use the Pythonic JSON style here. Doing this just to align

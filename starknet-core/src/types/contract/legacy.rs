@@ -1,22 +1,33 @@
 use crate::{
     crypto::compute_hash_on_elements,
-    serde::{json::to_string_pythonic, num_hex::u64 as u64_hex, unsigned_field_element::UfeHex},
+    serde::{num_hex::u64 as u64_hex, unsigned_field_element::UfeHex},
+    stdlib::boxed::Box,
+    stdlib::collections::BTreeMap,
+    stdlib::string::String,
+    stdlib::vec::Vec,
     types::{
-        contract::{CompressProgramError, ComputeClassHashError},
-        CompressedLegacyContractClass, FieldElement, FunctionStateMutability,
-        LegacyContractAbiEntry, LegacyContractEntryPoint, LegacyEntryPointsByType,
-        LegacyEventAbiEntry, LegacyEventAbiType, LegacyFunctionAbiEntry, LegacyFunctionAbiType,
-        LegacyStructAbiEntry, LegacyStructAbiType, LegacyStructMember, LegacyTypedParameter,
+        contract::ComputeClassHashError, CompressedLegacyContractClass, FieldElement,
+        FunctionStateMutability, LegacyContractAbiEntry, LegacyContractEntryPoint,
+        LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType, LegacyFunctionAbiEntry,
+        LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType, LegacyStructMember,
+        LegacyTypedParameter,
     },
     utils::{cairo_short_string_to_felt, starknet_keccak},
 };
 
+#[cfg(feature = "std")]
+use crate::types::contract::CompressProgramError;
+
+#[cfg(feature = "std")]
+use crate::serde::json::to_string_pythonic;
+#[cfg(feature = "std")]
 use flate2::{write::GzEncoder, Compression};
 use serde::{
     de::Error as DeError, ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer,
 };
 use serde_with::{serde_as, SerializeAs};
-use std::{collections::BTreeMap, io::Write};
+#[cfg(feature = "std")]
+use std::io::Write;
 
 const API_VERSION: FieldElement = FieldElement::ZERO;
 
@@ -25,6 +36,7 @@ const API_VERSION: FieldElement = FieldElement::ZERO;
 pub struct LegacyContractClass {
     pub abi: Vec<RawLegacyAbiEntry>,
     pub entry_points_by_type: RawLegacyEntryPoints,
+    #[cfg(feature = "std")]
     pub program: LegacyProgram,
 }
 
@@ -40,6 +52,7 @@ pub struct RawLegacyEntryPoints {
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+#[cfg(feature = "compression")]
 pub struct LegacyProgram {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attributes: Option<Vec<LegacyAttribute>>,
@@ -393,6 +406,7 @@ impl<'de> Deserialize<'de> for RawLegacyAbiEntry {
     }
 }
 
+#[cfg(feature = "std")]
 impl LegacyContractClass {
     pub fn class_hash(&self) -> Result<FieldElement, ComputeClassHashError> {
         let mut elements = vec![];
@@ -484,6 +498,7 @@ impl LegacyContractClass {
     }
 }
 
+#[cfg(feature = "compression")]
 impl LegacyProgram {
     pub fn compress(&self) -> Result<Vec<u8>, CompressProgramError> {
         #[serde_as]
@@ -570,6 +585,7 @@ impl<'de> Deserialize<'de> for LegacyParentLocation {
     }
 }
 
+#[cfg(feature = "compression")]
 impl SerializeAs<LegacyProgram> for ProgramForHintedHash {
     fn serialize_as<S>(source: &LegacyProgram, serializer: S) -> Result<S::Ok, S::Error>
     where

@@ -2,6 +2,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_with::{DeserializeAs, SerializeAs};
 
 use super::{SyncStatus, SyncStatusType};
+use crate::stdlib::string::String;
 
 pub(crate) struct NumAsHex;
 

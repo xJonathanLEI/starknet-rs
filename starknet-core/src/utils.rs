@@ -1,8 +1,9 @@
 use crate::{crypto::compute_hash_on_elements, types::FieldElement};
 
+use crate::stdlib::string::String;
+use crate::stdlib::Error;
 use sha3::{Digest, Keccak256};
 use starknet_crypto::pedersen_hash;
-use thiserror::Error;
 
 const DEFAULT_ENTRY_POINT_NAME: &str = "__default__";
 const DEFAULT_L1_ENTRY_POINT_NAME: &str = "__l1_default__";

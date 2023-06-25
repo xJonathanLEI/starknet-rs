@@ -1,5 +1,7 @@
 use serde::Serialize;
+#[cfg(feature = "std")]
 use serde_json::{ser::Formatter, Serializer};
+#[cfg(feature = "std")]
 use std::io;
 
 /// A `serde_json` formatter that mimicks the output of `json.dumps()` in Python. This is primarily
@@ -7,6 +9,7 @@ use std::io;
 #[derive(Debug)]
 pub struct PythonicJsonFormatter;
 
+#[cfg(feature = "std")]
 impl Formatter for PythonicJsonFormatter {
     #[inline]
     fn begin_array_value<W>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
@@ -62,6 +65,7 @@ impl Formatter for PythonicJsonFormatter {
     }
 }
 
+#[cfg(feature = "std")]
 #[inline]
 pub fn to_string_pythonic<T>(value: &T) -> Result<String, serde_json::Error>
 where
@@ -75,6 +79,7 @@ where
     Ok(string)
 }
 
+#[cfg(feature = "std")]
 #[inline]
 fn to_vec_pythonic<T>(value: &T) -> Result<Vec<u8>, serde_json::Error>
 where
@@ -85,6 +90,7 @@ where
     Ok(writer)
 }
 
+#[cfg(feature = "std")]
 #[inline]
 fn to_writer_pythonic<W, T>(writer: W, value: &T) -> Result<(), serde_json::Error>
 where

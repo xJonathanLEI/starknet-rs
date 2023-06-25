@@ -1,8 +1,8 @@
 use crate::types::FieldElement;
 
+use crate::stdlib::Error;
 pub use starknet_crypto::{pedersen_hash, ExtendedSignature, Signature};
 use starknet_crypto::{rfc6979_generate_k, sign, verify, SignError, VerifyError};
-use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum EcdsaSignError {

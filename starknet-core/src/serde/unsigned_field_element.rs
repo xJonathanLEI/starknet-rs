@@ -1,3 +1,4 @@
+use crate::stdlib::string::String;
 use serde::{de::Error as DeError, Deserialize, Deserializer, Serializer};
 use serde_with::{DeserializeAs, SerializeAs};
 

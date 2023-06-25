@@ -16,31 +16,34 @@ keywords = ["ethereum", "starknet", "web3"]
 all-features = true
 
 [dependencies]
-starknet-crypto = { version = "0.5.1", path = "../starknet-crypto" }
-starknet-ff = { version = "0.3.4", path = "../starknet-ff", features = [
+starknet-crypto = { version = "0.5.1", path = "../starknet-crypto", default-features = false }
+starknet-ff = { version = "0.3.3", path = "../starknet-ff", default-features = false, features = [
     "serde",
 ] }
-base64 = "0.21.0"
-ethereum-types = "0.14.1"
-flate2 = "1.0.25"
-hex = "0.4.3"
-serde = { version = "1.0.160", features = ["derive"] }
-serde_json = { version = "1.0.96", features = ["arbitrary_precision"] }
-serde_with = "2.3.2"
-sha3 = "0.10.7"
-thiserror = "1.0.40"
+base64 = { version = "0.21.0", default-features = false, features = ["alloc"] }
+ethereum-types = { version = "0.14.1", default-features = false, features = ["serialize"] }
+flate2 = { version = "1.0.25", optional = true }
+hex = { version = "0.4.3", default-features = false }
+serde = { version = "1.0.160", default-features = false, features = ["derive"] }
+serde_json = { version = "1.0.96", default-features = false, features = ["arbitrary_precision", "alloc"]}
+serde_with = { version = "2.3.2", default-features = false, features = ["macros", "alloc"] }
+sha3 = { version = "0.10.7", default-features = false }
+thiserror = { version = "1.0.40", default-features = false }
+thiserror-no-std = { version = "2.0.2" }
 
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false }
 starknet-core = { path = ".", features = ["no_unknown_fields"] }
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
-wasm-bindgen-test = "0.3.34"
+wasm-bindgen-test = { version = "0.3.34", default-features = false }
 
 [features]
-default = ["bigdecimal"]
+default = ["std", "bigdecimal", "compression"]
+std = ["serde_json/std"]
 bigdecimal = ["starknet-ff/bigdecimal", "starknet-crypto/bigdecimal"]
 no_unknown_fields = []
+compression = ["std", "dep:flate2"]
 
 [[bench]]
 name = "class_hash"

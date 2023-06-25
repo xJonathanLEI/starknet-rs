@@ -1,4 +1,6 @@
 pub mod base64 {
+    use crate::stdlib::string::String;
+    use crate::stdlib::vec::Vec;
     use base64::{engine::general_purpose::STANDARD, Engine};
     use serde::{Deserialize, Deserializer, Serializer};
 
