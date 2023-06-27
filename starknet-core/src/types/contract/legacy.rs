@@ -466,7 +466,6 @@ impl LegacyContractClass {
         })
         .map_err(ComputeClassHashError::Json)?;
 
-        let serialized = Self::unicode_encode(&serialized);
         Ok(starknet_keccak(serialized.as_bytes()))
     }
 
@@ -482,28 +481,6 @@ impl LegacyContractClass {
                     .collect(),
             ),
         })
-    }
-
-    /// We need this because Python does this
-    fn unicode_encode(s: &str) -> String {
-        use std::fmt::Write;
-
-        let mut output = String::with_capacity(s.len());
-        let mut buf = [0, 0];
-
-        for c in s.chars() {
-            if c.is_ascii() {
-                output.push(c);
-            } else {
-                let buf = c.encode_utf16(&mut buf);
-                for i in buf {
-                    // Unwrapping should be safe here
-                    write!(output, r"\u{:4x}", i).unwrap();
-                }
-            }
-        }
-
-        output
     }
 }
 
