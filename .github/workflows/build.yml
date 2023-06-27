@@ -1,0 +1,51 @@
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+
+name: "Build feature combinations"
+
+jobs:
+  feature-powerset:
+    name: "Build ${{ matrix.package }} features"
+    runs-on: "ubuntu-latest"
+
+    strategy:
+      matrix:
+        package:
+          - "starknet-ff"
+          - "starknet-curve"
+          - "starknet-crypto-codegen"
+          - "starknet-crypto"
+          - "starknet-core"
+          - "starknet-providers"
+          - "starknet-signers"
+          - "starknet-accounts"
+          - "starknet-contract"
+          - "starknet-macros"
+          - "starknet"
+
+    steps:
+      - name: "Checkout source code"
+        uses: "actions/checkout@v3"
+
+      - name: "Setup stable toolchain"
+        uses: "actions-rs/toolchain@v1"
+        with:
+          toolchain: "stable"
+          profile: "minimal"
+          override: true
+
+      - name: "Use Rust cache"
+        uses: "Swatinem/rust-cache@v2"
+        with:
+          cache-on-failure: true
+
+      - name: "Install cargo-hack"
+        run: |
+          cargo install --locked cargo-hack
+
+      - name: "Build all feature combinations"
+        run: |
+          cargo hack build --package ${{ matrix.package }} --feature-powerset
