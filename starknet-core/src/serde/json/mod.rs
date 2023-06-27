@@ -39,6 +39,27 @@ impl Formatter for PythonicJsonFormatter {
     {
         writer.write_all(b": ")
     }
+
+    #[inline]
+    fn write_string_fragment<W>(&mut self, writer: &mut W, fragment: &str) -> io::Result<()>
+    where
+        W: ?Sized + io::Write,
+    {
+        let mut buf = [0, 0];
+
+        for c in fragment.chars() {
+            if c.is_ascii() {
+                writer.write_all(&[c as u8])?;
+            } else {
+                let buf = c.encode_utf16(&mut buf);
+                for i in buf {
+                    write!(writer, r"\u{:4x}", i)?;
+                }
+            }
+        }
+
+        Ok(())
+    }
 }
 
 #[inline]
