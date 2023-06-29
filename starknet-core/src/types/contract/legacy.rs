@@ -120,7 +120,7 @@ pub struct LegacyIdentifier {
     pub destination: Option<String>,
     pub r#type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub value: Option<serde_json::Number>,
+    pub value: Option<Box<serde_json::value::RawValue>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -351,7 +351,7 @@ impl Serialize for RawLegacyAbiEntry {
     }
 }
 
-// We need to manually implement this because `arbitrary_precision` doesn't work with `tag`:
+// We need to manually implement this because `raw_value` doesn't work with `tag`:
 //   https://github.com/serde-rs/serde/issues/1183
 impl<'de> Deserialize<'de> for RawLegacyAbiEntry {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

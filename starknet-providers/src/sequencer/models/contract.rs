@@ -44,7 +44,7 @@ pub struct CompressedLegacyContractClass {
     pub abi: Option<Vec<RawLegacyAbiEntry>>,
 }
 
-// We need to manually implement this because `arbitrary_precision` doesn't work with `untagged`:
+// We need to manually implement this because `raw_value` doesn't work with `untagged`:
 //   https://github.com/serde-rs/serde/issues/1183
 impl<'de> Deserialize<'de> for DeployedClass {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
