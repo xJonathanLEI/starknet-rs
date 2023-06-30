@@ -760,7 +760,7 @@ impl From<RawFieldElementResponse> for Result<FieldElement, ProviderError<Gatewa
     }
 }
 
-// We need to manually implement this because `arbitrary_precision` doesn't work with `untagged`:
+// We need to manually implement this because `raw_value` doesn't work with `untagged`:
 //   https://github.com/serde-rs/serde/issues/1183
 impl<'de, T> Deserialize<'de> for GatewayResponse<T>
 where
