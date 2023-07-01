@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#91e3a82e65d6a47f05418b6d9acc326e3d0b19c5
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#14c217ef55ee23dcba2a956ddecb6e4bb9d02bb9
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -251,6 +251,25 @@ pub struct DeclareTransactionReceipt {
     pub messages_sent: Vec<MsgToL1>,
     /// The events emitted as part of this transaction
     pub events: Vec<Event>,
+}
+
+/// Declare contract transaction v0.
+///
+/// Declare contract transaction v0.
+#[derive(Debug, Clone)]
+pub struct DeclareTransactionV0 {
+    /// The hash identifying the transaction
+    pub transaction_hash: FieldElement,
+    /// The maximal fee that can be charged for including the transaction
+    pub max_fee: FieldElement,
+    /// Signature
+    pub signature: Vec<FieldElement>,
+    /// Nonce
+    pub nonce: FieldElement,
+    /// The hash of the declared class
+    pub class_hash: FieldElement,
+    /// The address of the account contract sending the declaration transaction
+    pub sender_address: FieldElement,
 }
 
 /// Declare contract transaction v1.
@@ -1866,6 +1885,93 @@ impl<'de> Deserialize<'de> for DeclareTransactionReceipt {
             block_number: tagged.block_number,
             messages_sent: tagged.messages_sent,
             events: tagged.events,
+        })
+    }
+}
+
+impl Serialize for DeclareTransactionV0 {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct Tagged<'a> {
+            #[serde_as(as = "UfeHex")]
+            pub transaction_hash: &'a FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub max_fee: &'a FieldElement,
+            #[serde_as(as = "NumAsHex")]
+            pub version: &'a u64,
+            #[serde_as(as = "[UfeHex]")]
+            pub signature: &'a [FieldElement],
+            #[serde_as(as = "UfeHex")]
+            pub nonce: &'a FieldElement,
+            pub r#type: &'a str,
+            #[serde_as(as = "UfeHex")]
+            pub class_hash: &'a FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub sender_address: &'a FieldElement,
+        }
+
+        let tagged = Tagged {
+            transaction_hash: &self.transaction_hash,
+            max_fee: &self.max_fee,
+            version: &0,
+            signature: &self.signature,
+            nonce: &self.nonce,
+            r#type: "DECLARE",
+            class_hash: &self.class_hash,
+            sender_address: &self.sender_address,
+        };
+
+        Tagged::serialize(&tagged, serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for DeclareTransactionV0 {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+        struct Tagged {
+            #[serde_as(as = "UfeHex")]
+            pub transaction_hash: FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub max_fee: FieldElement,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[serde_as(as = "Option<NumAsHex>")]
+            pub version: Option<u64>,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub signature: Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            pub nonce: FieldElement,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub r#type: Option<String>,
+            #[serde_as(as = "UfeHex")]
+            pub class_hash: FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub sender_address: FieldElement,
+        }
+
+        let tagged = Tagged::deserialize(deserializer)?;
+
+        if let Some(tag_field) = &tagged.version {
+            if tag_field != &0 {
+                return Err(serde::de::Error::custom("invalid `version` value"));
+            }
+        }
+
+        if let Some(tag_field) = &tagged.r#type {
+            if tag_field != "DECLARE" {
+                return Err(serde::de::Error::custom("invalid `type` value"));
+            }
+        }
+
+        Ok(Self {
+            transaction_hash: tagged.transaction_hash,
+            max_fee: tagged.max_fee,
+            signature: tagged.signature,
+            nonce: tagged.nonce,
+            class_hash: tagged.class_hash,
+            sender_address: tagged.sender_address,
         })
     }
 }

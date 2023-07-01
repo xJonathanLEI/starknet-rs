@@ -18,20 +18,20 @@ pub use codegen::{
     BlockStatus, BlockTag, BlockWithTxHashes, BlockWithTxs, BroadcastedDeclareTransactionV1,
     BroadcastedDeclareTransactionV2, BroadcastedDeployAccountTransaction,
     BroadcastedInvokeTransactionV0, BroadcastedInvokeTransactionV1, CompressedLegacyContractClass,
-    ContractStorageDiffItem, DeclareTransactionReceipt, DeclareTransactionV1, DeclareTransactionV2,
-    DeclaredClassItem, DeployAccountTransaction, DeployAccountTransactionReceipt,
-    DeployTransaction, DeployTransactionReceipt, DeployedContractItem, EmittedEvent,
-    EntryPointsByType, Event, EventFilter, EventFilterWithPage, EventsChunk, FeeEstimate,
-    FlattenedSierraClass, FunctionCall, FunctionStateMutability, InvokeTransactionReceipt,
-    InvokeTransactionV0, InvokeTransactionV1, L1HandlerTransaction, L1HandlerTransactionReceipt,
-    LegacyContractEntryPoint, LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType,
-    LegacyFunctionAbiEntry, LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType,
-    LegacyStructMember, LegacyTypedParameter, MsgToL1, NonceUpdate, PendingBlockWithTxHashes,
-    PendingBlockWithTxs, PendingDeclareTransactionReceipt, PendingDeployAccountTransactionReceipt,
-    PendingDeployTransactionReceipt, PendingInvokeTransactionReceipt,
-    PendingL1HandlerTransactionReceipt, PendingStateUpdate, ReplacedClassItem, ResultPageRequest,
-    SierraEntryPoint, StarknetError, StateDiff, StateUpdate, StorageEntry, SyncStatus,
-    TransactionStatus,
+    ContractStorageDiffItem, DeclareTransactionReceipt, DeclareTransactionV0, DeclareTransactionV1,
+    DeclareTransactionV2, DeclaredClassItem, DeployAccountTransaction,
+    DeployAccountTransactionReceipt, DeployTransaction, DeployTransactionReceipt,
+    DeployedContractItem, EmittedEvent, EntryPointsByType, Event, EventFilter, EventFilterWithPage,
+    EventsChunk, FeeEstimate, FlattenedSierraClass, FunctionCall, FunctionStateMutability,
+    InvokeTransactionReceipt, InvokeTransactionV0, InvokeTransactionV1, L1HandlerTransaction,
+    L1HandlerTransactionReceipt, LegacyContractEntryPoint, LegacyEntryPointsByType,
+    LegacyEventAbiEntry, LegacyEventAbiType, LegacyFunctionAbiEntry, LegacyFunctionAbiType,
+    LegacyStructAbiEntry, LegacyStructAbiType, LegacyStructMember, LegacyTypedParameter, MsgToL1,
+    NonceUpdate, PendingBlockWithTxHashes, PendingBlockWithTxs, PendingDeclareTransactionReceipt,
+    PendingDeployAccountTransactionReceipt, PendingDeployTransactionReceipt,
+    PendingInvokeTransactionReceipt, PendingL1HandlerTransactionReceipt, PendingStateUpdate,
+    ReplacedClassItem, ResultPageRequest, SierraEntryPoint, StarknetError, StateDiff, StateUpdate,
+    StorageEntry, SyncStatus, TransactionStatus,
 };
 
 // TODO: move generated request code to `starknet-providers`
@@ -194,6 +194,8 @@ pub enum BroadcastedInvokeTransaction {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "version")]
 pub enum DeclareTransaction {
+    #[serde(rename = "0x0")]
+    V0(DeclareTransactionV0),
     #[serde(rename = "0x1")]
     V1(DeclareTransactionV1),
     #[serde(rename = "0x2")]
