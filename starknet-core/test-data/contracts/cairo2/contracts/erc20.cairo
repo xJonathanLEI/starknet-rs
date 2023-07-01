@@ -80,11 +80,6 @@ mod ERC20 {
             );
     }
 
-    #[l1_handler]
-    fn test_l1_handler(ref self: ContractState, from_address: felt252, arg1: felt252) {
-
-    }
-
     #[external(v0)]
     impl IERC20Impl of super::IERC20<ContractState> {
         fn get_name(self: @ContractState) -> felt252 {
