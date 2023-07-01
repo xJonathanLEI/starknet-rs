@@ -92,6 +92,7 @@ pub enum AbiEntry {
     Constructor(AbiConstructor),
     Impl(AbiImpl),
     Interface(AbiInterface),
+    L1Handler(AbiFunction),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
