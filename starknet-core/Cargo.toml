@@ -25,7 +25,8 @@ ethereum-types = "0.14.1"
 flate2 = "1.0.25"
 hex = "0.4.3"
 serde = { version = "1.0.160", features = ["derive"] }
-serde_json = { version = "1.0.96", features = ["raw_value"] }
+serde_json = { version = "1.0.96", default-features = false, features = ["alloc", "raw_value"] }
+serde_json_pythonic = { version = "0.1.2", default-features = false, features = ["alloc", "raw_value"] }
 serde_with = "2.3.2"
 sha3 = "0.10.7"
 thiserror = "1.0.40"

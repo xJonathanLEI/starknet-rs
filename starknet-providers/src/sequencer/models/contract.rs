@@ -44,6 +44,14 @@ pub struct CompressedLegacyContractClass {
     pub abi: Option<Vec<RawLegacyAbiEntry>>,
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum DecompressProgramError {
+    #[error("json deserialization error: {0}")]
+    Json(serde_json::Error),
+    #[error("decompression io error: {0}")]
+    Io(std::io::Error),
+}
+
 // We need to manually implement this because `raw_value` doesn't work with `untagged`:
 //   https://github.com/serde-rs/serde/issues/1183
 impl<'de> Deserialize<'de> for DeployedClass {
@@ -67,21 +75,21 @@ impl<'de> Deserialize<'de> for DeployedClass {
 impl CompressedSierraClass {
     pub fn from_flattened(
         flattened_class: &FlattenedSierraClass,
-    ) -> Result<Self, CompressProgramError> {
+    ) -> Result<Self, DecompressProgramError> {
         #[serde_as]
         #[derive(Serialize)]
         struct SierraProgram<'a>(#[serde_as(as = "Vec<UfeHex>")] &'a Vec<FieldElement>);
 
         let program_json = serde_json::to_string(&SierraProgram(&flattened_class.sierra_program))
-            .map_err(CompressProgramError::Json)?;
+            .map_err(DecompressProgramError::Json)?;
 
         // Use best compression level to optimize for payload size
         let mut gzip_encoder = GzEncoder::new(Vec::new(), Compression::best());
         gzip_encoder
             .write_all(program_json.as_bytes())
-            .map_err(CompressProgramError::Io)?;
+            .map_err(DecompressProgramError::Io)?;
 
-        let compressed_program = gzip_encoder.finish().map_err(CompressProgramError::Io)?;
+        let compressed_program = gzip_encoder.finish().map_err(DecompressProgramError::Io)?;
 
         Ok(CompressedSierraClass {
             sierra_program: compressed_program,

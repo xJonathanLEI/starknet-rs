@@ -1,8 +1,8 @@
 use crate::{
     crypto::compute_hash_on_elements,
-    serde::{json::to_string_pythonic, num_hex::u64 as u64_hex, unsigned_field_element::UfeHex},
+    serde::{num_hex::u64 as u64_hex, unsigned_field_element::UfeHex},
     types::{
-        contract::{CompressProgramError, ComputeClassHashError},
+        contract::{CompressProgramError, ComputeClassHashError, JsonError},
         CompressedLegacyContractClass, FieldElement, FunctionStateMutability,
         LegacyContractAbiEntry, LegacyContractEntryPoint, LegacyEntryPointsByType,
         LegacyEventAbiEntry, LegacyEventAbiType, LegacyFunctionAbiEntry, LegacyFunctionAbiType,
@@ -15,6 +15,7 @@ use flate2::{write::GzEncoder, Compression};
 use serde::{
     de::Error as DeError, ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer,
 };
+use serde_json_pythonic::to_string_pythonic;
 use serde_with::{serde_as, SerializeAs};
 use std::{collections::BTreeMap, io::Write};
 
@@ -464,7 +465,11 @@ impl LegacyContractClass {
             abi: &self.abi,
             program: &self.program,
         })
-        .map_err(ComputeClassHashError::Json)?;
+        .map_err(|err| {
+            ComputeClassHashError::Json(JsonError {
+                message: format!("{}", err),
+            })
+        })?;
 
         Ok(starknet_keccak(serialized.as_bytes()))
     }
@@ -514,7 +519,11 @@ impl LegacyProgram {
             prime: &self.prime,
             reference_manager: &self.reference_manager,
         })
-        .map_err(CompressProgramError::Json)?;
+        .map_err(|err| {
+            CompressProgramError::Json(JsonError {
+                message: format!("{}", err),
+            })
+        })?;
 
         // Use best compression level to optimize for payload size
         let mut gzip_encoder = GzEncoder::new(Vec::new(), Compression::best());

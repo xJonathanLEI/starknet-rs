@@ -1,9 +1,10 @@
 use serde::{ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer};
+use serde_json_pythonic::to_string_pythonic;
 use serde_with::serde_as;
 use starknet_crypto::{poseidon_hash_many, PoseidonHasher};
 
 use crate::{
-    serde::{json::to_string_pythonic, unsigned_field_element::UfeHex},
+    serde::unsigned_field_element::UfeHex,
     types::{EntryPointsByType, FieldElement, FlattenedSierraClass, SierraEntryPoint},
     utils::{
         cairo_short_string_to_felt, normalize_address, starknet_keccak, CairoShortStringToFeltError,
@@ -169,15 +170,21 @@ pub enum ComputeClassHashError {
     #[error("invalid builtin name")]
     InvalidBuiltinName,
     #[error("json serialization error: {0}")]
-    Json(serde_json::Error),
+    Json(JsonError),
 }
 
 #[derive(Debug, thiserror::Error)]
 pub enum CompressProgramError {
     #[error("json serialization error: {0}")]
-    Json(serde_json::Error),
+    Json(JsonError),
     #[error("compression io error: {0}")]
     Io(std::io::Error),
+}
+
+#[derive(Debug, thiserror::Error)]
+#[error("{message}")]
+pub struct JsonError {
+    pub(crate) message: String,
 }
 
 impl SierraClass {
@@ -186,7 +193,11 @@ impl SierraClass {
         // with the official `cairo-lang` CLI.
         //
         // TODO: add an `AbiFormatter` trait and let users choose which one to use.
-        let abi_str = to_string_pythonic(&self.abi).map_err(ComputeClassHashError::Json)?;
+        let abi_str = to_string_pythonic(&self.abi).map_err(|err| {
+            ComputeClassHashError::Json(JsonError {
+                message: format!("{}", err),
+            })
+        })?;
 
         let mut hasher = PoseidonHasher::new();
         hasher.update(PREFIX_CONTRACT_CLASS_V0_1_0);
@@ -209,8 +220,10 @@ impl SierraClass {
         Ok(normalize_address(hasher.finalize()))
     }
 
-    pub fn flatten(self) -> Result<FlattenedSierraClass, serde_json::Error> {
-        let abi = to_string_pythonic(&self.abi)?;
+    pub fn flatten(self) -> Result<FlattenedSierraClass, JsonError> {
+        let abi = to_string_pythonic(&self.abi).map_err(|err| JsonError {
+            message: format!("{}", err),
+        })?;
 
         Ok(FlattenedSierraClass {
             sierra_program: self.sierra_program,
