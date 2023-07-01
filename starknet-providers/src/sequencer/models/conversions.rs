@@ -137,7 +137,16 @@ impl TryFrom<DeclareTransaction> for core::DeclareTransaction {
     type Error = ConversionError;
 
     fn try_from(value: DeclareTransaction) -> Result<Self, Self::Error> {
-        if value.version == FieldElement::ONE {
+        if value.version == FieldElement::ZERO {
+            Ok(Self::V0(core::DeclareTransactionV0 {
+                transaction_hash: value.transaction_hash,
+                max_fee: value.max_fee,
+                signature: value.signature,
+                nonce: value.nonce,
+                class_hash: value.class_hash,
+                sender_address: value.sender_address,
+            }))
+        } else if value.version == FieldElement::ONE {
             Ok(Self::V1(core::DeclareTransactionV1 {
                 transaction_hash: value.transaction_hash,
                 max_fee: value.max_fee,
