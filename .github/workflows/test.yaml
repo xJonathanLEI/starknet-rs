@@ -168,3 +168,9 @@ jobs:
             --target thumbv6m-none-eabi \
             --no-default-features \
             --features alloc
+
+      - name: Build starknet-core
+        run: |
+          cargo build --package starknet-core \
+            --target thumbv6m-none-eabi \
+            --no-default-features
