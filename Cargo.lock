@@ -1701,7 +1701,6 @@ dependencies = [
  "starknet-core",
  "starknet-crypto",
  "starknet-ff",
- "thiserror",
  "wasm-bindgen-test",
 ]
 

@@ -238,27 +238,58 @@ pub enum EventFieldKind {
     Nested,
 }
 
-#[derive(Debug, thiserror::Error)]
-pub enum ComputeClassHashError {
-    #[error("invalid builtin name")]
-    InvalidBuiltinName,
-    #[error("json serialization error: {0}")]
-    Json(JsonError),
-}
+mod errors {
+    use core::fmt::{Display, Formatter, Result};
+    use std::error::Error;
 
-#[derive(Debug, thiserror::Error)]
-pub enum CompressProgramError {
-    #[error("json serialization error: {0}")]
-    Json(JsonError),
-    #[error("compression io error: {0}")]
-    Io(std::io::Error),
-}
+    #[derive(Debug)]
+    pub enum ComputeClassHashError {
+        InvalidBuiltinName,
+        Json(JsonError),
+    }
 
-#[derive(Debug, thiserror::Error)]
-#[error("{message}")]
-pub struct JsonError {
-    pub(crate) message: String,
+    #[derive(Debug)]
+    pub enum CompressProgramError {
+        Json(JsonError),
+        Io(std::io::Error),
+    }
+
+    #[derive(Debug)]
+    pub struct JsonError {
+        pub(crate) message: String,
+    }
+
+    impl Error for ComputeClassHashError {}
+
+    impl Display for ComputeClassHashError {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+            match self {
+                Self::InvalidBuiltinName => write!(f, "invalid builtin name"),
+                Self::Json(inner) => write!(f, "json serialization error: {}", inner),
+            }
+        }
+    }
+
+    impl Error for CompressProgramError {}
+
+    impl Display for CompressProgramError {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+            match self {
+                Self::Json(inner) => write!(f, "json serialization error: {}", inner),
+                Self::Io(inner) => write!(f, "compression io error: {}", inner),
+            }
+        }
+    }
+
+    impl Error for JsonError {}
+
+    impl Display for JsonError {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+            write!(f, "{}", self.message)
+        }
+    }
 }
+pub use errors::{CompressProgramError, ComputeClassHashError, JsonError};
 
 impl SierraClass {
     pub fn class_hash(&self) -> Result<FieldElement, ComputeClassHashError> {
