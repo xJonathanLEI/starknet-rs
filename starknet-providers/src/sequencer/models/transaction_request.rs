@@ -2,11 +2,14 @@ use serde::{Deserialize, Serialize, Serializer};
 use serde_with::serde_as;
 use starknet_core::{
     serde::unsigned_field_element::{UfeHex, UfeHexOption},
-    types::{FieldElement, L1Address},
+    types::FieldElement,
 };
 use std::sync::Arc;
 
-use super::contract::{CompressedLegacyContractClass, CompressedSierraClass};
+use super::{
+    contract::{CompressedLegacyContractClass, CompressedSierraClass},
+    L1Address,
+};
 
 #[serde_as]
 #[derive(Debug, Deserialize)]

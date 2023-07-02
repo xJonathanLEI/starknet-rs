@@ -16,6 +16,7 @@ keywords = ["ethereum", "starknet", "web3"]
 starknet-core = { version = "0.3.2", path = "../starknet-core" }
 async-trait = "0.1.68"
 auto_impl = "1.0.1"
+ethereum-types = "0.14.1"
 flate2 = "1.0.25"
 url = "2.3.1"
 reqwest = { version = "0.11.16", default-features = false, features = ["json", "rustls-tls"] }

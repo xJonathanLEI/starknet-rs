@@ -1,5 +1,6 @@
 use serde::Deserialize;
-use starknet_core::types::L1Address;
+
+use super::L1Address;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]

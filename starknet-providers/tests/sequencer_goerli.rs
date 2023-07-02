@@ -2,10 +2,10 @@
 
 use std::str::FromStr;
 
-use starknet_core::types::{FieldElement, L1Address};
+use starknet_core::types::FieldElement;
 use starknet_providers::{
     sequencer::models::{
-        AccountTransaction, BlockId, CallL1Handler, InvokeFunctionTransactionRequest,
+        AccountTransaction, BlockId, CallL1Handler, InvokeFunctionTransactionRequest, L1Address,
     },
     SequencerGatewayProvider,
 };
