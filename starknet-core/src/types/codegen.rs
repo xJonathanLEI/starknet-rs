@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#14c217ef55ee23dcba2a956ddecb6e4bb9d02bb9
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#73397c9d87962949675bca8fdc08faa88aa8ffb4
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -986,47 +986,58 @@ pub struct SierraEntryPoint {
 }
 
 /// JSON-RPC error codes
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, thiserror::Error)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StarknetError {
     /// Failed to write transaction
-    #[error("Failed to write transaction")]
     FailedToReceiveTransaction,
     /// Contract not found
-    #[error("Contract not found")]
     ContractNotFound,
     /// Block not found
-    #[error("Block not found")]
     BlockNotFound,
     /// Transaction hash not found
-    #[error("Transaction hash not found")]
     TransactionHashNotFound,
     /// Invalid transaction index in a block
-    #[error("Invalid transaction index in a block")]
     InvalidTransactionIndex,
     /// Class hash not found
-    #[error("Class hash not found")]
     ClassHashNotFound,
     /// Requested page size is too big
-    #[error("Requested page size is too big")]
     PageSizeTooBig,
     /// There are no blocks
-    #[error("There are no blocks")]
     NoBlocks,
     /// The supplied continuation token is invalid or unknown
-    #[error("The supplied continuation token is invalid or unknown")]
     InvalidContinuationToken,
     /// Too many keys provided in a filter
-    #[error("Too many keys provided in a filter")]
     TooManyKeysInFilter,
     /// Contract error
-    #[error("Contract error")]
     ContractError,
     /// Invalid contract class
-    #[error("Invalid contract class")]
     InvalidContractClass,
     /// Class already declared
-    #[error("Class already declared")]
     ClassAlreadyDeclared,
+}
+
+impl std::error::Error for StarknetError {}
+
+impl std::fmt::Display for StarknetError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::FailedToReceiveTransaction => write!(f, "Failed to write transaction"),
+            Self::ContractNotFound => write!(f, "Contract not found"),
+            Self::BlockNotFound => write!(f, "Block not found"),
+            Self::TransactionHashNotFound => write!(f, "Transaction hash not found"),
+            Self::InvalidTransactionIndex => write!(f, "Invalid transaction index in a block"),
+            Self::ClassHashNotFound => write!(f, "Class hash not found"),
+            Self::PageSizeTooBig => write!(f, "Requested page size is too big"),
+            Self::NoBlocks => write!(f, "There are no blocks"),
+            Self::InvalidContinuationToken => {
+                write!(f, "The supplied continuation token is invalid or unknown")
+            }
+            Self::TooManyKeysInFilter => write!(f, "Too many keys provided in a filter"),
+            Self::ContractError => write!(f, "Contract error"),
+            Self::InvalidContractClass => write!(f, "Invalid contract class"),
+            Self::ClassAlreadyDeclared => write!(f, "Class already declared"),
+        }
+    }
 }
 
 #[serde_as]

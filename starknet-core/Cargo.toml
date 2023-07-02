@@ -29,7 +29,6 @@ serde_json = { version = "1.0.96", default-features = false, features = ["alloc"
 serde_json_pythonic = { version = "0.1.2", default-features = false, features = ["alloc", "raw_value"] }
 serde_with = "2.3.2"
 sha3 = "0.10.7"
-thiserror = "1.0.40"
 
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false }

@@ -2,7 +2,6 @@ use crate::{crypto::compute_hash_on_elements, types::FieldElement};
 
 use sha3::{Digest, Keccak256};
 use starknet_crypto::pedersen_hash;
-use thiserror::Error;
 
 const DEFAULT_ENTRY_POINT_NAME: &str = "__default__";
 const DEFAULT_L1_ENTRY_POINT_NAME: &str = "__l1_default__";
@@ -36,25 +35,60 @@ pub struct UdcUniqueSettings {
     pub udc_contract_address: FieldElement,
 }
 
-#[derive(Debug, Error)]
-#[error("the provided name contains non-ASCII characters")]
-pub struct NonAsciiNameError;
+mod errors {
+    use core::fmt::{Display, Formatter, Result};
+    use std::error::Error;
 
-#[derive(Debug, Error)]
-pub enum CairoShortStringToFeltError {
-    #[error("Cairo string can only contain ASCII characters")]
-    NonAsciiCharacter,
-    #[error("short string exceeds maximum length of 31 characters")]
-    StringTooLong,
-}
+    #[derive(Debug)]
+    pub struct NonAsciiNameError;
 
-#[derive(Debug, Error)]
-pub enum ParseCairoShortStringError {
-    #[error("field element value out of range")]
-    ValueOutOfRange,
-    #[error("unexpected null terminator")]
-    UnexpectedNullTerminator,
+    #[derive(Debug)]
+    pub enum CairoShortStringToFeltError {
+        NonAsciiCharacter,
+        StringTooLong,
+    }
+
+    #[derive(Debug)]
+    pub enum ParseCairoShortStringError {
+        ValueOutOfRange,
+        UnexpectedNullTerminator,
+    }
+
+    impl Error for NonAsciiNameError {}
+
+    impl Display for NonAsciiNameError {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+            write!(f, "the provided name contains non-ASCII characters")
+        }
+    }
+
+    impl Error for CairoShortStringToFeltError {}
+
+    impl Display for CairoShortStringToFeltError {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+            match self {
+                Self::NonAsciiCharacter => {
+                    write!(f, "Cairo string can only contain ASCII characters")
+                }
+                Self::StringTooLong => {
+                    write!(f, "short string exceeds maximum length of 31 characters")
+                }
+            }
+        }
+    }
+
+    impl Error for ParseCairoShortStringError {}
+
+    impl Display for ParseCairoShortStringError {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+            match self {
+                Self::ValueOutOfRange => write!(f, "field element value out of range"),
+                Self::UnexpectedNullTerminator => write!(f, "unexpected null terminator"),
+            }
+        }
+    }
 }
+pub use errors::{CairoShortStringToFeltError, NonAsciiNameError, ParseCairoShortStringError};
 
 /// A variant of eth-keccak that computes a value that fits in a Starknet field element.
 pub fn starknet_keccak(data: &[u8]) -> FieldElement {
