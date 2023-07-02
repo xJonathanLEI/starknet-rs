@@ -5,7 +5,6 @@ use starknet_crypto::{rfc6979_generate_k, sign, verify, SignError, VerifyError};
 
 mod errors {
     use core::fmt::{Display, Formatter, Result};
-    use std::error::Error;
 
     #[derive(Debug)]
     pub enum EcdsaSignError {
@@ -20,7 +19,8 @@ mod errors {
         SignatureSOutOfRange,
     }
 
-    impl Error for EcdsaSignError {}
+    #[cfg(feature = "std")]
+    impl std::error::Error for EcdsaSignError {}
 
     impl Display for EcdsaSignError {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
@@ -30,7 +30,8 @@ mod errors {
         }
     }
 
-    impl Error for EcdsaVerifyError {}
+    #[cfg(feature = "std")]
+    impl std::error::Error for EcdsaVerifyError {}
 
     impl Display for EcdsaVerifyError {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {

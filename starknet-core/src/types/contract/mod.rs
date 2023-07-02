@@ -1,3 +1,5 @@
+use alloc::{format, string::String, vec::Vec};
+
 use serde::{ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json_pythonic::to_string_pythonic;
 use serde_with::serde_as;
@@ -239,8 +241,8 @@ pub enum EventFieldKind {
 }
 
 mod errors {
+    use alloc::string::String;
     use core::fmt::{Display, Formatter, Result};
-    use std::error::Error;
 
     #[derive(Debug)]
     pub enum ComputeClassHashError {
@@ -248,6 +250,7 @@ mod errors {
         Json(JsonError),
     }
 
+    #[cfg(feature = "std")]
     #[derive(Debug)]
     pub enum CompressProgramError {
         Json(JsonError),
@@ -259,7 +262,8 @@ mod errors {
         pub(crate) message: String,
     }
 
-    impl Error for ComputeClassHashError {}
+    #[cfg(feature = "std")]
+    impl std::error::Error for ComputeClassHashError {}
 
     impl Display for ComputeClassHashError {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
@@ -270,8 +274,10 @@ mod errors {
         }
     }
 
-    impl Error for CompressProgramError {}
+    #[cfg(feature = "std")]
+    impl std::error::Error for CompressProgramError {}
 
+    #[cfg(feature = "std")]
     impl Display for CompressProgramError {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
             match self {
@@ -281,7 +287,8 @@ mod errors {
         }
     }
 
-    impl Error for JsonError {}
+    #[cfg(feature = "std")]
+    impl std::error::Error for JsonError {}
 
     impl Display for JsonError {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
@@ -289,7 +296,10 @@ mod errors {
         }
     }
 }
-pub use errors::{CompressProgramError, ComputeClassHashError, JsonError};
+pub use errors::{ComputeClassHashError, JsonError};
+
+#[cfg(feature = "std")]
+pub use errors::CompressProgramError;
 
 impl SierraClass {
     pub fn class_hash(&self) -> Result<FieldElement, ComputeClassHashError> {

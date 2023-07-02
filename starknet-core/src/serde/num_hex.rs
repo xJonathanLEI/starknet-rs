@@ -1,4 +1,6 @@
 pub mod u64 {
+    use alloc::{format, string::String};
+
     use serde::{Deserialize, Deserializer, Serializer};
 
     pub fn serialize<S>(value: &u64, serializer: S) -> Result<S::Ok, S::Error>

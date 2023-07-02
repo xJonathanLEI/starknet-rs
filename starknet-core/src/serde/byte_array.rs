@@ -1,4 +1,6 @@
 pub mod base64 {
+    use alloc::{format, string::String, vec::Vec};
+
     use base64::{engine::general_purpose::STANDARD, Engine};
     use serde::{Deserialize, Deserializer, Serializer};
 

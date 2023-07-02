@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#73397c9d87962949675bca8fdc08faa88aa8ffb4
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#5dbdcd62529ab8e3af4e9ef752945f8ae7e85ab9
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -18,7 +18,7 @@
 // - `TXN`
 // - `TXN_RECEIPT`
 
-use std::sync::Arc;
+use alloc::{format, string::String, vec::Vec};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_with::serde_as;
@@ -29,6 +29,11 @@ use crate::{
 };
 
 use super::{serde_impls::NumAsHex, *};
+
+#[cfg(all(not(no_rc), not(no_sync), target_has_atomic = "ptr"))]
+pub type OwnedPtr<T> = alloc::sync::Arc<T>;
+#[cfg(not(all(not(no_rc), not(no_sync), target_has_atomic = "ptr")))]
+pub type OwnedPtr<T> = alloc::boxed::Box<T>;
 
 /// Block status.
 ///
@@ -127,7 +132,7 @@ pub struct BroadcastedDeclareTransactionV1 {
     /// Nonce
     pub nonce: FieldElement,
     /// The class to be declared
-    pub contract_class: Arc<CompressedLegacyContractClass>,
+    pub contract_class: OwnedPtr<CompressedLegacyContractClass>,
     /// The address of the account contract sending the declaration transaction
     pub sender_address: FieldElement,
 }
@@ -144,7 +149,7 @@ pub struct BroadcastedDeclareTransactionV2 {
     /// Nonce
     pub nonce: FieldElement,
     /// The class to be declared
-    pub contract_class: Arc<FlattenedSierraClass>,
+    pub contract_class: OwnedPtr<FlattenedSierraClass>,
     /// The address of the account contract sending the declaration transaction
     pub sender_address: FieldElement,
     /// The hash of the cairo assembly resulting from the sierra compilation
@@ -1016,10 +1021,11 @@ pub enum StarknetError {
     ClassAlreadyDeclared,
 }
 
+#[cfg(feature = "std")]
 impl std::error::Error for StarknetError {}
 
-impl std::fmt::Display for StarknetError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Display for StarknetError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::FailedToReceiveTransaction => write!(f, "Failed to write transaction"),
             Self::ContractNotFound => write!(f, "Contract not found"),
@@ -1481,7 +1487,7 @@ impl<'de> Deserialize<'de> for BroadcastedDeclareTransactionV1 {
             max_fee: tagged.max_fee,
             signature: tagged.signature,
             nonce: tagged.nonce,
-            contract_class: Arc::new(tagged.contract_class),
+            contract_class: OwnedPtr::new(tagged.contract_class),
             sender_address: tagged.sender_address,
         })
     }
@@ -1565,7 +1571,7 @@ impl<'de> Deserialize<'de> for BroadcastedDeclareTransactionV2 {
             max_fee: tagged.max_fee,
             signature: tagged.signature,
             nonce: tagged.nonce,
-            contract_class: Arc::new(tagged.contract_class),
+            contract_class: OwnedPtr::new(tagged.contract_class),
             sender_address: tagged.sender_address,
             compiled_class_hash: tagged.compiled_class_hash,
         })

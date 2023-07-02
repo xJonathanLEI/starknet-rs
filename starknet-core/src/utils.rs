@@ -1,3 +1,5 @@
+use alloc::string::String;
+
 use crate::{crypto::compute_hash_on_elements, types::FieldElement};
 
 use sha3::{Digest, Keccak256};
@@ -37,7 +39,6 @@ pub struct UdcUniqueSettings {
 
 mod errors {
     use core::fmt::{Display, Formatter, Result};
-    use std::error::Error;
 
     #[derive(Debug)]
     pub struct NonAsciiNameError;
@@ -54,7 +55,8 @@ mod errors {
         UnexpectedNullTerminator,
     }
 
-    impl Error for NonAsciiNameError {}
+    #[cfg(feature = "std")]
+    impl std::error::Error for NonAsciiNameError {}
 
     impl Display for NonAsciiNameError {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
@@ -62,7 +64,8 @@ mod errors {
         }
     }
 
-    impl Error for CairoShortStringToFeltError {}
+    #[cfg(feature = "std")]
+    impl std::error::Error for CairoShortStringToFeltError {}
 
     impl Display for CairoShortStringToFeltError {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
@@ -77,7 +80,8 @@ mod errors {
         }
     }
 
-    impl Error for ParseCairoShortStringError {}
+    #[cfg(feature = "std")]
+    impl std::error::Error for ParseCairoShortStringError {}
 
     impl Display for ParseCairoShortStringError {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {

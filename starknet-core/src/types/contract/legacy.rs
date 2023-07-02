@@ -1,23 +1,28 @@
+use alloc::{boxed::Box, collections::BTreeMap, format, string::String, vec::Vec};
+
 use crate::{
     crypto::compute_hash_on_elements,
     serde::{num_hex::u64 as u64_hex, unsigned_field_element::UfeHex},
     types::{
-        contract::{CompressProgramError, ComputeClassHashError, JsonError},
-        CompressedLegacyContractClass, FieldElement, FunctionStateMutability,
-        LegacyContractAbiEntry, LegacyContractEntryPoint, LegacyEntryPointsByType,
-        LegacyEventAbiEntry, LegacyEventAbiType, LegacyFunctionAbiEntry, LegacyFunctionAbiType,
-        LegacyStructAbiEntry, LegacyStructAbiType, LegacyStructMember, LegacyTypedParameter,
+        contract::{ComputeClassHashError, JsonError},
+        FieldElement, FunctionStateMutability, LegacyContractAbiEntry, LegacyContractEntryPoint,
+        LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType, LegacyFunctionAbiEntry,
+        LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType, LegacyStructMember,
+        LegacyTypedParameter,
     },
     utils::{cairo_short_string_to_felt, starknet_keccak},
 };
 
-use flate2::{write::GzEncoder, Compression};
 use serde::{
     de::Error as DeError, ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer,
 };
 use serde_json_pythonic::to_string_pythonic;
 use serde_with::{serde_as, SerializeAs};
-use std::{collections::BTreeMap, io::Write};
+
+#[cfg(feature = "std")]
+use crate::types::{contract::CompressProgramError, CompressedLegacyContractClass};
+#[cfg(feature = "std")]
+use flate2::{write::GzEncoder, Compression};
 
 const API_VERSION: FieldElement = FieldElement::ZERO;
 
@@ -396,13 +401,13 @@ impl<'de> Deserialize<'de> for RawLegacyAbiEntry {
 
 impl LegacyContractClass {
     pub fn class_hash(&self) -> Result<FieldElement, ComputeClassHashError> {
-        let mut elements = vec![];
+        let mut elements = Vec::new();
 
         elements.push(API_VERSION);
 
         // Hashes external entry points
         elements.push({
-            let mut buffer = vec![];
+            let mut buffer = Vec::new();
             for entrypoint in self.entry_points_by_type.external.iter() {
                 buffer.push(entrypoint.selector);
                 buffer.push(entrypoint.offset.into());
@@ -412,7 +417,7 @@ impl LegacyContractClass {
 
         // Hashes L1 handler entry points
         elements.push({
-            let mut buffer = vec![];
+            let mut buffer = Vec::new();
             for entrypoint in self.entry_points_by_type.l1_handler.iter() {
                 buffer.push(entrypoint.selector);
                 buffer.push(entrypoint.offset.into());
@@ -422,7 +427,7 @@ impl LegacyContractClass {
 
         // Hashes constructor entry points
         elements.push({
-            let mut buffer = vec![];
+            let mut buffer = Vec::new();
             for entrypoint in self.entry_points_by_type.constructor.iter() {
                 buffer.push(entrypoint.selector);
                 buffer.push(entrypoint.offset.into());
@@ -474,6 +479,7 @@ impl LegacyContractClass {
         Ok(starknet_keccak(serialized.as_bytes()))
     }
 
+    #[cfg(feature = "std")]
     pub fn compress(&self) -> Result<CompressedLegacyContractClass, CompressProgramError> {
         Ok(CompressedLegacyContractClass {
             program: self.program.compress()?,
@@ -490,7 +496,10 @@ impl LegacyContractClass {
 }
 
 impl LegacyProgram {
+    #[cfg(feature = "std")]
     pub fn compress(&self) -> Result<Vec<u8>, CompressProgramError> {
+        use std::io::Write;
+
         #[serde_as]
         #[derive(Serialize)]
         pub struct ProgramWithoutDebugInfo<'a> {
