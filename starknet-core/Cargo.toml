@@ -21,7 +21,6 @@ starknet-ff = { version = "0.3.4", path = "../starknet-ff", features = [
     "serde",
 ] }
 base64 = "0.21.0"
-ethereum-types = "0.14.1"
 flate2 = "1.0.25"
 hex = "0.4.3"
 serde = { version = "1.0.160", features = ["derive"] }

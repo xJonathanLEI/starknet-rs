@@ -3,9 +3,6 @@ use serde_with::serde_as;
 
 use crate::serde::unsigned_field_element::UfeHex;
 
-// Re-export commonly used upstream types
-pub use ethereum_types::Address as L1Address;
-
 pub use starknet_ff::*;
 
 mod conversions;

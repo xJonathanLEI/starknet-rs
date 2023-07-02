@@ -1690,7 +1690,6 @@ version = "0.3.2"
 dependencies = [
  "base64 0.21.0",
  "criterion",
- "ethereum-types",
  "flate2",
  "hex",
  "serde",
@@ -1780,6 +1779,7 @@ version = "0.3.0"
 dependencies = [
  "async-trait",
  "auto_impl",
+ "ethereum-types",
  "flate2",
  "reqwest",
  "serde",

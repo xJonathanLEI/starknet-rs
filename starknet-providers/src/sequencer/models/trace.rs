@@ -1,11 +1,8 @@
 use serde::Deserialize;
 use serde_with::serde_as;
-use starknet_core::{
-    serde::unsigned_field_element::UfeHex,
-    types::{FieldElement, L1Address},
-};
+use starknet_core::{serde::unsigned_field_element::UfeHex, types::FieldElement};
 
-use super::{EntryPointType, ExecutionResources};
+use super::{EntryPointType, ExecutionResources, L1Address};
 
 #[serde_as]
 #[derive(Debug, Deserialize)]

@@ -2,10 +2,10 @@ use serde::Deserialize;
 use serde_with::serde_as;
 use starknet_core::{
     serde::unsigned_field_element::{UfeHex, UfePendingBlockHash},
-    types::{FieldElement, L1Address},
+    types::FieldElement,
 };
 
-use super::TransactionFailureReason;
+use super::{L1Address, TransactionFailureReason};
 
 #[serde_as]
 #[derive(Debug, Deserialize)]

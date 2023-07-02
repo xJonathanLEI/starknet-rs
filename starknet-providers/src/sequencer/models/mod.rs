@@ -2,6 +2,9 @@
 // migration to becoming jsonrpc-centric. This file, along with all other sequencer-related types,
 // will be removed after the sequencer API is removed from the network.
 
+// Re-export commonly used upstream types
+pub use ethereum_types::Address as L1Address;
+
 pub(crate) mod conversions;
 
 mod block;
