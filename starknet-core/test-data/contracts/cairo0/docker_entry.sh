@@ -25,6 +25,9 @@ compile "/contracts/Deployable.cairo" "/artifacts/deployable"
 # ./artifacts/emoji.txt
 compile "/contracts/Emoji.cairo" "/artifacts/emoji"
 
+# ./artifacts/big_number.txt
+compile "/contracts/BigNumber.cairo" "/artifacts/big_number"
+
 # ./artifacts/oz_account.txt
 cd /contracts/openzeppelin/src
 compile "/contracts/openzeppelin/src/openzeppelin/account/presets/Account.cairo" "/artifacts/oz_account" --account_contract

@@ -777,7 +777,7 @@ fn should_skip_attributes_for_hinted_hash(value: &Option<Vec<LegacyAttribute>>) 
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{super::ContractArtifact, *};
 
     #[derive(serde::Deserialize)]
     struct ContractHashes {
@@ -814,8 +814,12 @@ mod tests {
             ),
             (
                 include_str!("../../../test-data/contracts/cairo0/artifacts/emoji.txt"),
+                include_str!("../../../test-data/contracts/cairo0/artifacts/emoji.hashes.json"),
+            ),
+            (
+                include_str!("../../../test-data/contracts/cairo0/artifacts/big_number.txt"),
                 include_str!(
-                    "../../../test-data/contracts/cairo0/artifacts/emoji.hashes.json"
+                    "../../../test-data/contracts/cairo0/artifacts/big_number.hashes.json"
                 ),
             ),
             (
@@ -823,19 +827,28 @@ mod tests {
                     "../../../test-data/contracts/cairo0/artifacts/pre-0.11.0/oz_account.txt"
                 ),
                 include_str!(
-                    "../../../test-data/contracts/cairo0/artifacts/pre-0.11.0/oz_account.hashes.json"
+                    "../../../test-data/contracts/cairo0/artifacts/pre-0.11.0/\
+                    oz_account.hashes.json"
                 ),
             ),
         ]
         .into_iter()
         {
-            let artifact = serde_json::from_str::<LegacyContractClass>(raw_artifact).unwrap();
-            let computed_hash = artifact.class_hash().unwrap();
+            let artifacts: [LegacyContractClass; 2] = [
+                serde_json::from_str::<LegacyContractClass>(raw_artifact).unwrap(),
+                match serde_json::from_str::<ContractArtifact>(raw_artifact).unwrap() {
+                    ContractArtifact::LegacyClass(class) => class,
+                    _ => panic!("unexpected class type"),
+                },
+            ];
 
             let hashes: ContractHashes = serde_json::from_str(raw_hashes).unwrap();
             let expected_hash = FieldElement::from_hex_be(&hashes.class_hash).unwrap();
 
-            assert_eq!(computed_hash, expected_hash);
+            for artifact in artifacts.into_iter() {
+                let computed_hash = artifact.class_hash().unwrap();
+                assert_eq!(computed_hash, expected_hash);
+            }
         }
     }
 
@@ -851,8 +864,12 @@ mod tests {
             ),
             (
                 include_str!("../../../test-data/contracts/cairo0/artifacts/emoji.txt"),
+                include_str!("../../../test-data/contracts/cairo0/artifacts/emoji.hashes.json"),
+            ),
+            (
+                include_str!("../../../test-data/contracts/cairo0/artifacts/big_number.txt"),
                 include_str!(
-                    "../../../test-data/contracts/cairo0/artifacts/emoji.hashes.json"
+                    "../../../test-data/contracts/cairo0/artifacts/big_number.hashes.json"
                 ),
             ),
             (
@@ -860,19 +877,28 @@ mod tests {
                     "../../../test-data/contracts/cairo0/artifacts/pre-0.11.0/oz_account.txt"
                 ),
                 include_str!(
-                    "../../../test-data/contracts/cairo0/artifacts/pre-0.11.0/oz_account.hashes.json"
+                    "../../../test-data/contracts/cairo0/artifacts/pre-0.11.0/\
+                    oz_account.hashes.json"
                 ),
             ),
         ]
         .into_iter()
         {
-            let artifact = serde_json::from_str::<LegacyContractClass>(raw_artifact).unwrap();
-            let computed_hash = artifact.hinted_class_hash().unwrap();
+            let artifacts: [LegacyContractClass; 2] = [
+                serde_json::from_str::<LegacyContractClass>(raw_artifact).unwrap(),
+                match serde_json::from_str::<ContractArtifact>(raw_artifact).unwrap() {
+                    ContractArtifact::LegacyClass(class) => class,
+                    _ => panic!("unexpected class type"),
+                },
+            ];
 
             let hashes: ContractHashes = serde_json::from_str(raw_hashes).unwrap();
             let expected_hash = FieldElement::from_hex_be(&hashes.hinted_class_hash).unwrap();
 
-            assert_eq!(computed_hash, expected_hash);
+            for artifact in artifacts.into_iter() {
+                let computed_hash = artifact.hinted_class_hash().unwrap();
+                assert_eq!(computed_hash, expected_hash);
+            }
         }
     }
 
