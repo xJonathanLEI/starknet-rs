@@ -1645,6 +1645,7 @@ dependencies = [
  "starknet-accounts",
  "starknet-contract",
  "starknet-core",
+ "starknet-crypto",
  "starknet-ff",
  "starknet-macros",
  "starknet-providers",
@@ -1750,6 +1751,7 @@ dependencies = [
  "cxx",
  "cxx-build",
  "starknet-core",
+ "starknet-crypto",
 ]
 
 [[package]]
