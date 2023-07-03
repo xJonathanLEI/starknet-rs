@@ -35,9 +35,8 @@ starknet-core = { path = ".", features = ["no_unknown_fields"] }
 wasm-bindgen-test = "0.3.34"
 
 [features]
-default = ["std", "bigdecimal"]
+default = ["std"]
 std = ["dep:flate2", "starknet-ff/std", "starknet-crypto/std"]
-bigdecimal = ["starknet-ff/bigdecimal", "starknet-crypto/bigdecimal"]
 no_unknown_fields = []
 
 [[bench]]
