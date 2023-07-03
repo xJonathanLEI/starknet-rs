@@ -14,6 +14,11 @@ cxx = "1.0"
 # starknet-core = { git = "https://github.com/xJonathanLEI/starknet-rs" }
 starknet-core = { path = "../../../starknet-core" }
 
+# Same as above.
+# 
+# This entry is needed to enable the `signature-display` feature of `starknet-crypto`.
+starknet-crypto = { path = "../../../starknet-crypto", default-features = false, features = ["signature-display"] }
+
 [build-dependencies]
 cxx-build = "1.0"
 
