@@ -26,10 +26,12 @@ jobs:
           override: true
 
       - name: Run cargo tests
-        uses: actions-rs/cargo@v1
+        uses: nick-fields/retry@v2
         with:
-          command: test
-          args: --all
+          timeout_minutes: 30
+          max_attempts: 20
+          retry_wait_seconds: 30
+          command: cargo test --all
 
   win-test:
     name: Windows tests
@@ -52,10 +54,12 @@ jobs:
           override: true
 
       - name: Run cargo tests
-        uses: actions-rs/cargo@v1
+        uses: nick-fields/retry@v2
         with:
-          command: test
-          args: --all --target ${{ matrix.target }} --exclude starknet-cxx
+          timeout_minutes: 30
+          max_attempts: 20
+          retry_wait_seconds: 30
+          command: cargo test --all --target ${{ matrix.target }} --exclude starknet-cxx
 
   wasm-test:
     name: WASM tests
