@@ -31,7 +31,6 @@ default = ["std", "signature-display"]
 std = []
 alloc = ["hex?/alloc"]
 signature-display = ["dep:hex", "alloc"]
-bigdecimal = ["starknet-curve/bigdecimal", "starknet-ff/bigdecimal"]
 
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false }

@@ -1645,6 +1645,7 @@ dependencies = [
  "starknet-accounts",
  "starknet-contract",
  "starknet-core",
+ "starknet-ff",
  "starknet-macros",
  "starknet-providers",
  "starknet-signers",

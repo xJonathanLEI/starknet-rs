@@ -14,6 +14,3 @@ keywords = ["ethereum", "starknet", "web3", "no_std"]
 
 [dependencies]
 starknet-ff = { version = "0.3.4", path = "../starknet-ff", default-features = false }
-
-[features]
-bigdecimal = ["starknet-ff/bigdecimal"]

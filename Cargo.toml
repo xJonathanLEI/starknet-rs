@@ -34,6 +34,7 @@ members = [
 all-features = true
 
 [dependencies]
+starknet-ff = { version = "0.3.4", path = "./starknet-ff", default-features = false }
 starknet-core = { version = "0.3.2", path = "./starknet-core", default-features = false }
 starknet-providers = { version = "0.3.0", path = "./starknet-providers" }
 starknet-contract = { version = "0.2.0", path = "./starknet-contract" }
@@ -48,7 +49,7 @@ url = "2.2.2"
 
 [features]
 default = ["bigdecimal"]
-bigdecimal = ["starknet-core/bigdecimal"]
+bigdecimal = ["starknet-ff/bigdecimal"]
 no_unknown_fields = [
     "starknet-core/no_unknown_fields",
     "starknet-providers/no_unknown_fields",
