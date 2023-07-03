@@ -25,10 +25,6 @@ jobs:
           profile: minimal
           override: true
 
-      - uses: Swatinem/rust-cache@v1
-        with:
-          cache-on-failure: true
-
       - name: Run cargo tests
         uses: actions-rs/cargo@v1
         with:
@@ -55,11 +51,6 @@ jobs:
           profile: minimal
           override: true
 
-      - uses: Swatinem/rust-cache@v1
-        with:
-          cache-on-failure: true
-          key: ${{ matrix.target }}
-
       - name: Run cargo tests
         uses: actions-rs/cargo@v1
         with:
@@ -80,10 +71,6 @@ jobs:
           toolchain: stable
           profile: minimal
           override: true
-
-      - uses: Swatinem/rust-cache@v1
-        with:
-          cache-on-failure:
 
       - name: Add wasm32-unknown-unknown target
         run: |
@@ -133,10 +120,6 @@ jobs:
           toolchain: stable
           profile: minimal
           override: true
-
-      - uses: Swatinem/rust-cache@v1
-        with:
-          cache-on-failure:
 
       - name: Add --target thumbv6m-none-eabi target
         run: |
