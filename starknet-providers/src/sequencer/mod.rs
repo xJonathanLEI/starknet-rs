@@ -82,6 +82,10 @@ pub enum ErrorCode {
     ClassAlreadyDeclared,
     #[serde(rename = "StarknetErrorCode.COMPILATION_FAILED")]
     CompilationFailed,
+    #[serde(rename = "StarknetErrorCode.INVALID_COMPILED_CLASS_HASH")]
+    InvalidCompiledClassHash,
+    #[serde(rename = "StarknetErrorCode.DUPLICATED_TRANSACTION")]
+    DuplicatedTransaction,
 }
 
 impl SequencerGatewayProvider {
@@ -722,6 +726,8 @@ impl TryFrom<ErrorCode> for StarknetError {
             ErrorCode::InvalidTransactionNonce => Err(()),
             ErrorCode::ClassAlreadyDeclared => Ok(Self::ClassAlreadyDeclared),
             ErrorCode::CompilationFailed => Err(()),
+            ErrorCode::InvalidCompiledClassHash => Err(()),
+            ErrorCode::DuplicatedTransaction => Err(()),
         }
     }
 }
