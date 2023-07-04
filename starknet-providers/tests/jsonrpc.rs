@@ -16,7 +16,8 @@ use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     JsonRpcClient::new(HttpTransport::new(
-        Url::parse("https://rpc-goerli-1.starknet.rs/rpc/v0.3").unwrap(),
+        Url::parse("https://starknet-goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161")
+            .unwrap(),
     ))
 }
 
@@ -391,7 +392,7 @@ async fn jsonrpc_get_events() {
         .get_events(
             EventFilter {
                 from_block: Some(BlockId::Number(234500)),
-                to_block: None,
+                to_block: Some(BlockId::Number(235000)),
                 address: None,
                 keys: None,
             },

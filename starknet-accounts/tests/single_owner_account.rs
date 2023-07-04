@@ -1,8 +1,12 @@
+use rand::RngCore;
 use starknet_accounts::{Account, Call, ConnectedAccount, SingleOwnerAccount};
 use starknet_core::{
     chain_id,
     types::{
-        contract::{legacy::LegacyContractClass, SierraClass},
+        contract::{
+            legacy::{LegacyContractClass, RawLegacyAbiEntry, RawLegacyFunction},
+            SierraClass,
+        },
         FieldElement,
     },
     utils::get_selector_from_name,
@@ -20,7 +24,8 @@ fn create_sequencer_client() -> SequencerGatewayProvider {
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     JsonRpcClient::new(HttpTransport::new(
-        url::Url::parse("https://rpc-goerli-1.starknet.rs/rpc/v0.3").unwrap(),
+        url::Url::parse("https://starknet-goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161")
+            .unwrap(),
     ))
 }
 
@@ -165,23 +170,22 @@ async fn can_execute_tst_mint_inner<P: Provider + Send + Sync>(provider: P) {
 
     let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
 
+    let mut rng = rand::thread_rng();
+    let random_amount = rng.next_u64().into();
+
     let result = account
         .execute(vec![
             Call {
                 to: tst_token_address,
                 selector: get_selector_from_name("mint").unwrap(),
-                calldata: vec![
-                    address,
-                    FieldElement::from_dec_str("1000000000000000000000").unwrap(),
-                    FieldElement::ZERO,
-                ],
+                calldata: vec![address, random_amount, FieldElement::ZERO],
             },
             Call {
                 to: tst_token_address,
                 selector: get_selector_from_name("mint").unwrap(),
                 calldata: vec![
                     address,
-                    FieldElement::from_dec_str("2000000000000000000000").unwrap(),
+                    random_amount * FieldElement::TWO,
                     FieldElement::ZERO,
                 ],
             },
@@ -226,11 +230,11 @@ async fn can_declare_cairo1_contract_inner<P: Provider + Send + Sync>(provider: 
     // by exploiting the fact that ABI is part of the class hash.
     let mut flattened_class = contract_artifact.flatten().unwrap();
     flattened_class.abi = format!(
-        "Declared from starknet-rs test case. Timestamp: {}",
+        "Declared from starknet-rs test case. Timestamp (ms): {}",
         std::time::SystemTime::now()
             .duration_since(std::time::SystemTime::UNIX_EPOCH)
             .unwrap()
-            .as_secs()
+            .as_millis()
     );
 
     let result = account
@@ -262,8 +266,25 @@ async fn can_declare_cairo0_contract_inner<P: Provider + Send + Sync>(provider: 
     .unwrap();
     let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
 
-    let contract_artifact: LegacyContractClass =
+    let mut contract_artifact: LegacyContractClass =
         serde_json::from_str(include_str!("../test-data/cairo0/artifacts/oz_account.txt")).unwrap();
+
+    // Since Starknet v0.12.0 identical transactions are no longer allowed. We make transactions
+    // unique by appending a fake ABI entry.
+    contract_artifact
+        .abi
+        .push(RawLegacyAbiEntry::Function(RawLegacyFunction {
+            inputs: vec![],
+            name: format!(
+                "Declared from starknet-rs test case. Timestamp (ms): {}",
+                std::time::SystemTime::now()
+                    .duration_since(std::time::SystemTime::UNIX_EPOCH)
+                    .unwrap()
+                    .as_millis()
+            ),
+            outputs: vec![],
+            state_mutability: None,
+        }));
 
     let result = account
         .declare_legacy(Arc::new(contract_artifact))
