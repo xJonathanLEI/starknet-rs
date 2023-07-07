@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#5dbdcd62529ab8e3af4e9ef752945f8ae7e85ab9
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#2bf67752dd3200c4d46077e3d2838c9563d2dfa7
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -34,6 +34,13 @@ use super::{serde_impls::NumAsHex, *};
 pub type OwnedPtr<T> = alloc::sync::Arc<T>;
 #[cfg(not(all(not(no_rc), not(no_sync), target_has_atomic = "ptr")))]
 pub type OwnedPtr<T> = alloc::boxed::Box<T>;
+
+const QUERY_VERSION_OFFSET: FieldElement = FieldElement::from_mont([
+    18446744073700081665,
+    17407,
+    18446744073709551584,
+    576460752142434320,
+]);
 
 /// Block status.
 ///
@@ -135,6 +142,8 @@ pub struct BroadcastedDeclareTransactionV1 {
     pub contract_class: OwnedPtr<CompressedLegacyContractClass>,
     /// The address of the account contract sending the declaration transaction
     pub sender_address: FieldElement,
+    /// If set to `true`, uses a query-only transaction version that's invalid for execution
+    pub is_query: bool,
 }
 
 /// Broadcasted declare transaction v2.
@@ -154,6 +163,8 @@ pub struct BroadcastedDeclareTransactionV2 {
     pub sender_address: FieldElement,
     /// The hash of the cairo assembly resulting from the sierra compilation
     pub compiled_class_hash: FieldElement,
+    /// If set to `true`, uses a query-only transaction version that's invalid for execution
+    pub is_query: bool,
 }
 
 /// Broadcasted deploy account transaction.
@@ -173,6 +184,8 @@ pub struct BroadcastedDeployAccountTransaction {
     pub constructor_calldata: Vec<FieldElement>,
     /// The hash of the deployed contract's class
     pub class_hash: FieldElement,
+    /// If set to `true`, uses a query-only transaction version that's invalid for execution
+    pub is_query: bool,
 }
 
 /// Version 0 invoke transaction.
@@ -192,6 +205,8 @@ pub struct BroadcastedInvokeTransactionV0 {
     pub entry_point_selector: FieldElement,
     /// The parameters passed to the function
     pub calldata: Vec<FieldElement>,
+    /// If set to `true`, uses a query-only transaction version that's invalid for execution
+    pub is_query: bool,
 }
 
 /// Version 1 invoke transaction.
@@ -209,6 +224,8 @@ pub struct BroadcastedInvokeTransactionV1 {
     /// The data expected by the account's `execute` function (in most usecases, this includes the
     /// called contract address and a function selector)
     pub calldata: Vec<FieldElement>,
+    /// If set to `true`, uses a query-only transaction version that's invalid for execution
+    pub is_query: bool,
 }
 
 /// Deprecated contract class.
@@ -1421,8 +1438,8 @@ impl Serialize for BroadcastedDeclareTransactionV1 {
         struct Tagged<'a> {
             #[serde_as(as = "UfeHex")]
             pub max_fee: &'a FieldElement,
-            #[serde_as(as = "NumAsHex")]
-            pub version: &'a u64,
+            #[serde_as(as = "UfeHex")]
+            pub version: &'a FieldElement,
             #[serde_as(as = "[UfeHex]")]
             pub signature: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
@@ -1433,12 +1450,20 @@ impl Serialize for BroadcastedDeclareTransactionV1 {
             pub sender_address: &'a FieldElement,
         }
 
+        let version = &(if self.is_query {
+            FieldElement::ONE + QUERY_VERSION_OFFSET
+        } else {
+            FieldElement::ONE
+        });
+
+        let r#type = "DECLARE";
+
         let tagged = Tagged {
             max_fee: &self.max_fee,
-            version: &1,
+            version,
             signature: &self.signature,
             nonce: &self.nonce,
-            r#type: "DECLARE",
+            r#type,
             contract_class: &self.contract_class,
             sender_address: &self.sender_address,
         };
@@ -1455,14 +1480,12 @@ impl<'de> Deserialize<'de> for BroadcastedDeclareTransactionV1 {
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
-            #[serde_as(as = "Option<NumAsHex>")]
-            pub version: Option<u64>,
+            #[serde_as(as = "UfeHex")]
+            pub version: FieldElement,
             #[serde_as(as = "Vec<UfeHex>")]
             pub signature: Vec<FieldElement>,
             #[serde_as(as = "UfeHex")]
             pub nonce: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             pub contract_class: CompressedLegacyContractClass,
             #[serde_as(as = "UfeHex")]
@@ -1471,11 +1494,13 @@ impl<'de> Deserialize<'de> for BroadcastedDeclareTransactionV1 {
 
         let tagged = Tagged::deserialize(deserializer)?;
 
-        if let Some(tag_field) = &tagged.version {
-            if tag_field != &1 {
-                return Err(serde::de::Error::custom("invalid `version` value"));
-            }
-        }
+        let is_query = if tagged.version == FieldElement::ONE {
+            false
+        } else if tagged.version == FieldElement::ONE + QUERY_VERSION_OFFSET {
+            true
+        } else {
+            return Err(serde::de::Error::custom("invalid `version` value"));
+        };
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "DECLARE" {
@@ -1489,6 +1514,7 @@ impl<'de> Deserialize<'de> for BroadcastedDeclareTransactionV1 {
             nonce: tagged.nonce,
             contract_class: OwnedPtr::new(tagged.contract_class),
             sender_address: tagged.sender_address,
+            is_query,
         })
     }
 }
@@ -1500,8 +1526,8 @@ impl Serialize for BroadcastedDeclareTransactionV2 {
         struct Tagged<'a> {
             #[serde_as(as = "UfeHex")]
             pub max_fee: &'a FieldElement,
-            #[serde_as(as = "NumAsHex")]
-            pub version: &'a u64,
+            #[serde_as(as = "UfeHex")]
+            pub version: &'a FieldElement,
             #[serde_as(as = "[UfeHex]")]
             pub signature: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
@@ -1514,12 +1540,20 @@ impl Serialize for BroadcastedDeclareTransactionV2 {
             pub compiled_class_hash: &'a FieldElement,
         }
 
+        let version = &(if self.is_query {
+            FieldElement::TWO + QUERY_VERSION_OFFSET
+        } else {
+            FieldElement::TWO
+        });
+
+        let r#type = "DECLARE";
+
         let tagged = Tagged {
             max_fee: &self.max_fee,
-            version: &2,
+            version,
             signature: &self.signature,
             nonce: &self.nonce,
-            r#type: "DECLARE",
+            r#type,
             contract_class: &self.contract_class,
             sender_address: &self.sender_address,
             compiled_class_hash: &self.compiled_class_hash,
@@ -1537,14 +1571,12 @@ impl<'de> Deserialize<'de> for BroadcastedDeclareTransactionV2 {
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
-            #[serde_as(as = "Option<NumAsHex>")]
-            pub version: Option<u64>,
+            #[serde_as(as = "UfeHex")]
+            pub version: FieldElement,
             #[serde_as(as = "Vec<UfeHex>")]
             pub signature: Vec<FieldElement>,
             #[serde_as(as = "UfeHex")]
             pub nonce: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             pub contract_class: FlattenedSierraClass,
             #[serde_as(as = "UfeHex")]
@@ -1555,11 +1587,13 @@ impl<'de> Deserialize<'de> for BroadcastedDeclareTransactionV2 {
 
         let tagged = Tagged::deserialize(deserializer)?;
 
-        if let Some(tag_field) = &tagged.version {
-            if tag_field != &2 {
-                return Err(serde::de::Error::custom("invalid `version` value"));
-            }
-        }
+        let is_query = if tagged.version == FieldElement::TWO {
+            false
+        } else if tagged.version == FieldElement::TWO + QUERY_VERSION_OFFSET {
+            true
+        } else {
+            return Err(serde::de::Error::custom("invalid `version` value"));
+        };
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "DECLARE" {
@@ -1574,6 +1608,7 @@ impl<'de> Deserialize<'de> for BroadcastedDeclareTransactionV2 {
             contract_class: OwnedPtr::new(tagged.contract_class),
             sender_address: tagged.sender_address,
             compiled_class_hash: tagged.compiled_class_hash,
+            is_query,
         })
     }
 }
@@ -1585,8 +1620,8 @@ impl Serialize for BroadcastedDeployAccountTransaction {
         struct Tagged<'a> {
             #[serde_as(as = "UfeHex")]
             pub max_fee: &'a FieldElement,
-            #[serde_as(as = "NumAsHex")]
-            pub version: &'a u64,
+            #[serde_as(as = "UfeHex")]
+            pub version: &'a FieldElement,
             #[serde_as(as = "[UfeHex]")]
             pub signature: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
@@ -1600,12 +1635,20 @@ impl Serialize for BroadcastedDeployAccountTransaction {
             pub class_hash: &'a FieldElement,
         }
 
+        let version = &(if self.is_query {
+            FieldElement::ONE + QUERY_VERSION_OFFSET
+        } else {
+            FieldElement::ONE
+        });
+
+        let r#type = "DEPLOY_ACCOUNT";
+
         let tagged = Tagged {
             max_fee: &self.max_fee,
-            version: &1,
+            version,
             signature: &self.signature,
             nonce: &self.nonce,
-            r#type: "DEPLOY_ACCOUNT",
+            r#type,
             contract_address_salt: &self.contract_address_salt,
             constructor_calldata: &self.constructor_calldata,
             class_hash: &self.class_hash,
@@ -1623,14 +1666,12 @@ impl<'de> Deserialize<'de> for BroadcastedDeployAccountTransaction {
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
-            #[serde_as(as = "Option<NumAsHex>")]
-            pub version: Option<u64>,
+            #[serde_as(as = "UfeHex")]
+            pub version: FieldElement,
             #[serde_as(as = "Vec<UfeHex>")]
             pub signature: Vec<FieldElement>,
             #[serde_as(as = "UfeHex")]
             pub nonce: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub contract_address_salt: FieldElement,
@@ -1642,11 +1683,13 @@ impl<'de> Deserialize<'de> for BroadcastedDeployAccountTransaction {
 
         let tagged = Tagged::deserialize(deserializer)?;
 
-        if let Some(tag_field) = &tagged.version {
-            if tag_field != &1 {
-                return Err(serde::de::Error::custom("invalid `version` value"));
-            }
-        }
+        let is_query = if tagged.version == FieldElement::ONE {
+            false
+        } else if tagged.version == FieldElement::ONE + QUERY_VERSION_OFFSET {
+            true
+        } else {
+            return Err(serde::de::Error::custom("invalid `version` value"));
+        };
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "DEPLOY_ACCOUNT" {
@@ -1661,6 +1704,7 @@ impl<'de> Deserialize<'de> for BroadcastedDeployAccountTransaction {
             contract_address_salt: tagged.contract_address_salt,
             constructor_calldata: tagged.constructor_calldata,
             class_hash: tagged.class_hash,
+            is_query,
         })
     }
 }
@@ -1672,8 +1716,8 @@ impl Serialize for BroadcastedInvokeTransactionV0 {
         struct Tagged<'a> {
             #[serde_as(as = "UfeHex")]
             pub max_fee: &'a FieldElement,
-            #[serde_as(as = "NumAsHex")]
-            pub version: &'a u64,
+            #[serde_as(as = "UfeHex")]
+            pub version: &'a FieldElement,
             #[serde_as(as = "[UfeHex]")]
             pub signature: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
@@ -1687,12 +1731,20 @@ impl Serialize for BroadcastedInvokeTransactionV0 {
             pub calldata: &'a [FieldElement],
         }
 
+        let version = &(if self.is_query {
+            FieldElement::ZERO + QUERY_VERSION_OFFSET
+        } else {
+            FieldElement::ZERO
+        });
+
+        let r#type = "INVOKE";
+
         let tagged = Tagged {
             max_fee: &self.max_fee,
-            version: &0,
+            version,
             signature: &self.signature,
             nonce: &self.nonce,
-            r#type: "INVOKE",
+            r#type,
             contract_address: &self.contract_address,
             entry_point_selector: &self.entry_point_selector,
             calldata: &self.calldata,
@@ -1710,14 +1762,12 @@ impl<'de> Deserialize<'de> for BroadcastedInvokeTransactionV0 {
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
-            #[serde_as(as = "Option<NumAsHex>")]
-            pub version: Option<u64>,
+            #[serde_as(as = "UfeHex")]
+            pub version: FieldElement,
             #[serde_as(as = "Vec<UfeHex>")]
             pub signature: Vec<FieldElement>,
             #[serde_as(as = "UfeHex")]
             pub nonce: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub contract_address: FieldElement,
@@ -1729,11 +1779,13 @@ impl<'de> Deserialize<'de> for BroadcastedInvokeTransactionV0 {
 
         let tagged = Tagged::deserialize(deserializer)?;
 
-        if let Some(tag_field) = &tagged.version {
-            if tag_field != &0 {
-                return Err(serde::de::Error::custom("invalid `version` value"));
-            }
-        }
+        let is_query = if tagged.version == FieldElement::ZERO {
+            false
+        } else if tagged.version == FieldElement::ZERO + QUERY_VERSION_OFFSET {
+            true
+        } else {
+            return Err(serde::de::Error::custom("invalid `version` value"));
+        };
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "INVOKE" {
@@ -1748,6 +1800,7 @@ impl<'de> Deserialize<'de> for BroadcastedInvokeTransactionV0 {
             contract_address: tagged.contract_address,
             entry_point_selector: tagged.entry_point_selector,
             calldata: tagged.calldata,
+            is_query,
         })
     }
 }
@@ -1759,8 +1812,8 @@ impl Serialize for BroadcastedInvokeTransactionV1 {
         struct Tagged<'a> {
             #[serde_as(as = "UfeHex")]
             pub max_fee: &'a FieldElement,
-            #[serde_as(as = "NumAsHex")]
-            pub version: &'a u64,
+            #[serde_as(as = "UfeHex")]
+            pub version: &'a FieldElement,
             #[serde_as(as = "[UfeHex]")]
             pub signature: &'a [FieldElement],
             #[serde_as(as = "UfeHex")]
@@ -1772,12 +1825,20 @@ impl Serialize for BroadcastedInvokeTransactionV1 {
             pub calldata: &'a [FieldElement],
         }
 
+        let version = &(if self.is_query {
+            FieldElement::ONE + QUERY_VERSION_OFFSET
+        } else {
+            FieldElement::ONE
+        });
+
+        let r#type = "INVOKE";
+
         let tagged = Tagged {
             max_fee: &self.max_fee,
-            version: &1,
+            version,
             signature: &self.signature,
             nonce: &self.nonce,
-            r#type: "INVOKE",
+            r#type,
             sender_address: &self.sender_address,
             calldata: &self.calldata,
         };
@@ -1794,14 +1855,12 @@ impl<'de> Deserialize<'de> for BroadcastedInvokeTransactionV1 {
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
-            #[serde_as(as = "Option<NumAsHex>")]
-            pub version: Option<u64>,
+            #[serde_as(as = "UfeHex")]
+            pub version: FieldElement,
             #[serde_as(as = "Vec<UfeHex>")]
             pub signature: Vec<FieldElement>,
             #[serde_as(as = "UfeHex")]
             pub nonce: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub sender_address: FieldElement,
@@ -1811,11 +1870,13 @@ impl<'de> Deserialize<'de> for BroadcastedInvokeTransactionV1 {
 
         let tagged = Tagged::deserialize(deserializer)?;
 
-        if let Some(tag_field) = &tagged.version {
-            if tag_field != &1 {
-                return Err(serde::de::Error::custom("invalid `version` value"));
-            }
-        }
+        let is_query = if tagged.version == FieldElement::ONE {
+            false
+        } else if tagged.version == FieldElement::ONE + QUERY_VERSION_OFFSET {
+            true
+        } else {
+            return Err(serde::de::Error::custom("invalid `version` value"));
+        };
 
         if let Some(tag_field) = &tagged.r#type {
             if tag_field != "INVOKE" {
@@ -1829,6 +1890,7 @@ impl<'de> Deserialize<'de> for BroadcastedInvokeTransactionV1 {
             nonce: tagged.nonce,
             sender_address: tagged.sender_address,
             calldata: tagged.calldata,
+            is_query,
         })
     }
 }
@@ -1851,8 +1913,10 @@ impl Serialize for DeclareTransactionReceipt {
             pub events: &'a [Event],
         }
 
+        let r#type = "DECLARE";
+
         let tagged = Tagged {
-            r#type: "DECLARE",
+            r#type,
             transaction_hash: &self.transaction_hash,
             actual_fee: &self.actual_fee,
             status: &self.status,
@@ -1872,7 +1936,6 @@ impl<'de> Deserialize<'de> for DeclareTransactionReceipt {
         #[derive(Deserialize)]
         #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -1928,13 +1991,17 @@ impl Serialize for DeclareTransactionV0 {
             pub sender_address: &'a FieldElement,
         }
 
+        let version = &0;
+
+        let r#type = "DECLARE";
+
         let tagged = Tagged {
             transaction_hash: &self.transaction_hash,
             max_fee: &self.max_fee,
-            version: &0,
+            version,
             signature: &self.signature,
             nonce: &self.nonce,
-            r#type: "DECLARE",
+            r#type,
             class_hash: &self.class_hash,
             sender_address: &self.sender_address,
         };
@@ -1953,14 +2020,12 @@ impl<'de> Deserialize<'de> for DeclareTransactionV0 {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "Option<NumAsHex>")]
             pub version: Option<u64>,
             #[serde_as(as = "Vec<UfeHex>")]
             pub signature: Vec<FieldElement>,
             #[serde_as(as = "UfeHex")]
             pub nonce: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub class_hash: FieldElement,
@@ -2015,13 +2080,17 @@ impl Serialize for DeclareTransactionV1 {
             pub sender_address: &'a FieldElement,
         }
 
+        let version = &1;
+
+        let r#type = "DECLARE";
+
         let tagged = Tagged {
             transaction_hash: &self.transaction_hash,
             max_fee: &self.max_fee,
-            version: &1,
+            version,
             signature: &self.signature,
             nonce: &self.nonce,
-            r#type: "DECLARE",
+            r#type,
             class_hash: &self.class_hash,
             sender_address: &self.sender_address,
         };
@@ -2040,14 +2109,12 @@ impl<'de> Deserialize<'de> for DeclareTransactionV1 {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "Option<NumAsHex>")]
             pub version: Option<u64>,
             #[serde_as(as = "Vec<UfeHex>")]
             pub signature: Vec<FieldElement>,
             #[serde_as(as = "UfeHex")]
             pub nonce: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub class_hash: FieldElement,
@@ -2104,13 +2171,17 @@ impl Serialize for DeclareTransactionV2 {
             pub compiled_class_hash: &'a FieldElement,
         }
 
+        let version = &2;
+
+        let r#type = "DECLARE";
+
         let tagged = Tagged {
             transaction_hash: &self.transaction_hash,
             max_fee: &self.max_fee,
-            version: &2,
+            version,
             signature: &self.signature,
             nonce: &self.nonce,
-            r#type: "DECLARE",
+            r#type,
             class_hash: &self.class_hash,
             sender_address: &self.sender_address,
             compiled_class_hash: &self.compiled_class_hash,
@@ -2130,14 +2201,12 @@ impl<'de> Deserialize<'de> for DeclareTransactionV2 {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "Option<NumAsHex>")]
             pub version: Option<u64>,
             #[serde_as(as = "Vec<UfeHex>")]
             pub signature: Vec<FieldElement>,
             #[serde_as(as = "UfeHex")]
             pub nonce: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub class_hash: FieldElement,
@@ -2197,13 +2266,17 @@ impl Serialize for DeployAccountTransaction {
             pub class_hash: &'a FieldElement,
         }
 
+        let version = &1;
+
+        let r#type = "DEPLOY_ACCOUNT";
+
         let tagged = Tagged {
             transaction_hash: &self.transaction_hash,
             max_fee: &self.max_fee,
-            version: &1,
+            version,
             signature: &self.signature,
             nonce: &self.nonce,
-            r#type: "DEPLOY_ACCOUNT",
+            r#type,
             contract_address_salt: &self.contract_address_salt,
             constructor_calldata: &self.constructor_calldata,
             class_hash: &self.class_hash,
@@ -2223,14 +2296,12 @@ impl<'de> Deserialize<'de> for DeployAccountTransaction {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "Option<NumAsHex>")]
             pub version: Option<u64>,
             #[serde_as(as = "Vec<UfeHex>")]
             pub signature: Vec<FieldElement>,
             #[serde_as(as = "UfeHex")]
             pub nonce: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub contract_address_salt: FieldElement,
@@ -2286,6 +2357,8 @@ impl Serialize for DeployAccountTransactionReceipt {
             pub contract_address: &'a FieldElement,
         }
 
+        let r#type = "DEPLOY_ACCOUNT";
+
         let tagged = Tagged {
             transaction_hash: &self.transaction_hash,
             actual_fee: &self.actual_fee,
@@ -2294,7 +2367,7 @@ impl Serialize for DeployAccountTransactionReceipt {
             block_number: &self.block_number,
             messages_sent: &self.messages_sent,
             events: &self.events,
-            r#type: "DEPLOY_ACCOUNT",
+            r#type,
             contract_address: &self.contract_address,
         };
 
@@ -2318,7 +2391,6 @@ impl<'de> Deserialize<'de> for DeployAccountTransactionReceipt {
             pub block_number: u64,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub contract_address: FieldElement,
@@ -2363,11 +2435,13 @@ impl Serialize for DeployTransaction {
             pub constructor_calldata: &'a [FieldElement],
         }
 
+        let r#type = "DEPLOY";
+
         let tagged = Tagged {
             transaction_hash: &self.transaction_hash,
             class_hash: &self.class_hash,
             version: &self.version,
-            r#type: "DEPLOY",
+            r#type,
             contract_address_salt: &self.contract_address_salt,
             constructor_calldata: &self.constructor_calldata,
         };
@@ -2388,7 +2462,6 @@ impl<'de> Deserialize<'de> for DeployTransaction {
             pub class_hash: FieldElement,
             #[serde_as(as = "NumAsHex")]
             pub version: u64,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub contract_address_salt: FieldElement,
@@ -2434,6 +2507,8 @@ impl Serialize for DeployTransactionReceipt {
             pub contract_address: &'a FieldElement,
         }
 
+        let r#type = "DEPLOY";
+
         let tagged = Tagged {
             transaction_hash: &self.transaction_hash,
             actual_fee: &self.actual_fee,
@@ -2442,7 +2517,7 @@ impl Serialize for DeployTransactionReceipt {
             block_number: &self.block_number,
             messages_sent: &self.messages_sent,
             events: &self.events,
-            r#type: "DEPLOY",
+            r#type,
             contract_address: &self.contract_address,
         };
 
@@ -2466,7 +2541,6 @@ impl<'de> Deserialize<'de> for DeployTransactionReceipt {
             pub block_number: u64,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub contract_address: FieldElement,
@@ -2511,8 +2585,10 @@ impl Serialize for InvokeTransactionReceipt {
             pub events: &'a [Event],
         }
 
+        let r#type = "INVOKE";
+
         let tagged = Tagged {
-            r#type: "INVOKE",
+            r#type,
             transaction_hash: &self.transaction_hash,
             actual_fee: &self.actual_fee,
             status: &self.status,
@@ -2532,7 +2608,6 @@ impl<'de> Deserialize<'de> for InvokeTransactionReceipt {
         #[derive(Deserialize)]
         #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -2590,13 +2665,17 @@ impl Serialize for InvokeTransactionV0 {
             pub calldata: &'a [FieldElement],
         }
 
+        let version = &0;
+
+        let r#type = "INVOKE";
+
         let tagged = Tagged {
             transaction_hash: &self.transaction_hash,
             max_fee: &self.max_fee,
-            version: &0,
+            version,
             signature: &self.signature,
             nonce: &self.nonce,
-            r#type: "INVOKE",
+            r#type,
             contract_address: &self.contract_address,
             entry_point_selector: &self.entry_point_selector,
             calldata: &self.calldata,
@@ -2616,14 +2695,12 @@ impl<'de> Deserialize<'de> for InvokeTransactionV0 {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "Option<NumAsHex>")]
             pub version: Option<u64>,
             #[serde_as(as = "Vec<UfeHex>")]
             pub signature: Vec<FieldElement>,
             #[serde_as(as = "UfeHex")]
             pub nonce: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub contract_address: FieldElement,
@@ -2681,13 +2758,17 @@ impl Serialize for InvokeTransactionV1 {
             pub calldata: &'a [FieldElement],
         }
 
+        let version = &1;
+
+        let r#type = "INVOKE";
+
         let tagged = Tagged {
             transaction_hash: &self.transaction_hash,
             max_fee: &self.max_fee,
-            version: &1,
+            version,
             signature: &self.signature,
             nonce: &self.nonce,
-            r#type: "INVOKE",
+            r#type,
             sender_address: &self.sender_address,
             calldata: &self.calldata,
         };
@@ -2706,14 +2787,12 @@ impl<'de> Deserialize<'de> for InvokeTransactionV1 {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "UfeHex")]
             pub max_fee: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "Option<NumAsHex>")]
             pub version: Option<u64>,
             #[serde_as(as = "Vec<UfeHex>")]
             pub signature: Vec<FieldElement>,
             #[serde_as(as = "UfeHex")]
             pub nonce: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub sender_address: FieldElement,
@@ -2766,10 +2845,12 @@ impl Serialize for L1HandlerTransaction {
             pub calldata: &'a [FieldElement],
         }
 
+        let r#type = "L1_HANDLER";
+
         let tagged = Tagged {
             transaction_hash: &self.transaction_hash,
             version: &self.version,
-            r#type: "L1_HANDLER",
+            r#type,
             nonce: &self.nonce,
             contract_address: &self.contract_address,
             entry_point_selector: &self.entry_point_selector,
@@ -2790,7 +2871,6 @@ impl<'de> Deserialize<'de> for L1HandlerTransaction {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "NumAsHex")]
             pub version: u64,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "NumAsHex")]
             pub nonce: u64,
@@ -2839,8 +2919,10 @@ impl Serialize for L1HandlerTransactionReceipt {
             pub events: &'a [Event],
         }
 
+        let r#type = "L1_HANDLER";
+
         let tagged = Tagged {
-            r#type: "L1_HANDLER",
+            r#type,
             transaction_hash: &self.transaction_hash,
             actual_fee: &self.actual_fee,
             status: &self.status,
@@ -2860,7 +2942,6 @@ impl<'de> Deserialize<'de> for L1HandlerTransactionReceipt {
         #[derive(Deserialize)]
         #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
@@ -2908,10 +2989,12 @@ impl Serialize for PendingDeclareTransactionReceipt {
             pub events: &'a [Event],
         }
 
+        let r#type = "DECLARE";
+
         let tagged = Tagged {
             transaction_hash: &self.transaction_hash,
             actual_fee: &self.actual_fee,
-            r#type: "DECLARE",
+            r#type,
             messages_sent: &self.messages_sent,
             events: &self.events,
         };
@@ -2930,7 +3013,6 @@ impl<'de> Deserialize<'de> for PendingDeclareTransactionReceipt {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "UfeHex")]
             pub actual_fee: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
@@ -2967,10 +3049,12 @@ impl Serialize for PendingDeployAccountTransactionReceipt {
             pub events: &'a [Event],
         }
 
+        let r#type = "DEPLOY_ACCOUNT";
+
         let tagged = Tagged {
             transaction_hash: &self.transaction_hash,
             actual_fee: &self.actual_fee,
-            r#type: "DEPLOY_ACCOUNT",
+            r#type,
             messages_sent: &self.messages_sent,
             events: &self.events,
         };
@@ -2989,7 +3073,6 @@ impl<'de> Deserialize<'de> for PendingDeployAccountTransactionReceipt {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "UfeHex")]
             pub actual_fee: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
@@ -3028,10 +3111,12 @@ impl Serialize for PendingDeployTransactionReceipt {
             pub contract_address: &'a FieldElement,
         }
 
+        let r#type = "DEPLOY";
+
         let tagged = Tagged {
             transaction_hash: &self.transaction_hash,
             actual_fee: &self.actual_fee,
-            r#type: "DEPLOY",
+            r#type,
             messages_sent: &self.messages_sent,
             events: &self.events,
             contract_address: &self.contract_address,
@@ -3051,7 +3136,6 @@ impl<'de> Deserialize<'de> for PendingDeployTransactionReceipt {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "UfeHex")]
             pub actual_fee: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
@@ -3091,10 +3175,12 @@ impl Serialize for PendingInvokeTransactionReceipt {
             pub events: &'a [Event],
         }
 
+        let r#type = "INVOKE";
+
         let tagged = Tagged {
             transaction_hash: &self.transaction_hash,
             actual_fee: &self.actual_fee,
-            r#type: "INVOKE",
+            r#type,
             messages_sent: &self.messages_sent,
             events: &self.events,
         };
@@ -3113,7 +3199,6 @@ impl<'de> Deserialize<'de> for PendingInvokeTransactionReceipt {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "UfeHex")]
             pub actual_fee: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
@@ -3150,10 +3235,12 @@ impl Serialize for PendingL1HandlerTransactionReceipt {
             pub events: &'a [Event],
         }
 
+        let r#type = "L1_HANDLER";
+
         let tagged = Tagged {
             transaction_hash: &self.transaction_hash,
             actual_fee: &self.actual_fee,
-            r#type: "L1_HANDLER",
+            r#type,
             messages_sent: &self.messages_sent,
             events: &self.events,
         };
@@ -3172,7 +3259,6 @@ impl<'de> Deserialize<'de> for PendingL1HandlerTransactionReceipt {
             pub transaction_hash: FieldElement,
             #[serde_as(as = "UfeHex")]
             pub actual_fee: FieldElement,
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub r#type: Option<String>,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,

@@ -339,6 +339,8 @@ where
             contract_address_salt: self.inner.salt,
             constructor_calldata: self.factory.calldata(),
             class_hash: self.factory.class_hash(),
+            // TODO: make use of query version tx for estimating fees
+            is_query: false,
         })
     }
 }

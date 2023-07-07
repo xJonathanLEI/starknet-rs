@@ -393,6 +393,8 @@ where
             contract_class: self.inner.contract_class.clone(),
             compiled_class_hash: self.inner.compiled_class_hash,
             sender_address: self.account.address(),
+            // TODO: make use of query version tx for estimating fees
+            is_query: false,
         })
     }
 }
@@ -447,6 +449,8 @@ where
             nonce: self.inner.nonce,
             contract_class: Arc::new(compressed_class),
             sender_address: self.account.address(),
+            // TODO: make use of query version tx for estimating fees
+            is_query: false,
         })
     }
 }

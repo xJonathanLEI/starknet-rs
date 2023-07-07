@@ -248,6 +248,8 @@ where
             nonce: self.inner.nonce,
             sender_address: self.account.address(),
             calldata: self.raw_calldata(),
+            // TODO: make use of query version tx for estimating fees
+            is_query: false,
         })
     }
 }
