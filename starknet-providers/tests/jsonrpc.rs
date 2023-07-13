@@ -329,6 +329,8 @@ async fn jsonrpc_estimate_fee() {
                         FieldElement::from_hex_be("3635c9adc5dea00000").unwrap(),
                         FieldElement::from_hex_be("0").unwrap(),
                     ],
+                    // TODO: make use of query version tx for estimating fees
+                    is_query: false,
                 },
             )),
             BlockId::Tag(BlockTag::Latest),

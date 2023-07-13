@@ -182,11 +182,9 @@ pub enum InvokeTransaction {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-#[serde(tag = "version")]
+#[serde(untagged)]
 pub enum BroadcastedInvokeTransaction {
-    #[serde(rename = "0x0")]
     V0(BroadcastedInvokeTransactionV0),
-    #[serde(rename = "0x1")]
     V1(BroadcastedInvokeTransactionV1),
 }
 
@@ -202,11 +200,9 @@ pub enum DeclareTransaction {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-#[serde(tag = "version")]
+#[serde(untagged)]
 pub enum BroadcastedDeclareTransaction {
-    #[serde(rename = "0x1")]
     V1(BroadcastedDeclareTransactionV1),
-    #[serde(rename = "0x2")]
     V2(BroadcastedDeclareTransactionV2),
 }
 
@@ -304,5 +300,46 @@ impl TryFrom<i64> for StarknetError {
             51 => StarknetError::ClassAlreadyDeclared,
             _ => return Err(()),
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_broadcasted_invoke_v1_non_query_deser() {
+        let raw = include_str!("../../test-data/serde/broadcasted_invoke_v1_non_query.json");
+
+        let parsed_objects = [
+            serde_json::from_str::<BroadcastedInvokeTransactionV1>(raw).unwrap(),
+            match serde_json::from_str::<BroadcastedInvokeTransaction>(raw).unwrap() {
+                BroadcastedInvokeTransaction::V1(inner) => inner,
+                _ => panic!("unexpected parsing result"),
+            },
+        ];
+
+        for parsed_object in parsed_objects.into_iter() {
+            assert!(!parsed_object.is_query);
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_broadcasted_invoke_v1_query_deser() {
+        let raw = include_str!("../../test-data/serde/broadcasted_invoke_v1_query.json");
+
+        let parsed_objects = [
+            serde_json::from_str::<BroadcastedInvokeTransactionV1>(raw).unwrap(),
+            match serde_json::from_str::<BroadcastedInvokeTransaction>(raw).unwrap() {
+                BroadcastedInvokeTransaction::V1(inner) => inner,
+                _ => panic!("unexpected parsing result"),
+            },
+        ];
+
+        for parsed_object in parsed_objects.into_iter() {
+            assert!(parsed_object.is_query);
+        }
     }
 }
