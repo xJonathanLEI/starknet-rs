@@ -10,7 +10,7 @@ use starknet_core::{
 };
 use starknet_providers::{
     jsonrpc::{HttpTransport, JsonRpcClient},
-    Provider, ProviderError,
+    MaybeUnknownErrorCode, Provider, ProviderError, StarknetErrorWithMessage,
 };
 use url::Url;
 
@@ -148,7 +148,10 @@ async fn jsonrpc_get_transaction_by_hash_non_existent_tx() {
         .unwrap_err();
 
     match err {
-        ProviderError::StarknetError(StarknetError::TransactionHashNotFound) => {
+        ProviderError::StarknetError(StarknetErrorWithMessage {
+            code: MaybeUnknownErrorCode::Known(StarknetError::TransactionHashNotFound),
+            ..
+        }) => {
             // TXN_HASH_NOT_FOUND
         }
         _ => panic!("Unexpected error"),

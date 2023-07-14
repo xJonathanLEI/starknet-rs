@@ -11,6 +11,7 @@ use starknet_core::types::{
 };
 
 use crate::{
+    provider::{MaybeUnknownErrorCode, StarknetErrorWithMessage},
     sequencer::{
         models::conversions::{ConversionError, TransactionWithReceipt},
         GatewayClientError,
@@ -111,7 +112,10 @@ impl Provider for SequencerGatewayProvider {
             Ok(block.transactions.remove(index).try_into()?)
         } else {
             Err(ProviderError::<Self::Error>::StarknetError(
-                StarknetError::InvalidTransactionIndex,
+                StarknetErrorWithMessage {
+                    code: MaybeUnknownErrorCode::Known(StarknetError::InvalidTransactionIndex),
+                    message: "Invalid transaction index in a block".into(),
+                },
             ))
         }
     }
@@ -132,7 +136,10 @@ impl Provider for SequencerGatewayProvider {
             || receipt.status == super::models::TransactionStatus::Received
         {
             Err(ProviderError::<Self::Error>::StarknetError(
-                StarknetError::TransactionHashNotFound,
+                StarknetErrorWithMessage {
+                    code: MaybeUnknownErrorCode::Known(StarknetError::TransactionHashNotFound),
+                    message: "Transaction hash not found".into(),
+                },
             ))
         } else {
             // JSON-RPC also sends tx type, which is not available in our receipt type

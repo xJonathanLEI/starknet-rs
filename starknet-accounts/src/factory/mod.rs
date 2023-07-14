@@ -8,7 +8,9 @@ use starknet_core::{
         DeployAccountTransactionResult, FeeEstimate, FieldElement, StarknetError,
     },
 };
-use starknet_providers::{Provider, ProviderError};
+use starknet_providers::{
+    MaybeUnknownErrorCode, Provider, ProviderError, StarknetErrorWithMessage,
+};
 use std::error::Error;
 
 pub mod argent;
@@ -177,9 +179,10 @@ where
             .await
         {
             Ok(nonce) => Ok(nonce),
-            Err(ProviderError::StarknetError(StarknetError::ContractNotFound)) => {
-                Ok(FieldElement::ZERO)
-            }
+            Err(ProviderError::StarknetError(StarknetErrorWithMessage {
+                code: MaybeUnknownErrorCode::Known(StarknetError::ContractNotFound),
+                ..
+            })) => Ok(FieldElement::ZERO),
             Err(err) => Err(err),
         }
     }

@@ -14,7 +14,10 @@ use starknet_core::{
     },
 };
 
-use crate::{Provider, ProviderError};
+use crate::{
+    provider::{MaybeUnknownErrorCode, StarknetErrorWithMessage},
+    Provider, ProviderError,
+};
 
 mod transports;
 pub use transports::{HttpTransport, HttpTransportError, JsonRpcTransport};
@@ -173,12 +176,15 @@ where
             .map_err(|err| ProviderError::Other(JsonRpcClientError::TransportError(err)))?
         {
             JsonRpcResponse::Success { result, .. } => Ok(result),
-            JsonRpcResponse::Error { error, .. } => Err(match error.code.try_into() {
-                Ok(code) => ProviderError::StarknetError(code),
-                Err(_) => {
-                    ProviderError::Other(JsonRpcClientError::RpcError(RpcError::Unknown(error)))
-                }
-            }),
+            JsonRpcResponse::Error { error, .. } => {
+                Err(ProviderError::StarknetError(StarknetErrorWithMessage {
+                    code: match error.code.try_into() {
+                        Ok(code) => MaybeUnknownErrorCode::Known(code),
+                        Err(_) => MaybeUnknownErrorCode::Unknown(error.code),
+                    },
+                    message: error.message,
+                }))
+            }
         }
     }
 }
