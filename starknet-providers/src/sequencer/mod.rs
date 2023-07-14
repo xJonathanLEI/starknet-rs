@@ -1,4 +1,4 @@
-use crate::provider::ProviderError;
+use crate::provider::{MaybeUnknownErrorCode, ProviderError, StarknetErrorWithMessage};
 
 use log::trace;
 use reqwest::{Client, Error as ReqwestError, StatusCode};
@@ -443,12 +443,7 @@ impl SequencerGatewayProvider {
                 bytecode: vec![],
                 abi: Some(vec![]),
             }),
-            GetCodeResponse::SequencerError(err) => match err.code.try_into() {
-                Ok(sn_err) => Err(ProviderError::StarknetError(sn_err)),
-                Err(_) => Err(ProviderError::Other(GatewayClientError::SequencerError(
-                    err,
-                ))),
-            },
+            GetCodeResponse::SequencerError(err) => Err(err.into()),
         }
     }
 
@@ -727,25 +722,31 @@ impl SequencerGatewayProvider {
     }
 }
 
-impl TryFrom<ErrorCode> for StarknetError {
-    type Error = ();
+impl From<SequencerError> for ProviderError<GatewayClientError> {
+    fn from(value: SequencerError) -> Self {
+        let matching_code = match value.code {
+            ErrorCode::BlockNotFound => Some(StarknetError::BlockNotFound),
+            ErrorCode::EntryPointNotFoundInContract => None,
+            ErrorCode::InvalidProgram => Some(StarknetError::InvalidContractClass),
+            ErrorCode::TransactionFailed => None,
+            ErrorCode::TransactionNotFound => Some(StarknetError::ContractNotFound),
+            ErrorCode::UninitializedContract => Some(StarknetError::ContractNotFound),
+            ErrorCode::MalformedRequest => None,
+            ErrorCode::UndeclaredClass => Some(StarknetError::ClassHashNotFound),
+            ErrorCode::InvalidTransactionNonce => None,
+            ErrorCode::ClassAlreadyDeclared => Some(StarknetError::ClassAlreadyDeclared),
+            ErrorCode::CompilationFailed => None,
+            ErrorCode::InvalidCompiledClassHash => None,
+            ErrorCode::DuplicatedTransaction => None,
+            ErrorCode::InvalidContractClass => Some(StarknetError::InvalidContractClass),
+        };
 
-    fn try_from(value: ErrorCode) -> Result<Self, Self::Error> {
-        match value {
-            ErrorCode::BlockNotFound => Ok(Self::BlockNotFound),
-            ErrorCode::EntryPointNotFoundInContract => Err(()),
-            ErrorCode::InvalidProgram => Ok(Self::InvalidContractClass),
-            ErrorCode::TransactionFailed => Err(()),
-            ErrorCode::TransactionNotFound => Ok(Self::ContractNotFound),
-            ErrorCode::UninitializedContract => Ok(Self::ContractNotFound),
-            ErrorCode::MalformedRequest => Err(()),
-            ErrorCode::UndeclaredClass => Ok(Self::ClassHashNotFound),
-            ErrorCode::InvalidTransactionNonce => Err(()),
-            ErrorCode::ClassAlreadyDeclared => Ok(Self::ClassAlreadyDeclared),
-            ErrorCode::CompilationFailed => Err(()),
-            ErrorCode::InvalidCompiledClassHash => Err(()),
-            ErrorCode::DuplicatedTransaction => Err(()),
-            ErrorCode::InvalidContractClass => Ok(Self::InvalidContractClass),
+        match matching_code {
+            Some(code) => ProviderError::StarknetError(StarknetErrorWithMessage {
+                code: MaybeUnknownErrorCode::Known(code),
+                message: value.message,
+            }),
+            None => ProviderError::Other(GatewayClientError::SequencerError(value)),
         }
     }
 }
@@ -760,12 +761,7 @@ impl<D> From<GatewayResponse<D>> for Result<D, ProviderError<GatewayClientError>
     fn from(value: GatewayResponse<D>) -> Self {
         match value {
             GatewayResponse::Data(data) => Ok(data),
-            GatewayResponse::SequencerError(err) => match err.code.try_into() {
-                Ok(sn_err) => Err(ProviderError::StarknetError(sn_err)),
-                Err(_) => Err(ProviderError::Other(GatewayClientError::SequencerError(
-                    err,
-                ))),
-            },
+            GatewayResponse::SequencerError(err) => Err(err.into()),
         }
     }
 }
@@ -774,12 +770,7 @@ impl From<RawFieldElementResponse> for Result<FieldElement, ProviderError<Gatewa
     fn from(value: RawFieldElementResponse) -> Self {
         match value {
             RawFieldElementResponse::Data(data) => Ok(data),
-            RawFieldElementResponse::SequencerError(err) => match err.code.try_into() {
-                Ok(sn_err) => Err(ProviderError::StarknetError(sn_err)),
-                Err(_) => Err(ProviderError::Other(GatewayClientError::SequencerError(
-                    err,
-                ))),
-            },
+            RawFieldElementResponse::SequencerError(err) => Err(err.into()),
         }
     }
 }

@@ -219,11 +219,33 @@ pub trait Provider {
 #[derive(Debug, thiserror::Error)]
 pub enum ProviderError<E> {
     #[error(transparent)]
-    StarknetError(StarknetError),
+    StarknetError(StarknetErrorWithMessage),
     #[error("Request rate limited")]
     RateLimited,
     #[error("Array length mismatch")]
     ArrayLengthMismatch,
     #[error(transparent)]
     Other(E),
+}
+
+#[derive(Debug, thiserror::Error)]
+#[error("code={code}, message=\"{message}\"")]
+pub struct StarknetErrorWithMessage {
+    pub code: MaybeUnknownErrorCode,
+    pub message: String,
+}
+
+#[derive(Debug)]
+pub enum MaybeUnknownErrorCode {
+    Known(StarknetError),
+    Unknown(i64),
+}
+
+impl core::fmt::Display for MaybeUnknownErrorCode {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            MaybeUnknownErrorCode::Known(code) => write!(f, "{}", code),
+            MaybeUnknownErrorCode::Unknown(code) => write!(f, "{}", code),
+        }
+    }
 }

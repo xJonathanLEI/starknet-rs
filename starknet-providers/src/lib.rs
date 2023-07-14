@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 
 mod provider;
-pub use provider::{Provider, ProviderError};
+pub use provider::{MaybeUnknownErrorCode, Provider, ProviderError, StarknetErrorWithMessage};
 
 pub mod sequencer;
 pub use sequencer::{

@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#2bf67752dd3200c4d46077e3d2838c9563d2dfa7
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#b956776898ca9f9c92ccc9b8523ff7d82af5c3ad
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -1044,21 +1044,19 @@ impl std::error::Error for StarknetError {}
 impl core::fmt::Display for StarknetError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            Self::FailedToReceiveTransaction => write!(f, "Failed to write transaction"),
-            Self::ContractNotFound => write!(f, "Contract not found"),
-            Self::BlockNotFound => write!(f, "Block not found"),
-            Self::TransactionHashNotFound => write!(f, "Transaction hash not found"),
-            Self::InvalidTransactionIndex => write!(f, "Invalid transaction index in a block"),
-            Self::ClassHashNotFound => write!(f, "Class hash not found"),
-            Self::PageSizeTooBig => write!(f, "Requested page size is too big"),
-            Self::NoBlocks => write!(f, "There are no blocks"),
-            Self::InvalidContinuationToken => {
-                write!(f, "The supplied continuation token is invalid or unknown")
-            }
-            Self::TooManyKeysInFilter => write!(f, "Too many keys provided in a filter"),
-            Self::ContractError => write!(f, "Contract error"),
-            Self::InvalidContractClass => write!(f, "Invalid contract class"),
-            Self::ClassAlreadyDeclared => write!(f, "Class already declared"),
+            Self::FailedToReceiveTransaction => write!(f, "FailedToReceiveTransaction"),
+            Self::ContractNotFound => write!(f, "ContractNotFound"),
+            Self::BlockNotFound => write!(f, "BlockNotFound"),
+            Self::TransactionHashNotFound => write!(f, "TransactionHashNotFound"),
+            Self::InvalidTransactionIndex => write!(f, "InvalidTransactionIndex"),
+            Self::ClassHashNotFound => write!(f, "ClassHashNotFound"),
+            Self::PageSizeTooBig => write!(f, "PageSizeTooBig"),
+            Self::NoBlocks => write!(f, "NoBlocks"),
+            Self::InvalidContinuationToken => write!(f, "InvalidContinuationToken"),
+            Self::TooManyKeysInFilter => write!(f, "TooManyKeysInFilter"),
+            Self::ContractError => write!(f, "ContractError"),
+            Self::InvalidContractClass => write!(f, "InvalidContractClass"),
+            Self::ClassAlreadyDeclared => write!(f, "ClassAlreadyDeclared"),
         }
     }
 }
