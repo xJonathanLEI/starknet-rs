@@ -86,6 +86,8 @@ pub enum ErrorCode {
     InvalidCompiledClassHash,
     #[serde(rename = "StarknetErrorCode.DUPLICATED_TRANSACTION")]
     DuplicatedTransaction,
+    #[serde(rename = "StarknetErrorCode.INVALID_CONTRACT_CLASS")]
+    InvalidContractClass,
 }
 
 impl SequencerGatewayProvider {
@@ -728,6 +730,7 @@ impl TryFrom<ErrorCode> for StarknetError {
             ErrorCode::CompilationFailed => Err(()),
             ErrorCode::InvalidCompiledClassHash => Err(()),
             ErrorCode::DuplicatedTransaction => Err(()),
+            ErrorCode::InvalidContractClass => Ok(Self::InvalidContractClass),
         }
     }
 }
@@ -882,5 +885,16 @@ mod tests {
             }
             _ => panic!("Unexpected result"),
         }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_error_deser_invalid_contract_class() {
+        let error: SequencerError = serde_json::from_str(include_str!(
+            "../../test-data/serde/sequencer_error_invalid_contract_class.json"
+        ))
+        .unwrap();
+
+        assert_eq!(error.code, ErrorCode::InvalidContractClass);
     }
 }
