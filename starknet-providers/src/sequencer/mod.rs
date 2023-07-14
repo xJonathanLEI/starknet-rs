@@ -1,5 +1,6 @@
 use crate::provider::ProviderError;
 
+use log::trace;
 use reqwest::{Client, Error as ReqwestError, StatusCode};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Error as SerdeJsonError;
@@ -189,6 +190,8 @@ impl SequencerGatewayProvider {
     where
         T: DeserializeOwned,
     {
+        trace!("Sending GET request to sequencer API ({})", url);
+
         let res = self
             .client
             .get(url)
@@ -202,6 +205,9 @@ impl SequencerGatewayProvider {
                 .text()
                 .await
                 .map_err(|err| ProviderError::Other(GatewayClientError::Network(err)))?;
+
+            trace!("Response from sequencer API: {}", body);
+
             serde_json::from_str(&body)
                 .map_err(|err| ProviderError::Other(GatewayClientError::Serde(err)))
         }
@@ -216,14 +222,20 @@ impl SequencerGatewayProvider {
         Q: Serialize,
         S: DeserializeOwned,
     {
+        let request_body = serde_json::to_string(body)
+            .map_err(|err| ProviderError::Other(GatewayClientError::Serde(err)))?;
+
+        trace!(
+            "Sending POST request to sequencer API ({}): {}",
+            url,
+            request_body
+        );
+
         let res = self
             .client
             .post(url)
             .header("Content-Type", "application/json")
-            .body(
-                serde_json::to_string(body)
-                    .map_err(|err| ProviderError::Other(GatewayClientError::Serde(err)))?,
-            )
+            .body(request_body)
             .send()
             .await
             .map_err(|err| ProviderError::Other(GatewayClientError::Network(err)))?;
@@ -234,6 +246,9 @@ impl SequencerGatewayProvider {
                 .text()
                 .await
                 .map_err(|err| ProviderError::Other(GatewayClientError::Network(err)))?;
+
+            trace!("Response from sequencer API: {}", body);
+
             serde_json::from_str(&body)
                 .map_err(|err| ProviderError::Other(GatewayClientError::Serde(err)))
         }
