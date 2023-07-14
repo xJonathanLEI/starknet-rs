@@ -18,8 +18,9 @@ async-trait = "0.1.68"
 auto_impl = "1.0.1"
 ethereum-types = "0.14.1"
 flate2 = "1.0.25"
+log = "0.4.19"
 url = "2.3.1"
-reqwest = { version = "0.11.16", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.11.16", default-features = false, features = ["rustls-tls"] }
 thiserror = "1.0.40"
 serde = "1.0.160"
 serde_json = "1.0.96"
