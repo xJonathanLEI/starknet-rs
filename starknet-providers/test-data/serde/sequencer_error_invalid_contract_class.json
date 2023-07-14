@@ -1,0 +1,4 @@
+{
+  "code": "StarknetErrorCode.INVALID_CONTRACT_CLASS",
+  "message": "Compiled versions older than 1.1.0 are not supported. Got version 17.1.0."
+}
