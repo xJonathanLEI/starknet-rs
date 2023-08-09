@@ -46,6 +46,9 @@ curl -o ./get_block/14_deploy_account.txt "https://alpha4.starknet.io/feeder_gat
 # ./get_block/15_declare_v2.txt
 curl -o ./get_block/15_declare_v2.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=788322"
 
+# ./get_block/16_with_reverted_tx.txt
+curl -o ./get_block/16_with_reverted_tx.txt "https://alpha4.starknet.io/feeder_gateway/get_block?blockNumber=843893"
+
 # ./get_code/1_code.txt
 curl -o ./get_code/1_code.txt "https://alpha4.starknet.io/feeder_gateway/get_code?contractAddress=0x05ffd28b3ff2eecd6da0fa64c90e928a9f46f1563976a4fe1770ab48ee43506a"
 
@@ -70,6 +73,9 @@ curl -o ./get_transaction/5_declare_v1.txt "https://alpha4.starknet.io/feeder_ga
 # ./get_transaction/6_declare_v2.txt
 curl -o ./get_transaction/6_declare_v2.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction?transactionHash=0x4c0955d59cd105eb916d0cf24eb12c01be435fe83d95cd184e32a035c85c1d3"
 
+# ./get_transaction/7_reverted.txt
+curl -o ./get_transaction/7_reverted.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction?transactionHash=0x555c9392299727de9d3d6c85dd5db94f63a0994e698386d85c12b16f71fbfd0"
+
 # ./get_transaction_receipt/1_accepted.txt
 curl -o ./get_transaction_receipt/1_accepted.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_receipt?transactionHash=0x7cb73f737a8ea0c5c94d7799c2d01a47c81f4cb34287408741264d3f09655da"
 
@@ -88,6 +94,9 @@ curl -o ./get_transaction_receipt/5_declare_v1.txt "https://alpha4.starknet.io/f
 # ./get_transaction_receipt/6_declare_v2.txt
 curl -o ./get_transaction_receipt/6_declare_v2.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_receipt?transactionHash=0x4c0955d59cd105eb916d0cf24eb12c01be435fe83d95cd184e32a035c85c1d3"
 
+# ./get_transaction_receipt/7_reverted.txt
+curl -o ./get_transaction_receipt/7_reverted.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_receipt?transactionHash=0x555c9392299727de9d3d6c85dd5db94f63a0994e698386d85c12b16f71fbfd0"
+
 # ./get_transaction_status/1_accepted.txt
 curl -o ./get_transaction_status/1_accepted.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_status?transactionHash=0x7cb73f737a8ea0c5c94d7799c2d01a47c81f4cb34287408741264d3f09655da"
 
@@ -96,6 +105,9 @@ curl -o ./get_transaction_status/2_not_received.txt "https://alpha4.starknet.io/
 
 # ./get_transaction_status/3_failure.txt
 curl -o ./get_transaction_status/3_failure.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_status?transactionHash=0x533d327336f28b973c7f06f7abf15af7f8fd5a1bd4e1991397ae59e49a59885"
+
+# ./get_transaction_status/4_reverted.txt
+curl -o ./get_transaction_status/4_reverted.txt "https://alpha4.starknet.io/feeder_gateway/get_transaction_status?transactionHash=0x555c9392299727de9d3d6c85dd5db94f63a0994e698386d85c12b16f71fbfd0"
 
 # ./get_state_update/1_success.txt
 curl -o ./get_state_update/1_success.txt "https://alpha4.starknet.io/feeder_gateway/get_state_update?blockNumber=70004"

@@ -1,1 +1,1 @@
-{"tx_status": "NOT_RECEIVED"}
+{"tx_status": "NOT_RECEIVED", "finality_status": "NOT_RECEIVED", "execution_status": null}

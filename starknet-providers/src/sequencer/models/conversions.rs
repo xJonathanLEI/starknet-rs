@@ -375,6 +375,9 @@ impl TryFrom<TransactionWithReceipt> for core::MaybePendingTransactionReceipt {
             TransactionStatus::Rejected | TransactionStatus::AcceptedOnL1 => {
                 Ok(Self::Receipt(value.try_into()?))
             }
+            // JSON-RPC spec 0.3.0 is not able to handle reverted receipts.
+            // TODO: handle this properly once we move to 0.4.0
+            TransactionStatus::Reverted => Err(ConversionError),
         }
     }
 }
@@ -653,6 +656,9 @@ impl TryFrom<TransactionStatus> for core::TransactionStatus {
             TransactionStatus::Rejected => Ok(Self::Rejected),
             TransactionStatus::AcceptedOnL2 => Ok(Self::AcceptedOnL2),
             TransactionStatus::AcceptedOnL1 => Ok(Self::AcceptedOnL1),
+            // JSON-RPC spec 0.3.0 is not able to handle reverted receipts.
+            // TODO: handle this properly once we move to 0.4.0
+            TransactionStatus::Reverted => Err(ConversionError),
         }
     }
 }

@@ -20,6 +20,14 @@ pub struct Receipt {
     pub execution_resources: Option<ExecutionResources>,
     pub l1_to_l2_consumed_message: Option<L1ToL2Message>,
     pub l2_to_l1_messages: Vec<L2ToL1Message>,
+    #[serde(default)]
+    pub execution_status: Option<TransactionExecutionStatus>,
+    #[serde(default)]
+    pub revert_error: Option<String>,
+    // This field is actually always present since v0.12.1, but we're keeping it optional until
+    // mainnet is upgraded.
+    #[serde(default)]
+    pub finality_status: Option<TransactionFinalityStatus>,
     pub status: TransactionStatus,
     pub transaction_failure_reason: Option<TransactionFailureReason>,
     #[serde_as(as = "UfeHex")]
@@ -36,6 +44,12 @@ pub struct ConfirmedReceipt {
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
     pub transaction_index: u64,
+    // This field is actually always present since v0.12.1, but we're keeping it optional until
+    // mainnet is upgraded.
+    #[serde(default)]
+    pub execution_status: Option<TransactionExecutionStatus>,
+    #[serde(default)]
+    pub revert_error: Option<String>,
     #[serde(default)]
     pub execution_resources: Option<ExecutionResources>,
     pub l1_to_l2_consumed_message: Option<L1ToL2Message>,
@@ -58,9 +72,29 @@ pub enum TransactionStatus {
     /// The transaction failed validation and was skipped (applies both to a
     /// pending and actual created block)
     Rejected,
+    Reverted,
     /// Transaction passed teh validation and entered a created block
     AcceptedOnL2,
     /// Transaction was accepted on-chain
+    AcceptedOnL1,
+}
+
+#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub enum TransactionExecutionStatus {
+    Succeeded,
+    Reverted,
+    Rejected,
+}
+
+#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub enum TransactionFinalityStatus {
+    NotReceived,
+    Received,
+    AcceptedOnL2,
     AcceptedOnL1,
 }
 
@@ -201,58 +235,10 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_transaction_status_deser_accepted_on_l2() {
-        // note that the hashes coming from the API can be shorter
-        // by a byte or two than the FieldElement into which we serialize into,
-        // that's why there's extra 0 in the FieldElement::from_str values
-
-        // curl -X GET https://alpha4.starknet.io/feeder_gateway/get_transaction_status\?transactionHash\=0x5d76420c7e7002c20d54c93fc8dbd056638f1a35a654748fc0647fda1a3f088
-        let raw = r#"{
-            "tx_status": "ACCEPTED_ON_L2",
-            "block_hash": "0x7b44bda3371fa91541e719493b1638b71c7ccf2304dc67bbadb028dbfa16dec"
-        }"#;
-
-        let tx: TransactionStatusInfo = serde_json::from_str(raw).unwrap();
-        assert_eq!(tx.status, TransactionStatus::AcceptedOnL2);
-        assert_eq!(
-            tx.block_hash.unwrap(),
-            FieldElement::from_hex_be(
-                "0x07b44bda3371fa91541e719493b1638b71c7ccf2304dc67bbadb028dbfa16dec",
-            )
-            .unwrap()
+    fn test_receipt_deser_reverted_tx() {
+        let raw = include_str!(
+            "../../../test-data/raw_gateway_responses/get_transaction_receipt/7_reverted.txt"
         );
-    }
-
-    #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_transaction_status_deser_accepted_on_l1() {
-        // curl -X GET https://alpha4.starknet.io/feeder_gateway/get_transaction_status\?transactionHash\=0x10f2462bd8d90ad7242f16c5432f5ca6a53d2846592c6170242e032a5f836a
-        let raw = r#"{
-            "tx_status": "ACCEPTED_ON_L1",
-            "block_hash": "0x5da543f8121c912cd2a80ae386f1aa6d4df626695742cf870c85690bb1ab60"
-        }"#;
-
-        let tx: TransactionStatusInfo = serde_json::from_str(raw).unwrap();
-        assert_eq!(tx.status, TransactionStatus::AcceptedOnL1);
-        assert_eq!(
-            tx.block_hash.unwrap(),
-            FieldElement::from_hex_be(
-                "0x005da543f8121c912cd2a80ae386f1aa6d4df626695742cf870c85690bb1ab60"
-            )
-            .unwrap()
-        );
-    }
-
-    #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_transaction_status_deser_rejected() {
-        let raw = r#"{
-            "tx_status": "REJECTED",
-            "block_hash": ""
-        }"#;
-
-        let tx: TransactionStatusInfo = serde_json::from_str(raw).unwrap();
-        assert_eq!(tx.status, TransactionStatus::Rejected);
-        assert!(tx.block_hash.is_none());
+        serde_json::from_str::<Receipt>(raw).unwrap();
     }
 }
