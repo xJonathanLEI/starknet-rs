@@ -1,8 +1,8 @@
 use starknet_core::{
     types::{
         BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1,
-        BroadcastedTransaction, ContractClass, EventFilter, FieldElement, FunctionCall,
-        InvokeTransaction, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
+        BroadcastedTransaction, ContractClass, DeclareTransaction, EventFilter, FieldElement,
+        FunctionCall, InvokeTransaction, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
         MaybePendingStateUpdate, MaybePendingTransactionReceipt, StarknetError, SyncStatusType,
         Transaction, TransactionReceipt,
     },
@@ -100,7 +100,7 @@ async fn jsonrpc_get_storage_at() {
 }
 
 #[tokio::test]
-async fn jsonrpc_get_transaction_by_hash() {
+async fn jsonrpc_get_transaction_by_hash_invoke_v0() {
     let rpc_client = create_jsonrpc_client();
 
     let tx = rpc_client
@@ -119,6 +119,160 @@ async fn jsonrpc_get_transaction_by_hash() {
     };
 
     assert!(tx.entry_point_selector > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_transaction_by_hash_invoke_v1() {
+    let rpc_client = create_jsonrpc_client();
+
+    let tx = rpc_client
+        .get_transaction_by_hash(
+            FieldElement::from_hex_be(
+                "028736cab16e67b4bed7ec5805ecd2636e7e800c2b0311b561e43fb4987cd70a",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let tx = match tx {
+        Transaction::Invoke(InvokeTransaction::V1(tx)) => tx,
+        _ => panic!("unexpected tx response type"),
+    };
+
+    assert!(tx.sender_address > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_transaction_by_hash_l1_handler() {
+    let rpc_client = create_jsonrpc_client();
+
+    let tx = rpc_client
+        .get_transaction_by_hash(
+            FieldElement::from_hex_be(
+                "0374286ae28f201e61ffbc5b022cc9701208640b405ea34ea9799f97d5d2d23c",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let tx = match tx {
+        Transaction::L1Handler(tx) => tx,
+        _ => panic!("unexpected tx response type"),
+    };
+
+    assert!(tx.entry_point_selector > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_transaction_by_hash_declare_v0() {
+    let rpc_client = create_jsonrpc_client();
+
+    let tx = rpc_client
+        .get_transaction_by_hash(
+            FieldElement::from_hex_be(
+                "021933cb48e59c74caa4575a78e89e6046d043505e5600fd88af7f051d3610ca",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let tx = match tx {
+        Transaction::Declare(DeclareTransaction::V0(tx)) => tx,
+        _ => panic!("unexpected tx response type"),
+    };
+
+    assert!(tx.sender_address > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_transaction_by_hash_declare_v1() {
+    let rpc_client = create_jsonrpc_client();
+
+    let tx = rpc_client
+        .get_transaction_by_hash(
+            FieldElement::from_hex_be(
+                "0618cc1e0ed68521ae8ee33595db8b0e33adaa9548837d4c824c83e99ad18f37",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let tx = match tx {
+        Transaction::Declare(DeclareTransaction::V1(tx)) => tx,
+        _ => panic!("unexpected tx response type"),
+    };
+
+    assert!(tx.sender_address > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_transaction_by_hash_declare_v2() {
+    let rpc_client = create_jsonrpc_client();
+
+    let tx = rpc_client
+        .get_transaction_by_hash(
+            FieldElement::from_hex_be(
+                "06c3b4729c1a303cef6fa60754ab012cd0759f2e8cf55cf0c008e10b9d420ca2",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let tx = match tx {
+        Transaction::Declare(DeclareTransaction::V2(tx)) => tx,
+        _ => panic!("unexpected tx response type"),
+    };
+
+    assert!(tx.sender_address > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_transaction_by_hash_deploy() {
+    let rpc_client = create_jsonrpc_client();
+
+    let tx = rpc_client
+        .get_transaction_by_hash(
+            FieldElement::from_hex_be(
+                "018b1ef66488f0e48bcf0bcdb367148352fe9180bc5d6505e9af843e6a51ff5d",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let tx = match tx {
+        Transaction::Deploy(tx) => tx,
+        _ => panic!("unexpected tx response type"),
+    };
+
+    assert!(tx.class_hash > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_transaction_by_hash_deploy_account() {
+    let rpc_client = create_jsonrpc_client();
+
+    let tx = rpc_client
+        .get_transaction_by_hash(
+            FieldElement::from_hex_be(
+                "058ba7cdaf437d3a3b9680e6cbb4169811cddfa693875812bd98a8b1d61278de",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let tx = match tx {
+        Transaction::DeployAccount(tx) => tx,
+        _ => panic!("unexpected tx response type"),
+    };
+
+    assert!(tx.class_hash > FieldElement::ZERO);
 }
 
 #[tokio::test]
