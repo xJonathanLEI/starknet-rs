@@ -7,7 +7,7 @@ use starknet_core::types::{
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-    MaybePendingTransactionReceipt, StarknetError, SyncStatusType, Transaction,
+    MaybePendingTransactionReceipt, MsgFromL1, StarknetError, SyncStatusType, Transaction,
 };
 
 use crate::{
@@ -255,6 +255,24 @@ impl Provider for SequencerGatewayProvider {
             .into_iter()
             .map(|est| est.into())
             .collect())
+    }
+
+    async fn estimate_message_fee<M, B>(
+        &self,
+        message: M,
+        block_id: B,
+    ) -> Result<FeeEstimate, ProviderError<Self::Error>>
+    where
+        M: AsRef<MsgFromL1> + Send + Sync,
+        B: AsRef<BlockId> + Send + Sync,
+    {
+        Ok(self
+            .estimate_message_fee(
+                message.as_ref().to_owned().into(),
+                block_id.as_ref().to_owned().into(),
+            )
+            .await?
+            .into())
     }
 
     async fn block_number(&self) -> Result<u64, ProviderError<Self::Error>> {

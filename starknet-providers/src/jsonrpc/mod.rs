@@ -9,8 +9,8 @@ use starknet_core::{
         ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
         EventFilterWithPage, EventsPage, FeeEstimate, FieldElement, FunctionCall,
         InvokeTransactionResult, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
-        MaybePendingStateUpdate, MaybePendingTransactionReceipt, ResultPageRequest, StarknetError,
-        SyncStatusType, Transaction,
+        MaybePendingStateUpdate, MaybePendingTransactionReceipt, MsgFromL1, ResultPageRequest,
+        StarknetError, SyncStatusType, Transaction,
     },
 };
 
@@ -55,6 +55,8 @@ pub enum JsonRpcMethod {
     Call,
     #[serde(rename = "starknet_estimateFee")]
     EstimateFee,
+    #[serde(rename = "starknet_estimateMessageFee")]
+    EstimateMessageFee,
     #[serde(rename = "starknet_blockNumber")]
     BlockNumber,
     #[serde(rename = "starknet_blockHashAndNumber")]
@@ -98,6 +100,7 @@ pub enum JsonRpcRequestData {
     GetBlockTransactionCount(GetBlockTransactionCountRequest),
     Call(CallRequest),
     EstimateFee(EstimateFeeRequest),
+    EstimateMessageFee(EstimateMessageFeeRequest),
     BlockNumber(BlockNumberRequest),
     BlockHashAndNumber(BlockHashAndNumberRequest),
     ChainId(ChainIdRequest),
@@ -447,6 +450,26 @@ where
         .await
     }
 
+    /// Estimate the L2 fee of a message sent on L1
+    async fn estimate_message_fee<M, B>(
+        &self,
+        message: M,
+        block_id: B,
+    ) -> Result<FeeEstimate, ProviderError<Self::Error>>
+    where
+        M: AsRef<MsgFromL1> + Send + Sync,
+        B: AsRef<BlockId> + Send + Sync,
+    {
+        self.send_request(
+            JsonRpcMethod::EstimateMessageFee,
+            EstimateMessageFeeRequestRef {
+                message: message.as_ref(),
+                block_id: block_id.as_ref(),
+            },
+        )
+        .await
+    }
+
     /// Get the most recent accepted block number
     async fn block_number(&self) -> Result<u64, ProviderError<Self::Error>> {
         self.send_request(JsonRpcMethod::BlockNumber, BlockNumberRequest)
@@ -652,6 +675,10 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
             ),
             JsonRpcMethod::EstimateFee => JsonRpcRequestData::EstimateFee(
                 serde_json::from_value::<EstimateFeeRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::EstimateMessageFee => JsonRpcRequestData::EstimateMessageFee(
+                serde_json::from_value::<EstimateMessageFeeRequest>(raw_request.params)
                     .map_err(error_mapper)?,
             ),
             JsonRpcMethod::BlockNumber => JsonRpcRequestData::BlockNumber(

@@ -7,8 +7,8 @@ use crate::Call;
 use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
-        BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1, BroadcastedTransaction,
-        FeeEstimate, FieldElement, InvokeTransactionResult,
+        BroadcastedInvokeTransaction, BroadcastedTransaction, FeeEstimate, FieldElement,
+        InvokeTransactionResult,
     },
 };
 use starknet_providers::Provider;
@@ -155,7 +155,7 @@ where
         self.account
             .provider()
             .estimate_fee_single(
-                BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction::V1(invoke)),
+                BroadcastedTransaction::Invoke(invoke),
                 self.account.block_id(),
             )
             .await
@@ -231,7 +231,7 @@ where
             .map_err(AccountError::Signing)?;
         self.account
             .provider()
-            .add_invoke_transaction(BroadcastedInvokeTransaction::V1(tx_request))
+            .add_invoke_transaction(tx_request)
             .await
             .map_err(AccountError::Provider)
     }
@@ -239,10 +239,10 @@ where
     // The `simulate` function is temporarily removed until it's supported in [Provider]
     // TODO: add `simulate` back once transaction simulation in supported
 
-    pub async fn get_invoke_request(&self) -> Result<BroadcastedInvokeTransactionV1, A::SignError> {
+    pub async fn get_invoke_request(&self) -> Result<BroadcastedInvokeTransaction, A::SignError> {
         let signature = self.account.sign_execution(&self.inner).await?;
 
-        Ok(BroadcastedInvokeTransactionV1 {
+        Ok(BroadcastedInvokeTransaction {
             max_fee: self.inner.max_fee,
             signature,
             nonce: self.inner.nonce,

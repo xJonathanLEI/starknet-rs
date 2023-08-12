@@ -6,7 +6,7 @@ use starknet_core::types::{
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-    MaybePendingTransactionReceipt, StarknetError, SyncStatusType, Transaction,
+    MaybePendingTransactionReceipt, MsgFromL1, StarknetError, SyncStatusType, Transaction,
 };
 use std::error::Error;
 
@@ -133,6 +133,15 @@ pub trait Provider {
     ) -> Result<Vec<FeeEstimate>, ProviderError<Self::Error>>
     where
         R: AsRef<[BroadcastedTransaction]> + Send + Sync,
+        B: AsRef<BlockId> + Send + Sync;
+
+    async fn estimate_message_fee<M, B>(
+        &self,
+        message: M,
+        block_id: B,
+    ) -> Result<FeeEstimate, ProviderError<Self::Error>>
+    where
+        M: AsRef<MsgFromL1> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync;
 
     /// Get the most recent accepted block number

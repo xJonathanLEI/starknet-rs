@@ -727,18 +727,18 @@ impl From<SequencerError> for ProviderError<GatewayClientError> {
         let matching_code = match value.code {
             ErrorCode::BlockNotFound => Some(StarknetError::BlockNotFound),
             ErrorCode::EntryPointNotFoundInContract => None,
-            ErrorCode::InvalidProgram => Some(StarknetError::InvalidContractClass),
-            ErrorCode::TransactionFailed => None,
+            ErrorCode::InvalidProgram => Some(StarknetError::ContractError),
+            ErrorCode::TransactionFailed => Some(StarknetError::ValidationFailure),
             ErrorCode::TransactionNotFound => Some(StarknetError::ContractNotFound),
             ErrorCode::UninitializedContract => Some(StarknetError::ContractNotFound),
             ErrorCode::MalformedRequest => None,
             ErrorCode::UndeclaredClass => Some(StarknetError::ClassHashNotFound),
-            ErrorCode::InvalidTransactionNonce => None,
+            ErrorCode::InvalidTransactionNonce => Some(StarknetError::InvalidTransactionNonce),
             ErrorCode::ClassAlreadyDeclared => Some(StarknetError::ClassAlreadyDeclared),
-            ErrorCode::CompilationFailed => None,
-            ErrorCode::InvalidCompiledClassHash => None,
-            ErrorCode::DuplicatedTransaction => None,
-            ErrorCode::InvalidContractClass => Some(StarknetError::InvalidContractClass),
+            ErrorCode::CompilationFailed => Some(StarknetError::CompilationFailed),
+            ErrorCode::InvalidCompiledClassHash => Some(StarknetError::CompiledClassHashMismatch),
+            ErrorCode::DuplicatedTransaction => Some(StarknetError::DuplicateTx),
+            ErrorCode::InvalidContractClass => Some(StarknetError::ContractError),
         };
 
         match matching_code {

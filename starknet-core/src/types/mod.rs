@@ -16,22 +16,28 @@ mod codegen;
 pub use codegen::{
     BlockStatus, BlockTag, BlockWithTxHashes, BlockWithTxs, BroadcastedDeclareTransactionV1,
     BroadcastedDeclareTransactionV2, BroadcastedDeployAccountTransaction,
-    BroadcastedInvokeTransactionV0, BroadcastedInvokeTransactionV1, CompressedLegacyContractClass,
-    ContractStorageDiffItem, DeclareTransactionReceipt, DeclareTransactionV0, DeclareTransactionV1,
-    DeclareTransactionV2, DeclaredClassItem, DeployAccountTransaction,
-    DeployAccountTransactionReceipt, DeployTransaction, DeployTransactionReceipt,
-    DeployedContractItem, EmittedEvent, EntryPointsByType, Event, EventFilter, EventFilterWithPage,
-    EventsChunk, FeeEstimate, FlattenedSierraClass, FunctionCall, FunctionStateMutability,
-    InvokeTransactionReceipt, InvokeTransactionV0, InvokeTransactionV1, L1HandlerTransaction,
-    L1HandlerTransactionReceipt, LegacyContractEntryPoint, LegacyEntryPointsByType,
-    LegacyEventAbiEntry, LegacyEventAbiType, LegacyFunctionAbiEntry, LegacyFunctionAbiType,
-    LegacyStructAbiEntry, LegacyStructAbiType, LegacyStructMember, LegacyTypedParameter, MsgToL1,
-    NonceUpdate, PendingBlockWithTxHashes, PendingBlockWithTxs, PendingDeclareTransactionReceipt,
+    BroadcastedInvokeTransaction, CompressedLegacyContractClass, ContractStorageDiffItem,
+    DeclareTransactionReceipt, DeclareTransactionV0, DeclareTransactionV1, DeclareTransactionV2,
+    DeclaredClassItem, DeployAccountTransaction, DeployAccountTransactionReceipt,
+    DeployTransaction, DeployTransactionReceipt, DeployedContractItem, EmittedEvent,
+    EntryPointsByType, Event, EventFilter, EventFilterWithPage, EventsChunk, FeeEstimate,
+    FlattenedSierraClass, FunctionCall, FunctionStateMutability, InvokeTransactionReceipt,
+    InvokeTransactionV0, InvokeTransactionV1, L1HandlerTransaction, L1HandlerTransactionReceipt,
+    LegacyContractEntryPoint, LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType,
+    LegacyFunctionAbiEntry, LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType,
+    LegacyStructMember, LegacyTypedParameter, MsgFromL1, MsgToL1, NonceUpdate,
+    PendingBlockWithTxHashes, PendingBlockWithTxs, PendingDeclareTransactionReceipt,
     PendingDeployAccountTransactionReceipt, PendingDeployTransactionReceipt,
     PendingInvokeTransactionReceipt, PendingL1HandlerTransactionReceipt, PendingStateUpdate,
     ReplacedClassItem, ResultPageRequest, SierraEntryPoint, StarknetError, StateDiff, StateUpdate,
-    StorageEntry, SyncStatus, TransactionStatus,
+    StorageEntry, SyncStatus, TransactionExecutionStatus, TransactionFinalityStatus,
 };
+
+pub mod eth_address;
+pub use eth_address::EthAddress;
+
+mod execution_result;
+pub use execution_result::ExecutionResult;
 
 // TODO: move generated request code to `starknet-providers`
 pub mod requests;
@@ -182,13 +188,6 @@ pub enum InvokeTransaction {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-#[serde(untagged)]
-pub enum BroadcastedInvokeTransaction {
-    V0(BroadcastedInvokeTransactionV0),
-    V1(BroadcastedInvokeTransactionV1),
-}
-
-#[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "version")]
 pub enum DeclareTransaction {
     #[serde(rename = "0x0")]
@@ -300,6 +299,20 @@ impl MaybePendingTransactionReceipt {
             MaybePendingTransactionReceipt::PendingReceipt(receipt) => receipt.transaction_hash(),
         }
     }
+
+    pub fn finality_status(&self) -> &TransactionFinalityStatus {
+        match self {
+            MaybePendingTransactionReceipt::Receipt(receipt) => receipt.finality_status(),
+            MaybePendingTransactionReceipt::PendingReceipt(receipt) => receipt.finality_status(),
+        }
+    }
+
+    pub fn execution_result(&self) -> &ExecutionResult {
+        match self {
+            MaybePendingTransactionReceipt::Receipt(receipt) => receipt.execution_result(),
+            MaybePendingTransactionReceipt::PendingReceipt(receipt) => receipt.execution_result(),
+        }
+    }
 }
 
 impl TransactionReceipt {
@@ -310,6 +323,26 @@ impl TransactionReceipt {
             TransactionReceipt::Declare(receipt) => &receipt.transaction_hash,
             TransactionReceipt::Deploy(receipt) => &receipt.transaction_hash,
             TransactionReceipt::DeployAccount(receipt) => &receipt.transaction_hash,
+        }
+    }
+
+    pub fn finality_status(&self) -> &TransactionFinalityStatus {
+        match self {
+            TransactionReceipt::Invoke(receipt) => &receipt.finality_status,
+            TransactionReceipt::L1Handler(receipt) => &receipt.finality_status,
+            TransactionReceipt::Declare(receipt) => &receipt.finality_status,
+            TransactionReceipt::Deploy(receipt) => &receipt.finality_status,
+            TransactionReceipt::DeployAccount(receipt) => &receipt.finality_status,
+        }
+    }
+
+    pub fn execution_result(&self) -> &ExecutionResult {
+        match self {
+            TransactionReceipt::Invoke(receipt) => &receipt.execution_result,
+            TransactionReceipt::L1Handler(receipt) => &receipt.execution_result,
+            TransactionReceipt::Declare(receipt) => &receipt.execution_result,
+            TransactionReceipt::Deploy(receipt) => &receipt.execution_result,
+            TransactionReceipt::DeployAccount(receipt) => &receipt.execution_result,
         }
     }
 }
@@ -324,6 +357,20 @@ impl PendingTransactionReceipt {
             PendingTransactionReceipt::DeployAccount(receipt) => &receipt.transaction_hash,
         }
     }
+
+    pub fn finality_status(&self) -> &TransactionFinalityStatus {
+        &TransactionFinalityStatus::AcceptedOnL2
+    }
+
+    pub fn execution_result(&self) -> &ExecutionResult {
+        match self {
+            PendingTransactionReceipt::Invoke(receipt) => &receipt.execution_result,
+            PendingTransactionReceipt::L1Handler(receipt) => &receipt.execution_result,
+            PendingTransactionReceipt::Declare(receipt) => &receipt.execution_result,
+            PendingTransactionReceipt::Deploy(receipt) => &receipt.execution_result,
+            PendingTransactionReceipt::DeployAccount(receipt) => &receipt.execution_result,
+        }
+    }
 }
 
 impl AsRef<BlockId> for BlockId {
@@ -334,6 +381,12 @@ impl AsRef<BlockId> for BlockId {
 
 impl AsRef<FunctionCall> for FunctionCall {
     fn as_ref(&self) -> &FunctionCall {
+        self
+    }
+}
+
+impl AsRef<MsgFromL1> for MsgFromL1 {
+    fn as_ref(&self) -> &MsgFromL1 {
         self
     }
 }
@@ -370,16 +423,36 @@ impl TryFrom<i64> for StarknetError {
             1 => StarknetError::FailedToReceiveTransaction,
             20 => StarknetError::ContractNotFound,
             24 => StarknetError::BlockNotFound,
-            25 => StarknetError::TransactionHashNotFound,
             27 => StarknetError::InvalidTransactionIndex,
             28 => StarknetError::ClassHashNotFound,
+            // JSON-RPC v0.4.0 changes this error code from 25 to 29. Technically we should just
+            // ignore 25 for good, but since most methods are otherwise identical to v0.3.0,
+            // accepting the value of 25 here allows some degree of compatibility, meaning some use
+            // cases can still be run against a v0.3.0 endpoint even though the library itself only
+            // officially supports v0.4.0. This can be beneficial as v0.3.0 is still widely
+            // deployed.
+            //
+            // TODO: remove this line once JSON-RPC v0.3.0 is phased out
+            25 => StarknetError::TransactionHashNotFound,
+            29 => StarknetError::TransactionHashNotFound,
             31 => StarknetError::PageSizeTooBig,
             32 => StarknetError::NoBlocks,
             33 => StarknetError::InvalidContinuationToken,
             34 => StarknetError::TooManyKeysInFilter,
             40 => StarknetError::ContractError,
-            50 => StarknetError::InvalidContractClass,
             51 => StarknetError::ClassAlreadyDeclared,
+            52 => StarknetError::InvalidTransactionNonce,
+            53 => StarknetError::InsufficientMaxFee,
+            54 => StarknetError::InsufficientAccountBalance,
+            55 => StarknetError::ValidationFailure,
+            56 => StarknetError::CompilationFailed,
+            57 => StarknetError::ContractClassSizeIsTooLarge,
+            58 => StarknetError::NonAccount,
+            59 => StarknetError::DuplicateTx,
+            60 => StarknetError::CompiledClassHashMismatch,
+            61 => StarknetError::UnsupportedTxVersion,
+            62 => StarknetError::UnsupportedContractClassVersion,
+            63 => StarknetError::UnexpectedError,
             _ => return Err(()),
         })
     }
@@ -394,17 +467,8 @@ mod tests {
     fn test_broadcasted_invoke_v1_non_query_deser() {
         let raw = include_str!("../../test-data/serde/broadcasted_invoke_v1_non_query.json");
 
-        let parsed_objects = [
-            serde_json::from_str::<BroadcastedInvokeTransactionV1>(raw).unwrap(),
-            match serde_json::from_str::<BroadcastedInvokeTransaction>(raw).unwrap() {
-                BroadcastedInvokeTransaction::V1(inner) => inner,
-                _ => panic!("unexpected parsing result"),
-            },
-        ];
-
-        for parsed_object in parsed_objects.into_iter() {
-            assert!(!parsed_object.is_query);
-        }
+        let parsed_object = serde_json::from_str::<BroadcastedInvokeTransaction>(raw).unwrap();
+        assert!(!parsed_object.is_query);
     }
 
     #[test]
@@ -412,16 +476,7 @@ mod tests {
     fn test_broadcasted_invoke_v1_query_deser() {
         let raw = include_str!("../../test-data/serde/broadcasted_invoke_v1_query.json");
 
-        let parsed_objects = [
-            serde_json::from_str::<BroadcastedInvokeTransactionV1>(raw).unwrap(),
-            match serde_json::from_str::<BroadcastedInvokeTransaction>(raw).unwrap() {
-                BroadcastedInvokeTransaction::V1(inner) => inner,
-                _ => panic!("unexpected parsing result"),
-            },
-        ];
-
-        for parsed_object in parsed_objects.into_iter() {
-            assert!(parsed_object.is_query);
-        }
+        let parsed_object = serde_json::from_str::<BroadcastedInvokeTransaction>(raw).unwrap();
+        assert!(parsed_object.is_query);
     }
 }

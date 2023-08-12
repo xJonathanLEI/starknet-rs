@@ -142,7 +142,6 @@ impl TryFrom<DeclareTransaction> for core::DeclareTransaction {
                 transaction_hash: value.transaction_hash,
                 max_fee: value.max_fee,
                 signature: value.signature,
-                nonce: value.nonce,
                 class_hash: value.class_hash,
                 sender_address: value.sender_address,
             }))
@@ -208,7 +207,6 @@ impl TryFrom<InvokeFunctionTransaction> for core::InvokeTransaction {
                 transaction_hash: value.transaction_hash,
                 max_fee: value.max_fee,
                 signature: value.signature,
-                nonce: value.nonce.unwrap_or_default(),
                 contract_address: value.sender_address,
                 entry_point_selector: value.entry_point_selector.ok_or(ConversionError)?,
                 calldata: value.calldata,
@@ -365,7 +363,7 @@ impl TryFrom<TransactionWithReceipt> for core::MaybePendingTransactionReceipt {
             // Transactions with `AcceptedOnL2` can live in a pending block and thus not have block
             // hash. The JSON-RPC side requires `block_hash` to be present so we can only interpret
             // it as pending if `block_hash` is missing.
-            TransactionStatus::AcceptedOnL2 => {
+            TransactionStatus::AcceptedOnL2 | TransactionStatus::Reverted => {
                 if value.receipt.block_hash.is_some() {
                     Ok(Self::Receipt(value.try_into()?))
                 } else {
@@ -375,9 +373,6 @@ impl TryFrom<TransactionWithReceipt> for core::MaybePendingTransactionReceipt {
             TransactionStatus::Rejected | TransactionStatus::AcceptedOnL1 => {
                 Ok(Self::Receipt(value.try_into()?))
             }
-            // JSON-RPC spec 0.3.0 is not able to handle reverted receipts.
-            // TODO: handle this properly once we move to 0.4.0
-            TransactionStatus::Reverted => Err(ConversionError),
         }
     }
 }
@@ -423,6 +418,11 @@ impl TryFrom<TransactionReceipt> for core::PendingDeclareTransactionReceipt {
                 .map(|item| item.into())
                 .collect(),
             events: value.events.into_iter().map(|item| item.into()).collect(),
+            execution_result: convert_execution_result(
+                value.status,
+                value.execution_status,
+                value.revert_error,
+            )?,
         })
     }
 }
@@ -450,6 +450,11 @@ impl TryFrom<TransactionWithReceipt> for core::PendingDeployTransactionReceipt {
                 Some(TransactionType::Deploy(inner)) => inner.contract_address,
                 _ => return Err(ConversionError),
             },
+            execution_result: convert_execution_result(
+                value.receipt.status,
+                value.receipt.execution_status,
+                value.receipt.revert_error,
+            )?,
         })
     }
 }
@@ -467,6 +472,11 @@ impl TryFrom<TransactionReceipt> for core::PendingDeployAccountTransactionReceip
                 .map(|item| item.into())
                 .collect(),
             events: value.events.into_iter().map(|item| item.into()).collect(),
+            execution_result: convert_execution_result(
+                value.status,
+                value.execution_status,
+                value.revert_error,
+            )?,
         })
     }
 }
@@ -484,6 +494,11 @@ impl TryFrom<TransactionReceipt> for core::PendingInvokeTransactionReceipt {
                 .map(|item| item.into())
                 .collect(),
             events: value.events.into_iter().map(|item| item.into()).collect(),
+            execution_result: convert_execution_result(
+                value.status,
+                value.execution_status,
+                value.revert_error,
+            )?,
         })
     }
 }
@@ -501,6 +516,11 @@ impl TryFrom<TransactionReceipt> for core::PendingL1HandlerTransactionReceipt {
                 .map(|item| item.into())
                 .collect(),
             events: value.events.into_iter().map(|item| item.into()).collect(),
+            execution_result: convert_execution_result(
+                value.status,
+                value.execution_status,
+                value.revert_error,
+            )?,
         })
     }
 }
@@ -512,7 +532,7 @@ impl TryFrom<TransactionReceipt> for core::DeclareTransactionReceipt {
         Ok(Self {
             transaction_hash: value.transaction_hash,
             actual_fee: value.actual_fee.ok_or(ConversionError)?,
-            status: value.status.try_into()?,
+            finality_status: value.finality_status.ok_or(ConversionError)?.try_into()?,
             block_hash: value.block_hash.ok_or(ConversionError)?,
             block_number: value.block_number.ok_or(ConversionError)?,
             messages_sent: value
@@ -521,6 +541,11 @@ impl TryFrom<TransactionReceipt> for core::DeclareTransactionReceipt {
                 .map(|item| item.into())
                 .collect(),
             events: value.events.into_iter().map(|item| item.into()).collect(),
+            execution_result: convert_execution_result(
+                value.status,
+                value.execution_status,
+                value.revert_error,
+            )?,
         })
     }
 }
@@ -532,7 +557,11 @@ impl TryFrom<TransactionWithReceipt> for core::DeployTransactionReceipt {
         Ok(Self {
             transaction_hash: value.receipt.transaction_hash,
             actual_fee: value.receipt.actual_fee.ok_or(ConversionError)?,
-            status: value.receipt.status.try_into()?,
+            finality_status: value
+                .receipt
+                .finality_status
+                .ok_or(ConversionError)?
+                .try_into()?,
             block_hash: value.receipt.block_hash.ok_or(ConversionError)?,
             block_number: value.receipt.block_number.ok_or(ConversionError)?,
             messages_sent: value
@@ -551,6 +580,11 @@ impl TryFrom<TransactionWithReceipt> for core::DeployTransactionReceipt {
                 Some(TransactionType::Deploy(inner)) => inner.contract_address,
                 _ => return Err(ConversionError),
             },
+            execution_result: convert_execution_result(
+                value.receipt.status,
+                value.receipt.execution_status,
+                value.receipt.revert_error,
+            )?,
         })
     }
 }
@@ -562,7 +596,11 @@ impl TryFrom<TransactionWithReceipt> for core::DeployAccountTransactionReceipt {
         Ok(Self {
             transaction_hash: value.receipt.transaction_hash,
             actual_fee: value.receipt.actual_fee.ok_or(ConversionError)?,
-            status: value.receipt.status.try_into()?,
+            finality_status: value
+                .receipt
+                .finality_status
+                .ok_or(ConversionError)?
+                .try_into()?,
             block_hash: value.receipt.block_hash.ok_or(ConversionError)?,
             block_number: value.receipt.block_number.ok_or(ConversionError)?,
             messages_sent: value
@@ -581,6 +619,11 @@ impl TryFrom<TransactionWithReceipt> for core::DeployAccountTransactionReceipt {
                 Some(TransactionType::DeployAccount(inner)) => inner.contract_address,
                 _ => return Err(ConversionError),
             },
+            execution_result: convert_execution_result(
+                value.receipt.status,
+                value.receipt.execution_status,
+                value.receipt.revert_error,
+            )?,
         })
     }
 }
@@ -592,7 +635,7 @@ impl TryFrom<TransactionReceipt> for core::InvokeTransactionReceipt {
         Ok(Self {
             transaction_hash: value.transaction_hash,
             actual_fee: value.actual_fee.ok_or(ConversionError)?,
-            status: value.status.try_into()?,
+            finality_status: value.finality_status.ok_or(ConversionError)?.try_into()?,
             block_hash: value.block_hash.ok_or(ConversionError)?,
             block_number: value.block_number.ok_or(ConversionError)?,
             messages_sent: value
@@ -601,6 +644,11 @@ impl TryFrom<TransactionReceipt> for core::InvokeTransactionReceipt {
                 .map(|item| item.into())
                 .collect(),
             events: value.events.into_iter().map(|item| item.into()).collect(),
+            execution_result: convert_execution_result(
+                value.status,
+                value.execution_status,
+                value.revert_error,
+            )?,
         })
     }
 }
@@ -612,7 +660,7 @@ impl TryFrom<TransactionReceipt> for core::L1HandlerTransactionReceipt {
         Ok(Self {
             transaction_hash: value.transaction_hash,
             actual_fee: value.actual_fee.ok_or(ConversionError)?,
-            status: value.status.try_into()?,
+            finality_status: value.finality_status.ok_or(ConversionError)?.try_into()?,
             block_hash: value.block_hash.ok_or(ConversionError)?,
             block_number: value.block_number.ok_or(ConversionError)?,
             messages_sent: value
@@ -621,6 +669,11 @@ impl TryFrom<TransactionReceipt> for core::L1HandlerTransactionReceipt {
                 .map(|item| item.into())
                 .collect(),
             events: value.events.into_iter().map(|item| item.into()).collect(),
+            execution_result: convert_execution_result(
+                value.status,
+                value.execution_status,
+                value.revert_error,
+            )?,
         })
     }
 }
@@ -636,6 +689,17 @@ impl From<L2ToL1Message> for core::MsgToL1 {
     }
 }
 
+impl From<core::MsgFromL1> for CallL1Handler {
+    fn from(value: core::MsgFromL1) -> Self {
+        Self {
+            from_address: L1Address::from_slice(value.from_address.as_bytes()),
+            to_address: value.to_address,
+            entry_point_selector: value.entry_point_selector,
+            payload: value.payload,
+        }
+    }
+}
+
 impl From<Event> for core::Event {
     fn from(value: Event) -> Self {
         Self {
@@ -646,19 +710,27 @@ impl From<Event> for core::Event {
     }
 }
 
-impl TryFrom<TransactionStatus> for core::TransactionStatus {
+impl TryFrom<TransactionExecutionStatus> for core::TransactionExecutionStatus {
     type Error = ConversionError;
 
-    fn try_from(value: TransactionStatus) -> Result<Self, Self::Error> {
+    fn try_from(value: TransactionExecutionStatus) -> Result<Self, Self::Error> {
         match value {
-            TransactionStatus::NotReceived | TransactionStatus::Received => Err(ConversionError),
-            TransactionStatus::Pending => Ok(Self::Pending),
-            TransactionStatus::Rejected => Ok(Self::Rejected),
-            TransactionStatus::AcceptedOnL2 => Ok(Self::AcceptedOnL2),
-            TransactionStatus::AcceptedOnL1 => Ok(Self::AcceptedOnL1),
-            // JSON-RPC spec 0.3.0 is not able to handle reverted receipts.
-            // TODO: handle this properly once we move to 0.4.0
-            TransactionStatus::Reverted => Err(ConversionError),
+            TransactionExecutionStatus::Succeeded => Ok(Self::Succeeded),
+            TransactionExecutionStatus::Reverted => Ok(Self::Reverted),
+            TransactionExecutionStatus::Rejected => Err(ConversionError),
+        }
+    }
+}
+
+impl TryFrom<TransactionFinalityStatus> for core::TransactionFinalityStatus {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionFinalityStatus) -> Result<Self, Self::Error> {
+        match value {
+            TransactionFinalityStatus::NotReceived => Err(ConversionError),
+            TransactionFinalityStatus::Received => Err(ConversionError),
+            TransactionFinalityStatus::AcceptedOnL2 => Ok(Self::AcceptedOnL2),
+            TransactionFinalityStatus::AcceptedOnL1 => Ok(Self::AcceptedOnL1),
         }
     }
 }
@@ -689,27 +761,6 @@ impl TryFrom<core::BroadcastedTransaction> for AccountTransaction {
 
 impl From<core::BroadcastedInvokeTransaction> for InvokeFunctionTransactionRequest {
     fn from(value: core::BroadcastedInvokeTransaction) -> Self {
-        match value {
-            core::BroadcastedInvokeTransaction::V0(inner) => inner.into(),
-            core::BroadcastedInvokeTransaction::V1(inner) => inner.into(),
-        }
-    }
-}
-
-impl From<core::BroadcastedInvokeTransactionV0> for InvokeFunctionTransactionRequest {
-    fn from(value: core::BroadcastedInvokeTransactionV0) -> Self {
-        Self {
-            sender_address: value.contract_address,
-            calldata: value.calldata,
-            signature: value.signature,
-            max_fee: value.max_fee,
-            nonce: value.nonce,
-        }
-    }
-}
-
-impl From<core::BroadcastedInvokeTransactionV1> for InvokeFunctionTransactionRequest {
-    fn from(value: core::BroadcastedInvokeTransactionV1) -> Self {
         Self {
             sender_address: value.sender_address,
             calldata: value.calldata,
@@ -825,6 +876,41 @@ impl TryFrom<DeployedClass> for core::ContractClass {
                 Ok(Self::Legacy(inner.compress().map_err(|_| ConversionError)?))
             }
         }
+    }
+}
+
+fn convert_execution_result(
+    status: TransactionStatus,
+    execution_status: Option<TransactionExecutionStatus>,
+    revert_error: Option<String>,
+) -> Result<core::ExecutionResult, ConversionError> {
+    match (execution_status, revert_error) {
+        (None, None) => {
+            // This is a response from pre-v0.12.1
+            match status {
+                TransactionStatus::Pending
+                | TransactionStatus::AcceptedOnL2
+                | TransactionStatus::AcceptedOnL1 => {
+                    // Pre-v0.12.1 transactions are always successful as long as they're in a block
+                    Ok(core::ExecutionResult::Succeeded)
+                }
+                TransactionStatus::NotReceived
+                | TransactionStatus::Received
+                | TransactionStatus::Rejected
+                | TransactionStatus::Reverted => {
+                    // Otherwise it's a status not representable in JSON-RPC
+                    Err(ConversionError)
+                }
+            }
+        }
+        (Some(TransactionExecutionStatus::Succeeded), None) => Ok(core::ExecutionResult::Succeeded),
+        (Some(TransactionExecutionStatus::Reverted), Some(revert_error)) => {
+            Ok(core::ExecutionResult::Reverted {
+                reason: revert_error,
+            })
+        }
+        // All other combinations are illegal
+        _ => Err(ConversionError),
     }
 }
 

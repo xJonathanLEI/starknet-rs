@@ -21,7 +21,7 @@ mod transaction_receipt;
 pub use transaction_receipt::{
     BuiltinInstanceCounter, ConfirmedReceipt as ConfirmedTransactionReceipt, Event,
     ExecutionResources, L1ToL2Message, L2ToL1Message, Receipt as TransactionReceipt,
-    TransactionStatus,
+    TransactionExecutionStatus, TransactionFinalityStatus, TransactionStatus,
 };
 
 mod contract_addresses;
