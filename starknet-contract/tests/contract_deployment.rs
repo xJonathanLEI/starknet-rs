@@ -3,7 +3,7 @@ use starknet_accounts::SingleOwnerAccount;
 use starknet_contract::ContractFactory;
 use starknet_core::{
     chain_id,
-    types::{contract::legacy::LegacyContractClass, FieldElement},
+    types::{contract::legacy::LegacyContractClass, BlockId, BlockTag, FieldElement},
 };
 use starknet_providers::{jsonrpc::HttpTransport, JsonRpcClient};
 use starknet_signers::{LocalWallet, SigningKey};
@@ -25,7 +25,8 @@ async fn can_deploy_contract_to_alpha_goerli() {
         "02da37a17affbd2df4ede7120dae305ec36dfe94ec96a8c3f49bbf59f4e9a9fa",
     )
     .unwrap();
-    let account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
+    let mut account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
+    account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let artifact = serde_json::from_str::<LegacyContractClass>(include_str!(
         "../test-data/cairo0/artifacts/oz_account.txt"
