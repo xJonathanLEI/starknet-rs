@@ -5,7 +5,10 @@ use starknet_core::{
     types::FieldElement,
 };
 
-use super::TransactionStatus;
+use super::{
+    transaction_receipt::{TransactionExecutionStatus, TransactionFinalityStatus},
+    TransactionStatus,
+};
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
@@ -27,6 +30,15 @@ pub struct TransactionStatusInfo {
     pub block_hash: Option<FieldElement>,
     #[serde(alias = "tx_status")]
     pub status: TransactionStatus,
+    // This field is actually always present since v0.12.1, but we're keeping it optional until
+    // mainnet is upgraded.
+    #[serde(default)]
+    pub finality_status: Option<TransactionFinalityStatus>,
+    #[serde(default)]
+    #[serde(alias = "tx_revert_reason")]
+    pub transaction_revert_reason: Option<String>,
+    #[serde(default)]
+    pub execution_status: Option<TransactionExecutionStatus>,
     #[serde(alias = "tx_failure_reason")]
     pub transaction_failure_reason: Option<TransactionFailureReason>,
 }
@@ -46,6 +58,14 @@ pub struct TransactionInfo {
     pub block_hash: Option<FieldElement>,
     pub block_number: Option<u64>,
     pub status: TransactionStatus,
+    // This field is actually always present since v0.12.1, but we're keeping it optional until
+    // mainnet is upgraded.
+    #[serde(default)]
+    pub finality_status: Option<TransactionFinalityStatus>,
+    #[serde(default)]
+    pub revert_error: Option<String>,
+    #[serde(default)]
+    pub execution_status: Option<TransactionExecutionStatus>,
     #[serde(rename(deserialize = "transaction"))]
     pub r#type: Option<TransactionType>,
     pub transaction_failure_reason: Option<TransactionFailureReason>,
@@ -267,6 +287,19 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_deser_reverted() {
+        let raw =
+            include_str!("../../../test-data/raw_gateway_responses/get_transaction/7_reverted.txt");
+        let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
+
+        match tx.execution_status.unwrap() {
+            TransactionExecutionStatus::Reverted => {}
+            _ => panic!("Unexpected execution status"),
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_brief_accepted() {
         let raw = include_str!(
             "../../../test-data/raw_gateway_responses/get_transaction_status/1_accepted.txt"
@@ -315,15 +348,16 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_deser_brief_pending() {
+    fn test_deser_brief_reverted() {
         let raw = include_str!(
-            "../../../test-data/raw_gateway_responses/get_transaction_status/manual/1_pending.txt"
+            "../../../test-data/raw_gateway_responses/get_transaction_status/4_reverted.txt"
         );
 
         let tx: TransactionStatusInfo = serde_json::from_str(raw).unwrap();
 
-        assert_eq!(tx.status, TransactionStatus::Pending);
-        assert!(tx.block_hash.is_none());
+        assert_eq!(tx.status, TransactionStatus::Reverted);
+        assert!(tx.block_hash.is_some());
         assert!(tx.transaction_failure_reason.is_none());
+        assert!(tx.transaction_revert_reason.is_some());
     }
 }

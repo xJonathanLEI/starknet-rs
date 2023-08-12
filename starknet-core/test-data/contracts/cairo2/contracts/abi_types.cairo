@@ -33,7 +33,7 @@ mod AbiTypes {
         ExampleEnum::variant_a(100)
     }
 
-    #[external]
+    #[external(v0)]
     fn example_external_function(
         ref self: ContractState, recipient: ContractAddress, amount: u256
     ) -> ExampleStruct {
