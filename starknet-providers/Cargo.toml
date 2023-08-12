@@ -11,6 +11,7 @@ description = """
 Provider implementations for the starknet crate
 """
 keywords = ["ethereum", "starknet", "web3"]
+exclude = ["test-data/**"]
 
 [dependencies]
 starknet-core = { version = "0.5.1", path = "../starknet-core" }

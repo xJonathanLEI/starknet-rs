@@ -11,6 +11,7 @@ description = """
 Core structures for the starknet crate
 """
 keywords = ["ethereum", "starknet", "web3"]
+exclude = ["test-data/**"]
 
 [package.metadata.docs.rs]
 all-features = true

@@ -11,6 +11,7 @@ description = """
 Types and utilities for Starknet smart contract deployment and interaction
 """
 keywords = ["ethereum", "starknet", "web3"]
+exclude = ["test-data/**"]
 
 [dependencies]
 starknet-core = { version = "0.5.1", path = "../starknet-core" }

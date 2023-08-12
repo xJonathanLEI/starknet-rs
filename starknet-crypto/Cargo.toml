@@ -11,6 +11,7 @@ description = """
 Low-level cryptography utilities for Starknet
 """
 keywords = ["ethereum", "starknet", "web3", "no_std"]
+exclude = ["test-data/**"]
 
 [dependencies]
 starknet-crypto-codegen = { version = "0.3.2", path = "../starknet-crypto-codegen" }
