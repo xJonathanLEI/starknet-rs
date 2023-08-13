@@ -244,6 +244,88 @@ pub enum LegacyContractAbiEntry {
     Struct(LegacyStructAbiEntry),
 }
 
+impl MaybePendingBlockWithTxHashes {
+    pub fn transactions(&self) -> &[FieldElement] {
+        match self {
+            MaybePendingBlockWithTxHashes::Block(block) => &block.transactions,
+            MaybePendingBlockWithTxHashes::PendingBlock(block) => &block.transactions,
+        }
+    }
+}
+
+impl MaybePendingBlockWithTxs {
+    pub fn transactions(&self) -> &[Transaction] {
+        match self {
+            MaybePendingBlockWithTxs::Block(block) => &block.transactions,
+            MaybePendingBlockWithTxs::PendingBlock(block) => &block.transactions,
+        }
+    }
+}
+
+impl Transaction {
+    pub fn transaction_hash(&self) -> &FieldElement {
+        match self {
+            Transaction::Invoke(tx) => tx.transaction_hash(),
+            Transaction::L1Handler(tx) => &tx.transaction_hash,
+            Transaction::Declare(tx) => tx.transaction_hash(),
+            Transaction::Deploy(tx) => &tx.transaction_hash,
+            Transaction::DeployAccount(tx) => &tx.transaction_hash,
+        }
+    }
+}
+
+impl InvokeTransaction {
+    pub fn transaction_hash(&self) -> &FieldElement {
+        match self {
+            InvokeTransaction::V0(tx) => &tx.transaction_hash,
+            InvokeTransaction::V1(tx) => &tx.transaction_hash,
+        }
+    }
+}
+
+impl DeclareTransaction {
+    pub fn transaction_hash(&self) -> &FieldElement {
+        match self {
+            DeclareTransaction::V0(tx) => &tx.transaction_hash,
+            DeclareTransaction::V1(tx) => &tx.transaction_hash,
+            DeclareTransaction::V2(tx) => &tx.transaction_hash,
+        }
+    }
+}
+
+impl MaybePendingTransactionReceipt {
+    pub fn transaction_hash(&self) -> &FieldElement {
+        match self {
+            MaybePendingTransactionReceipt::Receipt(receipt) => receipt.transaction_hash(),
+            MaybePendingTransactionReceipt::PendingReceipt(receipt) => receipt.transaction_hash(),
+        }
+    }
+}
+
+impl TransactionReceipt {
+    pub fn transaction_hash(&self) -> &FieldElement {
+        match self {
+            TransactionReceipt::Invoke(receipt) => &receipt.transaction_hash,
+            TransactionReceipt::L1Handler(receipt) => &receipt.transaction_hash,
+            TransactionReceipt::Declare(receipt) => &receipt.transaction_hash,
+            TransactionReceipt::Deploy(receipt) => &receipt.transaction_hash,
+            TransactionReceipt::DeployAccount(receipt) => &receipt.transaction_hash,
+        }
+    }
+}
+
+impl PendingTransactionReceipt {
+    pub fn transaction_hash(&self) -> &FieldElement {
+        match self {
+            PendingTransactionReceipt::Invoke(receipt) => &receipt.transaction_hash,
+            PendingTransactionReceipt::L1Handler(receipt) => &receipt.transaction_hash,
+            PendingTransactionReceipt::Declare(receipt) => &receipt.transaction_hash,
+            PendingTransactionReceipt::Deploy(receipt) => &receipt.transaction_hash,
+            PendingTransactionReceipt::DeployAccount(receipt) => &receipt.transaction_hash,
+        }
+    }
+}
+
 impl AsRef<BlockId> for BlockId {
     fn as_ref(&self) -> &BlockId {
         self
