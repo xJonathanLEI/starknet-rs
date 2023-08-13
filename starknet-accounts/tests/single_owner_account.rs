@@ -24,8 +24,7 @@ fn create_sequencer_client() -> SequencerGatewayProvider {
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     JsonRpcClient::new(HttpTransport::new(
-        url::Url::parse("https://starknet-goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161")
-            .unwrap(),
+        url::Url::parse("https://rpc-goerli-1.starknet.rs/rpc/v0.4").unwrap(),
     ))
 }
 

@@ -12,8 +12,7 @@ use url::Url;
 #[tokio::test]
 async fn can_deploy_contract_to_alpha_goerli() {
     let provider = JsonRpcClient::new(HttpTransport::new(
-        Url::parse("https://starknet-goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161")
-            .unwrap(),
+        Url::parse("https://rpc-goerli-1.starknet.rs/rpc/v0.4").unwrap(),
     ));
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be(

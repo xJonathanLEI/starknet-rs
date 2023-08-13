@@ -5,7 +5,7 @@ use starknet_core::types::{
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-    MaybePendingTransactionReceipt, SyncStatusType, Transaction,
+    MaybePendingTransactionReceipt, MsgFromL1, SyncStatusType, Transaction,
 };
 
 use crate::{
@@ -340,6 +340,31 @@ impl Provider for AnyProvider {
             Self::SequencerGateway(inner) => Ok(
                 <SequencerGatewayProvider as Provider>::estimate_fee(inner, request, block_id)
                     .await?,
+            ),
+        }
+    }
+
+    async fn estimate_message_fee<M, B>(
+        &self,
+        message: M,
+        block_id: B,
+    ) -> Result<FeeEstimate, ProviderError<Self::Error>>
+    where
+        M: AsRef<MsgFromL1> + Send + Sync,
+        B: AsRef<BlockId> + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => Ok(
+                <JsonRpcClient<HttpTransport> as Provider>::estimate_message_fee(
+                    inner, message, block_id,
+                )
+                .await?,
+            ),
+            Self::SequencerGateway(inner) => Ok(
+                <SequencerGatewayProvider as Provider>::estimate_message_fee(
+                    inner, message, block_id,
+                )
+                .await?,
             ),
         }
     }

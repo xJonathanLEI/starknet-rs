@@ -21,7 +21,7 @@ starknet-crypto = { version = "0.6.0", path = "../starknet-crypto", default-feat
 starknet-ff = { version = "0.3.4", path = "../starknet-ff", default-features = false, features = ["serde"] }
 base64 = { version = "0.21.0", default-features = false, features = ["alloc"] }
 flate2 = { version = "1.0.25", optional = true }
-hex = { version = "0.4.3", default-features = false }
+hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 serde = { version = "1.0.160", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0.96", default-features = false, features = ["alloc", "raw_value"] }
 serde_json_pythonic = { version = "0.1.2", default-features = false, features = ["alloc", "raw_value"] }

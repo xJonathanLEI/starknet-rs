@@ -1,10 +1,10 @@
 use starknet_core::{
     types::{
-        BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1,
-        BroadcastedTransaction, ContractClass, DeclareTransaction, EventFilter, FieldElement,
-        FunctionCall, InvokeTransaction, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
-        MaybePendingStateUpdate, MaybePendingTransactionReceipt, StarknetError, SyncStatusType,
-        Transaction, TransactionReceipt,
+        BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedTransaction, ContractClass,
+        DeclareTransaction, EthAddress, EventFilter, ExecutionResult, FieldElement, FunctionCall,
+        InvokeTransaction, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
+        MaybePendingStateUpdate, MaybePendingTransactionReceipt, MsgFromL1, StarknetError,
+        SyncStatusType, Transaction, TransactionReceipt,
     },
     utils::{get_selector_from_name, get_storage_var_address},
 };
@@ -16,8 +16,7 @@ use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     JsonRpcClient::new(HttpTransport::new(
-        Url::parse("https://starknet-goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161")
-            .unwrap(),
+        Url::parse("https://rpc-goerli-1.starknet.rs/rpc/v0.4").unwrap(),
     ))
 }
 
@@ -100,6 +99,7 @@ async fn jsonrpc_get_storage_at() {
 }
 
 #[tokio::test]
+#[ignore = "skipped until pathfinder fixes the INVOKE v0 bug"]
 async fn jsonrpc_get_transaction_by_hash_invoke_v0() {
     let rpc_client = create_jsonrpc_client();
 
@@ -166,6 +166,7 @@ async fn jsonrpc_get_transaction_by_hash_l1_handler() {
 }
 
 #[tokio::test]
+#[ignore = "skipped until pathfinder fixes the DECLARE v0 bug"]
 async fn jsonrpc_get_transaction_by_hash_declare_v0() {
     let rpc_client = create_jsonrpc_client();
 
@@ -276,6 +277,7 @@ async fn jsonrpc_get_transaction_by_hash_deploy_account() {
 }
 
 #[tokio::test]
+#[ignore = "skipped until pathfinder fixes the INVOKE v0 bug"]
 async fn jsonrpc_get_transaction_by_block_id_and_index() {
     let rpc_client = create_jsonrpc_client();
 
@@ -331,7 +333,35 @@ async fn jsonrpc_get_transaction_receipt_invoke() {
         _ => panic!("unexpected receipt response type"),
     };
 
-    assert!(receipt.block_number > 0);
+    match receipt.execution_result {
+        ExecutionResult::Succeeded => {}
+        _ => panic!("unexpected execution result"),
+    }
+}
+
+#[tokio::test]
+async fn jsonrpc_get_transaction_receipt_invoke_reverted() {
+    let rpc_client = create_jsonrpc_client();
+
+    let receipt = rpc_client
+        .get_transaction_receipt(
+            FieldElement::from_hex_be(
+                "0x555c9392299727de9d3d6c85dd5db94f63a0994e698386d85c12b16f71fbfd0",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let receipt = match receipt {
+        MaybePendingTransactionReceipt::Receipt(TransactionReceipt::Invoke(receipt)) => receipt,
+        _ => panic!("unexpected receipt response type"),
+    };
+
+    match receipt.execution_result {
+        ExecutionResult::Reverted { .. } => {}
+        _ => panic!("unexpected execution result"),
+    }
 }
 
 #[tokio::test]
@@ -353,7 +383,10 @@ async fn jsonrpc_get_transaction_receipt_l1_handler() {
         _ => panic!("unexpected receipt response type"),
     };
 
-    assert!(receipt.block_number > 0);
+    match receipt.execution_result {
+        ExecutionResult::Succeeded => {}
+        _ => panic!("unexpected execution result"),
+    }
 }
 
 #[tokio::test]
@@ -375,7 +408,10 @@ async fn jsonrpc_get_transaction_receipt_declare() {
         _ => panic!("unexpected receipt response type"),
     };
 
-    assert!(receipt.block_number > 0);
+    match receipt.execution_result {
+        ExecutionResult::Succeeded => {}
+        _ => panic!("unexpected execution result"),
+    }
 }
 
 #[tokio::test]
@@ -397,7 +433,10 @@ async fn jsonrpc_get_transaction_receipt_deploy() {
         _ => panic!("unexpected receipt response type"),
     };
 
-    assert!(receipt.block_number > 0);
+    match receipt.execution_result {
+        ExecutionResult::Succeeded => {}
+        _ => panic!("unexpected execution result"),
+    }
 }
 
 #[tokio::test]
@@ -421,7 +460,10 @@ async fn jsonrpc_get_transaction_receipt_deploy_account() {
         _ => panic!("unexpected receipt response type"),
     };
 
-    assert!(receipt.block_number > 0);
+    match receipt.execution_result {
+        ExecutionResult::Succeeded => {}
+        _ => panic!("unexpected execution result"),
+    }
 }
 
 #[tokio::test]
@@ -561,48 +603,75 @@ async fn jsonrpc_estimate_fee() {
 
     let estimate = rpc_client
         .estimate_fee_single(
-            &BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction::V1(
-                BroadcastedInvokeTransactionV1 {
-                    max_fee: FieldElement::ZERO,
-                    signature: vec![
-                        FieldElement::from_hex_be(
-                            "156a781f12e8743bd07e20a4484154fd0baccee95d9ea791c121c916ad44ee0",
-                        )
-                        .unwrap(),
-                        FieldElement::from_hex_be(
-                            "7228267473c670cbb86a644f8696973db978c51acde19431d3f1f8f100794c6",
-                        )
-                        .unwrap(),
-                    ],
-                    nonce: FieldElement::ZERO,
-                    sender_address: FieldElement::from_hex_be(
+            &BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction {
+                max_fee: FieldElement::ZERO,
+                signature: vec![
+                    FieldElement::from_hex_be(
+                        "156a781f12e8743bd07e20a4484154fd0baccee95d9ea791c121c916ad44ee0",
+                    )
+                    .unwrap(),
+                    FieldElement::from_hex_be(
+                        "7228267473c670cbb86a644f8696973db978c51acde19431d3f1f8f100794c6",
+                    )
+                    .unwrap(),
+                ],
+                nonce: FieldElement::ZERO,
+                sender_address: FieldElement::from_hex_be(
+                    "5b5e9f6f6fb7d2647d81a8b2c2b99cbc9cc9d03d705576d7061812324dca5c0",
+                )
+                .unwrap(),
+                calldata: vec![
+                    FieldElement::from_hex_be("1").unwrap(),
+                    FieldElement::from_hex_be(
+                        "7394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
+                    )
+                    .unwrap(),
+                    FieldElement::from_hex_be(
+                        "2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+                    )
+                    .unwrap(),
+                    FieldElement::from_hex_be("0").unwrap(),
+                    FieldElement::from_hex_be("3").unwrap(),
+                    FieldElement::from_hex_be("3").unwrap(),
+                    FieldElement::from_hex_be(
                         "5b5e9f6f6fb7d2647d81a8b2c2b99cbc9cc9d03d705576d7061812324dca5c0",
                     )
                     .unwrap(),
-                    calldata: vec![
-                        FieldElement::from_hex_be("1").unwrap(),
-                        FieldElement::from_hex_be(
-                            "7394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
-                        )
-                        .unwrap(),
-                        FieldElement::from_hex_be(
-                            "2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
-                        )
-                        .unwrap(),
-                        FieldElement::from_hex_be("0").unwrap(),
-                        FieldElement::from_hex_be("3").unwrap(),
-                        FieldElement::from_hex_be("3").unwrap(),
-                        FieldElement::from_hex_be(
-                            "5b5e9f6f6fb7d2647d81a8b2c2b99cbc9cc9d03d705576d7061812324dca5c0",
-                        )
-                        .unwrap(),
-                        FieldElement::from_hex_be("3635c9adc5dea00000").unwrap(),
-                        FieldElement::from_hex_be("0").unwrap(),
-                    ],
-                    // TODO: make use of query version tx for estimating fees
-                    is_query: false,
-                },
-            )),
+                    FieldElement::from_hex_be("3635c9adc5dea00000").unwrap(),
+                    FieldElement::from_hex_be("0").unwrap(),
+                ],
+                // TODO: make use of query version tx for estimating fees
+                is_query: false,
+            }),
+            BlockId::Tag(BlockTag::Latest),
+        )
+        .await
+        .unwrap();
+
+    assert!(estimate.gas_consumed > 0);
+    assert!(estimate.gas_price > 0);
+    assert!(estimate.overall_fee > 0);
+}
+
+#[tokio::test]
+async fn jsonrpc_estimate_message_fee() {
+    let rpc_client = create_jsonrpc_client();
+
+    let estimate = rpc_client
+        .estimate_message_fee(
+            MsgFromL1 {
+                from_address: EthAddress::from_hex("0x0000000000000000000000000000000000000001")
+                    .unwrap(),
+                to_address: FieldElement::from_hex_be(
+                    "07f7a88dc030eed907b634e2968693801ff56fdf71156a08f2c8e24aeb95371c",
+                )
+                .unwrap(),
+                entry_point_selector: FieldElement::from_hex_be(
+                    "00654a5600553e6e9d7023c67f1f597cebe39b6ba6b2a6cd63d86ec96d49d909",
+                )
+                .unwrap(),
+                payload: vec![FieldElement::ONE],
+            },
             BlockId::Tag(BlockTag::Latest),
         )
         .await
