@@ -12,12 +12,13 @@ use starknet_providers::{
     jsonrpc::{HttpTransport, JsonRpcClient},
     MaybeUnknownErrorCode, Provider, ProviderError, StarknetErrorWithMessage,
 };
+use std::env;
 use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
-    JsonRpcClient::new(HttpTransport::new(
-        Url::parse("https://rpc-goerli-1.starknet.rs/rpc/v0.4").unwrap(),
-    ))
+    let rpc_url =
+        env::var("STARKNET_RPC").unwrap_or("https://rpc-goerli-1.starknet.rs/rpc/v0.4".to_string());
+    JsonRpcClient::new(HttpTransport::new(Url::parse(rpc_url.as_str()).unwrap()))
 }
 
 #[tokio::test]
