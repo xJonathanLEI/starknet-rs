@@ -15,9 +15,9 @@ use starknet_providers::{
 use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
-    JsonRpcClient::new(HttpTransport::new(
-        Url::parse("https://rpc-goerli-1.starknet.rs/rpc/v0.4").unwrap(),
-    ))
+    let rpc_url =
+        std::env::var("STARKNET_RPC").unwrap_or("https://rpc-goerli-1.starknet.rs/rpc/v0.4".into());
+    JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()))
 }
 
 #[tokio::test]
