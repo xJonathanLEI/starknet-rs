@@ -16,7 +16,6 @@ use starknet_providers::{
     Provider, SequencerGatewayProvider,
 };
 use starknet_signers::{LocalWallet, SigningKey};
-use std::env;
 use std::sync::Arc;
 
 fn create_sequencer_client() -> SequencerGatewayProvider {
@@ -25,10 +24,8 @@ fn create_sequencer_client() -> SequencerGatewayProvider {
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     let rpc_url =
-        env::var("STARKNET_RPC").unwrap_or("https://rpc-goerli-1.starknet.rs/rpc/v0.4".to_string());
-    JsonRpcClient::new(HttpTransport::new(
-        url::Url::parse(rpc_url.as_str()).unwrap(),
-    ))
+        std::env::var("STARKNET_RPC").unwrap_or("https://rpc-goerli-1.starknet.rs/rpc/v0.4".into());
+    JsonRpcClient::new(HttpTransport::new(url::Url::parse(&rpc_url).unwrap()))
 }
 
 #[tokio::test]

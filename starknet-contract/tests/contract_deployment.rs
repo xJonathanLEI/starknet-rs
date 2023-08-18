@@ -7,14 +7,13 @@ use starknet_core::{
 };
 use starknet_providers::{jsonrpc::HttpTransport, JsonRpcClient};
 use starknet_signers::{LocalWallet, SigningKey};
-use std::env;
 use url::Url;
 
 #[tokio::test]
 async fn can_deploy_contract_to_alpha_goerli() {
     let rpc_url =
-        env::var("STARKNET_RPC").unwrap_or("https://rpc-goerli-1.starknet.rs/rpc/v0.4".to_string());
-    let provider = JsonRpcClient::new(HttpTransport::new(Url::parse(rpc_url.as_str()).unwrap()));
+        std::env::var("STARKNET_RPC").unwrap_or("https://rpc-goerli-1.starknet.rs/rpc/v0.4".into());
+    let provider = JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()));
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be(
             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
