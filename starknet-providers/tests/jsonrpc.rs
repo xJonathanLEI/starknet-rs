@@ -99,7 +99,6 @@ async fn jsonrpc_get_storage_at() {
 }
 
 #[tokio::test]
-#[ignore = "skipped until pathfinder fixes the INVOKE v0 bug"]
 async fn jsonrpc_get_transaction_by_hash_invoke_v0() {
     let rpc_client = create_jsonrpc_client();
 
@@ -166,7 +165,6 @@ async fn jsonrpc_get_transaction_by_hash_l1_handler() {
 }
 
 #[tokio::test]
-#[ignore = "skipped until pathfinder fixes the DECLARE v0 bug"]
 async fn jsonrpc_get_transaction_by_hash_declare_v0() {
     let rpc_client = create_jsonrpc_client();
 
@@ -277,7 +275,6 @@ async fn jsonrpc_get_transaction_by_hash_deploy_account() {
 }
 
 #[tokio::test]
-#[ignore = "skipped until pathfinder fixes the INVOKE v0 bug"]
 async fn jsonrpc_get_transaction_by_block_id_and_index() {
     let rpc_client = create_jsonrpc_client();
 
