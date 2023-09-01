@@ -1,5 +1,5 @@
 use starknet::{
-    accounts::{Account, Call, SingleOwnerAccount},
+    accounts::{Account, Call, ExecutionEncoding, SingleOwnerAccount},
     core::{
         chain_id,
         types::{BlockId, BlockTag, FieldElement},
@@ -21,7 +21,13 @@ async fn main() {
     )
     .unwrap();
 
-    let mut account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
+    let mut account = SingleOwnerAccount::new(
+        provider,
+        signer,
+        address,
+        chain_id::TESTNET,
+        ExecutionEncoding::Legacy,
+    );
 
     // `SingleOwnerAccount` defaults to checking nonce and estimating fees against the latest
     // block. Optionally change the target block to pending with the following line:

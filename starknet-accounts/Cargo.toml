@@ -18,6 +18,7 @@ starknet-core = { version = "0.5.1", path = "../starknet-core" }
 starknet-providers = { version = "0.5.0", path = "../starknet-providers" }
 starknet-signers = { version = "0.3.0", path = "../starknet-signers" }
 async-trait = "0.1.68"
+auto_impl = "1.0.1"
 thiserror = "1.0.40"
 
 [dev-dependencies]

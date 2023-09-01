@@ -1,8 +1,8 @@
 mod account;
 pub use account::{
-    Account, AccountError, ConnectedAccount, Declaration, Execution, LegacyDeclaration,
-    PreparedDeclaration, PreparedExecution, PreparedLegacyDeclaration, RawDeclaration,
-    RawExecution, RawLegacyDeclaration,
+    Account, AccountError, ConnectedAccount, Declaration, Execution, ExecutionEncoder,
+    LegacyDeclaration, PreparedDeclaration, PreparedExecution, PreparedLegacyDeclaration,
+    RawDeclaration, RawExecution, RawLegacyDeclaration,
 };
 
 mod call;
@@ -15,7 +15,7 @@ pub use factory::{
 };
 
 pub mod single_owner;
-pub use single_owner::SingleOwnerAccount;
+pub use single_owner::{ExecutionEncoding, SingleOwnerAccount};
 
 #[derive(Debug, thiserror::Error)]
 #[error("Not all fields are prepared")]

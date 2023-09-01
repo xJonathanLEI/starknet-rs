@@ -1656,6 +1656,7 @@ name = "starknet-accounts"
 version = "0.4.0"
 dependencies = [
  "async-trait",
+ "auto_impl",
  "rand",
  "serde",
  "serde_json",
