@@ -2,7 +2,7 @@ use super::{
     super::NotPreparedError, Account, AccountError, ConnectedAccount, Execution, PreparedExecution,
     RawExecution,
 };
-use crate::Call;
+use crate::{Call, ExecutionEncoder};
 
 use starknet_core::{
     crypto::compute_hash_on_elements,
@@ -164,44 +164,25 @@ where
 }
 
 impl RawExecution {
-    pub fn raw_calldata(&self) -> Vec<FieldElement> {
-        let mut concated_calldata: Vec<FieldElement> = vec![];
-        let mut execute_calldata: Vec<FieldElement> = vec![self.calls.len().into()];
-        for call in self.calls.iter() {
-            execute_calldata.push(call.to); // to
-            execute_calldata.push(call.selector); // selector
-            execute_calldata.push(concated_calldata.len().into()); // data_offset
-            execute_calldata.push(call.calldata.len().into()); // data_len
-
-            for item in call.calldata.iter() {
-                concated_calldata.push(*item);
-            }
-        }
-        execute_calldata.push(concated_calldata.len().into()); // calldata_len
-        for item in concated_calldata.into_iter() {
-            execute_calldata.push(item); // calldata
-        }
-
-        execute_calldata
-    }
-
-    pub fn transaction_hash(&self, chain_id: FieldElement, address: FieldElement) -> FieldElement {
+    pub fn transaction_hash<E>(
+        &self,
+        chain_id: FieldElement,
+        address: FieldElement,
+        encoder: E,
+    ) -> FieldElement
+    where
+        E: ExecutionEncoder,
+    {
         compute_hash_on_elements(&[
             PREFIX_INVOKE,
             FieldElement::ONE, // version
             address,
             FieldElement::ZERO, // entry_point_selector
-            compute_hash_on_elements(&self.raw_calldata()),
+            compute_hash_on_elements(&encoder.encode_calls(&self.calls)),
             self.max_fee,
             chain_id,
             self.nonce,
         ])
-    }
-}
-
-impl<'a, A> PreparedExecution<'a, A> {
-    pub fn raw_calldata(&self) -> Vec<FieldElement> {
-        self.inner.raw_calldata()
     }
 }
 
@@ -212,8 +193,11 @@ where
     /// Locally calculates the hash of the transaction to be sent from this execution given the
     /// parameters.
     pub fn transaction_hash(&self) -> FieldElement {
-        self.inner
-            .transaction_hash(self.account.chain_id(), self.account.address())
+        self.inner.transaction_hash(
+            self.account.chain_id(),
+            self.account.address(),
+            self.account,
+        )
     }
 }
 
@@ -247,7 +231,7 @@ where
             signature,
             nonce: self.inner.nonce,
             sender_address: self.account.address(),
-            calldata: self.raw_calldata(),
+            calldata: self.account.encode_calls(&self.inner.calls),
             // TODO: make use of query version tx for estimating fees
             is_query: false,
         })

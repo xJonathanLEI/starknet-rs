@@ -1,6 +1,7 @@
 use crate::Call;
 
 use async_trait::async_trait;
+use auto_impl::auto_impl;
 use starknet_core::types::{
     contract::{legacy::LegacyContractClass, CompressProgramError, ComputeClassHashError},
     BlockId, BlockTag, FieldElement, FlattenedSierraClass,
@@ -17,7 +18,7 @@ mod execution;
 /// sending transactions.
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-pub trait Account: Sized {
+pub trait Account: ExecutionEncoder + Sized {
     type SignError: Error + Send + Sync;
 
     fn address(&self) -> FieldElement;
@@ -54,6 +55,11 @@ pub trait Account: Sized {
     fn declare_legacy(&self, contract_class: Arc<LegacyContractClass>) -> LegacyDeclaration<Self> {
         LegacyDeclaration::new(contract_class, self)
     }
+}
+
+#[auto_impl(&, Box, Arc)]
+pub trait ExecutionEncoder {
+    fn encode_calls(&self, calls: &[Call]) -> Vec<FieldElement>;
 }
 
 /// An [Account] implementation that also comes with a [Provider]. Functionalities that require a

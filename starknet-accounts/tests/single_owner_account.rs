@@ -1,5 +1,5 @@
 use rand::RngCore;
-use starknet_accounts::{Account, Call, ConnectedAccount, SingleOwnerAccount};
+use starknet_accounts::{Account, Call, ConnectedAccount, ExecutionEncoding, SingleOwnerAccount};
 use starknet_core::{
     chain_id,
     types::{
@@ -130,7 +130,13 @@ async fn can_get_nonce_inner<P: Provider + Send + Sync>(provider: P, address: &s
     ));
     let address = FieldElement::from_hex_be(address).unwrap();
 
-    let mut account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
+    let mut account = SingleOwnerAccount::new(
+        provider,
+        signer,
+        address,
+        chain_id::TESTNET,
+        ExecutionEncoding::Legacy,
+    );
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     assert_ne!(account.get_nonce().await.unwrap(), FieldElement::ZERO);
@@ -149,7 +155,13 @@ async fn can_estimate_fee_inner<P: Provider + Send + Sync>(provider: P, address:
     )
     .unwrap();
 
-    let mut account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
+    let mut account = SingleOwnerAccount::new(
+        provider,
+        signer,
+        address,
+        chain_id::TESTNET,
+        ExecutionEncoding::Legacy,
+    );
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let fee_estimate = account
@@ -200,7 +212,13 @@ async fn can_execute_tst_mint_inner<P: Provider + Send + Sync>(provider: P, addr
     )
     .unwrap();
 
-    let mut account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
+    let mut account = SingleOwnerAccount::new(
+        provider,
+        signer,
+        address,
+        chain_id::TESTNET,
+        ExecutionEncoding::Legacy,
+    );
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let mut rng = rand::thread_rng();
@@ -245,7 +263,13 @@ async fn can_declare_cairo1_contract_inner<P: Provider + Send + Sync>(provider: 
         .unwrap(),
     ));
     let address = FieldElement::from_hex_be(address).unwrap();
-    let mut account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
+    let mut account = SingleOwnerAccount::new(
+        provider,
+        signer,
+        address,
+        chain_id::TESTNET,
+        ExecutionEncoding::Legacy,
+    );
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let contract_artifact = serde_json::from_str::<SierraClass>(include_str!(
@@ -292,7 +316,13 @@ async fn can_declare_cairo0_contract_inner<P: Provider + Send + Sync>(provider: 
         .unwrap(),
     ));
     let address = FieldElement::from_hex_be(address).unwrap();
-    let mut account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
+    let mut account = SingleOwnerAccount::new(
+        provider,
+        signer,
+        address,
+        chain_id::TESTNET,
+        ExecutionEncoding::Legacy,
+    );
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let mut contract_artifact: LegacyContractClass =

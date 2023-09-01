@@ -1,5 +1,5 @@
 use rand::{rngs::StdRng, RngCore, SeedableRng};
-use starknet_accounts::SingleOwnerAccount;
+use starknet_accounts::{ExecutionEncoding, SingleOwnerAccount};
 use starknet_contract::ContractFactory;
 use starknet_core::{
     chain_id,
@@ -24,7 +24,13 @@ async fn can_deploy_contract_to_alpha_goerli() {
         "02da37a17affbd2df4ede7120dae305ec36dfe94ec96a8c3f49bbf59f4e9a9fa",
     )
     .unwrap();
-    let mut account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
+    let mut account = SingleOwnerAccount::new(
+        provider,
+        signer,
+        address,
+        chain_id::TESTNET,
+        ExecutionEncoding::Legacy,
+    );
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let artifact = serde_json::from_str::<LegacyContractClass>(include_str!(

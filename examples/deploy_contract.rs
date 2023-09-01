@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use starknet::{
-    accounts::SingleOwnerAccount,
+    accounts::{ExecutionEncoding, SingleOwnerAccount},
     contract::ContractFactory,
     core::{
         chain_id,
@@ -25,7 +25,13 @@ async fn main() {
         FieldElement::from_hex_be("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
     ));
     let address = FieldElement::from_hex_be("YOUR_ACCOUNT_CONTRACT_ADDRESS_IN_HEX_HERE").unwrap();
-    let mut account = SingleOwnerAccount::new(provider, signer, address, chain_id::TESTNET);
+    let mut account = SingleOwnerAccount::new(
+        provider,
+        signer,
+        address,
+        chain_id::TESTNET,
+        ExecutionEncoding::Legacy,
+    );
 
     // `SingleOwnerAccount` defaults to checking nonce and estimating fees against the latest
     // block. Optionally change the target block to pending with the following line:
