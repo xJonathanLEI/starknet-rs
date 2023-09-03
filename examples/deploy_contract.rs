@@ -43,7 +43,7 @@ async fn main() {
 
     let contract_factory = ContractFactory::new(class_hash, account);
     contract_factory
-        .deploy(&vec![felt!("123456")], felt!("1122"), false)
+        .deploy(vec![felt!("123456")], felt!("1122"), false)
         .send()
         .await
         .expect("Unable to deploy contract");
