@@ -21,6 +21,14 @@ const PREFIX_INVOKE: FieldElement = FieldElement::from_mont([
     513398556346534256,
 ]);
 
+/// 2 ^ 128 + 1
+const QUERY_VERSION_ONE: FieldElement = FieldElement::from_mont([
+    18446744073700081633,
+    17407,
+    18446744073709551584,
+    576460752142433776,
+]);
+
 impl<'a, A> Execution<'a, A> {
     pub fn new(calls: Vec<Call>, account: &'a A) -> Self {
         Self {
@@ -148,7 +156,7 @@ where
             },
         };
         let invoke = prepared
-            .get_invoke_request()
+            .get_invoke_request(true)
             .await
             .map_err(AccountError::Signing)?;
 
@@ -168,6 +176,7 @@ impl RawExecution {
         &self,
         chain_id: FieldElement,
         address: FieldElement,
+        query_only: bool,
         encoder: E,
     ) -> FieldElement
     where
@@ -175,7 +184,11 @@ impl RawExecution {
     {
         compute_hash_on_elements(&[
             PREFIX_INVOKE,
-            FieldElement::ONE, // version
+            if query_only {
+                QUERY_VERSION_ONE
+            } else {
+                FieldElement::ONE
+            }, // version
             address,
             FieldElement::ZERO, // entry_point_selector
             compute_hash_on_elements(&encoder.encode_calls(&self.calls)),
@@ -192,10 +205,11 @@ where
 {
     /// Locally calculates the hash of the transaction to be sent from this execution given the
     /// parameters.
-    pub fn transaction_hash(&self) -> FieldElement {
+    pub fn transaction_hash(&self, query_only: bool) -> FieldElement {
         self.inner.transaction_hash(
             self.account.chain_id(),
             self.account.address(),
+            query_only,
             self.account,
         )
     }
@@ -210,7 +224,7 @@ where
     ) -> Result<InvokeTransactionResult, AccountError<A::SignError, <A::Provider as Provider>::Error>>
     {
         let tx_request = self
-            .get_invoke_request()
+            .get_invoke_request(false)
             .await
             .map_err(AccountError::Signing)?;
         self.account
@@ -223,8 +237,11 @@ where
     // The `simulate` function is temporarily removed until it's supported in [Provider]
     // TODO: add `simulate` back once transaction simulation in supported
 
-    pub async fn get_invoke_request(&self) -> Result<BroadcastedInvokeTransaction, A::SignError> {
-        let signature = self.account.sign_execution(&self.inner).await?;
+    pub async fn get_invoke_request(
+        &self,
+        query_only: bool,
+    ) -> Result<BroadcastedInvokeTransaction, A::SignError> {
+        let signature = self.account.sign_execution(&self.inner, query_only).await?;
 
         Ok(BroadcastedInvokeTransaction {
             max_fee: self.inner.max_fee,
@@ -232,8 +249,7 @@ where
             nonce: self.inner.nonce,
             sender_address: self.account.address(),
             calldata: self.account.encode_calls(&self.inner.calls),
-            // TODO: make use of query version tx for estimating fees
-            is_query: false,
+            is_query: query_only,
         })
     }
 }

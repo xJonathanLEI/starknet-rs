@@ -97,8 +97,9 @@ where
     async fn sign_execution(
         &self,
         execution: &RawExecution,
+        query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
-        let tx_hash = execution.transaction_hash(self.chain_id, self.address, self);
+        let tx_hash = execution.transaction_hash(self.chain_id, self.address, query_only, self);
         let signature = self
             .signer
             .sign_hash(&tx_hash)
@@ -111,8 +112,9 @@ where
     async fn sign_declaration(
         &self,
         declaration: &RawDeclaration,
+        query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
-        let tx_hash = declaration.transaction_hash(self.chain_id, self.address);
+        let tx_hash = declaration.transaction_hash(self.chain_id, self.address, query_only);
         let signature = self
             .signer
             .sign_hash(&tx_hash)
@@ -125,9 +127,10 @@ where
     async fn sign_legacy_declaration(
         &self,
         legacy_declaration: &RawLegacyDeclaration,
+        query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
         let tx_hash = legacy_declaration
-            .transaction_hash(self.chain_id, self.address)
+            .transaction_hash(self.chain_id, self.address, query_only)
             .map_err(SignError::ClassHash)?;
         let signature = self
             .signer

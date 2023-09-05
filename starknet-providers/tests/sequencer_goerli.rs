@@ -129,6 +129,7 @@ async fn sequencer_goerli_can_simulate_transaction() {
                     "0x0000000000000000000000000000000000000000000000000000000000000000",
                 )
                 .unwrap(),
+                is_query: false,
             }),
             BlockId::Latest,
             false,
@@ -204,6 +205,7 @@ async fn sequencer_goerli_can_bulk_estimate_fee() {
                     ],
                     max_fee: felt_dec("0"),
                     nonce: felt_dec("0"),
+                    is_query: false,
                 }),
                 AccountTransaction::InvokeFunction(InvokeFunctionTransactionRequest {
                     sender_address: felt_hex(
@@ -236,6 +238,7 @@ async fn sequencer_goerli_can_bulk_estimate_fee() {
                     ],
                     max_fee: felt_dec("0"),
                     nonce: felt_dec("1"),
+                    is_query: false,
                 }),
             ],
             BlockId::Latest,

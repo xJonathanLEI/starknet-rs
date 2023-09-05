@@ -28,16 +28,19 @@ pub trait Account: ExecutionEncoder + Sized {
     async fn sign_execution(
         &self,
         execution: &RawExecution,
+        query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError>;
 
     async fn sign_declaration(
         &self,
         declaration: &RawDeclaration,
+        query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError>;
 
     async fn sign_legacy_declaration(
         &self,
         legacy_declaration: &RawLegacyDeclaration,
+        query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError>;
 
     fn execute(&self, calls: Vec<Call>) -> Execution<Self> {
@@ -197,22 +200,27 @@ where
     async fn sign_execution(
         &self,
         execution: &RawExecution,
+        query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
-        (*self).sign_execution(execution).await
+        (*self).sign_execution(execution, query_only).await
     }
 
     async fn sign_declaration(
         &self,
         declaration: &RawDeclaration,
+        query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
-        (*self).sign_declaration(declaration).await
+        (*self).sign_declaration(declaration, query_only).await
     }
 
     async fn sign_legacy_declaration(
         &self,
         legacy_declaration: &RawLegacyDeclaration,
+        query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
-        (*self).sign_legacy_declaration(legacy_declaration).await
+        (*self)
+            .sign_legacy_declaration(legacy_declaration, query_only)
+            .await
     }
 }
 
@@ -235,23 +243,28 @@ where
     async fn sign_execution(
         &self,
         execution: &RawExecution,
+        query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
-        self.as_ref().sign_execution(execution).await
+        self.as_ref().sign_execution(execution, query_only).await
     }
 
     async fn sign_declaration(
         &self,
         declaration: &RawDeclaration,
+        query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
-        self.as_ref().sign_declaration(declaration).await
+        self.as_ref()
+            .sign_declaration(declaration, query_only)
+            .await
     }
 
     async fn sign_legacy_declaration(
         &self,
         legacy_declaration: &RawLegacyDeclaration,
+        query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
         self.as_ref()
-            .sign_legacy_declaration(legacy_declaration)
+            .sign_legacy_declaration(legacy_declaration, query_only)
             .await
     }
 }
@@ -275,23 +288,28 @@ where
     async fn sign_execution(
         &self,
         execution: &RawExecution,
+        query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
-        self.as_ref().sign_execution(execution).await
+        self.as_ref().sign_execution(execution, query_only).await
     }
 
     async fn sign_declaration(
         &self,
         declaration: &RawDeclaration,
+        query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
-        self.as_ref().sign_declaration(declaration).await
+        self.as_ref()
+            .sign_declaration(declaration, query_only)
+            .await
     }
 
     async fn sign_legacy_declaration(
         &self,
         legacy_declaration: &RawLegacyDeclaration,
+        query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
         self.as_ref()
-            .sign_legacy_declaration(legacy_declaration)
+            .sign_legacy_declaration(legacy_declaration, query_only)
             .await
     }
 }

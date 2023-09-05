@@ -767,6 +767,7 @@ impl From<core::BroadcastedInvokeTransaction> for InvokeFunctionTransactionReque
             signature: value.signature,
             max_fee: value.max_fee,
             nonce: value.nonce,
+            is_query: value.is_query,
         }
     }
 }
@@ -790,6 +791,7 @@ impl From<core::BroadcastedDeclareTransactionV1> for DeclareV1TransactionRequest
             max_fee: value.max_fee,
             signature: value.signature,
             nonce: value.nonce,
+            is_query: value.is_query,
         }
     }
 }
@@ -808,6 +810,7 @@ impl TryFrom<core::BroadcastedDeclareTransactionV2> for DeclareV2TransactionRequ
             max_fee: value.max_fee,
             signature: value.signature,
             nonce: value.nonce,
+            is_query: value.is_query,
         })
     }
 }
@@ -821,6 +824,7 @@ impl From<core::BroadcastedDeployAccountTransaction> for DeployAccountTransactio
             max_fee: value.max_fee,
             signature: value.signature,
             nonce: value.nonce,
+            is_query: value.is_query,
         }
     }
 }
