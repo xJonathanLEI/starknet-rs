@@ -11,6 +11,22 @@ use super::{
     L1Address,
 };
 
+/// 2 ^ 128 + 1
+const QUERY_VERSION_ONE: FieldElement = FieldElement::from_mont([
+    18446744073700081633,
+    17407,
+    18446744073709551584,
+    576460752142433776,
+]);
+
+/// 2 ^ 128 + 2
+const QUERY_VERSION_TWO: FieldElement = FieldElement::from_mont([
+    18446744073700081601,
+    17407,
+    18446744073709551584,
+    576460752142433232,
+]);
+
 #[serde_as]
 #[derive(Debug, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
@@ -95,6 +111,7 @@ pub struct DeclareV1Transaction {
     pub signature: Vec<FieldElement>,
     /// A sequential integer used to distinguish between transactions and order them.
     pub nonce: FieldElement,
+    pub is_query: bool,
 }
 
 #[derive(Debug)]
@@ -113,6 +130,7 @@ pub struct DeclareV2Transaction {
     pub signature: Vec<FieldElement>,
     /// A sequential integer used to distinguish between transactions and order them.
     pub nonce: FieldElement,
+    pub is_query: bool,
 }
 
 #[derive(Debug)]
@@ -122,6 +140,7 @@ pub struct InvokeFunctionTransaction {
     pub signature: Vec<FieldElement>,
     pub max_fee: FieldElement,
     pub nonce: FieldElement,
+    pub is_query: bool,
 }
 
 #[derive(Debug)]
@@ -135,6 +154,7 @@ pub struct DeployAccountTransaction {
     pub signature: Vec<FieldElement>,
     // The nonce of the transaction.
     pub nonce: FieldElement,
+    pub is_query: bool,
 }
 
 impl Serialize for DeclareV1Transaction {
@@ -158,7 +178,11 @@ impl Serialize for DeclareV1Transaction {
         }
 
         let versioned = Versioned {
-            version: FieldElement::ONE,
+            version: if self.is_query {
+                QUERY_VERSION_ONE
+            } else {
+                FieldElement::ONE
+            },
             contract_class: &self.contract_class,
             sender_address: &self.sender_address,
             max_fee: &self.max_fee,
@@ -193,7 +217,11 @@ impl Serialize for DeclareV2Transaction {
         }
 
         let versioned = Versioned {
-            version: FieldElement::TWO,
+            version: if self.is_query {
+                QUERY_VERSION_TWO
+            } else {
+                FieldElement::TWO
+            },
             contract_class: &self.contract_class,
             compiled_class_hash: &self.compiled_class_hash,
             sender_address: &self.sender_address,
@@ -227,7 +255,11 @@ impl Serialize for InvokeFunctionTransaction {
         }
 
         let versioned = Versioned {
-            version: FieldElement::ONE,
+            version: if self.is_query {
+                QUERY_VERSION_ONE
+            } else {
+                FieldElement::ONE
+            },
             sender_address: &self.sender_address,
             calldata: &self.calldata,
             signature: &self.signature,
@@ -262,7 +294,11 @@ impl Serialize for DeployAccountTransaction {
         }
 
         let versioned = Versioned {
-            version: FieldElement::ONE,
+            version: if self.is_query {
+                QUERY_VERSION_ONE
+            } else {
+                FieldElement::ONE
+            },
             class_hash: &self.class_hash,
             contract_address_salt: &self.contract_address_salt,
             constructor_calldata: &self.constructor_calldata,

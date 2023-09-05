@@ -21,7 +21,7 @@ async fn can_deploy_contract_to_alpha_goerli() {
         .unwrap(),
     ));
     let address = FieldElement::from_hex_be(
-        "02da37a17affbd2df4ede7120dae305ec36dfe94ec96a8c3f49bbf59f4e9a9fa",
+        "04284d0741ee00d8e4d6a02d21c0be58665f0e6e187cf48c509b1ac39cdeca65",
     )
     .unwrap();
     let mut account = SingleOwnerAccount::new(

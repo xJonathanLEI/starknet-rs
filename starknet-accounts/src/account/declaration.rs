@@ -24,6 +24,22 @@ const PREFIX_DECLARE: FieldElement = FieldElement::from_mont([
     191557713328401194,
 ]);
 
+/// 2 ^ 128 + 1
+const QUERY_VERSION_ONE: FieldElement = FieldElement::from_mont([
+    18446744073700081633,
+    17407,
+    18446744073709551584,
+    576460752142433776,
+]);
+
+/// 2 ^ 128 + 2
+const QUERY_VERSION_TWO: FieldElement = FieldElement::from_mont([
+    18446744073700081601,
+    17407,
+    18446744073709551584,
+    576460752142433232,
+]);
+
 impl<'a, A> Declaration<'a, A> {
     pub fn new(
         contract_class: Arc<FlattenedSierraClass>,
@@ -157,7 +173,7 @@ where
                 max_fee: FieldElement::ZERO,
             },
         };
-        let declare = prepared.get_declare_request().await?;
+        let declare = prepared.get_declare_request(true).await?;
 
         self.account
             .provider()
@@ -296,7 +312,7 @@ where
                 max_fee: FieldElement::ZERO,
             },
         };
-        let declare = prepared.get_declare_request().await?;
+        let declare = prepared.get_declare_request(true).await?;
 
         self.account
             .provider()
@@ -310,10 +326,19 @@ where
 }
 
 impl RawDeclaration {
-    pub fn transaction_hash(&self, chain_id: FieldElement, address: FieldElement) -> FieldElement {
+    pub fn transaction_hash(
+        &self,
+        chain_id: FieldElement,
+        address: FieldElement,
+        query_only: bool,
+    ) -> FieldElement {
         compute_hash_on_elements(&[
             PREFIX_DECLARE,
-            FieldElement::TWO, // version
+            if query_only {
+                QUERY_VERSION_TWO
+            } else {
+                FieldElement::TWO
+            }, // version
             address,
             FieldElement::ZERO, // entry_point_selector
             compute_hash_on_elements(&[self.contract_class.class_hash()]),
@@ -330,10 +355,15 @@ impl RawLegacyDeclaration {
         &self,
         chain_id: FieldElement,
         address: FieldElement,
+        query_only: bool,
     ) -> Result<FieldElement, ComputeClassHashError> {
         Ok(compute_hash_on_elements(&[
             PREFIX_DECLARE,
-            FieldElement::ONE, // version
+            if query_only {
+                QUERY_VERSION_ONE
+            } else {
+                FieldElement::ONE
+            }, // version
             address,
             FieldElement::ZERO, // entry_point_selector
             compute_hash_on_elements(&[self.contract_class.class_hash()?]),
@@ -350,9 +380,9 @@ where
 {
     /// Locally calculates the hash of the transaction to be sent from this declaration given the
     /// parameters.
-    pub fn transaction_hash(&self) -> FieldElement {
+    pub fn transaction_hash(&self, query_only: bool) -> FieldElement {
         self.inner
-            .transaction_hash(self.account.chain_id(), self.account.address())
+            .transaction_hash(self.account.chain_id(), self.account.address(), query_only)
     }
 }
 
@@ -366,7 +396,7 @@ where
         DeclareTransactionResult,
         AccountError<A::SignError, <A::Provider as Provider>::Error>,
     > {
-        let tx_request = self.get_declare_request().await?;
+        let tx_request = self.get_declare_request(false).await?;
         self.account
             .provider()
             .add_declare_transaction(BroadcastedDeclareTransaction::V2(tx_request))
@@ -376,13 +406,14 @@ where
 
     pub async fn get_declare_request(
         &self,
+        query_only: bool,
     ) -> Result<
         BroadcastedDeclareTransactionV2,
         AccountError<A::SignError, <A::Provider as Provider>::Error>,
     > {
         let signature = self
             .account
-            .sign_declaration(&self.inner)
+            .sign_declaration(&self.inner, query_only)
             .await
             .map_err(AccountError::Signing)?;
 
@@ -393,8 +424,7 @@ where
             contract_class: self.inner.contract_class.clone(),
             compiled_class_hash: self.inner.compiled_class_hash,
             sender_address: self.account.address(),
-            // TODO: make use of query version tx for estimating fees
-            is_query: false,
+            is_query: query_only,
         })
     }
 }
@@ -405,9 +435,12 @@ where
 {
     /// Locally calculates the hash of the transaction to be sent from this declaration given the
     /// parameters.
-    pub fn transaction_hash(&self) -> Result<FieldElement, ComputeClassHashError> {
+    pub fn transaction_hash(
+        &self,
+        query_only: bool,
+    ) -> Result<FieldElement, ComputeClassHashError> {
         self.inner
-            .transaction_hash(self.account.chain_id(), self.account.address())
+            .transaction_hash(self.account.chain_id(), self.account.address(), query_only)
     }
 }
 
@@ -421,7 +454,7 @@ where
         DeclareTransactionResult,
         AccountError<A::SignError, <A::Provider as Provider>::Error>,
     > {
-        let tx_request = self.get_declare_request().await?;
+        let tx_request = self.get_declare_request(false).await?;
         self.account
             .provider()
             .add_declare_transaction(BroadcastedDeclareTransaction::V1(tx_request))
@@ -431,13 +464,14 @@ where
 
     pub async fn get_declare_request(
         &self,
+        query_only: bool,
     ) -> Result<
         BroadcastedDeclareTransactionV1,
         AccountError<A::SignError, <A::Provider as Provider>::Error>,
     > {
         let signature = self
             .account
-            .sign_legacy_declaration(&self.inner)
+            .sign_legacy_declaration(&self.inner, query_only)
             .await
             .map_err(AccountError::Signing)?;
 
@@ -449,8 +483,7 @@ where
             nonce: self.inner.nonce,
             contract_class: Arc::new(compressed_class),
             sender_address: self.account.address(),
-            // TODO: make use of query version tx for estimating fees
-            is_query: false,
+            is_query: query_only,
         })
     }
 }
