@@ -6,7 +6,7 @@ use starknet_core::types::{
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
     MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag,
-    SyncStatusType, Transaction,
+    SyncStatusType, Transaction, TransactionTrace,
 };
 
 use crate::{
@@ -581,6 +581,30 @@ impl Provider for AnyProvider {
                     simulation_flags,
                 )
                 .await?,
+            ),
+        }
+    }
+
+    /// For a given executed transaction, return the trace of its execution, including internal calls.
+    /// returns the execution trace of the transaction designated by the input hash.
+    async fn trace_transaction<H>(
+        &self,
+        transaction_hash: H,
+    ) -> Result<TransactionTrace, ProviderError<Self::Error>>
+    where
+        H: AsRef<FieldElement> + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => Ok(
+                <JsonRpcClient<HttpTransport> as Provider>::trace_transaction(
+                    inner,
+                    transaction_hash,
+                )
+                .await?,
+            ),
+            Self::SequencerGateway(inner) => Ok(
+                <SequencerGatewayProvider as Provider>::trace_transaction(inner, transaction_hash)
+                    .await?,
             ),
         }
     }

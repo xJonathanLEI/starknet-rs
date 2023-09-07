@@ -11,7 +11,8 @@ use starknet_core::{
         InvokeTransactionResult, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
         MaybePendingStateUpdate, MaybePendingTransactionReceipt, MsgFromL1, ResultPageRequest,
         SimulateTransactionsRequest, SimulateTransactionsRequestRef, SimulatedTransaction,
-        SimulationFlag, StarknetError, SyncStatusType, Transaction,
+        SimulationFlag, StarknetError, SyncStatusType, TraceTransactionRequest,
+        TraceTransactionRequestRef, Transaction, TransactionTrace,
     },
 };
 
@@ -80,6 +81,8 @@ pub enum JsonRpcMethod {
     AddDeployAccountTransaction,
     #[serde(rename = "starknet_simulateTransactions")]
     SimulateTransactions,
+    #[serde(rename = "starknet_traceTransaction")]
+    TraceTransaction,
 }
 
 #[derive(Debug, Clone)]
@@ -115,6 +118,7 @@ pub enum JsonRpcRequestData {
     AddDeclareTransaction(AddDeclareTransactionRequest),
     AddDeployAccountTransaction(AddDeployAccountTransactionRequest),
     SimulateTransactions(SimulateTransactionsRequest),
+    TraceTransaction(TraceTransactionRequest),
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -629,6 +633,24 @@ where
         )
         .await
     }
+
+    /// For a given executed transaction, return the trace of its execution, including internal calls.
+    /// returns the execution trace of the transaction designated by the input hash.
+    async fn trace_transaction<H>(
+        &self,
+        transaction_hash: H,
+    ) -> Result<TransactionTrace, ProviderError<Self::Error>>
+    where
+        H: AsRef<FieldElement> + Send + Sync,
+    {
+        self.send_request(
+            JsonRpcMethod::TraceTransaction,
+            TraceTransactionRequestRef {
+                transaction_hash: transaction_hash.as_ref(),
+            },
+        )
+        .await
+    }
 }
 
 impl<'de> Deserialize<'de> for JsonRpcRequest {
@@ -755,6 +777,10 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
             }
             JsonRpcMethod::SimulateTransactions => JsonRpcRequestData::SimulateTransactions(
                 serde_json::from_value::<SimulateTransactionsRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::TraceTransaction => JsonRpcRequestData::TraceTransaction(
+                serde_json::from_value::<TraceTransactionRequest>(raw_request.params)
                     .map_err(error_mapper)?,
             ),
         };

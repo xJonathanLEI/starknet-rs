@@ -7,7 +7,7 @@ use starknet_core::types::{
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
     MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag, StarknetError,
-    SyncStatusType, Transaction,
+    SyncStatusType, Transaction, TransactionTrace,
 };
 use std::error::Error;
 
@@ -225,7 +225,7 @@ pub trait Provider {
         }
     }
 
-    /// simulate a given sequence of transactions on the requested state,and generate the execution traces.
+    /// Simulate a given sequence of transactions on the requested state,and generate the execution traces.
     /// If one of the transactions is reverted, raises CONTRACT_ERROR.
     async fn simulate_transactions<B, I, S>(
         &self,
@@ -237,6 +237,15 @@ pub trait Provider {
         B: AsRef<BlockId> + Send + Sync,
         I: AsRef<Vec<BroadcastedTransaction>> + Send + Sync,
         S: AsRef<Vec<SimulationFlag>> + Send + Sync;
+
+    /// For a given executed transaction, return the trace of its execution, including internal calls.
+    /// returns the execution trace of the transaction designated by the input hash.
+    async fn trace_transaction<H>(
+        &self,
+        transaction_hash: H,
+    ) -> Result<TransactionTrace, ProviderError<Self::Error>>
+    where
+        H: AsRef<FieldElement> + Send + Sync;
 }
 
 #[derive(Debug, thiserror::Error)]

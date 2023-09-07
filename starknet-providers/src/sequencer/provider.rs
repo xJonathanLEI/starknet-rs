@@ -8,7 +8,7 @@ use starknet_core::types::{
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
     MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag, StarknetError,
-    SyncStatusType, Transaction,
+    SyncStatusType, Transaction, TransactionTrace,
 };
 
 use crate::{
@@ -404,6 +404,16 @@ impl Provider for SequencerGatewayProvider {
         B: AsRef<BlockId> + Send + Sync,
         I: AsRef<Vec<BroadcastedTransaction>> + Send + Sync,
         S: AsRef<Vec<SimulationFlag>> + Send + Sync,
+    {
+        todo!()
+    }
+
+    async fn trace_transaction<H>(
+        &self,
+        transaction_hash: H,
+    ) -> Result<TransactionTrace, ProviderError<Self::Error>>
+    where
+        H: AsRef<FieldElement> + Send + Sync,
     {
         todo!()
     }
