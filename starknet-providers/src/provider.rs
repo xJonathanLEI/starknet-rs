@@ -7,7 +7,7 @@ use starknet_core::types::{
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
     MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag, StarknetError,
-    SyncStatusType, Transaction, TransactionTrace,
+    SyncStatusType, Transaction, TransactionTrace, TransactionTraceWithHash,
 };
 use std::error::Error;
 
@@ -244,6 +244,15 @@ pub trait Provider {
         &self,
         transaction_hash: H,
     ) -> Result<TransactionTrace, ProviderError<Self::Error>>
+    where
+        H: AsRef<FieldElement> + Send + Sync;
+
+    /// Retrieve traces for all transactions in the given block.
+    /// returns the execution traces of all transactions included in the given block.
+    async fn trace_block_transactions<H>(
+        &self,
+        block_hash: H,
+    ) -> Result<Vec<TransactionTraceWithHash>, ProviderError<Self::Error>>
     where
         H: AsRef<FieldElement> + Send + Sync;
 }

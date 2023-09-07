@@ -11,8 +11,9 @@ use starknet_core::{
         InvokeTransactionResult, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
         MaybePendingStateUpdate, MaybePendingTransactionReceipt, MsgFromL1, ResultPageRequest,
         SimulateTransactionsRequest, SimulateTransactionsRequestRef, SimulatedTransaction,
-        SimulationFlag, StarknetError, SyncStatusType, TraceTransactionRequest,
-        TraceTransactionRequestRef, Transaction, TransactionTrace,
+        SimulationFlag, StarknetError, SyncStatusType, TraceBlockTransactionsRequest,
+        TraceBlockTransactionsRequestRef, TraceTransactionRequest, TraceTransactionRequestRef,
+        Transaction, TransactionTrace, TransactionTraceWithHash,
     },
 };
 
@@ -83,6 +84,8 @@ pub enum JsonRpcMethod {
     SimulateTransactions,
     #[serde(rename = "starknet_traceTransaction")]
     TraceTransaction,
+    #[serde(rename = "starknet_traceBlockTransactions")]
+    TraceBlockTransactions,
 }
 
 #[derive(Debug, Clone)]
@@ -119,6 +122,7 @@ pub enum JsonRpcRequestData {
     AddDeployAccountTransaction(AddDeployAccountTransactionRequest),
     SimulateTransactions(SimulateTransactionsRequest),
     TraceTransaction(TraceTransactionRequest),
+    TraceBlockTransactions(TraceBlockTransactionsRequest),
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -651,6 +655,24 @@ where
         )
         .await
     }
+
+    /// Retrieve traces for all transactions in the given block.
+    /// returns the execution traces of all transactions included in the given block.
+    async fn trace_block_transactions<H>(
+        &self,
+        block_hash: H,
+    ) -> Result<Vec<TransactionTraceWithHash>, ProviderError<Self::Error>>
+    where
+        H: AsRef<FieldElement> + Send + Sync,
+    {
+        self.send_request(
+            JsonRpcMethod::TraceBlockTransactions,
+            TraceBlockTransactionsRequestRef {
+                block_hash: block_hash.as_ref(),
+            },
+        )
+        .await
+    }
 }
 
 impl<'de> Deserialize<'de> for JsonRpcRequest {
@@ -781,6 +803,10 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
             ),
             JsonRpcMethod::TraceTransaction => JsonRpcRequestData::TraceTransaction(
                 serde_json::from_value::<TraceTransactionRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::TraceBlockTransactions => JsonRpcRequestData::TraceBlockTransactions(
+                serde_json::from_value::<TraceBlockTransactionsRequest>(raw_request.params)
                     .map_err(error_mapper)?,
             ),
         };
