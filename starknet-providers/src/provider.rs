@@ -6,7 +6,8 @@ use starknet_core::types::{
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-    MaybePendingTransactionReceipt, MsgFromL1, StarknetError, SyncStatusType, Transaction,
+    MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag, StarknetError,
+    SyncStatusType, Transaction,
 };
 use std::error::Error;
 
@@ -223,6 +224,19 @@ pub trait Provider {
             Err(ProviderError::ArrayLengthMismatch)
         }
     }
+
+    /// simulate a given sequence of transactions on the requested state,and generate the execution traces.
+    /// If one of the transactions is reverted, raises CONTRACT_ERROR.
+    async fn simulate_transactions<B, I, S>(
+        &self,
+        block_id: B,
+        transactions: I,
+        simulation_flags: S,
+    ) -> Result<Vec<SimulatedTransaction>, ProviderError<Self::Error>>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+        I: AsRef<Vec<BroadcastedTransaction>> + Send + Sync,
+        S: AsRef<Vec<SimulationFlag>> + Send + Sync;
 }
 
 #[derive(Debug, thiserror::Error)]

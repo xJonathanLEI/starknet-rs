@@ -39,11 +39,13 @@ pub use eth_address::EthAddress;
 mod execution_result;
 pub use execution_result::ExecutionResult;
 
+mod trace;
+pub use trace::*;
+
 // TODO: move generated request code to `starknet-providers`
 pub mod requests;
 
 pub mod contract;
-pub mod trace;
 
 pub use contract::ContractArtifact;
 

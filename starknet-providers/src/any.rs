@@ -5,7 +5,8 @@ use starknet_core::types::{
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-    MaybePendingTransactionReceipt, MsgFromL1, SyncStatusType, Transaction,
+    MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag,
+    SyncStatusType, Transaction,
 };
 
 use crate::{
@@ -546,6 +547,38 @@ impl Provider for AnyProvider {
                 <SequencerGatewayProvider as Provider>::add_deploy_account_transaction(
                     inner,
                     deploy_account_transaction,
+                )
+                .await?,
+            ),
+        }
+    }
+    async fn simulate_transactions<B, I, S>(
+        &self,
+        block_id: B,
+        transactions: I,
+        simulation_flags: S,
+    ) -> Result<Vec<SimulatedTransaction>, ProviderError<Self::Error>>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+        I: AsRef<Vec<BroadcastedTransaction>> + Send + Sync,
+        S: AsRef<Vec<SimulationFlag>> + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => Ok(
+                <JsonRpcClient<HttpTransport> as Provider>::simulate_transactions(
+                    inner,
+                    block_id,
+                    transactions,
+                    simulation_flags,
+                )
+                .await?,
+            ),
+            Self::SequencerGateway(inner) => Ok(
+                <SequencerGatewayProvider as Provider>::simulate_transactions(
+                    inner,
+                    block_id,
+                    transactions,
+                    simulation_flags,
                 )
                 .await?,
             ),

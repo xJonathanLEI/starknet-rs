@@ -10,7 +10,8 @@ use starknet_core::{
         EventFilterWithPage, EventsPage, FeeEstimate, FieldElement, FunctionCall,
         InvokeTransactionResult, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
         MaybePendingStateUpdate, MaybePendingTransactionReceipt, MsgFromL1, ResultPageRequest,
-        StarknetError, SyncStatusType, Transaction,
+        SimulateTransactionsRequest, SimulateTransactionsRequestRef, SimulatedTransaction,
+        SimulationFlag, StarknetError, SyncStatusType, Transaction,
     },
 };
 
@@ -77,6 +78,8 @@ pub enum JsonRpcMethod {
     AddDeclareTransaction,
     #[serde(rename = "starknet_addDeployAccountTransaction")]
     AddDeployAccountTransaction,
+    #[serde(rename = "starknet_simulateTransactions")]
+    SimulateTransactions,
 }
 
 #[derive(Debug, Clone)]
@@ -111,6 +114,7 @@ pub enum JsonRpcRequestData {
     AddInvokeTransaction(AddInvokeTransactionRequest),
     AddDeclareTransaction(AddDeclareTransactionRequest),
     AddDeployAccountTransaction(AddDeployAccountTransactionRequest),
+    SimulateTransactions(SimulateTransactionsRequest),
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -601,6 +605,30 @@ where
         )
         .await
     }
+
+    /// simulate a given sequence of transactions on the requested state,and generate the execution traces.
+    /// If one of the transactions is reverted, raises CONTRACT_ERROR.
+    async fn simulate_transactions<B, I, S>(
+        &self,
+        block_id: B,
+        transactions: I,
+        simulation_flags: S,
+    ) -> Result<Vec<SimulatedTransaction>, ProviderError<Self::Error>>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+        I: AsRef<Vec<BroadcastedTransaction>> + Send + Sync,
+        S: AsRef<Vec<SimulationFlag>> + Send + Sync,
+    {
+        self.send_request(
+            JsonRpcMethod::SimulateTransactions,
+            SimulateTransactionsRequestRef {
+                block_id: block_id.as_ref(),
+                transactions: transactions.as_ref(),
+                simulation_flags: simulation_flags.as_ref(),
+            },
+        )
+        .await
+    }
 }
 
 impl<'de> Deserialize<'de> for JsonRpcRequest {
@@ -725,6 +753,10 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
                     .map_err(error_mapper)?,
                 )
             }
+            JsonRpcMethod::SimulateTransactions => JsonRpcRequestData::SimulateTransactions(
+                serde_json::from_value::<SimulateTransactionsRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
         };
 
         Ok(Self {
