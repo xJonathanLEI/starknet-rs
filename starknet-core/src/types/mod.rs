@@ -43,6 +43,8 @@ pub use execution_result::ExecutionResult;
 pub mod requests;
 
 pub mod contract;
+pub mod trace;
+
 pub use contract::ContractArtifact;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
