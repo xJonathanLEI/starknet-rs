@@ -405,7 +405,19 @@ impl Provider for SequencerGatewayProvider {
         I: AsRef<Vec<BroadcastedTransaction>> + Send + Sync,
         S: AsRef<Vec<SimulationFlag>> + Send + Sync,
     {
-        todo!()
+        let tx = transactions.as_ref().first().unwrap();
+        let skip_validate = simulation_flags
+            .as_ref()
+            .iter()
+            .find(|item| matches!(item, SimulationFlag::SkipValidate));
+        let result = self
+            .simulate_transaction(
+                tx.clone().try_into()?,
+                block_id.as_ref().clone().into(),
+                skip_validate.is_some(),
+            )
+            .await?;
+        Ok(vec![result.into()])
     }
 
     async fn trace_transaction<H>(
@@ -415,7 +427,9 @@ impl Provider for SequencerGatewayProvider {
     where
         H: AsRef<FieldElement> + Send + Sync,
     {
-        todo!()
+        self.get_transaction_trace(*transaction_hash.as_ref())
+            .await
+            .map(Into::into)
     }
 
     async fn trace_block_transactions<H>(
@@ -425,6 +439,8 @@ impl Provider for SequencerGatewayProvider {
     where
         H: AsRef<FieldElement> + Send + Sync,
     {
-        todo!()
+        self.get_block_traces(super::BlockId::Hash(block_hash.as_ref().clone()))
+            .await
+            .map(|trace| trace.traces.into_iter().map(Into::into).collect())
     }
 }

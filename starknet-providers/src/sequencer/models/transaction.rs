@@ -72,12 +72,13 @@ pub struct TransactionInfo {
     pub transaction_index: Option<u64>,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub enum EntryPointType {
     External,
     L1Handler,
+    #[default]
     Constructor,
 }
 

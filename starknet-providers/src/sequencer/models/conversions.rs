@@ -1,5 +1,9 @@
 use std::sync::Arc;
 
+use crate::sequencer::models::trace::{
+    CallType, FunctionInvocation, OrderedEventResponse, OrderedL2ToL1MessageResponse,
+    TransactionTraceWithHash,
+};
 use starknet_core::types::{self as core, contract::legacy as contract_legacy, FieldElement};
 
 use super::{
@@ -922,5 +926,111 @@ fn convert_legacy_entry_point(
     contract_legacy::RawLegacyEntryPoint {
         offset: contract_legacy::LegacyEntrypointOffset::U64AsInt(value.offset),
         selector: value.selector,
+    }
+}
+
+impl From<TransactionTrace> for core::TransactionTrace {
+    fn from(value: TransactionTrace) -> Self {
+        core::TransactionTrace {
+            validate_invocation: value.validate_invocation.map(Into::into),
+            fee_transfer_invocation: value.fee_transfer_invocation.map(Into::into),
+            execute_invocation: None,
+            function_invocation: value.function_invocation.map(Into::into),
+            constructor_invocation: None,
+        }
+    }
+}
+
+impl From<CallType> for core::CallType {
+    fn from(value: CallType) -> Self {
+        match value {
+            CallType::Call => core::CallType::Call,
+            CallType::Delegate => core::CallType::LibraryCall,
+        }
+    }
+}
+
+impl From<FunctionInvocation> for core::FunctionInvocation {
+    fn from(value: FunctionInvocation) -> Self {
+        core::FunctionInvocation {
+            contract_address: value.contract_address,
+            entry_point_selector: value.selector.unwrap_or_default().into(),
+            calldata: value.calldata.clone(),
+            caller_address: value.caller_address,
+            class_hash: value.class_hash.unwrap_or_default(),
+            entry_point_type: value.entry_point_type.unwrap_or_default().into(),
+            call_type: value.call_type.unwrap_or_default().into(),
+            result: value.result.clone(),
+            calls: value.internal_calls.into_iter().map(Into::into).collect(),
+            events: value.events.into_iter().map(Into::into).collect(),
+            messages: value.messages.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl From<FunctionInvocation> for core::NestedCall {
+    fn from(value: FunctionInvocation) -> Self {
+        core::NestedCall {
+            contract_address: value.contract_address,
+            entry_point_selector: value.selector.unwrap_or_default().into(),
+            calldata: value.calldata.clone(),
+            caller_address: value.caller_address,
+            class_hash: value.class_hash.unwrap_or_default(),
+            entry_point_type: value.entry_point_type.unwrap_or_default().into(),
+            call_type: value.call_type.unwrap_or_default().into(),
+            result: value.result.clone(),
+            calls: value.internal_calls.into_iter().map(Into::into).collect(),
+            events: value.events.into_iter().map(Into::into).collect(),
+            messages: value.messages.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl From<OrderedEventResponse> for core::Event {
+    fn from(value: OrderedEventResponse) -> Self {
+        core::Event {
+            from_address: value.order.into(),
+            keys: value.keys.clone(),
+            data: value.data.clone(),
+        }
+    }
+}
+
+impl From<OrderedL2ToL1MessageResponse> for core::MsgToL1 {
+    fn from(value: OrderedL2ToL1MessageResponse) -> Self {
+        core::MsgToL1 {
+            from_address: value.order.into(),
+            to_address: FieldElement::from_byte_slice_be(value.to_address.as_bytes())
+                .unwrap_or_default(),
+            payload: value.payload.clone(),
+        }
+    }
+}
+
+impl From<EntryPointType> for core::EntryPointType {
+    fn from(value: EntryPointType) -> Self {
+        match value {
+            EntryPointType::External => core::EntryPointType::External,
+            EntryPointType::L1Handler => core::EntryPointType::L1Handler,
+            EntryPointType::Constructor => core::EntryPointType::Constructor,
+        }
+    }
+}
+
+impl From<TransactionSimulationInfo> for core::SimulatedTransaction {
+    fn from(value: TransactionSimulationInfo) -> Self {
+        core::SimulatedTransaction {
+            fee_estimation: value.fee_estimation.into(),
+            transaction_trace: value.trace.into(),
+        }
+    }
+}
+
+impl From<TransactionTraceWithHash> for core::TransactionTraceWithHash {
+    fn from(value: TransactionTraceWithHash) -> Self {
+        core::TransactionTraceWithHash {
+            transaction_hash: value.transaction_hash,
+            trace_root: value.trace.into(),
+        }
     }
 }

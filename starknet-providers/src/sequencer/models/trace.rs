@@ -39,10 +39,11 @@ pub struct TransactionTraceWithHash {
     pub transaction_hash: FieldElement,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub enum CallType {
+    #[default]
     Call,
     Delegate,
 }
