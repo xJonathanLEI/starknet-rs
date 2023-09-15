@@ -2,12 +2,12 @@ use starknet_providers::jsonrpc::{JsonRpcRequest, JsonRpcRequestData};
 
 fn main() {
     // Let's pretend this is the raw request body coming from HTTP
-    let raw_request = r###"{
+    let raw_request = r#"{
     "id": 1,
     "jsonrpc": "2.0",
     "method": "starknet_getBlockTransactionCount",
     "params": [{ "block_number": 200 }]
-}"###;
+}"#;
 
     // Your server framework should handle this for you. Here we deserialize manually to see what's
     // going on.
