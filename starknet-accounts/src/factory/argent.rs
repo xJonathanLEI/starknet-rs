@@ -5,19 +5,10 @@ use starknet_core::types::FieldElement;
 use starknet_providers::Provider;
 use starknet_signers::Signer;
 
-/// Selector for "initialize"
-const SELECTOR_INITIALIZE: FieldElement = FieldElement::from_mont([
-    14382173896205878522,
-    7380089477680411368,
-    4404362358337226556,
-    132905214994424316,
-]);
-
 pub struct ArgentAccountFactory<S, P> {
-    proxy_class_hash: FieldElement,
-    impl_class_hash: FieldElement,
+    class_hash: FieldElement,
     chain_id: FieldElement,
-    signer_public_key: FieldElement,
+    owner_public_key: FieldElement,
     guardian_public_key: FieldElement,
     signer: S,
     provider: P,
@@ -28,8 +19,7 @@ where
     S: Signer,
 {
     pub async fn new(
-        proxy_class_hash: FieldElement,
-        impl_class_hash: FieldElement,
+        class_hash: FieldElement,
         chain_id: FieldElement,
         guardian_public_key: FieldElement,
         signer: S,
@@ -37,10 +27,9 @@ where
     ) -> Result<Self, S::GetPublicKeyError> {
         let signer_public_key = signer.get_public_key().await?;
         Ok(Self {
-            proxy_class_hash,
-            impl_class_hash,
+            class_hash,
             chain_id,
-            signer_public_key: signer_public_key.scalar(),
+            owner_public_key: signer_public_key.scalar(),
             guardian_public_key,
             signer,
             provider,
@@ -59,17 +48,11 @@ where
     type SignError = S::SignError;
 
     fn class_hash(&self) -> FieldElement {
-        self.proxy_class_hash
+        self.class_hash
     }
 
     fn calldata(&self) -> Vec<FieldElement> {
-        vec![
-            self.impl_class_hash,
-            SELECTOR_INITIALIZE,
-            FieldElement::TWO,
-            self.signer_public_key,
-            self.guardian_public_key,
-        ]
+        vec![self.owner_public_key, self.guardian_public_key]
     }
 
     fn chain_id(&self) -> FieldElement {

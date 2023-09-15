@@ -8,9 +8,8 @@ use starknet::{
 
 #[tokio::main]
 async fn main() {
-    // Latest hashes as of 2023-01-21. For demo only.
-    let proxy_hash = felt!("0x025ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918");
-    let impl_hash = felt!("0x033434ad846cdd5f23eb73ff09fe6fddd568284a0fb7d1be20ee482f044dabe2");
+    // Latest hash as of 2023-09-15. For demo only.
+    let class_hash = felt!("0x01a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003");
 
     // Anything you like here as salt
     let salt = felt!("12345678");
@@ -21,8 +20,7 @@ async fn main() {
     ));
 
     let factory = ArgentAccountFactory::new(
-        proxy_hash,
-        impl_hash,
+        class_hash,
         chain_id::TESTNET,
         FieldElement::ZERO,
         signer,
