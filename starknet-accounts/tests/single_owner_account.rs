@@ -347,6 +347,9 @@ async fn can_declare_cairo0_contract_inner<P: Provider + Send + Sync>(provider: 
 
     let result = account
         .declare_legacy(Arc::new(contract_artifact))
+        // There seems to be a fee estimation issue with `pathfinder`
+        //   https://github.com/eqlabs/pathfinder/issues/1372
+        .fee_estimate_multiplier(2.0)
         .send()
         .await
         .unwrap();
