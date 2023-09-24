@@ -21,7 +21,7 @@ impl Expandable for CairoFunction {
             // We can pass a reference here as serialize always takes a reference.
             inputs.push(quote!(#name:&#ty));
         }
- 
+
         let output = match self.state_mutability {
             StateMutability::View => match &self.output {
                 Some(o) => {
@@ -153,10 +153,7 @@ mod tests {
     use crate::abigen::Expandable;
     use proc_macro2::TokenStream as TokenStream2;
     use quote::quote;
-    use starknet_contract::abi::parser::{
-        abi_types::AbiTypeAny,
-        CairoFunction,
-    };
+    use starknet_contract::abi::parser::{abi_types::AbiTypeAny, CairoFunction};
     use starknet_core::types::contract::StateMutability;
 
     #[test]
