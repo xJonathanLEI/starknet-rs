@@ -9,7 +9,9 @@
 mod error;
 pub use error::{Error, Result};
 
-mod types;
+pub mod types;
+pub use types::*;
+pub use types::starknet::*;
 
 use starknet_core::types::FieldElement;
 

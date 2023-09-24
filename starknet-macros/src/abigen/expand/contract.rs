@@ -10,6 +10,12 @@ pub struct CairoContract;
 impl CairoContract {
     pub fn expand(contract_name: Ident) -> TokenStream2 {
         quote! {
+
+            use starknet::contract::abi::cairo_types::{self, Error as CairoError};
+            use starknet::contract::abi::CairoType;
+            use starknet::core::types::{BlockId, BlockTag};
+            use starknet::accounts::Account;
+
             #[derive(Debug)]
             pub struct #contract_name<P>
             where

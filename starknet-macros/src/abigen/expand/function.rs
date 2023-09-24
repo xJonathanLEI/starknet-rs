@@ -31,10 +31,10 @@ impl Expandable for CairoFunction {
                 None => quote!(),
             },
             StateMutability::External => {
-                // Only the TX hash is returned on success.
-                // TODO: go away from anyhow? Should it
-                // be something like cairo_contracts::Result?
-                quote!(-> anyhow::Result<starknet::core::types::FieldElement>)
+                quote!(-> Result<starknet::core::types::InvokeTransactionResult,
+                       starknet::accounts::AccountError<starknet::accounts::single_owner::SignError<starknet::signers::local_wallet::SignError>, <P as starknet::providers::Provider>::Error>
+                       >
+                )
             }
         };
 
@@ -95,7 +95,7 @@ impl Expandable for CairoFunction {
                         .await.map_err(
                             |err|
                             cairo_types::Error::Deserialize(
-                                format!("Deserialization error {:}", err)))?;
+                                format!("Deserialization error {}", err)))?;
 
                     #out_res
                 }
@@ -116,7 +116,7 @@ impl Expandable for CairoFunction {
                     let account = match &self.account {
                         Some(a) => std::sync::Arc::clone(&a),
                         // TODO: better error handling here.
-                        _ => return Err(anyhow::anyhow!("Account is required to send invoke transactions"))
+                        _ => panic!("Account is required to send invoke transactions")
                     };
 
                     let mut calldata = vec![];
@@ -132,12 +132,10 @@ impl Expandable for CairoFunction {
                     // TODO: we can have manual fee here, or it can also be estimate only.
                     let max_fee = execution.estimate_fee().await?.overall_fee.into();
 
-                    let invoke_tx = execution
+                    execution
                         .max_fee(max_fee)
-                        .send().await?.transaction_hash;
-
-                    // TODO: add an option to watch and wait for the tx to have a receipt?
-                    Ok(invoke_tx)
+                        .send()
+                        .await
                 }
             },
         }

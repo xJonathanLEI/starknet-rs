@@ -39,7 +39,7 @@ impl Parse for ContractAbi {
         let json_path = input.parse::<LitStr>()?;
         
         let abi = serde_json::from_reader::<_, Vec<AbiEntry>>(
-            File::open(&json_path.value())
+            File::open(json_path.value())
                 .map_err(|e| {
                     syn::Error::new(json_path.span(), format!("JSON open file error: {}", e))
                 })?

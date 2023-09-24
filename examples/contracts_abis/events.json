@@ -1,0 +1,86 @@
+[
+  {
+    "type": "struct",
+    "name": "core::array::Span::<core::felt252>",
+    "members": [
+      {
+        "name": "snapshot",
+        "type": "@core::array::Array::<core::felt252>"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "emit_a",
+    "inputs": [
+      {
+        "name": "header",
+        "type": "core::felt252"
+      },
+      {
+        "name": "value",
+        "type": "core::array::Span::<core::felt252>"
+      }
+    ],
+    "outputs": [],
+    "state_mutability": "external"
+  },
+  {
+    "type": "function",
+    "name": "emit_b",
+    "inputs": [
+      {
+        "name": "value",
+        "type": "core::felt252"
+      }
+    ],
+    "outputs": [],
+    "state_mutability": "external"
+  },
+  {
+    "type": "event",
+    "name": "contracts::event::event::MyEventA",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "header",
+        "type": "core::felt252",
+        "kind": "key"
+      },
+      {
+        "name": "value",
+        "type": "core::array::Span::<core::felt252>",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "contracts::event::event::MyEventB",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "value",
+        "type": "core::felt252",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "contracts::event::event::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "MyEventA",
+        "type": "contracts::event::event::MyEventA",
+        "kind": "nested"
+      },
+      {
+        "name": "MyEventB",
+        "type": "contracts::event::event::MyEventB",
+        "kind": "nested"
+      }
+    ]
+  }
+]
