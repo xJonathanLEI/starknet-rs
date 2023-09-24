@@ -1,12 +1,12 @@
 //! Events expansion.
 use super::{
+    utils::{str_to_ident, str_to_litstr, str_to_type},
     Expandable, ExpandableEvent,
-    utils::{str_to_ident, str_to_litstr, str_to_type}
 };
 
 use starknet_contract::abi::parser::{
+    abi_types::{AbiType, AbiTypeAny},
     CairoEvent, CairoEventInner,
-    abi_types::{AbiType, AbiTypeAny}
 };
 use starknet_core::types::contract::EventFieldKind;
 

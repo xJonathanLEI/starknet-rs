@@ -17,12 +17,12 @@
 //!    [{ .... }]
 //! "#);
 //!
+use starknet_core::types::contract::AbiEntry;
 use std::fs::File;
 use syn::{
     parse::{Parse, ParseStream, Result},
     Ident, LitStr, Token,
 };
-use starknet_core::types::contract::AbiEntry;
 
 #[derive(Clone, Debug)]
 pub(crate) struct ContractAbi {
@@ -37,20 +37,13 @@ impl Parse for ContractAbi {
 
         // Path rooted to the Cargo.toml location.
         let json_path = input.parse::<LitStr>()?;
-        
-        let abi = serde_json::from_reader::<_, Vec<AbiEntry>>(
-            File::open(json_path.value())
-                .map_err(|e| {
-                    syn::Error::new(json_path.span(), format!("JSON open file error: {}", e))
-                })?
-        )
-            .map_err(|e| {
-                syn::Error::new(json_path.span(), format!("JSON parse error: {}", e))
-            })?;
-        
-        Ok(ContractAbi {
-            name,
-            abi,
-        })
+
+        let abi =
+            serde_json::from_reader::<_, Vec<AbiEntry>>(File::open(json_path.value()).map_err(
+                |e| syn::Error::new(json_path.span(), format!("JSON open file error: {}", e)),
+            )?)
+            .map_err(|e| syn::Error::new(json_path.span(), format!("JSON parse error: {}", e)))?;
+
+        Ok(ContractAbi { name, abi })
     }
 }

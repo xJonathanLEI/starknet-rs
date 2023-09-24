@@ -6,8 +6,8 @@ pub(crate) mod generic;
 pub(crate) mod r#struct;
 pub(crate) mod utils;
 
-use starknet_contract::abi::parser::CairoEvent;
 use proc_macro2::TokenStream as TokenStream2;
+use starknet_contract::abi::parser::CairoEvent;
 
 pub trait Expandable {
     fn expand_decl(&self) -> TokenStream2;

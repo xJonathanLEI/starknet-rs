@@ -1,12 +1,13 @@
 //! Enums expansion, taking in account generic types if any.
 use super::{
-    generic, Expandable,
-    utils::{str_to_ident, str_to_type}
+    generic,
+    utils::{str_to_ident, str_to_type},
+    Expandable,
 };
 
 use starknet_contract::abi::parser::{
-    CairoEnum,
     abi_types::{AbiType, AbiTypeAny},
+    CairoEnum,
 };
 
 use proc_macro2::TokenStream as TokenStream2;

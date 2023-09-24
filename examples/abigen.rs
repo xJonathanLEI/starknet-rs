@@ -2,12 +2,9 @@ use starknet::{
     // Note here, we import an ABI type. This applies for
     // ContractAddress, ClassHash, EthAddress only.
     accounts::{ExecutionEncoding, SingleOwnerAccount},
-    core::{
-        chain_id,
-        types::FieldElement,
-    },
     contract::abi::ContractAddress,
-    macros::{felt, abigen},
+    core::{chain_id, types::FieldElement},
+    macros::{abigen, felt},
     providers::{Provider, SequencerGatewayProvider},
     signers::{LocalWallet, SigningKey},
 };
@@ -29,8 +26,8 @@ async fn main() {
 
     // To call a view, there is no need to initialize an account. You can directly
     // use the name of the method in the ABI to realize the call.
-    let balance: u256 = token_contract.balanceOf(
-        &ContractAddress(felt!("YOUR_ACCOUNT_ADDRESS_HEX_HERE")))
+    let balance: u256 = token_contract
+        .balanceOf(&ContractAddress(felt!("YOUR_ACCOUNT_ADDRESS_HEX_HERE")))
         .await
         .expect("Call to get balance failed");
 
@@ -54,11 +51,13 @@ async fn main() {
 
     let token_contract = token_contract.with_account(Arc::new(account));
 
-    token_contract.approve(&ContractAddress(felt!("SPENDER_ADDRESS_HEX")), &u256 {
-        low: 10000,
-        high: 0
-    });
-
+    token_contract.approve(
+        &ContractAddress(felt!("SPENDER_ADDRESS_HEX")),
+        &u256 {
+            low: 10000,
+            high: 0,
+        },
+    );
 
     println!("Your balance: {:?}", balance);
 }

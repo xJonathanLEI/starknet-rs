@@ -10,14 +10,14 @@
 //! checked for genericty to avoid duplicated types and detect correctly
 //! the members/variants that are generic.
 use proc_macro::TokenStream;
+use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::parse_macro_input;
-use proc_macro2::TokenStream as TokenStream2;
 
 use std::collections::HashMap;
 
-use starknet_contract::abi::parser::{CairoEnum, CairoEvent, CairoFunction, CairoStruct};
 use starknet_contract::abi::cairo_types::{CAIRO_BASIC_ENUMS, CAIRO_BASIC_STRUCTS};
+use starknet_contract::abi::parser::{CairoEnum, CairoEvent, CairoFunction, CairoStruct};
 use starknet_core::types::contract::AbiEntry;
 
 mod expand;

@@ -1,15 +1,13 @@
 use starknet::{
-    core::{
-        types::{FieldElement, EventFilter},
-    },
-    accounts::{SingleOwnerAccount, ExecutionEncoding},
-    macros::{felt, abigen},
-    providers::{Provider, JsonRpcClient, jsonrpc::HttpTransport},
+    accounts::{ExecutionEncoding, SingleOwnerAccount},
+    core::types::{EventFilter, FieldElement},
+    macros::{abigen, felt},
+    providers::{jsonrpc::HttpTransport, JsonRpcClient, Provider},
     signers::{LocalWallet, SigningKey},
 };
 
-use url::Url;
 use std::sync::Arc;
+use url::Url;
 
 // All the events are always grouped in one enun called `Event`
 // in the ABI.
@@ -34,15 +32,15 @@ async fn main() {
 
     let contract_address = felt!("CONTRACT_ADDRESS_HEX");
 
-    let event_contract = Contract::new(contract_address, Arc::clone(&provider))
-        .with_account(Arc::new(account));
+    let event_contract =
+        Contract::new(contract_address, Arc::clone(&provider)).with_account(Arc::new(account));
 
     // Let emits some events by calling two externals.
     event_contract
         .emit_a(&FieldElement::ONE, &vec![felt!("0xff"), felt!("0xf1")])
         .await
         .expect("Emit a invoke failed");
-                
+
     event_contract
         .emit_b(&felt!("0x1234"))
         .await
@@ -51,16 +49,19 @@ async fn main() {
     // Fetch events with some filters with a chunck size of 100 without continuation
     // token.
     // This will not work on the gateway, you need to use JsonRPC node.
-    let event_page = provider.get_events(
-        EventFilter {
-            from_block: Some(BlockId::Number(0)),
-            to_block: Some(BlockId::Tag(BlockTag::Latest)),
-            address: None,
-            keys: None,
-        },
-        None,
-        100,
-    ).await.expect("Fetch events failed");
+    let event_page = provider
+        .get_events(
+            EventFilter {
+                from_block: Some(BlockId::Number(0)),
+                to_block: Some(BlockId::Tag(BlockTag::Latest)),
+                address: None,
+                keys: None,
+            },
+            None,
+            100,
+        )
+        .await
+        .expect("Fetch events failed");
 
     for e in event_page.events {
         // abigen! macro generate for you the `TryFrom<EmittedEvent` for the

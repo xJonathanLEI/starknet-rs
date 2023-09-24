@@ -1,13 +1,13 @@
 use super::{
-    Expandable,
     utils::{str_to_ident, str_to_type},
-};
-use starknet_contract::abi::parser::{
-    CairoFunction,
-    abi_types::{AbiType, AbiTypeAny}
+    Expandable,
 };
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
+use starknet_contract::abi::parser::{
+    abi_types::{AbiType, AbiTypeAny},
+    CairoFunction,
+};
 use starknet_core::types::contract::StateMutability;
 
 impl Expandable for CairoFunction {
