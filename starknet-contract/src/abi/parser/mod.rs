@@ -12,7 +12,7 @@
 //! `CairoStruct`, `CairoEnum` and `CairoFunction` are higher level
 //! types to resolve the genericity and manage members/variants/inputs/outputs
 //! for simpler expansion.
-mod abi_types;
+pub mod abi_types;
 
 mod cairo_struct;
 pub use cairo_struct::CairoStruct;
@@ -24,4 +24,4 @@ mod cairo_function;
 pub use cairo_function::CairoFunction;
 
 mod cairo_event;
-pub use cairo_event::CairoEvent;
+pub use cairo_event::{CairoEvent, CairoEventInner};

@@ -5,6 +5,9 @@ use starknet_core::{
 };
 use syn::{parse_macro_input, LitStr};
 
+mod abigen;
+use abigen::abigen_internal;
+
 #[proc_macro]
 pub fn selector(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as LitStr);
@@ -113,6 +116,11 @@ pub fn felt_hex(input: TokenStream) -> TokenStream {
     )
     .parse()
     .unwrap()
+}
+
+#[proc_macro]
+pub fn abigen(input: TokenStream) -> TokenStream {
+    abigen_internal(input)
 }
 
 #[cfg(feature = "use_imported_type")]
