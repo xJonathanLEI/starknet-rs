@@ -47,7 +47,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use starknet::core::types::FieldElement;
+    use starknet_core::types::FieldElement;
 
     #[test]
     fn test_result_ok_serialize() {

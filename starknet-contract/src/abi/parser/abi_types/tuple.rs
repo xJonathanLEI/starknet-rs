@@ -127,7 +127,7 @@ impl AbiType for AbiTuple {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::abi_types::{AbiArray, AbiBasic, AbiTypeAny};
+    use crate::abi::parser::abi_types::{AbiArray, AbiBasic, AbiTypeAny};
 
     fn get_default() -> AbiTuple {
         AbiTuple::new(

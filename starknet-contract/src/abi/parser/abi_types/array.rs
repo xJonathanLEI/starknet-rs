@@ -87,7 +87,7 @@ impl AbiType for AbiArray {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::abi_types::{AbiBasic, AbiTypeAny};
+    use crate::abi::parser::abi_types::{AbiBasic, AbiTypeAny};
 
     fn get_default() -> AbiArray {
         AbiArray::new(

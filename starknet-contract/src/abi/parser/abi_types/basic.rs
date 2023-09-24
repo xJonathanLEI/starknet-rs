@@ -99,7 +99,7 @@ impl AbiType for AbiBasic {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::abi_types::AbiTypeAny;
+    use crate::abi::parser::abi_types::AbiTypeAny;
 
     fn get_default() -> AbiBasic {
         AbiBasic::new("core::felt252")

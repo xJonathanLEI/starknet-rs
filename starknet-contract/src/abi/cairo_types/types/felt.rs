@@ -39,7 +39,7 @@ mod tests {
 
     #[test]
     fn test_deserialize_field_element() {
-        let felts = vec![FieldElement::ZERO, FieldElement::ONE, FieldElement::TWO]; // allocating in the heap.
+        let felts = vec![FieldElement::ZERO, FieldElement::ONE, FieldElement::TWO];
         assert_eq!(
             FieldElement::deserialize(&felts, 0).unwrap(),
             FieldElement::ZERO

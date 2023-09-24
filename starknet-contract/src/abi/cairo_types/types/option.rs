@@ -46,8 +46,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec::Vec;
-    use starknet::core::types::FieldElement;
+    use starknet_core::types::FieldElement;
 
     #[test]
     fn test_option_some_serialize() {
