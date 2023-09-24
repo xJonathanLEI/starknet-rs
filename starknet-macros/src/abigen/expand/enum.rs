@@ -132,14 +132,12 @@ impl Expandable for CairoEnum {
                 }
 
                 fn serialize(rust: &Self::RustType) -> Vec<starknet::core::types::FieldElement> {
-
                     match rust {
                         #(#serializations),*
                     }
                 }
 
                 fn deserialize(felts: &[starknet::core::types::FieldElement], offset: usize) -> starknet::contract::abi::cairo_types::Result<Self::RustType> {
-
                     let index:u128 = felts[offset].try_into().unwrap();
                     match index as usize {
                         #(#deserializations),*

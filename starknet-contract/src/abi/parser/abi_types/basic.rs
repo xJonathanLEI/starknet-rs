@@ -26,9 +26,9 @@ impl AbiBasic {
         let s = self.get_cairo_type_name();
         match s.as_str() {
             "felt252" => "starknet::core::types::FieldElement".to_string(),
-            "ContractAddress" => "cairo_types::types::starknet::ContractAddress".to_string(),
-            "ClassHash" => "cairo_types::types::starknet::ClassHash".to_string(),
-            "EthAddress" => "cairo_types::types::starknet::EthAddress".to_string(),
+            "ContractAddress" => "starknet::contract::abi::cairo_types::ContractAddress".to_string(),
+            "ClassHash" => "starknet::contract::abi::cairo_types::ClassHash".to_string(),
+            "EthAddress" => "starknet::contract::abi::cairo_types::EthAddress".to_string(),
             _ => s.clone(),
         }
     }

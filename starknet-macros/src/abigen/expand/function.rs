@@ -21,7 +21,7 @@ impl Expandable for CairoFunction {
             // We can pass a reference here as serialize always takes a reference.
             inputs.push(quote!(#name:&#ty));
         }
-
+ 
         let output = match self.state_mutability {
             StateMutability::View => match &self.output {
                 Some(o) => {
@@ -80,7 +80,6 @@ impl Expandable for CairoFunction {
         match &self.state_mutability {
             StateMutability::View => quote! {
                 #decl {
-                    use starknet::contract::abi::cairo_types::{self, Error as CairoError};
                     use starknet::contract::abi::CairoType;
                     use starknet::core::types::{BlockId, BlockTag};
 
@@ -94,7 +93,7 @@ impl Expandable for CairoFunction {
                                 entry_point_selector: starknet::macros::selector!(#func_name),
                                 calldata,
                             },
-                            BlockId::Tag(BlockTag::Pending),
+                            BlockId::Tag(BlockTag::Latest),
                         )
                         .await.map_err(
                             |err|
@@ -114,7 +113,6 @@ impl Expandable for CairoFunction {
                 // The estimate only may be done at the function level, to avoid
                 // altering the contract instance itself and hence races.
                 #decl {
-                    use starknet::contract::abi::cairo_types::{self, Error as CairoError};
                     use starknet::contract::abi::CairoType;
                     use starknet::accounts::Account;
 
@@ -152,14 +150,14 @@ impl Expandable for CairoFunction {
 
 #[cfg(test)]
 mod tests {
-    use crate::Expandable;
-    use proc_macro2::TokenStream2;
+    use crate::abigen::Expandable;
+    use proc_macro2::TokenStream as TokenStream2;
     use quote::quote;
-    use starknet::contract::abi::parser::{
-        abi_types::{AbiType, AbiTypeAny},
+    use starknet_contract::abi::parser::{
+        abi_types::AbiTypeAny,
         CairoFunction,
     };
-    use starknet::core::types::contract::StateMutability;
+    use starknet_core::types::contract::StateMutability;
 
     #[test]
     fn test_decl_basic() {
@@ -200,6 +198,10 @@ mod tests {
                 v1: &starknet::core::types::FieldElement,
                 v2: &starknet::core::types::FieldElement
             ) -> starknet::contract::abi::cairo_types::Result<starknet::core::types::FieldElement> {
+                use starknet::contract::abi::cairo_types::{self, Error as CairoError};
+                use starknet::contract::abi::CairoType;
+                use starknet::core::types::{BlockId, BlockTag};
+
                 let mut calldata = vec![];
                 calldata.extend(starknet::core::types::FieldElement::serialize(v1));
                 calldata.extend(starknet::core::types::FieldElement::serialize(v2));
@@ -211,7 +213,7 @@ mod tests {
                             entry_point_selector: starknet::macros::selector!("my_func"),
                             calldata,
                         },
-                        BlockId::Tag(BlockTag::Pending),
+                        BlockId::Tag(BlockTag::Latest),
                     )
                     .await.map_err(|err| starknet::contract::abi::cairo_types::Error::Deserialize(format!("Deserialization error {:}" , err)))?;
 
