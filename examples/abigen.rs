@@ -31,6 +31,8 @@ async fn main() {
         .await
         .expect("Call to get balance failed");
 
+    println!("Your ETH (goerli) balance: {:?}", balance);
+
     // For the inputs / outputs of the ABI functions, all the types are
     // defined where the abigen! macro is expanded. Note that `u256`
     // for the balance were already in the scope as it's generated from
@@ -58,6 +60,4 @@ async fn main() {
             high: 0,
         },
     );
-
-    println!("Your balance: {:?}", balance);
 }
