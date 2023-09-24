@@ -87,7 +87,7 @@ impl Expandable for CairoStruct {
         let impl_line = if self.is_generic() {
             generic::impl_with_gentys_tokens(&struct_name, &gentys)
         } else {
-            quote!(impl cairo_types::CairoType for #struct_name)
+            quote!(impl starknet::contract::abi::CairoType for #struct_name)
         };
 
         let rust_type = if self.is_generic() {
@@ -116,7 +116,7 @@ impl Expandable for CairoStruct {
                     out
                 }
 
-                fn deserialize(felts: &[starknet::core::types::FieldElement], offset: usize) -> cairo_types::Result<Self::RustType> {
+                fn deserialize(felts: &[starknet::core::types::FieldElement], offset: usize) -> starknet::contract::abi::cairo_types::Result<Self::RustType> {
                     let mut offset = offset;
                     #(#desers)*
                     Ok(#struct_name {

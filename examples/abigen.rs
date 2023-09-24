@@ -11,6 +11,9 @@ use starknet::{
 
 use std::sync::Arc;
 
+// TODO: search where this one is missing...!
+use starknet::contract::abi::cairo_types;
+
 // Generate the bindings for the contract and also includes
 // all the structs and enums present in the ABI with the exact
 // same name.

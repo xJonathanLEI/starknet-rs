@@ -1,6 +1,6 @@
 use starknet::{
-    accounts::{ExecutionEncoding, SingleOwnerAccount},
-    core::types::{EventFilter, FieldElement},
+    accounts::{Account, ExecutionEncoding, SingleOwnerAccount},
+    core::types::{BlockId, BlockTag, EventFilter, FieldElement},
     macros::{abigen, felt},
     providers::{jsonrpc::HttpTransport, JsonRpcClient, Provider},
     signers::{LocalWallet, SigningKey},

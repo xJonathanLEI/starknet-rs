@@ -15,13 +15,13 @@ pub fn impl_with_gentys_tokens(entity_name: &Ident, gentys: &Vec<Ident>) -> Toke
     let mut tokens = vec![];
 
     tokens.push(quote! {
-        impl<#(#gentys),* , #(#gentys_rust),*> cairo_types::CairoType for #entity_name<#(#gentys),*>
+        impl<#(#gentys),* , #(#gentys_rust),*> starknet::contract::abi::CairoType for #entity_name<#(#gentys),*>
         where
     });
 
     for (i, g) in gentys.iter().enumerate() {
         let gr = &gentys_rust[i];
-        tokens.push(quote!(#g: CairoType<RustType = #gr>,));
+        tokens.push(quote!(#g: starknet::contract::abi::CairoType<RustType = #gr>,));
     }
 
     quote!(#(#tokens)*)

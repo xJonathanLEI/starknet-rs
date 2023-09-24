@@ -106,7 +106,7 @@ impl Expandable for CairoEnum {
         let impl_line = if self.is_generic() {
             generic::impl_with_gentys_tokens(&enum_name, &gentys)
         } else {
-            quote!(impl cairo_types::CairoType for #enum_name)
+            quote!(impl starknet::contract::abi::CairoType for #enum_name)
         };
 
         let rust_type = if self.is_generic() {
@@ -138,7 +138,8 @@ impl Expandable for CairoEnum {
                     }
                 }
 
-                fn deserialize(felts: &[starknet::core::types::FieldElement], offset: usize) -> cairo_types::Result<Self::RustType> {
+                fn deserialize(felts: &[starknet::core::types::FieldElement], offset: usize) -> starknet::contract::abi::cairo_types::Result<Self::RustType> {
+
                     let index:u128 = felts[offset].try_into().unwrap();
                     match index as usize {
                         #(#deserializations),*

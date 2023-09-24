@@ -176,6 +176,8 @@ impl ExpandableEvent for CairoEvent {
                     type Error = String;
 
                     fn try_from(event: starknet::core::types::EmittedEvent) -> Result<Self, Self::Error> {
+                        use starknet::contract::abi::CairoType;
+
                         if event.keys.is_empty() {
                             return Err("Missing event selector, no keys found".to_string());
                         }
