@@ -195,7 +195,6 @@ mod tests {
                 v1: &starknet::core::types::FieldElement,
                 v2: &starknet::core::types::FieldElement
             ) -> starknet::contract::abi::cairo_types::Result<starknet::core::types::FieldElement> {
-                use starknet::contract::abi::cairo_types::{self, Error as CairoError};
                 use starknet::contract::abi::CairoType;
                 use starknet::core::types::{BlockId, BlockTag};
 
@@ -212,7 +211,7 @@ mod tests {
                         },
                         BlockId::Tag(BlockTag::Latest),
                     )
-                    .await.map_err(|err| starknet::contract::abi::cairo_types::Error::Deserialize(format!("Deserialization error {:}" , err)))?;
+                    .await.map_err(|err| starknet::contract::abi::cairo_types::Error::Deserialize(format!("Deserialization error {}" , err)))?;
 
                 starknet::core::types::FieldElement::deserialize(&r, 0)
             }
