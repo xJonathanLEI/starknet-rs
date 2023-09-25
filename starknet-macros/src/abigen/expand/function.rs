@@ -79,6 +79,7 @@ impl Expandable for CairoFunction {
 
         match &self.state_mutability {
             StateMutability::View => quote! {
+                #[allow(clippy::ptr_arg)]
                 #decl {
                     use starknet::contract::abi::CairoType;
                     use starknet::core::types::{BlockId, BlockTag};
@@ -112,6 +113,7 @@ impl Expandable for CairoFunction {
                 // fees (manual, estimated + scale factor).
                 // The estimate only may be done at the function level, to avoid
                 // altering the contract instance itself and hence races.
+                #[allow(clippy::ptr_arg)]
                 #decl {
                     use starknet::contract::abi::CairoType;
                     use starknet::accounts::Account;
