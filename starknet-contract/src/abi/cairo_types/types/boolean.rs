@@ -38,8 +38,8 @@ mod tests {
     #[test]
     fn test_deserialize_bool() {
         let felts = vec![FieldElement::ZERO, FieldElement::ONE, FieldElement::TWO];
-        assert_eq!(bool::deserialize(&felts, 0).unwrap(), false);
-        assert_eq!(bool::deserialize(&felts, 1).unwrap(), true);
-        assert_eq!(bool::deserialize(&felts, 2).unwrap(), false);
+        assert!(!bool::deserialize(&felts, 0).unwrap());
+        assert!(bool::deserialize(&felts, 1).unwrap());
+        assert!(!bool::deserialize(&felts, 2).unwrap());
     }
 }

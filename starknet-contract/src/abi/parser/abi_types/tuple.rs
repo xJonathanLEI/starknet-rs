@@ -127,16 +127,13 @@ impl AbiType for AbiTuple {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::abi::parser::abi_types::{AbiArray, AbiBasic, AbiTypeAny};
+    use crate::abi::parser::abi_types::{AbiArray, AbiTypeAny};
 
     fn get_default() -> AbiTuple {
-        AbiTuple::new(
-            vec![
-                AbiTypeAny::Basic(AbiBasic::new("core::felt252".into())),
-                AbiTypeAny::Basic(AbiBasic::new("core::integer::u32".into())),
-            ]
-            .into(),
-        )
+        AbiTuple::new(vec![
+            AbiTypeAny::Basic("core::felt252".into()),
+            AbiTypeAny::Basic("core::integer::u32".into()),
+        ])
     }
 
     #[test]

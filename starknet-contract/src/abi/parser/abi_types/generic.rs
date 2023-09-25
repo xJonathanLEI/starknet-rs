@@ -167,12 +167,12 @@ impl AbiType for AbiGeneric {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::abi::parser::abi_types::{AbiArray, AbiBasic, AbiTypeAny};
+    use crate::abi::parser::abi_types::{AbiArray, AbiTypeAny};
 
     fn get_default() -> AbiGeneric {
         AbiGeneric::new(
             "contract1::MyStruct",
-            vec![AbiTypeAny::Basic(AbiBasic::new("core::felt252".into()))],
+            vec![AbiTypeAny::Basic("core::felt252".into())],
         )
     }
 
@@ -180,8 +180,8 @@ mod tests {
         AbiGeneric::new(
             "contract1::MyStruct",
             vec![
-                AbiTypeAny::Basic(AbiBasic::new("core::felt252".into())),
-                AbiTypeAny::Basic(AbiBasic::new("core::integer::u32".into())),
+                AbiTypeAny::Basic("core::felt252".into()),
+                AbiTypeAny::Basic("core::integer::u32".into()),
             ],
         )
     }

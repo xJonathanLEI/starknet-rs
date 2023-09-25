@@ -58,7 +58,7 @@ mod tests {
         let v = 12_u8;
         let felts = u8::serialize(&v);
         assert_eq!(felts.len(), 1);
-        assert_eq!(felts[0], FieldElement::from(12 as u8));
+        assert_eq!(felts[0], FieldElement::from(12_u8));
     }
 
     #[test]
@@ -73,7 +73,7 @@ mod tests {
         let v = 12_u16;
         let felts = u16::serialize(&v);
         assert_eq!(felts.len(), 1);
-        assert_eq!(felts[0], FieldElement::from(12 as u16));
+        assert_eq!(felts[0], FieldElement::from(12_u16));
     }
 
     #[test]
@@ -88,7 +88,7 @@ mod tests {
         let v = 123_u32;
         let felts = u32::serialize(&v);
         assert_eq!(felts.len(), 1);
-        assert_eq!(felts[0], FieldElement::from(123 as u32));
+        assert_eq!(felts[0], FieldElement::from(123_u32));
     }
 
     #[test]
@@ -103,7 +103,7 @@ mod tests {
         let v = 123_u64;
         let felts = u64::serialize(&v);
         assert_eq!(felts.len(), 1);
-        assert_eq!(felts[0], FieldElement::from(123 as u64));
+        assert_eq!(felts[0], FieldElement::from(123_u64));
     }
 
     #[test]
@@ -118,7 +118,7 @@ mod tests {
         let v = 123_u128;
         let felts = u128::serialize(&v);
         assert_eq!(felts.len(), 1);
-        assert_eq!(felts[0], FieldElement::from(123 as u128));
+        assert_eq!(felts[0], FieldElement::from(123_u128));
     }
 
     #[test]
@@ -133,7 +133,7 @@ mod tests {
         let v = 123;
         let felts = usize::serialize(&v);
         assert_eq!(felts.len(), 1);
-        assert_eq!(felts[0], FieldElement::from(123 as u128));
+        assert_eq!(felts[0], FieldElement::from(123_u128));
     }
 
     #[test]

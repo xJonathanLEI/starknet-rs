@@ -1,5 +1,5 @@
 use starknet::{
-    accounts::{Account, ExecutionEncoding, SingleOwnerAccount},
+    accounts::{ExecutionEncoding, SingleOwnerAccount},
     core::types::{BlockId, BlockTag, EventFilter, FieldElement},
     macros::{abigen, felt},
     providers::{jsonrpc::HttpTransport, JsonRpcClient, Provider},
@@ -23,14 +23,14 @@ async fn main() {
     ));
     let address = FieldElement::from_hex_be("YOUR_ACCOUNT_CONTRACT_ADDRESS_IN_HEX_HERE").unwrap();
     let account = SingleOwnerAccount::new(
-        provider,
+        provider.clone(),
         signer,
         address,
         felt!("0x4b4154414e41"), // KATANA
         ExecutionEncoding::Legacy,
     );
 
-    let contract_address = felt!("CONTRACT_ADDRESS_HEX");
+    let contract_address = FieldElement::from_hex_be("CONTRACT_ADDRESS_HEX").unwrap();
 
     let event_contract =
         Contract::new(contract_address, Arc::clone(&provider)).with_account(Arc::new(account));
@@ -78,10 +78,10 @@ async fn main() {
         // is automatically done based on the variant
         // from the event keys and data.
         match my_event {
-            Event::MyEventA(a) => {
+            Event::MyEventA(_a) => {
                 // do stuff with a.header and a.value.
             }
-            Event::MyEventB(b) => {
+            Event::MyEventB(_b) => {
                 // do stuff with b.value.
             }
         };
