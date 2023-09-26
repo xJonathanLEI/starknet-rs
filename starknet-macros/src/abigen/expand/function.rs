@@ -192,6 +192,7 @@ mod tests {
 
         #[rustfmt::skip]
         let tef1: TokenStream2 = quote!(
+            #[allow(clippy::ptr_arg)]
             pub async fn my_func(
                 &self,
                 v1: &starknet::core::types::FieldElement,
