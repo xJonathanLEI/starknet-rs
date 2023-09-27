@@ -42,48 +42,7 @@ pub fn abigen_internal(input: TokenStream) -> TokenStream {
     let mut events = vec![];
 
     for entry in &abi {
-        match entry {
-            AbiEntry::Struct(s) => {
-                let cs = CairoStruct::new(&s.name, &s.members);
-
-                if CAIRO_BASIC_STRUCTS.contains(&cs.get_name().as_str()) {
-                    continue;
-                }
-
-                if let Some(ref mut existing_cs) = structs.get_mut(&cs.get_name()) {
-                    cs.compare_generic_types(existing_cs);
-                } else {
-                    structs.insert(cs.get_name(), cs.clone());
-                }
-            }
-            AbiEntry::Enum(e) => {
-                let ce = CairoEnum::new(&e.name, &e.variants);
-
-                if CAIRO_BASIC_ENUMS.contains(&ce.get_name().as_str()) {
-                    continue;
-                }
-
-                if let Some(ref mut existing_ce) = enums.get_mut(&ce.get_name()) {
-                    ce.compare_generic_types(existing_ce);
-                } else {
-                    enums.insert(ce.get_name(), ce.clone());
-                }
-            }
-            AbiEntry::Function(f) => {
-                // Functions cannot be generic when they are entry point.
-                // From this statement, we can safely assume that any function name is
-                // unique.
-                let cf =
-                    CairoFunction::new(&f.name, f.state_mutability.clone(), &f.inputs, &f.outputs);
-                functions.push(cf.expand_impl());
-            }
-            AbiEntry::Event(ev) => {
-                if let Some(cev) = CairoEvent::new(ev) {
-                    events.push(cev);
-                }
-            }
-            _ => continue,
-        }
+        parse_entry(entry, &mut structs, &mut enums, &mut functions, &mut events);
     }
 
     for (_, cs) in structs {
@@ -115,4 +74,59 @@ pub fn abigen_internal(input: TokenStream) -> TokenStream {
     };
 
     expanded.into()
+}
+
+fn parse_entry(
+    entry: &AbiEntry,
+    structs: &mut HashMap<String, CairoStruct>,
+    enums: &mut HashMap<String, CairoEnum>,
+    functions: &mut Vec<TokenStream2>,
+    events: &mut Vec<CairoEvent>,
+) {
+    match entry {
+        AbiEntry::Struct(s) => {
+            let cs = CairoStruct::new(&s.name, &s.members);
+
+            if CAIRO_BASIC_STRUCTS.contains(&cs.get_name().as_str()) {
+                return;
+            }
+
+            if let Some(ref mut existing_cs) = structs.get_mut(&cs.get_name()) {
+                cs.compare_generic_types(existing_cs);
+            } else {
+                structs.insert(cs.get_name(), cs.clone());
+            }
+        }
+        AbiEntry::Enum(e) => {
+            let ce = CairoEnum::new(&e.name, &e.variants);
+
+            if CAIRO_BASIC_ENUMS.contains(&ce.get_name().as_str()) {
+                return;
+            }
+
+            if let Some(ref mut existing_ce) = enums.get_mut(&ce.get_name()) {
+                ce.compare_generic_types(existing_ce);
+            } else {
+                enums.insert(ce.get_name(), ce.clone());
+            }
+        }
+        AbiEntry::Function(f) => {
+            // Functions cannot be generic when they are entry point.
+            // From this statement, we can safely assume that any function name is
+            // unique.
+            let cf = CairoFunction::new(&f.name, f.state_mutability.clone(), &f.inputs, &f.outputs);
+            functions.push(cf.expand_impl());
+        }
+        AbiEntry::Event(ev) => {
+            if let Some(cev) = CairoEvent::new(ev) {
+                events.push(cev);
+            }
+        }
+        AbiEntry::Interface(interface) => {
+            for entry in &interface.items {
+                parse_entry(entry, structs, enums, functions, events);
+            }
+        }
+        _ => (),
+    }
 }
