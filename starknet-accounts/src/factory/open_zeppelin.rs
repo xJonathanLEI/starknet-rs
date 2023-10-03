@@ -1,7 +1,7 @@
 use crate::{AccountFactory, PreparedAccountDeployment, RawAccountDeployment};
 
 use async_trait::async_trait;
-use starknet_core::types::FieldElement;
+use starknet_core::types::{BlockId, BlockTag, FieldElement};
 use starknet_providers::Provider;
 use starknet_signers::Signer;
 
@@ -11,6 +11,7 @@ pub struct OpenZeppelinAccountFactory<S, P> {
     public_key: FieldElement,
     signer: S,
     provider: P,
+    block_id: BlockId,
 }
 
 impl<S, P> OpenZeppelinAccountFactory<S, P>
@@ -30,7 +31,13 @@ where
             public_key: public_key.scalar(),
             signer,
             provider,
+            block_id: BlockId::Tag(BlockTag::Latest),
         })
+    }
+
+    pub fn set_block_id(&mut self, block_id: BlockId) -> &Self {
+        self.block_id = block_id;
+        self
     }
 }
 
@@ -58,6 +65,10 @@ where
 
     fn provider(&self) -> &Self::Provider {
         &self.provider
+    }
+
+    fn block_id(&self) -> BlockId {
+        self.block_id
     }
 
     async fn sign_deployment(
