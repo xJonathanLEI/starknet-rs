@@ -174,26 +174,19 @@ impl AbiTypeAny {
     fn parse_type(chars: &mut Peekable<Chars>) -> Self {
         let mut generic_types = Vec::new();
         let mut current_type = String::new();
-        let mut in_generic = false;
 
         while let Some(c) = chars.peek() {
             match c {
                 '<' => {
                     chars.next();
-                    // In cairo, a generic type is always preceded by a separator "::".
+                    // In cairo, a generic type is always preceeded by a separator "::".
                     let generic_type =
                         Self::parse_generic(current_type.trim_end_matches("::"), chars);
                     generic_types.push(generic_type);
-                    in_generic = true;
                     current_type.clear();
                 }
                 '>' => {
-                    if in_generic {
-                        chars.next();
-                        in_generic = false;
-                    } else {
-                        break;
-                    }
+                    break;
                 }
                 '(' => {
                     chars.next();
@@ -247,7 +240,6 @@ impl AbiTypeAny {
                 }
                 ',' => {
                     chars.next();
-                    inners.push(Self::parse_type(chars))
                 }
                 _ => {
                     inners.push(Self::parse_type(chars));
@@ -260,8 +252,7 @@ impl AbiTypeAny {
         }
 
         // Array and Span are processed exactly the same, using `Vec`.
-        let is_array = current_type.contains("core::array::Array")
-            || current_type.contains("core::array::Span");
+        let is_array = current_type.contains("core::array");
 
         if is_array {
             if inners.len() == 1 {
@@ -284,6 +275,9 @@ impl AbiTypeAny {
 
         while let Some(c) = chars.peek() {
             match c {
+                ' ' => {
+                    chars.next();
+                }
                 ',' => {
                     chars.next();
                 }
@@ -292,7 +286,8 @@ impl AbiTypeAny {
                     break;
                 }
                 _ => {
-                    tuple_values.push(Self::parse_type(chars));
+                    let v = Self::parse_type(chars);
+                    tuple_values.push(v);
                 }
             }
         }

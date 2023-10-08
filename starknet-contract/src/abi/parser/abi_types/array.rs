@@ -186,4 +186,13 @@ mod tests {
             ("core::array::Array::<core::u32>".to_string(), false)
         );
     }
+
+    #[test]
+    fn array_in_array_not_generic() {
+        let t = AbiTypeAny::from_string("core::array::Span::<core::array::Span::<core::felt252>>");
+        assert_eq!(
+            t.to_rust_type(),
+            "Vec<Vec<starknet::core::types::FieldElement>>"
+        );
+    }
 }

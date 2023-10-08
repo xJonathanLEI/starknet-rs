@@ -256,4 +256,14 @@ mod tests {
             ("(core::felt252, B)".to_string(), true)
         );
     }
+
+    #[test]
+    fn tuple_array_in_array() {
+        let t = AbiTypeAny::from_string("(core::array::Span::<core::felt252>, core::array::Span::<core::array::Span::<core::felt252>>)");
+
+        assert_eq!(
+            t.to_rust_type(),
+            "(Vec<starknet::core::types::FieldElement>, Vec<Vec<starknet::core::types::FieldElement>>)"
+        );
+    }
 }
