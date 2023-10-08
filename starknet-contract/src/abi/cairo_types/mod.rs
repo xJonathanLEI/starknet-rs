@@ -20,7 +20,7 @@ use starknet_core::types::FieldElement;
 pub const CAIRO_BASIC_STRUCTS: [&str; 4] = ["Span", "ClassHash", "ContractAddress", "EthAddress"];
 
 /// Same as `CAIRO_BASIC_STRUCTS`, but for enums.
-pub const CAIRO_BASIC_ENUMS: [&str; 2] = ["Option", "Result"];
+pub const CAIRO_BASIC_ENUMS: [&str; 3] = ["Option", "Result", "bool"];
 
 /// CairoType trait to implement in order to serialize/deserialize
 /// a Rust type to/from a CairoType.
