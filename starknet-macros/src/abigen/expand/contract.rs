@@ -19,6 +19,7 @@ impl CairoContract {
                 pub address: starknet::core::types::FieldElement,
                 pub provider: std::sync::Arc<P>,
                 pub account: std::option::Option<std::sync::Arc<starknet::accounts::SingleOwnerAccount<std::sync::Arc<P>, starknet::signers::LocalWallet>>>,
+                call_block_id: starknet::core::types::BlockId,
             }
 
             impl<P> #contract_name<P>
@@ -33,6 +34,7 @@ impl CairoContract {
                         address,
                         provider: std::sync::Arc::clone(&provider),
                         account: None,
+                        call_block_id: starknet::core::types::BlockId::Tag(starknet::core::types::BlockTag::Pending),
                     }
                 }
 
@@ -40,6 +42,10 @@ impl CairoContract {
                 ) -> Self {
                     self.account = Some(std::sync::Arc::clone(&account));
                     self
+                }
+
+                pub fn set_call_block_id(mut self, block_id: starknet::core::types::BlockId) {
+                    self.call_block_id = block_id;
                 }
             }
         }

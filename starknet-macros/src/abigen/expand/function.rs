@@ -96,7 +96,7 @@ impl Expandable for CairoFunction {
                                 entry_point_selector: starknet::macros::selector!(#func_name),
                                 calldata,
                             },
-                            BlockId::Tag(BlockTag::Latest),
+                            self.call_block_id,
                         )
                         .await.map_err(
                             |err|
@@ -214,7 +214,7 @@ mod tests {
                             entry_point_selector: starknet::macros::selector!("my_func"),
                             calldata,
                         },
-                        BlockId::Tag(BlockTag::Latest),
+                        self.call_block_id,
                     )
                     .await.map_err(|err| starknet::contract::abi::cairo_types::Error::Deserialize(format!("Deserialization error {}" , err)))?;
 
