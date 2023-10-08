@@ -6,13 +6,13 @@ use starknet_core::types::FieldElement;
 pub type Result<T> = core::result::Result<T, Error>;
 
 /// A cairo type error.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum Error {
-    /// Invalid type string.
+    #[error("Invalid type found {0:?}.")]
     InvalidTypeString(String),
-    /// Error during serialization.
+    #[error("Error during serialization {0:?}.")]
     Serialize(String),
-    /// Error during deserialization.
+    #[error("Error during deserialization {0:?}.")]
     Deserialize(String),
 }
 
