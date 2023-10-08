@@ -68,17 +68,17 @@ impl Expandable for CairoStruct {
             };
 
             if is_first {
-                sizes.push(quote!(#ty_punctuated::serialized_size(&rust.#name)));
+                sizes.push(quote!(#ty_punctuated::serialized_size(&__rust.#name)));
                 is_first = false;
             } else {
-                sizes.push(quote!(+ #ty_punctuated::serialized_size(&rust.#name)));
+                sizes.push(quote!(+ #ty_punctuated::serialized_size(&__rust.#name)));
             }
 
-            sers.push(quote!(out.extend(#ty_punctuated::serialize(&rust.#name));));
+            sers.push(quote!(__out.extend(#ty_punctuated::serialize(&__rust.#name));));
 
             desers.push(quote! {
-                let #name = #ty_punctuated::deserialize(felts, offset)?;
-                offset += #ty_punctuated::serialized_size(&#name);
+                let #name = #ty_punctuated::deserialize(__felts, __offset)?;
+                __offset += #ty_punctuated::serialized_size(&#name);
             });
         }
 
@@ -106,18 +106,18 @@ impl Expandable for CairoStruct {
                 const SERIALIZED_SIZE: std::option::Option<usize> = None;
 
                 #[inline]
-                fn serialized_size(rust: &Self::RustType) -> usize {
+                fn serialized_size(__rust: &Self::RustType) -> usize {
                     #(#sizes) *
                 }
 
-                fn serialize(rust: &Self::RustType) -> Vec<starknet::core::types::FieldElement> {
-                    let mut out: Vec<starknet::core::types::FieldElement> = vec![];
+                fn serialize(__rust: &Self::RustType) -> Vec<starknet::core::types::FieldElement> {
+                    let mut __out: Vec<starknet::core::types::FieldElement> = vec![];
                     #(#sers)*
-                    out
+                    __out
                 }
 
-                fn deserialize(felts: &[starknet::core::types::FieldElement], offset: usize) -> starknet::contract::abi::cairo_types::Result<Self::RustType> {
-                    let mut offset = offset;
+                fn deserialize(__felts: &[starknet::core::types::FieldElement], __offset: usize) -> starknet::contract::abi::cairo_types::Result<Self::RustType> {
+                    let mut __offset = __offset;
                     #(#desers)*
                     Ok(#struct_name {
                         #(#names),*

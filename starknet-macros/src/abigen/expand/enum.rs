@@ -88,7 +88,7 @@ impl Expandable for CairoEnum {
                     }
                 });
                 deserializations.push(quote! {
-                    #i => Ok(#enum_name::#variant_name(#ty_punctuated::deserialize(felts, offset + 1)?))
+                    #i => Ok(#enum_name::#variant_name(#ty_punctuated::deserialize(__felts, __offset + 1)?))
                 });
                 // +1 because we have to handle the variant index also.
                 serialized_sizes.push(quote! {
@@ -125,21 +125,21 @@ impl Expandable for CairoEnum {
                 const SERIALIZED_SIZE: std::option::Option<usize> = std::option::Option::None;
 
                 #[inline]
-                fn serialized_size(rust: &Self::RustType) -> usize {
-                    match rust {
+                fn serialized_size(__rust: &Self::RustType) -> usize {
+                    match __rust {
                         #(#serialized_sizes),*
                     }
                 }
 
-                fn serialize(rust: &Self::RustType) -> Vec<starknet::core::types::FieldElement> {
-                    match rust {
+                fn serialize(__rust: &Self::RustType) -> Vec<starknet::core::types::FieldElement> {
+                    match __rust {
                         #(#serializations),*
                     }
                 }
 
-                fn deserialize(felts: &[starknet::core::types::FieldElement], offset: usize) -> starknet::contract::abi::cairo_types::Result<Self::RustType> {
-                    let index:u128 = felts[offset].try_into().unwrap();
-                    match index as usize {
+                fn deserialize(__felts: &[starknet::core::types::FieldElement], __offset: usize) -> starknet::contract::abi::cairo_types::Result<Self::RustType> {
+                    let __index:u128 = __felts[__offset].try_into().unwrap();
+                    match __index as usize {
                         #(#deserializations),*
                     }
 

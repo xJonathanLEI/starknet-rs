@@ -28,7 +28,9 @@ impl Expandable for CairoFunction {
                     let oty = str_to_type(&o.to_rust_type());
                     quote!(-> starknet::contract::abi::cairo_types::Result<#oty>)
                 }
-                None => quote!(),
+                None => {
+                    quote!(-> starknet::contract::abi::cairo_types::Result<()>)
+                }
             },
             StateMutability::External => {
                 quote!(-> Result<starknet::core::types::InvokeTransactionResult,
@@ -74,7 +76,7 @@ impl Expandable for CairoFunction {
                     _ => quote!(#out_type_path::deserialize(&r, 0)),
                 }
             }
-            None => quote!(),
+            None => quote!(Ok(())),
         };
 
         match &self.state_mutability {
