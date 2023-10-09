@@ -1,4 +1,4 @@
-use alloc::{boxed::Box, collections::BTreeMap, format, string::String, vec::Vec};
+use alloc::{borrow::ToOwned, boxed::Box, collections::BTreeMap, format, string::String, vec::Vec};
 
 use crate::{
     crypto::compute_hash_on_elements,
@@ -464,8 +464,6 @@ impl LegacyContractClass {
             program: &'a LegacyProgram,
         }
 
-        // TODO: handle adding extra whitespaces in pre-0.10.0 artifacts for backward compatibility
-
         let serialized = to_string_pythonic(&ContractArtifactForHash {
             abi: &self.abi,
             program: &self.program,
@@ -628,21 +626,85 @@ impl SerializeAs<LegacyProgram> for ProgramForHintedHash {
             reference_manager: &'a LegacyReferenceManager,
         }
 
-        HashVo::serialize(
-            &HashVo {
-                attributes: &source.attributes,
-                builtins: &source.builtins,
-                compiler_version: &source.compiler_version,
-                data: &source.data,
-                debug_info: &None,
-                hints: &source.hints,
-                identifiers: &source.identifiers,
-                main_scope: &source.main_scope,
-                prime: &source.prime,
-                reference_manager: &source.reference_manager,
-            },
-            serializer,
-        )
+        if source.compiler_version.is_some() {
+            // Anything since 0.10.0 can be hashed directly. No extra overhead incurred.
+
+            HashVo::serialize(
+                &HashVo {
+                    attributes: &source.attributes,
+                    builtins: &source.builtins,
+                    compiler_version: &source.compiler_version,
+                    data: &source.data,
+                    debug_info: &None,
+                    hints: &source.hints,
+                    identifiers: &source.identifiers,
+                    main_scope: &source.main_scope,
+                    prime: &source.prime,
+                    reference_manager: &source.reference_manager,
+                },
+                serializer,
+            )
+        } else {
+            // This is needed for backward compatibility with pre-0.10.0 contract artifacts.
+
+            // We're cloning the entire `identifiers` here as a temporary patch. This is not
+            // optimal, as it should technically be possible to avoid the cloning. This only
+            // affects very old contract artifacts though.
+            // TODO: optimize this to remove cloning.
+
+            let patched_identifiers = source
+                .identifiers
+                .iter()
+                .map(|(key, value)| {
+                    (
+                        key.to_owned(),
+                        LegacyIdentifier {
+                            decorators: value.decorators.to_owned(),
+                            cairo_type: value
+                                .cairo_type
+                                .to_owned()
+                                .map(|content| content.replace(": ", " : ")),
+                            full_name: value.full_name.to_owned(),
+                            members: value.members.to_owned().map(|map| {
+                                map.iter()
+                                    .map(|(key, value)| {
+                                        (
+                                            key.to_owned(),
+                                            LegacyIdentifierMember {
+                                                cairo_type: value.cairo_type.replace(": ", " : "),
+                                                offset: value.offset,
+                                            },
+                                        )
+                                    })
+                                    .collect()
+                            }),
+                            references: value.references.to_owned(),
+                            size: value.size,
+                            pc: value.pc,
+                            destination: value.destination.to_owned(),
+                            r#type: value.r#type.to_owned(),
+                            value: value.value.to_owned(),
+                        },
+                    )
+                })
+                .collect::<BTreeMap<_, _>>();
+
+            HashVo::serialize(
+                &HashVo {
+                    attributes: &source.attributes,
+                    builtins: &source.builtins,
+                    compiler_version: &source.compiler_version,
+                    data: &source.data,
+                    debug_info: &None,
+                    hints: &source.hints,
+                    identifiers: &patched_identifiers,
+                    main_scope: &source.main_scope,
+                    prime: &source.prime,
+                    reference_manager: &source.reference_manager,
+                },
+                serializer,
+            )
+        }
     }
 }
 
@@ -842,6 +904,14 @@ mod tests {
                     "../../../test-data/contracts/cairo0/artifacts/pre-0.11.0/oz_account.hashes.json"
                 ),
             ),
+            (
+                include_str!(
+                    "../../../test-data/contracts/cairo0/artifacts/pre-0.10.0/braavos_proxy.txt"
+                ),
+                include_str!(
+                    "../../../test-data/contracts/cairo0/artifacts/pre-0.10.0/braavos_proxy.hashes.json"
+                ),
+            ),
         ]
         .into_iter()
         {
@@ -877,6 +947,14 @@ mod tests {
                 ),
                 include_str!(
                     "../../../test-data/contracts/cairo0/artifacts/pre-0.11.0/oz_account.hashes.json"
+                ),
+            ),
+            (
+                include_str!(
+                    "../../../test-data/contracts/cairo0/artifacts/pre-0.10.0/braavos_proxy.txt"
+                ),
+                include_str!(
+                    "../../../test-data/contracts/cairo0/artifacts/pre-0.10.0/braavos_proxy.hashes.json"
                 ),
             ),
         ]
