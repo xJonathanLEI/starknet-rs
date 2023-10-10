@@ -34,8 +34,7 @@ impl Expandable for CairoFunction {
             },
             StateMutability::External => {
                 quote!(-> Result<starknet::core::types::InvokeTransactionResult,
-                       starknet::accounts::AccountError<starknet::accounts::single_owner::SignError<starknet::signers::local_wallet::SignError>, <P as starknet::providers::Provider>::Error>
-                       >
+                       starknet::accounts::AccountError<A::SignError, <A::Provider as starknet::providers::Provider>::Error>>
                 )
             }
         };
@@ -120,15 +119,6 @@ impl Expandable for CairoFunction {
                     use starknet::contract::abi::CairoType;
                     use starknet::accounts::Account;
 
-                    // TODO: I don't know how to easily store the SingleOwnerAccount
-                    // and it's generic types without complexifiying the whole typing.
-                    // So it's constructed at every call. There is surely a better approach.
-                    let account = match &self.account {
-                        Some(a) => std::sync::Arc::clone(&a),
-                        // TODO: better error handling here.
-                        _ => panic!("Account is required to send invoke transactions")
-                    };
-
                     let mut calldata = vec![];
                     #(#serializations)*
 
@@ -138,14 +128,8 @@ impl Expandable for CairoFunction {
                         calldata,
                     }];
 
-                    let execution = account.execute(calls).fee_estimate_multiplier(2f64);
-                    // TODO: we can have manual fee here, or it can also be estimate only.
-                    let max_fee = execution.estimate_fee().await?.overall_fee.into();
-
-                    execution
-                        .max_fee(max_fee)
-                        .send()
-                        .await
+                    // TODO: add a way for fee estimation and max fee to be parametrizable.
+                    self.account.execute(calls).send().await
                 }
             },
         }

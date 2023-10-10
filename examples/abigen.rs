@@ -9,8 +9,6 @@ use starknet::{
     signers::{LocalWallet, SigningKey},
 };
 
-use std::sync::Arc;
-
 // Generate the bindings for the contract and also includes
 // all the structs and enums present in the ABI with the exact
 // same name.
@@ -18,19 +16,22 @@ abigen!(TokenContract, "./examples/contracts_abis/mini_erc20.json");
 
 #[tokio::main]
 async fn main() {
-    let provider = Arc::new(SequencerGatewayProvider::starknet_alpha_goerli());
+    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
+    println!("provider {:?}", provider);
     let eth_goerli_token_address = FieldElement::from_hex_be(
         "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
     )
     .unwrap();
 
-    let token_contract = TokenContract::new(eth_goerli_token_address, Arc::clone(&provider));
+    // If you only plan to call views functions, you can use the `Reader`, which
+    // only requires a provider along with your contract address.
+    let token_contract = TokenContractReader::new(eth_goerli_token_address, &provider);
 
     // To call a view, there is no need to initialize an account. You can directly
     // use the name of the method in the ABI to realize the call.
     let balance: u256 = token_contract
         .balanceOf(&ContractAddress(
-            FieldElement::from_hex_be("YOUR_ACCOUNT_ADDRESS_HEX_HERE").unwrap(),
+            FieldElement::from_hex_be("YOUR_HEX_CONTRACT_ADDRESS_HERE").unwrap(),
         ))
         .await
         .expect("Call to get balance failed");
@@ -55,7 +56,19 @@ async fn main() {
         ExecutionEncoding::Legacy,
     );
 
-    let token_contract = token_contract.with_account(Arc::new(account));
+    // The `TokenContract` also contains a reader field that you can use if you need both
+    // to call external and views with the same instance.
+    let token_contract = TokenContract::new(eth_goerli_token_address, &account);
+
+    // Example here of querying again the balance, using the internal reader of the
+    // contract setup with an account.
+    token_contract
+        .reader
+        .balanceOf(&ContractAddress(
+            FieldElement::from_hex_be("YOUR_HEX_CONTRACT_ADDRESS_HERE").unwrap(),
+        ))
+        .await
+        .expect("Call to get balance failed");
 
     let _ = token_contract
         .approve(

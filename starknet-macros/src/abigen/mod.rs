@@ -18,7 +18,7 @@ use std::collections::HashMap;
 
 use starknet_contract::abi::cairo_types::{CAIRO_BASIC_ENUMS, CAIRO_BASIC_STRUCTS};
 use starknet_contract::abi::parser::{CairoEnum, CairoEvent, CairoFunction, CairoStruct};
-use starknet_core::types::contract::AbiEntry;
+use starknet_core::types::contract::{AbiEntry, StateMutability};
 
 mod expand;
 use expand::contract::CairoContract;
@@ -26,6 +26,8 @@ use expand::{Expandable, ExpandableEvent};
 
 mod contract_abi;
 use contract_abi::ContractAbi;
+
+use crate::abigen::expand::utils;
 
 pub fn abigen_internal(input: TokenStream) -> TokenStream {
     let contract_abi = parse_macro_input!(input as ContractAbi);
@@ -38,11 +40,19 @@ pub fn abigen_internal(input: TokenStream) -> TokenStream {
 
     let mut structs: HashMap<String, CairoStruct> = HashMap::new();
     let mut enums: HashMap<String, CairoEnum> = HashMap::new();
-    let mut functions = vec![];
+    let mut views = vec![];
+    let mut externals = vec![];
     let mut events = vec![];
 
     for entry in &abi {
-        parse_entry(entry, &mut structs, &mut enums, &mut functions, &mut events);
+        parse_entry(
+            entry,
+            &mut structs,
+            &mut enums,
+            &mut externals,
+            &mut views,
+            &mut events,
+        );
     }
 
     for (_, cs) in structs {
@@ -60,12 +70,14 @@ pub fn abigen_internal(input: TokenStream) -> TokenStream {
         tokens.push(ev.expand_impl(&events));
     }
 
+    let reader = utils::str_to_ident(format!("{}Reader", contract_name).as_str());
     tokens.push(quote! {
-        impl<P> #contract_name<P>
-        where
-            P: starknet::providers::Provider + Send + Sync, <P as starknet::providers::Provider>::Error: 'static
-        {
-            #(#functions)*
+        impl<'a, A: starknet::accounts::ConnectedAccount + Sync> #contract_name<'a, A> {
+            #(#externals)*
+        }
+
+        impl<'a, P: starknet::providers::Provider + Sync> #reader<'a, P> {
+            #(#views)*
         }
     });
 
@@ -80,7 +92,8 @@ fn parse_entry(
     entry: &AbiEntry,
     structs: &mut HashMap<String, CairoStruct>,
     enums: &mut HashMap<String, CairoEnum>,
-    functions: &mut Vec<TokenStream2>,
+    externals: &mut Vec<TokenStream2>,
+    views: &mut Vec<TokenStream2>,
     events: &mut Vec<CairoEvent>,
 ) {
     match entry {
@@ -115,7 +128,10 @@ fn parse_entry(
             // From this statement, we can safely assume that any function name is
             // unique.
             let cf = CairoFunction::new(&f.name, f.state_mutability.clone(), &f.inputs, &f.outputs);
-            functions.push(cf.expand_impl());
+            match f.state_mutability {
+                StateMutability::View => views.push(cf.expand_impl()),
+                StateMutability::External => externals.push(cf.expand_impl()),
+            }
         }
         AbiEntry::Event(ev) => {
             if let Some(cev) = CairoEvent::new(ev) {
@@ -124,7 +140,7 @@ fn parse_entry(
         }
         AbiEntry::Interface(interface) => {
             for entry in &interface.items {
-                parse_entry(entry, structs, enums, functions, events);
+                parse_entry(entry, structs, enums, externals, views, events);
             }
         }
         _ => (),

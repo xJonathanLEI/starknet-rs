@@ -19,9 +19,13 @@ async fn main() {
     let provider = Arc::new(JsonRpcClient::new(HttpTransport::new(rpc_url.clone())));
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
+        FieldElement::from_hex_be("0x1800000000300000180000000000030000000000003006001800006600")
+            .unwrap(),
     ));
-    let address = FieldElement::from_hex_be("YOUR_ACCOUNT_CONTRACT_ADDRESS_IN_HEX_HERE").unwrap();
+    let address = FieldElement::from_hex_be(
+        "0x517ececd29116499f4a1b64b094da79ba08dfd54a3edaa316134c41f8160973",
+    )
+    .unwrap();
     let account = SingleOwnerAccount::new(
         provider.clone(),
         signer,
@@ -30,10 +34,9 @@ async fn main() {
         ExecutionEncoding::Legacy,
     );
 
-    let contract_address = FieldElement::from_hex_be("CONTRACT_ADDRESS_HEX").unwrap();
+    let contract_address = FieldElement::from_hex_be("YOUR_CONTRACT_ADDRESS_HEX").unwrap();
 
-    let event_contract =
-        Contract::new(contract_address, Arc::clone(&provider)).with_account(Arc::new(account));
+    let event_contract = Contract::new(contract_address, &account);
 
     // Let emits some events by calling two externals.
     event_contract
