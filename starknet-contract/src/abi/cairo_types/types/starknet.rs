@@ -14,6 +14,12 @@ impl From<FieldElement> for ContractAddress {
     }
 }
 
+impl From<ContractAddress> for FieldElement {
+    fn from(item: ContractAddress) -> Self {
+        item.0
+    }
+}
+
 impl CairoType for ContractAddress {
     type RustType = Self;
 
@@ -36,6 +42,12 @@ impl From<FieldElement> for ClassHash {
     }
 }
 
+impl From<ClassHash> for FieldElement {
+    fn from(item: ClassHash) -> Self {
+        item.0
+    }
+}
+
 impl CairoType for ClassHash {
     type RustType = Self;
 
@@ -55,6 +67,12 @@ pub struct EthAddress(pub FieldElement);
 impl From<FieldElement> for EthAddress {
     fn from(item: FieldElement) -> Self {
         Self(item)
+    }
+}
+
+impl From<EthAddress> for FieldElement {
+    fn from(item: EthAddress) -> Self {
+        item.0
     }
 }
 

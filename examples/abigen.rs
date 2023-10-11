@@ -5,7 +5,7 @@ use starknet::{
     contract::abi::ContractAddress,
     core::{chain_id, types::FieldElement},
     macros::abigen,
-    providers::{Provider, SequencerGatewayProvider},
+    providers::SequencerGatewayProvider,
     signers::{LocalWallet, SigningKey},
 };
 
