@@ -196,7 +196,7 @@ mod tests {
                         starknet::core::types::FunctionCall {
                             contract_address: self.address,
                             entry_point_selector: starknet::macros::selector!("my_func"),
-                            __calldata,
+                            calldata: __calldata,
                         },
                         self.call_block_id,
                     )
