@@ -43,7 +43,7 @@ impl CairoContract {
                     Self { address, provider, call_block_id }
                 }
 
-                pub fn set_call_block_id(mut self, block_id: starknet::core::types::BlockId) {
+                pub fn set_call_block_id(&mut self, block_id: starknet::core::types::BlockId) {
                     self.call_block_id = block_id;
                 }
 
