@@ -28,7 +28,7 @@ impl CairoContract {
             }
 
             #[derive(Debug)]
-            pub struct #reader<'a, P: Provider + Sync> {
+            pub struct #reader<'a, P: starknet::providers::Provider + Sync> {
                 pub address: starknet::core::types::FieldElement,
                 pub provider: &'a P,
                 call_block_id: starknet::core::types::BlockId,
