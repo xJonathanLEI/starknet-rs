@@ -5,7 +5,7 @@ use crate::abi::cairo_types::{CairoType, Result};
 use starknet_core::types::FieldElement;
 
 /// ContractAddress.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct ContractAddress(pub FieldElement);
 
 impl From<FieldElement> for ContractAddress {
@@ -33,7 +33,7 @@ impl CairoType for ContractAddress {
 }
 
 /// ClassHash.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct ClassHash(pub FieldElement);
 
 impl From<FieldElement> for ClassHash {
@@ -61,7 +61,7 @@ impl CairoType for ClassHash {
 }
 
 /// EthAddress.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct EthAddress(pub FieldElement);
 
 impl From<FieldElement> for EthAddress {
