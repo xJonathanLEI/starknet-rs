@@ -58,9 +58,9 @@ impl Expandable for CairoFunction {
 
             let ser = match abi_type {
                 AbiTypeAny::Tuple(_) => quote! {
-                    calldata.extend(<#ty>::serialize(#name));
+                    __calldata.extend(<#ty>::serialize(#name));
                 },
-                _ => quote!(calldata.extend(#ty::serialize(#name));),
+                _ => quote!(__calldata.extend(#ty::serialize(#name));),
             };
             serializations.push(ser);
         }
@@ -85,7 +85,7 @@ impl Expandable for CairoFunction {
                     use starknet::contract::abi::CairoType;
                     use starknet::core::types::{BlockId, BlockTag};
 
-                    let mut calldata = vec![];
+                    let mut __calldata = vec![];
                     #(#serializations)*
 
                     let r = self.provider
@@ -93,7 +93,7 @@ impl Expandable for CairoFunction {
                             starknet::core::types::FunctionCall {
                                 contract_address: self.address,
                                 entry_point_selector: starknet::macros::selector!(#func_name),
-                                calldata,
+                                calldata: __calldata,
                             },
                             self.call_block_id,
                         )
@@ -119,13 +119,13 @@ impl Expandable for CairoFunction {
                     use starknet::contract::abi::CairoType;
                     use starknet::accounts::Account;
 
-                    let mut calldata = vec![];
+                    let mut __calldata = vec![];
                     #(#serializations)*
 
                     let calls = vec![starknet::accounts::Call {
                         to: self.address,
                         selector: starknet::macros::selector!(#func_name),
-                        calldata,
+                        calldata: __calldata,
                     }];
 
                     // TODO: add a way for fee estimation and max fee to be parametrizable.
@@ -187,16 +187,16 @@ mod tests {
                 use starknet::contract::abi::CairoType;
                 use starknet::core::types::{BlockId, BlockTag};
 
-                let mut calldata = vec![];
-                calldata.extend(starknet::core::types::FieldElement::serialize(v1));
-                calldata.extend(starknet::core::types::FieldElement::serialize(v2));
+                let mut __calldata = vec![];
+                __calldata.extend(starknet::core::types::FieldElement::serialize(v1));
+                __calldata.extend(starknet::core::types::FieldElement::serialize(v2));
 
                 let r = self.provider
                     .call(
                         starknet::core::types::FunctionCall {
                             contract_address: self.address,
                             entry_point_selector: starknet::macros::selector!("my_func"),
-                            calldata,
+                            __calldata,
                         },
                         self.call_block_id,
                     )
