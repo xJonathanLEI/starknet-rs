@@ -5,7 +5,8 @@ use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
         BlockId, BlockTag, BroadcastedDeployAccountTransaction, BroadcastedTransaction,
-        DeployAccountTransactionResult, FeeEstimate, FieldElement, StarknetError,
+        DeployAccountTransactionResult, FeeEstimate, FieldElement, SimulatedTransaction,
+        SimulationFlag, StarknetError,
     },
 };
 use starknet_providers::{
@@ -203,6 +204,27 @@ where
         self.estimate_fee_with_nonce(nonce).await
     }
 
+    pub async fn simulate(
+        &self,
+        skip_validate: bool,
+        skip_fee_charge: bool,
+    ) -> Result<
+        SimulatedTransaction,
+        AccountFactoryError<F::SignError, <F::Provider as Provider>::Error>,
+    > {
+        // Resolves nonce
+        let nonce = match self.nonce {
+            Some(value) => value,
+            None => self
+                .fetch_nonce()
+                .await
+                .map_err(AccountFactoryError::Provider)?,
+        };
+
+        self.simulate_with_nonce(nonce, skip_validate, skip_fee_charge)
+            .await
+    }
+
     pub async fn send(
         &self,
     ) -> Result<
@@ -269,6 +291,48 @@ where
             .estimate_fee_single(
                 BroadcastedTransaction::DeployAccount(deploy),
                 self.factory.block_id(),
+            )
+            .await
+            .map_err(AccountFactoryError::Provider)
+    }
+
+    async fn simulate_with_nonce(
+        &self,
+        nonce: FieldElement,
+        skip_validate: bool,
+        skip_fee_charge: bool,
+    ) -> Result<
+        SimulatedTransaction,
+        AccountFactoryError<F::SignError, <F::Provider as Provider>::Error>,
+    > {
+        let prepared = PreparedAccountDeployment {
+            factory: self.factory,
+            inner: RawAccountDeployment {
+                salt: self.salt,
+                nonce,
+                max_fee: self.max_fee.unwrap_or_default(),
+            },
+        };
+        let deploy = prepared
+            .get_deploy_request()
+            .await
+            .map_err(AccountFactoryError::Signing)?;
+
+        let mut flags = vec![];
+
+        if skip_validate {
+            flags.push(SimulationFlag::SkipValidate);
+        }
+        if skip_fee_charge {
+            flags.push(SimulationFlag::SkipFeeCharge);
+        }
+
+        self.factory
+            .provider()
+            .simulate_transaction(
+                self.factory.block_id(),
+                BroadcastedTransaction::DeployAccount(deploy),
+                &flags,
             )
             .await
             .map_err(AccountFactoryError::Provider)
