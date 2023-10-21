@@ -48,6 +48,12 @@ pub enum GatewayClientError {
     /// Model conversion error (only when using as [Provider])
     #[error("unable to convert gateway models to jsonrpc types")]
     ModelConversionError,
+    /// Simulating multiple transactions is not supported (only when using as [Provider])
+    #[error("simulating multiple transactions not supported")]
+    BulkSimulationNotSupported,
+    /// At least one of the simulation flags is not supported (only when using as [Provider])
+    #[error("unsupported simulation flag")]
+    UnsupportedSimulationFlag,
 }
 
 #[derive(Debug, thiserror::Error, Deserialize)]

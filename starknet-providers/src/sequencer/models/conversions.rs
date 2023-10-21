@@ -4,6 +4,10 @@ use starknet_core::types::{self as core, contract::legacy as contract_legacy, Fi
 
 use super::{
     state_update::{DeclaredContract, DeployedContract, StateDiff, StorageDiff},
+    trace::{
+        CallType, FunctionInvocation, OrderedEventResponse, OrderedL2ToL1MessageResponse,
+        TransactionTraceWithHash,
+    },
     *,
 };
 
@@ -14,6 +18,11 @@ pub struct ConversionError;
 pub(crate) struct TransactionWithReceipt {
     pub transaction: TransactionInfo,
     pub receipt: TransactionReceipt,
+}
+
+pub(crate) struct OrderedL2ToL1MessageResponseWithFromAddress {
+    pub message: OrderedL2ToL1MessageResponse,
+    pub from: FieldElement,
 }
 
 impl From<core::BlockId> for BlockId {
@@ -879,6 +888,151 @@ impl TryFrom<DeployedClass> for core::ContractClass {
             DeployedClass::LegacyClass(inner) => {
                 Ok(Self::Legacy(inner.compress().map_err(|_| ConversionError)?))
             }
+        }
+    }
+}
+
+impl TryFrom<TransactionTrace> for core::TransactionTrace {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionTrace) -> Result<Self, Self::Error> {
+        // Unlike JSON-RPC, which names fields from different variants differently, there's no way
+        // to distinguish between Invoke, DeployAccount, and L1Handler traces. (The only exception
+        // is when the Invoke execution reverts, which makes it definitely an Invoke variant.)
+        //
+        // For these variants, we simply always resolve to Invoke. This is suboptimal but still
+        // better than just failing the conversion. This is yet another reason to avoid using the
+        // sequencer gateway provider.
+
+        let validate_invocation = match value.validate_invocation {
+            Some(invocation) => Some(invocation.try_into()?),
+            None => None,
+        };
+
+        let fee_transfer_invocation = match value.fee_transfer_invocation {
+            Some(invocation) => Some(invocation.try_into()?),
+            None => None,
+        };
+
+        match value.function_invocation {
+            Some(invocation) => Ok(Self::Invoke(core::InvokeTransactionTrace {
+                validate_invocation,
+
+                execute_invocation: match value.revert_error {
+                    Some(revert_error) => {
+                        core::ExecuteInvocation::Reverted(core::RevertedInvocation {
+                            revert_reason: revert_error,
+                        })
+                    }
+                    None => core::ExecuteInvocation::Success(invocation.try_into()?),
+                },
+                fee_transfer_invocation,
+            })),
+            None => {
+                // Only DECLARE transactions do not have `function_invocation`
+                Ok(Self::Declare(core::DeclareTransactionTrace {
+                    validate_invocation,
+                    fee_transfer_invocation,
+                }))
+            }
+        }
+    }
+}
+
+impl TryFrom<TransactionTraceWithHash> for core::TransactionTraceWithHash {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionTraceWithHash) -> Result<Self, Self::Error> {
+        Ok(Self {
+            transaction_hash: value.transaction_hash,
+            trace_root: value.trace.try_into()?,
+        })
+    }
+}
+
+impl TryFrom<TransactionSimulationInfo> for core::SimulatedTransaction {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionSimulationInfo) -> Result<Self, Self::Error> {
+        Ok(Self {
+            transaction_trace: value.trace.try_into()?,
+            fee_estimation: value.fee_estimation.into(),
+        })
+    }
+}
+
+impl TryFrom<FunctionInvocation> for core::FunctionInvocation {
+    type Error = ConversionError;
+
+    fn try_from(value: FunctionInvocation) -> Result<Self, Self::Error> {
+        Ok(Self {
+            contract_address: value.contract_address,
+            entry_point_selector: value.selector.ok_or(ConversionError)?,
+            calldata: value.calldata,
+            caller_address: value.caller_address,
+            class_hash: value.class_hash.ok_or(ConversionError)?,
+            entry_point_type: value.entry_point_type.ok_or(ConversionError)?.into(),
+            call_type: value.call_type.ok_or(ConversionError)?.into(),
+            result: value.result,
+            calls: value
+                .internal_calls
+                .into_iter()
+                .map(|call| call.try_into())
+                .collect::<Result<Vec<_>, _>>()?,
+            events: value.events.into_iter().map(|event| event.into()).collect(),
+            messages: value
+                .messages
+                .into_iter()
+                .map(|message| {
+                    OrderedL2ToL1MessageResponseWithFromAddress {
+                        message,
+                        from: value.contract_address,
+                    }
+                    .into()
+                })
+                .collect(),
+        })
+    }
+}
+
+impl From<EntryPointType> for core::EntryPointType {
+    fn from(value: EntryPointType) -> Self {
+        match value {
+            EntryPointType::External => Self::External,
+            EntryPointType::L1Handler => Self::L1Handler,
+            EntryPointType::Constructor => Self::Constructor,
+        }
+    }
+}
+
+impl From<CallType> for core::CallType {
+    fn from(value: CallType) -> Self {
+        match value {
+            CallType::Call => Self::Call,
+            CallType::Delegate => Self::LibraryCall,
+        }
+    }
+}
+
+impl From<OrderedEventResponse> for core::EventContent {
+    fn from(value: OrderedEventResponse) -> Self {
+        Self {
+            keys: value.keys,
+            data: value.data,
+        }
+    }
+}
+
+impl From<OrderedL2ToL1MessageResponseWithFromAddress> for core::MsgToL1 {
+    fn from(value: OrderedL2ToL1MessageResponseWithFromAddress) -> Self {
+        Self {
+            from_address: value.from,
+            // Unwrapping is safe here as H160 is only 20 bytes
+            to_address: FieldElement::from_byte_slice_be(
+                &value.message.to_address.to_fixed_bytes(),
+            )
+            .unwrap(),
+            payload: value.message.payload,
         }
     }
 }

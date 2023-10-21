@@ -5,7 +5,8 @@ use starknet_core::types::{
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-    MaybePendingTransactionReceipt, MsgFromL1, SyncStatusType, Transaction,
+    MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag,
+    SyncStatusType, Transaction, TransactionTrace, TransactionTraceWithHash,
 };
 
 use crate::{
@@ -548,6 +549,82 @@ impl Provider for AnyProvider {
                     deploy_account_transaction,
                 )
                 .await?,
+            ),
+        }
+    }
+
+    async fn trace_transaction<H>(
+        &self,
+        transaction_hash: H,
+    ) -> Result<TransactionTrace, ProviderError<Self::Error>>
+    where
+        H: AsRef<FieldElement> + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => Ok(
+                <JsonRpcClient<HttpTransport> as Provider>::trace_transaction(
+                    inner,
+                    transaction_hash,
+                )
+                .await?,
+            ),
+            Self::SequencerGateway(inner) => Ok(
+                <SequencerGatewayProvider as Provider>::trace_transaction(inner, transaction_hash)
+                    .await?,
+            ),
+        }
+    }
+
+    async fn simulate_transactions<B, T, S>(
+        &self,
+        block_id: B,
+        transactions: T,
+        simulation_flags: S,
+    ) -> Result<Vec<SimulatedTransaction>, ProviderError<Self::Error>>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+        T: AsRef<[BroadcastedTransaction]> + Send + Sync,
+        S: AsRef<[SimulationFlag]> + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => Ok(
+                <JsonRpcClient<HttpTransport> as Provider>::simulate_transactions(
+                    inner,
+                    block_id,
+                    transactions,
+                    simulation_flags,
+                )
+                .await?,
+            ),
+            Self::SequencerGateway(inner) => Ok(
+                <SequencerGatewayProvider as Provider>::simulate_transactions(
+                    inner,
+                    block_id,
+                    transactions,
+                    simulation_flags,
+                )
+                .await?,
+            ),
+        }
+    }
+
+    async fn trace_block_transactions<H>(
+        &self,
+        block_hash: H,
+    ) -> Result<Vec<TransactionTraceWithHash>, ProviderError<Self::Error>>
+    where
+        H: AsRef<FieldElement> + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => Ok(
+                <JsonRpcClient<HttpTransport> as Provider>::trace_block_transactions(
+                    inner, block_hash,
+                )
+                .await?,
+            ),
+            Self::SequencerGateway(inner) => Ok(
+                <SequencerGatewayProvider as Provider>::trace_block_transactions(inner, block_hash)
+                    .await?,
             ),
         }
     }
