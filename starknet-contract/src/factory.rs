@@ -1,6 +1,6 @@
 use starknet_accounts::{Account, AccountError, Call, ConnectedAccount, Execution};
 use starknet_core::{
-    types::{FeeEstimate, FieldElement, InvokeTransactionResult},
+    types::{FeeEstimate, FieldElement, InvokeTransactionResult, SimulatedTransaction},
     utils::{get_udc_deployed_address, UdcUniqueSettings, UdcUniqueness},
 };
 use starknet_providers::Provider;
@@ -128,6 +128,16 @@ where
     ) -> Result<FeeEstimate, AccountError<A::SignError, <A::Provider as Provider>::Error>> {
         let execution: Execution<A> = self.into();
         execution.estimate_fee().await
+    }
+
+    pub async fn simulate(
+        &self,
+        skip_validate: bool,
+        skip_fee_charge: bool,
+    ) -> Result<SimulatedTransaction, AccountError<A::SignError, <A::Provider as Provider>::Error>>
+    {
+        let execution: Execution<A> = self.into();
+        execution.simulate(skip_validate, skip_fee_charge).await
     }
 
     pub async fn send(

@@ -8,7 +8,7 @@ use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
         BroadcastedInvokeTransaction, BroadcastedTransaction, FeeEstimate, FieldElement,
-        InvokeTransactionResult,
+        InvokeTransactionResult, SimulatedTransaction, SimulationFlag,
     },
 };
 use starknet_providers::Provider;
@@ -98,8 +98,25 @@ where
         self.estimate_fee_with_nonce(nonce).await
     }
 
-    // The `simulate` function is temporarily removed until it's supported in [Provider]
-    // TODO: add `simulate` back once transaction simulation in supported
+    pub async fn simulate(
+        &self,
+        skip_validate: bool,
+        skip_fee_charge: bool,
+    ) -> Result<SimulatedTransaction, AccountError<A::SignError, <A::Provider as Provider>::Error>>
+    {
+        // Resolves nonce
+        let nonce = match self.nonce {
+            Some(value) => value,
+            None => self
+                .account
+                .get_nonce()
+                .await
+                .map_err(AccountError::Provider)?,
+        };
+
+        self.simulate_with_nonce(nonce, skip_validate, skip_fee_charge)
+            .await
+    }
 
     pub async fn send(
         &self,
@@ -165,6 +182,46 @@ where
             .estimate_fee_single(
                 BroadcastedTransaction::Invoke(invoke),
                 self.account.block_id(),
+            )
+            .await
+            .map_err(AccountError::Provider)
+    }
+
+    async fn simulate_with_nonce(
+        &self,
+        nonce: FieldElement,
+        skip_validate: bool,
+        skip_fee_charge: bool,
+    ) -> Result<SimulatedTransaction, AccountError<A::SignError, <A::Provider as Provider>::Error>>
+    {
+        let prepared = PreparedExecution {
+            account: self.account,
+            inner: RawExecution {
+                calls: self.calls.clone(),
+                nonce,
+                max_fee: self.max_fee.unwrap_or_default(),
+            },
+        };
+        let invoke = prepared
+            .get_invoke_request(true)
+            .await
+            .map_err(AccountError::Signing)?;
+
+        let mut flags = vec![];
+
+        if skip_validate {
+            flags.push(SimulationFlag::SkipValidate);
+        }
+        if skip_fee_charge {
+            flags.push(SimulationFlag::SkipFeeCharge);
+        }
+
+        self.account
+            .provider()
+            .simulate_transaction(
+                self.account.block_id(),
+                BroadcastedTransaction::Invoke(invoke),
+                &flags,
             )
             .await
             .map_err(AccountError::Provider)
