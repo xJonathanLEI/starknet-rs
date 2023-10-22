@@ -16,21 +16,24 @@ mod codegen;
 pub use codegen::{
     BlockStatus, BlockTag, BlockWithTxHashes, BlockWithTxs, BroadcastedDeclareTransactionV1,
     BroadcastedDeclareTransactionV2, BroadcastedDeployAccountTransaction,
-    BroadcastedInvokeTransaction, CompressedLegacyContractClass, ContractStorageDiffItem,
-    DeclareTransactionReceipt, DeclareTransactionV0, DeclareTransactionV1, DeclareTransactionV2,
-    DeclaredClassItem, DeployAccountTransaction, DeployAccountTransactionReceipt,
-    DeployTransaction, DeployTransactionReceipt, DeployedContractItem, EmittedEvent,
-    EntryPointsByType, Event, EventFilter, EventFilterWithPage, EventsChunk, FeeEstimate,
-    FlattenedSierraClass, FunctionCall, FunctionStateMutability, InvokeTransactionReceipt,
-    InvokeTransactionV0, InvokeTransactionV1, L1HandlerTransaction, L1HandlerTransactionReceipt,
+    BroadcastedInvokeTransaction, CallType, CompressedLegacyContractClass, ContractStorageDiffItem,
+    DeclareTransactionReceipt, DeclareTransactionTrace, DeclareTransactionV0, DeclareTransactionV1,
+    DeclareTransactionV2, DeclaredClassItem, DeployAccountTransaction,
+    DeployAccountTransactionReceipt, DeployAccountTransactionTrace, DeployTransaction,
+    DeployTransactionReceipt, DeployedContractItem, EmittedEvent, EntryPointType,
+    EntryPointsByType, Event, EventContent, EventFilter, EventFilterWithPage, EventsChunk,
+    FeeEstimate, FlattenedSierraClass, FunctionCall, FunctionInvocation, FunctionStateMutability,
+    InvokeTransactionReceipt, InvokeTransactionTrace, InvokeTransactionV0, InvokeTransactionV1,
+    L1HandlerTransaction, L1HandlerTransactionReceipt, L1HandlerTransactionTrace,
     LegacyContractEntryPoint, LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType,
     LegacyFunctionAbiEntry, LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType,
     LegacyStructMember, LegacyTypedParameter, MsgFromL1, MsgToL1, NonceUpdate,
     PendingBlockWithTxHashes, PendingBlockWithTxs, PendingDeclareTransactionReceipt,
     PendingDeployAccountTransactionReceipt, PendingDeployTransactionReceipt,
     PendingInvokeTransactionReceipt, PendingL1HandlerTransactionReceipt, PendingStateUpdate,
-    ReplacedClassItem, ResultPageRequest, SierraEntryPoint, StarknetError, StateDiff, StateUpdate,
-    StorageEntry, SyncStatus, TransactionExecutionStatus, TransactionFinalityStatus,
+    ReplacedClassItem, ResultPageRequest, RevertedInvocation, SierraEntryPoint,
+    SimulatedTransaction, SimulationFlag, StarknetError, StateDiff, StateUpdate, StorageEntry,
+    SyncStatus, TransactionExecutionStatus, TransactionFinalityStatus, TransactionTraceWithHash,
 };
 
 pub mod eth_address;
@@ -243,6 +246,22 @@ pub enum LegacyContractAbiEntry {
     Struct(LegacyStructAbiEntry),
 }
 
+#[derive(Debug, Clone, Deserialize)]
+#[serde(untagged)]
+pub enum TransactionTrace {
+    Invoke(InvokeTransactionTrace),
+    DeployAccount(DeployAccountTransactionTrace),
+    L1Handler(L1HandlerTransactionTrace),
+    Declare(DeclareTransactionTrace),
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(untagged)]
+pub enum ExecuteInvocation {
+    Success(FunctionInvocation),
+    Reverted(RevertedInvocation),
+}
+
 impl MaybePendingBlockWithTxHashes {
     pub fn transactions(&self) -> &[FieldElement] {
         match self {
@@ -425,15 +444,6 @@ impl TryFrom<i64> for StarknetError {
             24 => StarknetError::BlockNotFound,
             27 => StarknetError::InvalidTransactionIndex,
             28 => StarknetError::ClassHashNotFound,
-            // JSON-RPC v0.4.0 changes this error code from 25 to 29. Technically we should just
-            // ignore 25 for good, but since most methods are otherwise identical to v0.3.0,
-            // accepting the value of 25 here allows some degree of compatibility, meaning some use
-            // cases can still be run against a v0.3.0 endpoint even though the library itself only
-            // officially supports v0.4.0. This can be beneficial as v0.3.0 is still widely
-            // deployed.
-            //
-            // TODO: remove this line once JSON-RPC v0.3.0 is phased out
-            25 => StarknetError::TransactionHashNotFound,
             29 => StarknetError::TransactionHashNotFound,
             31 => StarknetError::PageSizeTooBig,
             32 => StarknetError::NoBlocks,
@@ -453,6 +463,9 @@ impl TryFrom<i64> for StarknetError {
             61 => StarknetError::UnsupportedTxVersion,
             62 => StarknetError::UnsupportedContractClassVersion,
             63 => StarknetError::UnexpectedError,
+            10 => StarknetError::NoTraceAvailable,
+            25 => StarknetError::InvalidTransactionHash,
+            26 => StarknetError::InvalidBlockHash,
             _ => return Err(()),
         })
     }

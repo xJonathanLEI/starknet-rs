@@ -207,6 +207,26 @@ mod enum_ser_impls {
             }
         }
     }
+
+    impl Serialize for TransactionTrace {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            match self {
+                Self::Invoke(variant) => variant.serialize(serializer),
+                Self::DeployAccount(variant) => variant.serialize(serializer),
+                Self::L1Handler(variant) => variant.serialize(serializer),
+                Self::Declare(variant) => variant.serialize(serializer),
+            }
+        }
+    }
+
+    impl Serialize for ExecuteInvocation {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            match self {
+                Self::Success(variant) => variant.serialize(serializer),
+                Self::Reverted(variant) => variant.serialize(serializer),
+            }
+        }
+    }
 }
 
 #[cfg(test)]
