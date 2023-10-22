@@ -7,7 +7,8 @@ use starknet_core::types::{
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-    MaybePendingTransactionReceipt, MsgFromL1, StarknetError, SyncStatusType, Transaction,
+    MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag, StarknetError,
+    SyncStatusType, Transaction, TransactionTrace, TransactionTraceWithHash,
 };
 
 use crate::{
@@ -391,5 +392,79 @@ impl Provider for SequencerGatewayProvider {
             transaction_hash: result.transaction_hash,
             contract_address: result.address.ok_or(ConversionError)?,
         })
+    }
+
+    async fn trace_transaction<H>(
+        &self,
+        transaction_hash: H,
+    ) -> Result<TransactionTrace, ProviderError<Self::Error>>
+    where
+        H: AsRef<FieldElement> + Send + Sync,
+    {
+        Ok(self
+            .get_transaction_trace(*transaction_hash.as_ref())
+            .await?
+            .try_into()?)
+    }
+
+    async fn simulate_transactions<B, T, S>(
+        &self,
+        block_id: B,
+        transactions: T,
+        simulation_flags: S,
+    ) -> Result<Vec<SimulatedTransaction>, ProviderError<Self::Error>>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+        T: AsRef<[BroadcastedTransaction]> + Send + Sync,
+        S: AsRef<[SimulationFlag]> + Send + Sync,
+    {
+        let transactions = transactions.as_ref();
+        if transactions.len() != 1 {
+            return Err(ProviderError::Other(
+                GatewayClientError::BulkSimulationNotSupported,
+            ));
+        }
+
+        let transaction = transactions[0].to_owned();
+
+        let mut skip_validate = false;
+        for flag in simulation_flags.as_ref().iter() {
+            match flag {
+                SimulationFlag::SkipValidate => {
+                    skip_validate = true;
+                }
+                SimulationFlag::SkipFeeCharge => {
+                    return Err(ProviderError::Other(
+                        GatewayClientError::UnsupportedSimulationFlag,
+                    ));
+                }
+            }
+        }
+
+        let simulation = self
+            .simulate_transaction(
+                transaction.try_into()?,
+                block_id.as_ref().to_owned().into(),
+                skip_validate,
+            )
+            .await?;
+
+        Ok(vec![simulation.try_into()?])
+    }
+
+    async fn trace_block_transactions<H>(
+        &self,
+        block_hash: H,
+    ) -> Result<Vec<TransactionTraceWithHash>, ProviderError<Self::Error>>
+    where
+        H: AsRef<FieldElement> + Send + Sync,
+    {
+        Ok(self
+            .get_block_traces(super::models::BlockId::Hash(*block_hash.as_ref()))
+            .await?
+            .traces
+            .into_iter()
+            .map(|est| est.try_into())
+            .collect::<Result<Vec<_>, _>>()?)
     }
 }

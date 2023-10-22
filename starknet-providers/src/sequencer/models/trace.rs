@@ -16,6 +16,8 @@ pub struct BlockTraces {
 #[derive(Debug, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct TransactionTrace {
+    #[serde(default)]
+    pub revert_error: Option<String>,
     /// An object describing the invocation of a specific function.
     #[serde(default)]
     pub function_invocation: Option<FunctionInvocation>,

@@ -1,10 +1,11 @@
 use starknet_core::{
     types::{
         BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedTransaction, ContractClass,
-        DeclareTransaction, EthAddress, EventFilter, ExecutionResult, FieldElement, FunctionCall,
-        InvokeTransaction, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
-        MaybePendingStateUpdate, MaybePendingTransactionReceipt, MsgFromL1, StarknetError,
-        SyncStatusType, Transaction, TransactionReceipt,
+        DeclareTransaction, EthAddress, EventFilter, ExecuteInvocation, ExecutionResult,
+        FieldElement, FunctionCall, InvokeTransaction, MaybePendingBlockWithTxHashes,
+        MaybePendingBlockWithTxs, MaybePendingStateUpdate, MaybePendingTransactionReceipt,
+        MsgFromL1, StarknetError, SyncStatusType, Transaction, TransactionReceipt,
+        TransactionTrace,
     },
     utils::{get_selector_from_name, get_storage_var_address},
 };
@@ -759,6 +760,118 @@ async fn jsonrpc_get_nonce() {
         .unwrap();
 
     assert_eq!(nonce, FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_trace_invoke() {
+    let rpc_client = create_jsonrpc_client();
+
+    let trace = rpc_client
+        .trace_transaction(
+            FieldElement::from_hex_be(
+                "06d2ea57520318e577328ee0da9c609344ed77c86375a6764acc0c5854ebf258",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let trace = match trace {
+        TransactionTrace::Invoke(trace) => trace,
+        _ => panic!("unexpected trace type"),
+    };
+
+    match trace.execute_invocation {
+        ExecuteInvocation::Success(_) => {}
+        _ => panic!("unexpected execution result"),
+    }
+}
+
+#[tokio::test]
+async fn jsonrpc_trace_invoke_reverted() {
+    let rpc_client = create_jsonrpc_client();
+
+    let trace = rpc_client
+        .trace_transaction(
+            FieldElement::from_hex_be(
+                "0555c9392299727de9d3d6c85dd5db94f63a0994e698386d85c12b16f71fbfd0",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let trace = match trace {
+        TransactionTrace::Invoke(trace) => trace,
+        _ => panic!("unexpected trace type"),
+    };
+
+    match trace.execute_invocation {
+        ExecuteInvocation::Reverted(_) => {}
+        _ => panic!("unexpected execution result"),
+    }
+}
+
+#[tokio::test]
+async fn jsonrpc_trace_l1_handler() {
+    let rpc_client = create_jsonrpc_client();
+
+    let trace = rpc_client
+        .trace_transaction(
+            FieldElement::from_hex_be(
+                "0374286ae28f201e61ffbc5b022cc9701208640b405ea34ea9799f97d5d2d23c",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    match trace {
+        TransactionTrace::L1Handler(_) => {}
+        _ => panic!("unexpected trace type"),
+    }
+}
+
+#[tokio::test]
+async fn jsonrpc_trace_declare() {
+    let rpc_client = create_jsonrpc_client();
+
+    let trace = rpc_client
+        .trace_transaction(
+            FieldElement::from_hex_be(
+                "021933cb48e59c74caa4575a78e89e6046d043505e5600fd88af7f051d3610ca",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    match trace {
+        TransactionTrace::Declare(_) => {}
+        _ => panic!("unexpected trace type"),
+    }
+}
+
+// DEPLOY transactions cannot be traced
+
+#[tokio::test]
+async fn jsonrpc_trace_deploy_account() {
+    let rpc_client = create_jsonrpc_client();
+
+    let trace = rpc_client
+        .trace_transaction(
+            FieldElement::from_hex_be(
+                "058ba7cdaf437d3a3b9680e6cbb4169811cddfa693875812bd98a8b1d61278de",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    match trace {
+        TransactionTrace::DeployAccount(_) => {}
+        _ => panic!("unexpected trace type"),
+    }
 }
 
 // NOTE: `addXxxxTransaction` methods are harder to test here since they require signatures. These
