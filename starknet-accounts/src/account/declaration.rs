@@ -10,7 +10,7 @@ use starknet_core::{
         contract::{legacy::LegacyContractClass, ComputeClassHashError},
         BroadcastedDeclareTransaction, BroadcastedDeclareTransactionV1,
         BroadcastedDeclareTransactionV2, BroadcastedTransaction, DeclareTransactionResult,
-        FeeEstimate, FieldElement, FlattenedSierraClass,
+        FeeEstimate, FieldElement, FlattenedSierraClass, SimulatedTransaction, SimulationFlag,
     },
 };
 use starknet_providers::Provider;
@@ -115,6 +115,26 @@ where
         self.estimate_fee_with_nonce(nonce).await
     }
 
+    pub async fn simulate(
+        &self,
+        skip_validate: bool,
+        skip_fee_charge: bool,
+    ) -> Result<SimulatedTransaction, AccountError<A::SignError, <A::Provider as Provider>::Error>>
+    {
+        // Resolves nonce
+        let nonce = match self.nonce {
+            Some(value) => value,
+            None => self
+                .account
+                .get_nonce()
+                .await
+                .map_err(AccountError::Provider)?,
+        };
+
+        self.simulate_with_nonce(nonce, skip_validate, skip_fee_charge)
+            .await
+    }
+
     pub async fn send(
         &self,
     ) -> Result<
@@ -180,6 +200,44 @@ where
             .estimate_fee_single(
                 BroadcastedTransaction::Declare(BroadcastedDeclareTransaction::V2(declare)),
                 self.account.block_id(),
+            )
+            .await
+            .map_err(AccountError::Provider)
+    }
+
+    async fn simulate_with_nonce(
+        &self,
+        nonce: FieldElement,
+        skip_validate: bool,
+        skip_fee_charge: bool,
+    ) -> Result<SimulatedTransaction, AccountError<A::SignError, <A::Provider as Provider>::Error>>
+    {
+        let prepared = PreparedDeclaration {
+            account: self.account,
+            inner: RawDeclaration {
+                contract_class: self.contract_class.clone(),
+                compiled_class_hash: self.compiled_class_hash,
+                nonce,
+                max_fee: self.max_fee.unwrap_or_default(),
+            },
+        };
+        let declare = prepared.get_declare_request(true).await?;
+
+        let mut flags = vec![];
+
+        if skip_validate {
+            flags.push(SimulationFlag::SkipValidate);
+        }
+        if skip_fee_charge {
+            flags.push(SimulationFlag::SkipFeeCharge);
+        }
+
+        self.account
+            .provider()
+            .simulate_transaction(
+                self.account.block_id(),
+                BroadcastedTransaction::Declare(BroadcastedDeclareTransaction::V2(declare)),
+                &flags,
             )
             .await
             .map_err(AccountError::Provider)
@@ -256,6 +314,26 @@ where
         self.estimate_fee_with_nonce(nonce).await
     }
 
+    pub async fn simulate(
+        &self,
+        skip_validate: bool,
+        skip_fee_charge: bool,
+    ) -> Result<SimulatedTransaction, AccountError<A::SignError, <A::Provider as Provider>::Error>>
+    {
+        // Resolves nonce
+        let nonce = match self.nonce {
+            Some(value) => value,
+            None => self
+                .account
+                .get_nonce()
+                .await
+                .map_err(AccountError::Provider)?,
+        };
+
+        self.simulate_with_nonce(nonce, skip_validate, skip_fee_charge)
+            .await
+    }
+
     pub async fn send(
         &self,
     ) -> Result<
@@ -319,6 +397,43 @@ where
             .estimate_fee_single(
                 BroadcastedTransaction::Declare(BroadcastedDeclareTransaction::V1(declare)),
                 self.account.block_id(),
+            )
+            .await
+            .map_err(AccountError::Provider)
+    }
+
+    async fn simulate_with_nonce(
+        &self,
+        nonce: FieldElement,
+        skip_validate: bool,
+        skip_fee_charge: bool,
+    ) -> Result<SimulatedTransaction, AccountError<A::SignError, <A::Provider as Provider>::Error>>
+    {
+        let prepared = PreparedLegacyDeclaration {
+            account: self.account,
+            inner: RawLegacyDeclaration {
+                contract_class: self.contract_class.clone(),
+                nonce,
+                max_fee: self.max_fee.unwrap_or_default(),
+            },
+        };
+        let declare = prepared.get_declare_request(true).await?;
+
+        let mut flags = vec![];
+
+        if skip_validate {
+            flags.push(SimulationFlag::SkipValidate);
+        }
+        if skip_fee_charge {
+            flags.push(SimulationFlag::SkipFeeCharge);
+        }
+
+        self.account
+            .provider()
+            .simulate_transaction(
+                self.account.block_id(),
+                BroadcastedTransaction::Declare(BroadcastedDeclareTransaction::V1(declare)),
+                &flags,
             )
             .await
             .map_err(AccountError::Provider)

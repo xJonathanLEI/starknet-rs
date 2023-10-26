@@ -6,7 +6,8 @@ use starknet_core::types::{
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-    MaybePendingTransactionReceipt, MsgFromL1, StarknetError, SyncStatusType, Transaction,
+    MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag, StarknetError,
+    SyncStatusType, Transaction, TransactionTrace, TransactionTraceWithHash,
 };
 use std::error::Error;
 
@@ -202,6 +203,36 @@ pub trait Provider {
     where
         D: AsRef<BroadcastedDeployAccountTransaction> + Send + Sync;
 
+    /// For a given executed transaction, return the trace of its execution, including internal
+    /// calls
+    async fn trace_transaction<H>(
+        &self,
+        transaction_hash: H,
+    ) -> Result<TransactionTrace, ProviderError<Self::Error>>
+    where
+        H: AsRef<FieldElement> + Send + Sync;
+
+    /// Simulate a given sequence of transactions on the requested state, and generate the execution
+    /// traces. If one of the transactions is reverted, raises CONTRACT_ERROR.
+    async fn simulate_transactions<B, T, S>(
+        &self,
+        block_id: B,
+        transactions: T,
+        simulation_flags: S,
+    ) -> Result<Vec<SimulatedTransaction>, ProviderError<Self::Error>>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+        T: AsRef<[BroadcastedTransaction]> + Send + Sync,
+        S: AsRef<[SimulationFlag]> + Send + Sync;
+
+    /// Retrieve traces for all transactions in the given block.
+    async fn trace_block_transactions<H>(
+        &self,
+        block_hash: H,
+    ) -> Result<Vec<TransactionTraceWithHash>, ProviderError<Self::Error>>
+    where
+        H: AsRef<FieldElement> + Send + Sync;
+
     /// Same as [estimate_fee], but only with one estimate.
     async fn estimate_fee_single<R, B>(
         &self,
@@ -214,6 +245,34 @@ pub trait Provider {
     {
         let mut result = self
             .estimate_fee([request.as_ref().to_owned()], block_id)
+            .await?;
+
+        if result.len() == 1 {
+            // Unwrapping here is safe becuase we already checked length
+            Ok(result.pop().unwrap())
+        } else {
+            Err(ProviderError::ArrayLengthMismatch)
+        }
+    }
+
+    /// Same as [simulate_transactions], but only with one simulation.
+    async fn simulate_transaction<B, T, S>(
+        &self,
+        block_id: B,
+        transaction: T,
+        simulation_flags: S,
+    ) -> Result<SimulatedTransaction, ProviderError<Self::Error>>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+        T: AsRef<BroadcastedTransaction> + Send + Sync,
+        S: AsRef<[SimulationFlag]> + Send + Sync,
+    {
+        let mut result = self
+            .simulate_transactions(
+                block_id,
+                [transaction.as_ref().to_owned()],
+                simulation_flags,
+            )
             .await?;
 
         if result.len() == 1 {

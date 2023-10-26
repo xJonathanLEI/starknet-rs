@@ -12,5 +12,7 @@ pub use super::codegen::{
     GetStateUpdateRequestRef, GetStorageAtRequest, GetStorageAtRequestRef,
     GetTransactionByBlockIdAndIndexRequest, GetTransactionByBlockIdAndIndexRequestRef,
     GetTransactionByHashRequest, GetTransactionByHashRequestRef, GetTransactionReceiptRequest,
-    GetTransactionReceiptRequestRef, PendingTransactionsRequest, SyncingRequest,
+    GetTransactionReceiptRequestRef, PendingTransactionsRequest, SimulateTransactionsRequest,
+    SimulateTransactionsRequestRef, SyncingRequest, TraceBlockTransactionsRequest,
+    TraceBlockTransactionsRequestRef, TraceTransactionRequest, TraceTransactionRequestRef,
 };
