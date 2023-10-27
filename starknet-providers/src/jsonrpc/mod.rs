@@ -200,7 +200,7 @@ where
                         Ok(code) => MaybeUnknownErrorCode::Known(code),
                         Err(_) => MaybeUnknownErrorCode::Unknown(error.code),
                     },
-                    message: error.message,
+                    message: format!("{}: {}", error.message, error.data),
                 }))
             }
         }

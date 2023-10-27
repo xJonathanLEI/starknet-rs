@@ -596,6 +596,46 @@ async fn jsonrpc_call() {
 }
 
 #[tokio::test]
+async fn jsonrpc_call_error() {
+    let rpc_client = create_jsonrpc_client();
+
+    // Checks invalid entrypoint contract error (40) in data field.
+    let should_be_error = rpc_client
+        .call(
+            &FunctionCall {
+                contract_address: FieldElement::from_hex_be(
+                    "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+                )
+                .unwrap(),
+                entry_point_selector: get_selector_from_name("notValidEntryPoint").unwrap(),
+                calldata: vec![FieldElement::from_hex_be(
+                    "01352dd0ac2a462cb53e4f125169b28f13bd6199091a9815c444dcae83056bbc",
+                )
+                .unwrap()],
+            },
+            BlockId::Tag(BlockTag::Latest),
+        )
+        .await;
+
+    match should_be_error {
+        Ok(_) => panic!("unexpected success result"),
+        Err(e) => match e {
+            ProviderError::StarknetError(StarknetErrorWithMessage { code, ref message }) => {
+                if let MaybeUnknownErrorCode::Known(sne) = code {
+                    assert_eq!(sne, StarknetError::ContractError);
+                } else {
+                    panic!("unexpected StarknetError {:?}", code);
+                }
+
+                assert!(!message.is_empty());
+                assert!(message.contains("Entry point EntryPointSelector(StarkFelt(\\\"0x03cf855c74a42fd097b17c8e32d22d463abd6e275cf10fbb682ad147f25641dc\\\")) not found in contract"));
+            }
+            _ => panic!("unexpected error type {:?}", e),
+        },
+    }
+}
+
+#[tokio::test]
 async fn jsonrpc_estimate_fee() {
     let rpc_client = create_jsonrpc_client();
 
