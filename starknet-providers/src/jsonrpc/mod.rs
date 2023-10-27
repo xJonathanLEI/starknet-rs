@@ -142,10 +142,15 @@ pub enum RpcError {
 }
 
 #[derive(Debug, thiserror::Error, Deserialize)]
-#[error("JSON-RPC error: code={code}, message=\"{message}\"")]
+#[error("JSON-RPC error: code={code}, message=\"{message}\", data=\"{data}\"")]
 pub struct JsonRpcError {
     pub code: i64,
     pub message: String,
+    // Not all error contains a data field.
+    // TODO: @jonathan is that the correct way to handle such case?
+    // or should we use `Option<String>` but we can't print it directly in the error.
+    #[serde(skip_deserializing)]
+    pub data: String,
 }
 
 #[derive(Debug, Deserialize)]

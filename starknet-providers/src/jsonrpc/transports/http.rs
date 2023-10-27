@@ -80,20 +80,13 @@ impl JsonRpcTransport for HttpTransport {
             serde_json::from_str(&response_body).map_err(Self::Error::Json)?;
 
         if let JsonRpcResponse::Error { ref mut error, .. } = parsed_response {
-            if error.code == 40 {
-                trace!("Extracting `data` from ContractError (40)");
-                let json_raw: Value =
-                    serde_json::from_str(&response_body).map_err(Self::Error::Json)?;
-                // "error" key is safe to unwrap here as we parsed the response correctly with
-                // the field "error".
-                if let Some(data) = json_raw.get("error").unwrap().get("data") {
-                    if let Some(revert_error) = data.get("revert_error") {
-                        error.message += &format!(
-                            "\nrevert_error: {}",
-                            revert_error.as_str().unwrap_or("Not available")
-                        );
-                    }
-                }
+            let json_raw: Value =
+                serde_json::from_str(&response_body).map_err(Self::Error::Json)?;
+
+            // "error" key is safe to unwrap here as we parsed the response correctly with
+            // the field "error".
+            if let Some(data) = json_raw.get("error").unwrap().get("data") {
+                error.data = data.to_string();
             }
         }
 
