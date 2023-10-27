@@ -596,7 +596,7 @@ async fn jsonrpc_call() {
 }
 
 #[tokio::test]
-async fn jsonrpc_call_error() {
+async fn jsonrpc_call_entrypoint_not_found() {
     let rpc_client = create_jsonrpc_client();
 
     // Checks invalid entrypoint contract error (40) in data field.
