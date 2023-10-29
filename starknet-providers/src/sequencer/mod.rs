@@ -192,7 +192,7 @@ impl SequencerGatewayProvider {
         url
     }
 
-    async fn send_get_request<T>(&self, url: Url) -> Result<T, ProviderError<GatewayClientError>>
+    async fn send_get_request<T>(&self, url: Url) -> Result<T, ProviderError>
     where
         T: DeserializeOwned,
     {
@@ -203,33 +203,24 @@ impl SequencerGatewayProvider {
             .get(url)
             .send()
             .await
-            .map_err(|err| ProviderError::Other(GatewayClientError::Network(err)))?;
+            .map_err(GatewayClientError::Network)?;
         if res.status() == StatusCode::TOO_MANY_REQUESTS {
             Err(ProviderError::RateLimited)
         } else {
-            let body = res
-                .text()
-                .await
-                .map_err(|err| ProviderError::Other(GatewayClientError::Network(err)))?;
+            let body = res.text().await.map_err(GatewayClientError::Network)?;
 
             trace!("Response from sequencer API: {}", body);
 
-            serde_json::from_str(&body)
-                .map_err(|err| ProviderError::Other(GatewayClientError::Serde(err)))
+            Ok(serde_json::from_str(&body).map_err(GatewayClientError::Serde)?)
         }
     }
 
-    async fn send_post_request<Q, S>(
-        &self,
-        url: Url,
-        body: &Q,
-    ) -> Result<S, ProviderError<GatewayClientError>>
+    async fn send_post_request<Q, S>(&self, url: Url, body: &Q) -> Result<S, ProviderError>
     where
         Q: Serialize,
         S: DeserializeOwned,
     {
-        let request_body = serde_json::to_string(body)
-            .map_err(|err| ProviderError::Other(GatewayClientError::Serde(err)))?;
+        let request_body = serde_json::to_string(body).map_err(GatewayClientError::Serde)?;
 
         trace!(
             "Sending POST request to sequencer API ({}): {}",
@@ -244,19 +235,15 @@ impl SequencerGatewayProvider {
             .body(request_body)
             .send()
             .await
-            .map_err(|err| ProviderError::Other(GatewayClientError::Network(err)))?;
+            .map_err(GatewayClientError::Network)?;
         if res.status() == StatusCode::TOO_MANY_REQUESTS {
             Err(ProviderError::RateLimited)
         } else {
-            let body = res
-                .text()
-                .await
-                .map_err(|err| ProviderError::Other(GatewayClientError::Network(err)))?;
+            let body = res.text().await.map_err(GatewayClientError::Network)?;
 
             trace!("Response from sequencer API: {}", body);
 
-            serde_json::from_str(&body)
-                .map_err(|err| ProviderError::Other(GatewayClientError::Serde(err)))
+            Ok(serde_json::from_str(&body).map_err(GatewayClientError::Serde)?)
         }
     }
 }
@@ -268,7 +255,7 @@ impl SequencerGatewayProvider {
     pub async fn add_transaction(
         &self,
         tx: TransactionRequest,
-    ) -> Result<AddTransactionResult, ProviderError<GatewayClientError>> {
+    ) -> Result<AddTransactionResult, ProviderError> {
         let request_url = self.extend_gateway_url("add_transaction");
 
         self.send_post_request::<_, GatewayResponse<_>>(request_url, &tx)
@@ -279,9 +266,7 @@ impl SequencerGatewayProvider {
     #[deprecated(
         note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
     )]
-    pub async fn get_contract_addresses(
-        &self,
-    ) -> Result<ContractAddresses, ProviderError<GatewayClientError>> {
+    pub async fn get_contract_addresses(&self) -> Result<ContractAddresses, ProviderError> {
         let request_url = self.extend_feeder_gateway_url("get_contract_addresses");
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
@@ -296,7 +281,7 @@ impl SequencerGatewayProvider {
         &self,
         call_function: CallFunction,
         block_identifier: BlockId,
-    ) -> Result<CallContractResult, ProviderError<GatewayClientError>> {
+    ) -> Result<CallContractResult, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("call_contract");
         append_block_id(&mut request_url, block_identifier);
 
@@ -313,7 +298,7 @@ impl SequencerGatewayProvider {
         tx: AccountTransaction,
         block_identifier: BlockId,
         skip_validate: bool,
-    ) -> Result<FeeEstimate, ProviderError<GatewayClientError>> {
+    ) -> Result<FeeEstimate, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("estimate_fee");
         request_url
             .query_pairs_mut()
@@ -333,7 +318,7 @@ impl SequencerGatewayProvider {
         txs: &[AccountTransaction],
         block_identifier: BlockId,
         skip_validate: bool,
-    ) -> Result<Vec<FeeEstimate>, ProviderError<GatewayClientError>> {
+    ) -> Result<Vec<FeeEstimate>, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("estimate_fee_bulk");
         request_url
             .query_pairs_mut()
@@ -352,7 +337,7 @@ impl SequencerGatewayProvider {
         &self,
         call_l1_handler: CallL1Handler,
         block_identifier: BlockId,
-    ) -> Result<FeeEstimate, ProviderError<GatewayClientError>> {
+    ) -> Result<FeeEstimate, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("estimate_message_fee");
         append_block_id(&mut request_url, block_identifier);
 
@@ -369,7 +354,7 @@ impl SequencerGatewayProvider {
         tx: AccountTransaction,
         block_identifier: BlockId,
         skip_validate: bool,
-    ) -> Result<TransactionSimulationInfo, ProviderError<GatewayClientError>> {
+    ) -> Result<TransactionSimulationInfo, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("simulate_transaction");
         request_url
             .query_pairs_mut()
@@ -384,10 +369,7 @@ impl SequencerGatewayProvider {
     #[deprecated(
         note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
     )]
-    pub async fn get_block(
-        &self,
-        block_identifier: BlockId,
-    ) -> Result<Block, ProviderError<GatewayClientError>> {
+    pub async fn get_block(&self, block_identifier: BlockId) -> Result<Block, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_block");
         append_block_id(&mut request_url, block_identifier);
 
@@ -402,7 +384,7 @@ impl SequencerGatewayProvider {
     pub async fn get_block_traces(
         &self,
         block_identifier: BlockId,
-    ) -> Result<BlockTraces, ProviderError<GatewayClientError>> {
+    ) -> Result<BlockTraces, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_block_traces");
         append_block_id(&mut request_url, block_identifier);
 
@@ -417,7 +399,7 @@ impl SequencerGatewayProvider {
     pub async fn get_state_update(
         &self,
         block_identifier: BlockId,
-    ) -> Result<StateUpdate, ProviderError<GatewayClientError>> {
+    ) -> Result<StateUpdate, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_state_update");
         append_block_id(&mut request_url, block_identifier);
 
@@ -433,7 +415,7 @@ impl SequencerGatewayProvider {
         &self,
         contract_address: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<LegacyContractCode, ProviderError<GatewayClientError>> {
+    ) -> Result<LegacyContractCode, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_code");
         request_url
             .query_pairs_mut()
@@ -460,7 +442,7 @@ impl SequencerGatewayProvider {
         &self,
         contract_address: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<DeployedClass, ProviderError<GatewayClientError>> {
+    ) -> Result<DeployedClass, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_full_contract");
         request_url
             .query_pairs_mut()
@@ -479,7 +461,7 @@ impl SequencerGatewayProvider {
         &self,
         class_hash: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<CompiledClass, ProviderError<GatewayClientError>> {
+    ) -> Result<CompiledClass, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_compiled_class_by_class_hash");
         request_url
             .query_pairs_mut()
@@ -498,7 +480,7 @@ impl SequencerGatewayProvider {
         &self,
         contract_address: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<FieldElement, ProviderError<GatewayClientError>> {
+    ) -> Result<FieldElement, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_class_hash_at");
         request_url
             .query_pairs_mut()
@@ -517,7 +499,7 @@ impl SequencerGatewayProvider {
         &self,
         class_hash: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<DeployedClass, ProviderError<GatewayClientError>> {
+    ) -> Result<DeployedClass, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_class_by_hash");
         request_url
             .query_pairs_mut()
@@ -537,7 +519,7 @@ impl SequencerGatewayProvider {
         contract_address: FieldElement,
         key: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<FieldElement, ProviderError<GatewayClientError>> {
+    ) -> Result<FieldElement, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_storage_at");
         request_url
             .query_pairs_mut()
@@ -557,7 +539,7 @@ impl SequencerGatewayProvider {
         &self,
         contract_address: FieldElement,
         block_identifier: BlockId,
-    ) -> Result<FieldElement, ProviderError<GatewayClientError>> {
+    ) -> Result<FieldElement, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_nonce");
         request_url
             .query_pairs_mut()
@@ -575,7 +557,7 @@ impl SequencerGatewayProvider {
     pub async fn get_transaction_status(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<TransactionStatusInfo, ProviderError<GatewayClientError>> {
+    ) -> Result<TransactionStatusInfo, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_status");
         request_url
             .query_pairs_mut()
@@ -592,7 +574,7 @@ impl SequencerGatewayProvider {
     pub async fn get_transaction(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<TransactionInfo, ProviderError<GatewayClientError>> {
+    ) -> Result<TransactionInfo, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction");
         request_url
             .query_pairs_mut()
@@ -609,7 +591,7 @@ impl SequencerGatewayProvider {
     pub async fn get_transaction_receipt(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<TransactionReceipt, ProviderError<GatewayClientError>> {
+    ) -> Result<TransactionReceipt, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_receipt");
         request_url
             .query_pairs_mut()
@@ -626,7 +608,7 @@ impl SequencerGatewayProvider {
     pub async fn get_transaction_trace(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<TransactionTrace, ProviderError<GatewayClientError>> {
+    ) -> Result<TransactionTrace, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_trace");
         request_url
             .query_pairs_mut()
@@ -643,7 +625,7 @@ impl SequencerGatewayProvider {
     pub async fn get_block_hash_by_id(
         &self,
         block_number: u64,
-    ) -> Result<FieldElement, ProviderError<GatewayClientError>> {
+    ) -> Result<FieldElement, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_block_hash_by_id");
         request_url
             .query_pairs_mut()
@@ -660,7 +642,7 @@ impl SequencerGatewayProvider {
     pub async fn get_block_id_by_hash(
         &self,
         block_hash: FieldElement,
-    ) -> Result<u64, ProviderError<GatewayClientError>> {
+    ) -> Result<u64, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_block_id_by_hash");
         request_url
             .query_pairs_mut()
@@ -677,7 +659,7 @@ impl SequencerGatewayProvider {
     pub async fn get_transaction_hash_by_id(
         &self,
         transaction_number: u64,
-    ) -> Result<FieldElement, ProviderError<GatewayClientError>> {
+    ) -> Result<FieldElement, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_hash_by_id");
         request_url
             .query_pairs_mut()
@@ -694,7 +676,7 @@ impl SequencerGatewayProvider {
     pub async fn get_transaction_id_by_hash(
         &self,
         transaction_hash: FieldElement,
-    ) -> Result<u64, ProviderError<GatewayClientError>> {
+    ) -> Result<u64, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_id_by_hash");
         request_url
             .query_pairs_mut()
@@ -708,7 +690,7 @@ impl SequencerGatewayProvider {
     #[deprecated(
         note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
     )]
-    pub async fn get_last_batch_id(&self) -> Result<u64, ProviderError<GatewayClientError>> {
+    pub async fn get_last_batch_id(&self) -> Result<u64, ProviderError> {
         let request_url = self.extend_feeder_gateway_url("get_last_batch_id");
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
@@ -719,7 +701,7 @@ impl SequencerGatewayProvider {
     #[deprecated(
         note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
     )]
-    pub async fn get_l1_blockchain_id(&self) -> Result<u64, ProviderError<GatewayClientError>> {
+    pub async fn get_l1_blockchain_id(&self) -> Result<u64, ProviderError> {
         let request_url = self.extend_feeder_gateway_url("get_l1_blockchain_id");
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
@@ -728,7 +710,7 @@ impl SequencerGatewayProvider {
     }
 }
 
-impl From<SequencerError> for ProviderError<GatewayClientError> {
+impl From<SequencerError> for ProviderError {
     fn from(value: SequencerError) -> Self {
         let matching_code = match value.code {
             ErrorCode::BlockNotFound => Some(StarknetError::BlockNotFound),
@@ -752,18 +734,18 @@ impl From<SequencerError> for ProviderError<GatewayClientError> {
                 code: MaybeUnknownErrorCode::Known(code),
                 message: value.message,
             }),
-            None => ProviderError::Other(GatewayClientError::SequencerError(value)),
+            None => GatewayClientError::SequencerError(value).into(),
         }
     }
 }
 
-impl From<ConversionError> for ProviderError<GatewayClientError> {
+impl From<ConversionError> for ProviderError {
     fn from(_value: ConversionError) -> Self {
-        Self::Other(GatewayClientError::ModelConversionError)
+        Self::Other(Box::new(GatewayClientError::ModelConversionError))
     }
 }
 
-impl<D> From<GatewayResponse<D>> for Result<D, ProviderError<GatewayClientError>> {
+impl<D> From<GatewayResponse<D>> for Result<D, ProviderError> {
     fn from(value: GatewayResponse<D>) -> Self {
         match value {
             GatewayResponse::Data(data) => Ok(data),
@@ -772,7 +754,7 @@ impl<D> From<GatewayResponse<D>> for Result<D, ProviderError<GatewayClientError>
     }
 }
 
-impl From<RawFieldElementResponse> for Result<FieldElement, ProviderError<GatewayClientError>> {
+impl From<RawFieldElementResponse> for Result<FieldElement, ProviderError> {
     fn from(value: RawFieldElementResponse) -> Self {
         match value {
             RawFieldElementResponse::Data(data) => Ok(data),

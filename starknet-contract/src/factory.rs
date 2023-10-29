@@ -3,7 +3,6 @@ use starknet_core::{
     types::{FeeEstimate, FieldElement, InvokeTransactionResult, SimulatedTransaction},
     utils::{get_udc_deployed_address, UdcUniqueSettings, UdcUniqueness},
 };
-use starknet_providers::Provider;
 
 /// The default UDC address: 0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf.
 const UDC_ADDRESS: FieldElement = FieldElement::from_mont([
@@ -123,9 +122,7 @@ impl<'f, A> Deployment<'f, A>
 where
     A: ConnectedAccount + Sync,
 {
-    pub async fn estimate_fee(
-        &self,
-    ) -> Result<FeeEstimate, AccountError<A::SignError, <A::Provider as Provider>::Error>> {
+    pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
         let execution: Execution<A> = self.into();
         execution.estimate_fee().await
     }
@@ -134,16 +131,12 @@ where
         &self,
         skip_validate: bool,
         skip_fee_charge: bool,
-    ) -> Result<SimulatedTransaction, AccountError<A::SignError, <A::Provider as Provider>::Error>>
-    {
+    ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
         let execution: Execution<A> = self.into();
         execution.simulate(skip_validate, skip_fee_charge).await
     }
 
-    pub async fn send(
-        &self,
-    ) -> Result<InvokeTransactionResult, AccountError<A::SignError, <A::Provider as Provider>::Error>>
-    {
+    pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
         let execution: Execution<A> = self.into();
         execution.send().await
     }

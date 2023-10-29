@@ -82,9 +82,7 @@ impl<'a, A> Execution<'a, A>
 where
     A: ConnectedAccount + Sync,
 {
-    pub async fn estimate_fee(
-        &self,
-    ) -> Result<FeeEstimate, AccountError<A::SignError, <A::Provider as Provider>::Error>> {
+    pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
             Some(value) => value,
@@ -102,8 +100,7 @@ where
         &self,
         skip_validate: bool,
         skip_fee_charge: bool,
-    ) -> Result<SimulatedTransaction, AccountError<A::SignError, <A::Provider as Provider>::Error>>
-    {
+    ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
             Some(value) => value,
@@ -118,19 +115,11 @@ where
             .await
     }
 
-    pub async fn send(
-        &self,
-    ) -> Result<InvokeTransactionResult, AccountError<A::SignError, <A::Provider as Provider>::Error>>
-    {
+    pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
         self.prepare().await?.send().await
     }
 
-    async fn prepare(
-        &self,
-    ) -> Result<
-        PreparedExecution<'a, A>,
-        AccountError<A::SignError, <A::Provider as Provider>::Error>,
-    > {
+    async fn prepare(&self) -> Result<PreparedExecution<'a, A>, AccountError<A::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
             Some(value) => value,
@@ -163,7 +152,7 @@ where
     async fn estimate_fee_with_nonce(
         &self,
         nonce: FieldElement,
-    ) -> Result<FeeEstimate, AccountError<A::SignError, <A::Provider as Provider>::Error>> {
+    ) -> Result<FeeEstimate, AccountError<A::SignError>> {
         let prepared = PreparedExecution {
             account: self.account,
             inner: RawExecution {
@@ -192,8 +181,7 @@ where
         nonce: FieldElement,
         skip_validate: bool,
         skip_fee_charge: bool,
-    ) -> Result<SimulatedTransaction, AccountError<A::SignError, <A::Provider as Provider>::Error>>
-    {
+    ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
         let prepared = PreparedExecution {
             account: self.account,
             inner: RawExecution {
@@ -276,10 +264,7 @@ impl<'a, A> PreparedExecution<'a, A>
 where
     A: ConnectedAccount,
 {
-    pub async fn send(
-        &self,
-    ) -> Result<InvokeTransactionResult, AccountError<A::SignError, <A::Provider as Provider>::Error>>
-    {
+    pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
         let tx_request = self
             .get_invoke_request(false)
             .await
