@@ -626,6 +626,9 @@ async fn jsonrpc_call_entrypoint_not_found() {
                 } else {
                     panic!("unexpected StarknetError {:?}", code);
                 }
+
+                // TODO: this test may be extended once the `data` field from v0.5.x
+                // is supported.
             }
             _ => panic!("unexpected error type {:?}", e),
         },
