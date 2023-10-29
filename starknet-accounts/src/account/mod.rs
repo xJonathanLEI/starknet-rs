@@ -80,9 +80,7 @@ pub trait ConnectedAccount: Account {
         BlockId::Tag(BlockTag::Latest)
     }
 
-    async fn get_nonce(
-        &self,
-    ) -> Result<FieldElement, ProviderError<<Self::Provider as Provider>::Error>> {
+    async fn get_nonce(&self) -> Result<FieldElement, ProviderError> {
         self.provider()
             .get_nonce(self.block_id(), self.address())
             .await
@@ -170,11 +168,11 @@ pub struct PreparedLegacyDeclaration<'a, A> {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum AccountError<S, P> {
+pub enum AccountError<S> {
     #[error(transparent)]
     Signing(S),
     #[error(transparent)]
-    Provider(ProviderError<P>),
+    Provider(ProviderError),
     #[error(transparent)]
     ClassHashCalculation(ComputeClassHashError),
     #[error(transparent)]

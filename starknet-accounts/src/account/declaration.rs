@@ -99,9 +99,7 @@ impl<'a, A> Declaration<'a, A>
 where
     A: ConnectedAccount + Sync,
 {
-    pub async fn estimate_fee(
-        &self,
-    ) -> Result<FeeEstimate, AccountError<A::SignError, <A::Provider as Provider>::Error>> {
+    pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
             Some(value) => value,
@@ -119,8 +117,7 @@ where
         &self,
         skip_validate: bool,
         skip_fee_charge: bool,
-    ) -> Result<SimulatedTransaction, AccountError<A::SignError, <A::Provider as Provider>::Error>>
-    {
+    ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
             Some(value) => value,
@@ -135,21 +132,11 @@ where
             .await
     }
 
-    pub async fn send(
-        &self,
-    ) -> Result<
-        DeclareTransactionResult,
-        AccountError<A::SignError, <A::Provider as Provider>::Error>,
-    > {
+    pub async fn send(&self) -> Result<DeclareTransactionResult, AccountError<A::SignError>> {
         self.prepare().await?.send().await
     }
 
-    async fn prepare(
-        &self,
-    ) -> Result<
-        PreparedDeclaration<'a, A>,
-        AccountError<A::SignError, <A::Provider as Provider>::Error>,
-    > {
+    async fn prepare(&self) -> Result<PreparedDeclaration<'a, A>, AccountError<A::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
             Some(value) => value,
@@ -183,7 +170,7 @@ where
     async fn estimate_fee_with_nonce(
         &self,
         nonce: FieldElement,
-    ) -> Result<FeeEstimate, AccountError<A::SignError, <A::Provider as Provider>::Error>> {
+    ) -> Result<FeeEstimate, AccountError<A::SignError>> {
         let prepared = PreparedDeclaration {
             account: self.account,
             inner: RawDeclaration {
@@ -210,8 +197,7 @@ where
         nonce: FieldElement,
         skip_validate: bool,
         skip_fee_charge: bool,
-    ) -> Result<SimulatedTransaction, AccountError<A::SignError, <A::Provider as Provider>::Error>>
-    {
+    ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
         let prepared = PreparedDeclaration {
             account: self.account,
             inner: RawDeclaration {
@@ -298,9 +284,7 @@ impl<'a, A> LegacyDeclaration<'a, A>
 where
     A: ConnectedAccount + Sync,
 {
-    pub async fn estimate_fee(
-        &self,
-    ) -> Result<FeeEstimate, AccountError<A::SignError, <A::Provider as Provider>::Error>> {
+    pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
             Some(value) => value,
@@ -318,8 +302,7 @@ where
         &self,
         skip_validate: bool,
         skip_fee_charge: bool,
-    ) -> Result<SimulatedTransaction, AccountError<A::SignError, <A::Provider as Provider>::Error>>
-    {
+    ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
             Some(value) => value,
@@ -334,21 +317,13 @@ where
             .await
     }
 
-    pub async fn send(
-        &self,
-    ) -> Result<
-        DeclareTransactionResult,
-        AccountError<A::SignError, <A::Provider as Provider>::Error>,
-    > {
+    pub async fn send(&self) -> Result<DeclareTransactionResult, AccountError<A::SignError>> {
         self.prepare().await?.send().await
     }
 
     async fn prepare(
         &self,
-    ) -> Result<
-        PreparedLegacyDeclaration<'a, A>,
-        AccountError<A::SignError, <A::Provider as Provider>::Error>,
-    > {
+    ) -> Result<PreparedLegacyDeclaration<'a, A>, AccountError<A::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
             Some(value) => value,
@@ -381,7 +356,7 @@ where
     async fn estimate_fee_with_nonce(
         &self,
         nonce: FieldElement,
-    ) -> Result<FeeEstimate, AccountError<A::SignError, <A::Provider as Provider>::Error>> {
+    ) -> Result<FeeEstimate, AccountError<A::SignError>> {
         let prepared = PreparedLegacyDeclaration {
             account: self.account,
             inner: RawLegacyDeclaration {
@@ -407,8 +382,7 @@ where
         nonce: FieldElement,
         skip_validate: bool,
         skip_fee_charge: bool,
-    ) -> Result<SimulatedTransaction, AccountError<A::SignError, <A::Provider as Provider>::Error>>
-    {
+    ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
         let prepared = PreparedLegacyDeclaration {
             account: self.account,
             inner: RawLegacyDeclaration {
@@ -505,12 +479,7 @@ impl<'a, A> PreparedDeclaration<'a, A>
 where
     A: ConnectedAccount,
 {
-    pub async fn send(
-        &self,
-    ) -> Result<
-        DeclareTransactionResult,
-        AccountError<A::SignError, <A::Provider as Provider>::Error>,
-    > {
+    pub async fn send(&self) -> Result<DeclareTransactionResult, AccountError<A::SignError>> {
         let tx_request = self.get_declare_request(false).await?;
         self.account
             .provider()
@@ -522,10 +491,7 @@ where
     pub async fn get_declare_request(
         &self,
         query_only: bool,
-    ) -> Result<
-        BroadcastedDeclareTransactionV2,
-        AccountError<A::SignError, <A::Provider as Provider>::Error>,
-    > {
+    ) -> Result<BroadcastedDeclareTransactionV2, AccountError<A::SignError>> {
         let signature = self
             .account
             .sign_declaration(&self.inner, query_only)
@@ -563,12 +529,7 @@ impl<'a, A> PreparedLegacyDeclaration<'a, A>
 where
     A: ConnectedAccount,
 {
-    pub async fn send(
-        &self,
-    ) -> Result<
-        DeclareTransactionResult,
-        AccountError<A::SignError, <A::Provider as Provider>::Error>,
-    > {
+    pub async fn send(&self) -> Result<DeclareTransactionResult, AccountError<A::SignError>> {
         let tx_request = self.get_declare_request(false).await?;
         self.account
             .provider()
@@ -580,10 +541,7 @@ where
     pub async fn get_declare_request(
         &self,
         query_only: bool,
-    ) -> Result<
-        BroadcastedDeclareTransactionV1,
-        AccountError<A::SignError, <A::Provider as Provider>::Error>,
-    > {
+    ) -> Result<BroadcastedDeclareTransactionV1, AccountError<A::SignError>> {
         let signature = self
             .account
             .sign_legacy_declaration(&self.inner, query_only)
