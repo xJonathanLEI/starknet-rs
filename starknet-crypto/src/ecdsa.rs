@@ -138,7 +138,7 @@ pub fn verify(
     if r == &FieldElement::ZERO || r >= &ELEMENT_UPPER_BOUND {
         return Err(VerifyError::InvalidR);
     }
-    if s == &FieldElement::ZERO || s >= &EC_ORDER {
+    if s == &FieldElement::ZERO || s >= &ELEMENT_UPPER_BOUND {
         return Err(VerifyError::InvalidS);
     }
 
