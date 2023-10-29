@@ -85,6 +85,7 @@ impl JsonRpcTransport for HttpTransport {
 
             // "error" key is safe to unwrap here as we parsed the response correctly with
             // the field "error".
+            // "data" field is optional, and may then be omitted.
             if let Some(data) = json_raw.get("error").unwrap().get("data") {
                 error.data = data.to_string();
             }

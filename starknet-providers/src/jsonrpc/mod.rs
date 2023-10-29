@@ -146,7 +146,7 @@ pub enum RpcError {
 pub struct JsonRpcError {
     pub code: i64,
     pub message: String,
-    // Not all error contains a data field.
+    // Error may contain a "data" field that is optional and can be omitted.
     // TODO: @jonathan is that the correct way to handle such case?
     // or should we use `Option<String>` but we can't print it directly in the error.
     #[serde(skip_deserializing)]
@@ -200,7 +200,7 @@ where
                         Ok(code) => MaybeUnknownErrorCode::Known(code),
                         Err(_) => MaybeUnknownErrorCode::Unknown(error.code),
                     },
-                    message: format!("{}: {}", error.message, error.data),
+                    message: error.message,
                 }))
             }
         }
