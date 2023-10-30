@@ -30,7 +30,7 @@ pub struct JsonRpcClient<T> {
     transport: T,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum JsonRpcMethod {
     #[serde(rename = "starknet_getBlockWithTxHashes")]
     GetBlockWithTxHashes,
@@ -177,7 +177,7 @@ where
 {
     async fn send_request<P, R>(&self, method: JsonRpcMethod, params: P) -> Result<R, ProviderError>
     where
-        P: Serialize + Send,
+        P: Serialize + Send + Sync,
         R: DeserializeOwned,
     {
         match self
