@@ -108,7 +108,7 @@ pub fn sign(
     let s = mul_mod_floor(&r, private_key, &EC_ORDER);
     let s = add_unbounded(&s, message);
     let s = bigint_mul_mod_floor(s, &k_inv, &EC_ORDER);
-    if s == FieldElement::ZERO || s >= EC_ORDER {
+    if s == FieldElement::ZERO || s >= ELEMENT_UPPER_BOUND {
         return Err(SignError::InvalidK);
     }
 
@@ -138,7 +138,7 @@ pub fn verify(
     if r == &FieldElement::ZERO || r >= &ELEMENT_UPPER_BOUND {
         return Err(VerifyError::InvalidR);
     }
-    if s == &FieldElement::ZERO || s >= &EC_ORDER {
+    if s == &FieldElement::ZERO || s >= &ELEMENT_UPPER_BOUND {
         return Err(VerifyError::InvalidS);
     }
 

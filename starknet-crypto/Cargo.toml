@@ -1,6 +1,6 @@
 [package]
 name = "starknet-crypto"
-version = "0.6.0"
+version = "0.6.1"
 authors = ["Jonathan LEI <me@xjonathan.dev>"]
 license = "MIT OR Apache-2.0"
 edition = "2021"

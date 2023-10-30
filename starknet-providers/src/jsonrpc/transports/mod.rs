@@ -20,6 +20,6 @@ pub trait JsonRpcTransport {
         params: P,
     ) -> Result<JsonRpcResponse<R>, Self::Error>
     where
-        P: Serialize + Send,
+        P: Serialize + Send + Sync,
         R: DeserializeOwned;
 }

@@ -12,4 +12,4 @@ pub mod jsonrpc;
 pub use jsonrpc::JsonRpcClient;
 
 mod any;
-pub use any::{AnyProvider, AnyProviderError};
+pub use any::AnyProvider;
