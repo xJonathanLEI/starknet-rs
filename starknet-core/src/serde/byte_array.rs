@@ -1,8 +1,10 @@
 pub mod base64 {
-    use alloc::{format, string::String, vec::Vec};
+    use alloc::{fmt::Formatter, format, vec::Vec};
 
     use base64::{engine::general_purpose::STANDARD, Engine};
-    use serde::{Deserialize, Deserializer, Serializer};
+    use serde::{de::Visitor, Deserializer, Serializer};
+
+    struct Base64Visitor;
 
     pub fn serialize<S, T>(value: T, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -16,12 +18,23 @@ pub mod base64 {
     where
         D: Deserializer<'de>,
     {
-        let value = String::deserialize(deserializer)?;
-        match STANDARD.decode(value) {
-            Ok(value) => Ok(value),
-            Err(err) => Err(serde::de::Error::custom(format!(
-                "invalid base64 string: {err}"
-            ))),
+        deserializer.deserialize_any(Base64Visitor)
+    }
+
+    impl<'de> Visitor<'de> for Base64Visitor {
+        type Value = Vec<u8>;
+
+        fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
+            write!(formatter, "string")
+        }
+
+        fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+        where
+            E: serde::de::Error,
+        {
+            STANDARD
+                .decode(v)
+                .map_err(|err| serde::de::Error::custom(format!("invalid base64 string: {err}")))
         }
     }
 }
