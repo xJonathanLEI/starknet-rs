@@ -1,11 +1,13 @@
-use alloc::{format, string::String};
+use alloc::{fmt::Formatter, format};
 
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{de::Visitor, Deserialize, Deserializer, Serialize};
 use serde_with::{DeserializeAs, SerializeAs};
 
 use super::{SyncStatus, SyncStatusType};
 
 pub(crate) struct NumAsHex;
+
+struct NumAsHexVisitor;
 
 impl SerializeAs<u64> for NumAsHex {
     fn serialize_as<S>(value: &u64, serializer: S) -> Result<S::Ok, S::Error>
@@ -21,13 +23,47 @@ impl<'de> DeserializeAs<'de, u64> for NumAsHex {
     where
         D: Deserializer<'de>,
     {
-        let value = String::deserialize(deserializer)?;
-        match u64::from_str_radix(&value[2..], 16) {
+        deserializer.deserialize_any(NumAsHexVisitor)
+    }
+}
+
+impl<'de> Visitor<'de> for NumAsHexVisitor {
+    type Value = u64;
+
+    fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
+        write!(formatter, "string or number")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        match u64::from_str_radix(v.trim_start_matches("0x"), 16) {
             Ok(value) => Ok(value),
             Err(err) => Err(serde::de::Error::custom(format!(
                 "invalid hex string: {err}"
             ))),
         }
+    }
+
+    fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        match v.try_into() {
+            Ok(value) => self.visit_u64(value),
+            Err(_) => Err(serde::de::Error::custom(format!(
+                "value cannot be negative: {}",
+                v
+            ))),
+        }
+    }
+
+    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        Ok(v)
     }
 }
 
@@ -231,7 +267,13 @@ mod enum_ser_impls {
 
 #[cfg(test)]
 mod tests {
-    use super::super::{BlockId, BlockTag, FieldElement};
+    use serde::Deserialize;
+    use serde_with::serde_as;
+
+    use super::{
+        super::{BlockId, BlockTag, FieldElement},
+        NumAsHex,
+    };
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
@@ -249,6 +291,18 @@ mod tests {
         {
             assert_eq!(serde_json::to_string(&block_id).unwrap(), json);
             assert_eq!(serde_json::from_str::<BlockId>(json).unwrap(), block_id);
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_num_as_hex_deser() {
+        #[serde_as]
+        #[derive(Debug, PartialEq, Eq, Deserialize)]
+        struct Value(#[serde_as(as = "NumAsHex")] u64);
+
+        for (num, json) in [(Value(100), "\"0x64\""), (Value(100), "100")].into_iter() {
+            assert_eq!(serde_json::from_str::<Value>(json).unwrap(), num);
         }
     }
 }
