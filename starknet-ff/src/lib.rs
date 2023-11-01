@@ -552,10 +552,18 @@ impl fmt::UpperHex for FieldElement {
 
 #[cfg(feature = "serde")]
 mod serde_field_element {
+    #[cfg(feature = "std")]
+    use core::fmt::{Formatter, Result as FmtResult};
+
     use super::*;
     #[cfg(not(feature = "std"))]
-    use alloc::string::{String, ToString};
-    use serde::{Deserialize, Serialize};
+    use alloc::{
+        fmt::{Formatter, Result as FmtResult},
+        string::ToString,
+    };
+    use serde::{de::Visitor, Deserialize, Serialize};
+
+    struct FieldElementVisitor;
 
     impl Serialize for FieldElement {
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -571,8 +579,22 @@ mod serde_field_element {
         where
             D: serde::Deserializer<'de>,
         {
-            let value = String::deserialize(deserializer)?;
-            Self::from_str(&value).map_err(serde::de::Error::custom)
+            deserializer.deserialize_any(FieldElementVisitor)
+        }
+    }
+
+    impl<'de> Visitor<'de> for FieldElementVisitor {
+        type Value = FieldElement;
+
+        fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+            write!(formatter, "string")
+        }
+
+        fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+        where
+            E: serde::de::Error,
+        {
+            FieldElement::from_str(v).map_err(serde::de::Error::custom)
         }
     }
 }

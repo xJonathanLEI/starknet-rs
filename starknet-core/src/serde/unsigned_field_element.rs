@@ -1,6 +1,9 @@
-use alloc::{format, string::String};
+use alloc::{fmt::Formatter, format};
 
-use serde::{de::Error as DeError, Deserialize, Deserializer, Serializer};
+use serde::{
+    de::{Error as DeError, Visitor},
+    Deserializer, Serializer,
+};
 use serde_with::{DeserializeAs, SerializeAs};
 
 use crate::types::FieldElement;
@@ -10,6 +13,10 @@ pub struct UfeHex;
 pub struct UfeHexOption;
 
 pub struct UfePendingBlockHash;
+
+struct UfeHexVisitor;
+struct UfeHexOptionVisitor;
+struct UfePendingBlockHashVisitor;
 
 impl SerializeAs<FieldElement> for UfeHex {
     fn serialize_as<S>(value: &FieldElement, serializer: S) -> Result<S::Ok, S::Error>
@@ -25,11 +32,23 @@ impl<'de> DeserializeAs<'de, FieldElement> for UfeHex {
     where
         D: Deserializer<'de>,
     {
-        let value = String::deserialize(deserializer)?;
-        match FieldElement::from_hex_be(&value) {
-            Ok(value) => Ok(value),
-            Err(err) => Err(DeError::custom(format!("invalid hex string: {err}"))),
-        }
+        deserializer.deserialize_any(UfeHexVisitor)
+    }
+}
+
+impl<'de> Visitor<'de> for UfeHexVisitor {
+    type Value = FieldElement;
+
+    fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
+        write!(formatter, "string")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: DeError,
+    {
+        FieldElement::from_hex_be(v)
+            .map_err(|err| DeError::custom(format!("invalid hex string: {err}")))
     }
 }
 
@@ -50,10 +69,24 @@ impl<'de> DeserializeAs<'de, Option<FieldElement>> for UfeHexOption {
     where
         D: Deserializer<'de>,
     {
-        let value = String::deserialize(deserializer)?;
-        match value.as_str() {
+        deserializer.deserialize_any(UfeHexOptionVisitor)
+    }
+}
+
+impl<'de> Visitor<'de> for UfeHexOptionVisitor {
+    type Value = Option<FieldElement>;
+
+    fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
+        write!(formatter, "string")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: DeError,
+    {
+        match v {
             "" => Ok(None),
-            _ => match FieldElement::from_hex_be(&value) {
+            _ => match FieldElement::from_hex_be(v) {
                 Ok(value) => Ok(Some(value)),
                 Err(err) => Err(DeError::custom(format!("invalid hex string: {err}"))),
             },
@@ -79,11 +112,25 @@ impl<'de> DeserializeAs<'de, Option<FieldElement>> for UfePendingBlockHash {
     where
         D: Deserializer<'de>,
     {
-        let value = String::deserialize(deserializer)?;
-        if value.is_empty() || value == "pending" || value == "None" {
+        deserializer.deserialize_any(UfePendingBlockHashVisitor)
+    }
+}
+
+impl<'de> Visitor<'de> for UfePendingBlockHashVisitor {
+    type Value = Option<FieldElement>;
+
+    fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
+        write!(formatter, "string")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: DeError,
+    {
+        if v.is_empty() || v == "pending" || v == "None" {
             Ok(None)
         } else {
-            match FieldElement::from_hex_be(&value) {
+            match FieldElement::from_hex_be(v) {
                 Ok(value) => Ok(Some(value)),
                 Err(err) => Err(DeError::custom(format!("invalid hex string: {err}"))),
             }
@@ -95,6 +142,7 @@ impl<'de> DeserializeAs<'de, Option<FieldElement>> for UfePendingBlockHash {
 mod tests {
     use super::*;
 
+    use serde::Deserialize;
     use serde_with::serde_as;
 
     #[serde_as]
