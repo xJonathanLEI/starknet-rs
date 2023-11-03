@@ -133,8 +133,10 @@ mod tests {
         // Goerli-1 tx (L2): 4e0bbc07ff29e5df13dfbcb7e4746fdde52c3649a6a69bd86b15397769722fd
 
         let msg = MsgToL1 {
-            from_address: FieldElement::from_hex_be("0x0164cba33fb7152531f6b4cfc3fff26b4d7b26b4900e0881042edd607b428a92")
-                .unwrap(),
+            from_address: FieldElement::from_hex_be(
+                "0x0164cba33fb7152531f6b4cfc3fff26b4d7b26b4900e0881042edd607b428a92",
+            )
+            .unwrap(),
             to_address: FieldElement::from_hex_be(
                 "0x000000000000000000000000b6dbfaa86bb683152e4fc2401260f9ca249519c0",
             )
