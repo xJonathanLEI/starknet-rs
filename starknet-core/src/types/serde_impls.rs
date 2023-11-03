@@ -165,6 +165,71 @@ mod block_id {
     }
 }
 
+mod transaction_status {
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+    use crate::types::{SequencerTransactionStatus, TransactionExecutionStatus, TransactionStatus};
+
+    #[derive(Serialize, Deserialize)]
+    #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+    struct Raw {
+        finality_status: SequencerTransactionStatus,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        execution_status: Option<TransactionExecutionStatus>,
+    }
+
+    impl Serialize for TransactionStatus {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+        {
+            let raw = match self {
+                TransactionStatus::Received => Raw {
+                    finality_status: SequencerTransactionStatus::Received,
+                    execution_status: None,
+                },
+                TransactionStatus::Rejected => Raw {
+                    finality_status: SequencerTransactionStatus::Rejected,
+                    execution_status: None,
+                },
+                TransactionStatus::AcceptedOnL2(exe) => Raw {
+                    finality_status: SequencerTransactionStatus::AcceptedOnL2,
+                    execution_status: Some(*exe),
+                },
+                TransactionStatus::AcceptedOnL1(exe) => Raw {
+                    finality_status: SequencerTransactionStatus::AcceptedOnL1,
+                    execution_status: Some(*exe),
+                },
+            };
+
+            raw.serialize(serializer)
+        }
+    }
+
+    impl<'de> Deserialize<'de> for TransactionStatus {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            let raw = Raw::deserialize(deserializer)?;
+
+            match (raw.finality_status, raw.execution_status) {
+                (SequencerTransactionStatus::Received, None) => Ok(Self::Received),
+                (SequencerTransactionStatus::Rejected, None) => Ok(Self::Rejected),
+                (SequencerTransactionStatus::AcceptedOnL2, Some(exe)) => {
+                    Ok(Self::AcceptedOnL2(exe))
+                }
+                (SequencerTransactionStatus::AcceptedOnL1, Some(exe)) => {
+                    Ok(Self::AcceptedOnL1(exe))
+                }
+                _ => Err(serde::de::Error::custom(
+                    "invalid combination of finality_status and execution_status",
+                )),
+            }
+        }
+    }
+}
+
 // Deriving the Serialize trait directly results in duplicate fields since the variants also write
 // the tag fields when individually serialized.
 mod enum_ser_impls {
@@ -238,7 +303,6 @@ mod enum_ser_impls {
                 Self::Invoke(variant) => variant.serialize(serializer),
                 Self::L1Handler(variant) => variant.serialize(serializer),
                 Self::Declare(variant) => variant.serialize(serializer),
-                Self::Deploy(variant) => variant.serialize(serializer),
                 Self::DeployAccount(variant) => variant.serialize(serializer),
             }
         }
