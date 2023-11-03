@@ -788,7 +788,6 @@ async fn jsonrpc_trace_invoke() {
 }
 
 #[tokio::test]
-#[ignore = "disabled until pathfinder PR #1457 is released"]
 async fn jsonrpc_trace_invoke_reverted() {
     let rpc_client = create_jsonrpc_client();
 
