@@ -39,6 +39,9 @@ pub use codegen::{
 pub mod eth_address;
 pub use eth_address::EthAddress;
 
+pub mod hash_256;
+pub use hash_256::Hash256;
+
 mod execution_result;
 pub use execution_result::ExecutionResult;
 
@@ -583,10 +586,8 @@ mod tests {
 
         let msg_to_l2 = l1_handler_tx.parse_msg_to_l2().unwrap();
 
-        let expected_hash: [u8; 32] =
-            hex::decode("c51a543ef9563ad2545342b390b67edfcddf9886aa36846cf70382362fc5fab3")
-                .unwrap()
-                .try_into()
+        let expected_hash =
+            Hash256::from_hex("c51a543ef9563ad2545342b390b67edfcddf9886aa36846cf70382362fc5fab3")
                 .unwrap();
 
         assert_eq!(msg_to_l2.hash(), expected_hash);
