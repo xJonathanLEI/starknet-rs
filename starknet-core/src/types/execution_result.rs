@@ -68,12 +68,11 @@ impl<'de> Deserialize<'de> for ExecutionResult {
 
         match (raw.execution_status, raw.revert_reason) {
             (TransactionExecutionStatus::Succeeded, None) => Ok(Self::Succeeded),
-            (TransactionExecutionStatus::Reverted, Some(reason)) => Ok(Self::Reverted { reason }),
+            (TransactionExecutionStatus::Reverted, reason) => Ok(Self::Reverted {
+                reason: reason.unwrap_or_default(),
+            }),
             (TransactionExecutionStatus::Succeeded, Some(_)) => Err(serde::de::Error::custom(
                 "field `revert_reason` must not exist when `execution_status` is `SUCCEEDED`",
-            )),
-            (TransactionExecutionStatus::Reverted, None) => Err(serde::de::Error::custom(
-                "field `revert_reason` missing when `execution_status` is `REVERTED`",
             )),
         }
     }
