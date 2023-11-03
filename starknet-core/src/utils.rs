@@ -1,7 +1,9 @@
-use alloc::string::String;
+use alloc::{string::String, vec::Vec};
 
 use crate::{crypto::compute_hash_on_elements, types::FieldElement};
 
+use num_bigint::BigUint;
+use num_traits::identities::One;
 use sha3::{Digest, Keccak256};
 use starknet_crypto::pedersen_hash;
 
@@ -41,6 +43,9 @@ mod errors {
     use core::fmt::{Display, Formatter, Result};
 
     #[derive(Debug)]
+    pub struct U256OutOfRange;
+
+    #[derive(Debug)]
     pub struct NonAsciiNameError;
 
     #[derive(Debug)]
@@ -61,6 +66,15 @@ mod errors {
     impl Display for NonAsciiNameError {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
             write!(f, "the provided name contains non-ASCII characters")
+        }
+    }
+
+    #[cfg(feature = "std")]
+    impl std::error::Error for U256OutOfRange {}
+
+    impl Display for U256OutOfRange {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+            write!(f, "u256 out of range")
         }
     }
 
@@ -92,7 +106,9 @@ mod errors {
         }
     }
 }
-pub use errors::{CairoShortStringToFeltError, NonAsciiNameError, ParseCairoShortStringError};
+pub use errors::{
+    CairoShortStringToFeltError, NonAsciiNameError, ParseCairoShortStringError, U256OutOfRange,
+};
 
 /// A variant of eth-keccak that computes a value that fits in a Starknet field element.
 pub fn starknet_keccak(data: &[u8]) -> FieldElement {
@@ -223,9 +239,33 @@ pub fn normalize_address(address: FieldElement) -> FieldElement {
     address % ADDR_BOUND
 }
 
+#[allow(clippy::vec_init_then_push)]
+pub fn biguint_to_felts(v: BigUint) -> Result<Vec<FieldElement>, U256OutOfRange> {
+    // TODO: is it better to have the following code for u256->Vec<FieldElement> in utils.rs?
+    let u128_max_plus_1: BigUint = BigUint::one() << 128;
+
+    let high = &v / &u128_max_plus_1;
+
+    if high >= u128_max_plus_1 {
+        return Err(U256OutOfRange);
+    }
+
+    let low = &v % &u128_max_plus_1;
+
+    // Unwrapping is safe as these are never out of range
+    let high = FieldElement::from_byte_slice_be(&high.to_bytes_be()).unwrap();
+    let low = FieldElement::from_byte_slice_be(&low.to_bytes_be()).unwrap();
+
+    let mut u256 = Vec::new();
+    u256.push(low);
+    u256.push(high);
+    Ok(u256)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_traits::Num;
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
@@ -485,6 +525,33 @@ mod tests {
             )
             .unwrap(),
             address
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_u256_to_felts() {
+        let v = BigUint::from_str_radix(
+            "7d56f59fe6cce2fd0620a4b1cce69c488acac84670c38053ffec3763a2eec09d",
+            16,
+        )
+        .unwrap();
+
+        let felts = biguint_to_felts(v).unwrap();
+
+        assert!(
+            felts[0]
+                == FieldElement::from_hex_be(
+                    "0x000000000000000000000000000000008acac84670c38053ffec3763a2eec09d"
+                )
+                .unwrap()
+        );
+        assert!(
+            felts[1]
+                == FieldElement::from_hex_be(
+                    "0x000000000000000000000000000000007d56f59fe6cce2fd0620a4b1cce69c48"
+                )
+                .unwrap()
         );
     }
 }

@@ -48,6 +48,8 @@ pub mod requests;
 pub mod contract;
 pub use contract::ContractArtifact;
 
+pub mod messaging;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePendingBlockWithTxHashes {

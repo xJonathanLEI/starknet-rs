@@ -1693,6 +1693,8 @@ dependencies = [
  "criterion",
  "flate2",
  "hex",
+ "num-bigint",
+ "num-traits",
  "serde",
  "serde_json",
  "serde_json_pythonic",
