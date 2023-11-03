@@ -3,7 +3,7 @@ use alloc::vec::Vec;
 use sha3::{Digest, Keccak256};
 use starknet_ff::FieldElement;
 
-use super::EthAddress;
+use super::{EthAddress, Hash256};
 
 #[derive(Debug, Clone)]
 pub struct MsgToL2 {
@@ -18,7 +18,7 @@ impl MsgToL2 {
     /// Calculates the message hash based on the algorithm documented here:
     ///
     /// https://docs.starknet.io/documentation/architecture_and_concepts/L1-L2_Communication/messaging-mechanism/
-    pub fn hash(&self) -> [u8; 32] {
+    pub fn hash(&self) -> Hash256 {
         let mut hasher = Keccak256::new();
 
         // FromAddress
@@ -47,7 +47,7 @@ impl MsgToL2 {
         let hash = hasher.finalize();
 
         // Because we know hash is always 32 bytes
-        unsafe { *(hash[..].as_ptr() as *const [u8; 32]) }
+        Hash256::from_bytes(unsafe { *(hash[..].as_ptr() as *const [u8; 32]) })
     }
 }
 
@@ -82,10 +82,8 @@ mod tests {
             nonce: 775628,
         };
 
-        let expected_hash: [u8; 32] =
-            hex::decode("c51a543ef9563ad2545342b390b67edfcddf9886aa36846cf70382362fc5fab3")
-                .unwrap()
-                .try_into()
+        let expected_hash =
+            Hash256::from_hex("c51a543ef9563ad2545342b390b67edfcddf9886aa36846cf70382362fc5fab3")
                 .unwrap();
 
         assert_eq!(msg.hash(), expected_hash);
