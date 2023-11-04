@@ -3,8 +3,7 @@ use alloc::vec::Vec;
 use sha3::{Digest, Keccak256};
 use starknet_ff::FieldElement;
 
-use super::{EthAddress, Hash256};
-use crate::types::MsgToL1;
+use super::{EthAddress, Hash256, MsgToL1};
 
 #[derive(Debug, Clone)]
 pub struct MsgToL2 {
@@ -56,13 +55,6 @@ impl MsgToL1 {
     /// Calculates the message hash based on the algorithm documented here:
     ///
     /// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/messaging-mechanism/#structure_and_hashing_l2-l1
-    ///
-    /// In the current version of the documentation, it's not stipulated
-    /// that `ToAddress` has to be padded, but it needs to.
-    /// In fact, the L1 Starknet Core Contract is padding the message
-    /// sender to compute the message hash.
-    ///
-    /// Can be found in the file `StarknetMessaging.sol`, line 153 here: https://vscode.blockscan.com/ethereum/0x16938e4b59297060484fa56a12594d8d6f4177e8
     pub fn hash(&self) -> Hash256 {
         let mut hasher = Keccak256::new();
 
