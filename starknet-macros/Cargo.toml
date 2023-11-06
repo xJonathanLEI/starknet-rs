@@ -16,7 +16,7 @@ keywords = ["ethereum", "starknet", "web3"]
 proc-macro = true
 
 [dependencies]
-starknet-core = { version = "0.7.0", path = "../starknet-core" }
+starknet-core = { version = "0.7.2", path = "../starknet-core" }
 syn = "2.0.15"
 
 [features]

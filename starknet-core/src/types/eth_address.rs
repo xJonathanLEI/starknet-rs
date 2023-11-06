@@ -1,7 +1,7 @@
-use alloc::{format, string::String};
+use alloc::{fmt::Formatter, format};
 use core::str::FromStr;
 
-use serde::{Deserialize, Serialize};
+use serde::{de::Visitor, Deserialize, Serialize};
 use starknet_ff::FieldElement;
 
 // 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF
@@ -16,6 +16,8 @@ const MAX_L1_ADDRESS: FieldElement = FieldElement::from_mont([
 pub struct EthAddress {
     inner: [u8; 20],
 }
+
+struct EthAddressVisitor;
 
 mod errors {
     use core::fmt::{Display, Formatter, Result};
@@ -84,9 +86,22 @@ impl<'de> Deserialize<'de> for EthAddress {
     where
         D: serde::Deserializer<'de>,
     {
-        let value = String::deserialize(deserializer)?;
-        value
-            .parse()
+        deserializer.deserialize_any(EthAddressVisitor)
+    }
+}
+
+impl<'de> Visitor<'de> for EthAddressVisitor {
+    type Value = EthAddress;
+
+    fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
+        write!(formatter, "string")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        v.parse()
             .map_err(|err| serde::de::Error::custom(format!("{}", err)))
     }
 }

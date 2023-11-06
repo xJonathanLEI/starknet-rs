@@ -1687,7 +1687,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-core"
-version = "0.7.0"
+version = "0.7.2"
 dependencies = [
  "base64 0.21.0",
  "criterion",
@@ -1755,7 +1755,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-ff"
-version = "0.3.4"
+version = "0.3.5"
 dependencies = [
  "ark-ff",
  "bigdecimal",

@@ -14,7 +14,7 @@ keywords = ["ethereum", "starknet", "web3"]
 exclude = ["test-data/**"]
 
 [dependencies]
-starknet-core = { version = "0.7.0", path = "../starknet-core" }
+starknet-core = { version = "0.7.2", path = "../starknet-core" }
 async-trait = "0.1.68"
 auto_impl = "1.0.1"
 ethereum-types = "0.14.1"

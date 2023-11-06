@@ -1,6 +1,6 @@
 [package]
 name = "starknet-core"
-version = "0.7.0"
+version = "0.7.2"
 authors = ["Jonathan LEI <me@xjonathan.dev>"]
 license = "MIT OR Apache-2.0"
 edition = "2021"
@@ -18,7 +18,7 @@ all-features = true
 
 [dependencies]
 starknet-crypto = { version = "0.6.1", path = "../starknet-crypto", default-features = false, features = ["alloc"] }
-starknet-ff = { version = "0.3.4", path = "../starknet-ff", default-features = false, features = ["serde"] }
+starknet-ff = { version = "0.3.5", path = "../starknet-ff", default-features = false, features = ["serde"] }
 base64 = { version = "0.21.0", default-features = false, features = ["alloc"] }
 flate2 = { version = "1.0.25", optional = true }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }

@@ -1,7 +1,9 @@
 pub mod u64 {
-    use alloc::{format, string::String};
+    use alloc::{fmt::Formatter, format};
 
-    use serde::{Deserialize, Deserializer, Serializer};
+    use serde::{de::Visitor, Deserializer, Serializer};
+
+    struct NumHexVisitor;
 
     pub fn serialize<S>(value: &u64, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -14,12 +16,22 @@ pub mod u64 {
     where
         D: Deserializer<'de>,
     {
-        let value = String::deserialize(deserializer)?;
-        match u64::from_str_radix(value.trim_start_matches("0x"), 16) {
-            Ok(value) => Ok(value),
-            Err(err) => Err(serde::de::Error::custom(format!(
-                "invalid u64 hex string: {err}"
-            ))),
+        deserializer.deserialize_any(NumHexVisitor)
+    }
+
+    impl<'de> Visitor<'de> for NumHexVisitor {
+        type Value = u64;
+
+        fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
+            write!(formatter, "string")
+        }
+
+        fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+        where
+            E: serde::de::Error,
+        {
+            u64::from_str_radix(v.trim_start_matches("0x"), 16)
+                .map_err(|err| serde::de::Error::custom(format!("invalid u64 hex string: {err}")))
         }
     }
 }

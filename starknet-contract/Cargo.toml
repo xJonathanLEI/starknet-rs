@@ -14,7 +14,7 @@ keywords = ["ethereum", "starknet", "web3"]
 exclude = ["test-data/**"]
 
 [dependencies]
-starknet-core = { version = "0.7.0", path = "../starknet-core" }
+starknet-core = { version = "0.7.2", path = "../starknet-core" }
 starknet-providers = { version = "0.7.0", path = "../starknet-providers" }
 starknet-accounts = { version = "0.6.0", path = "../starknet-accounts" }
 serde = { version = "1.0.160", features = ["derive"] }
