@@ -238,6 +238,7 @@ pub enum EventFieldKind {
     Key,
     Data,
     Nested,
+    Flat,
 }
 
 mod errors {
