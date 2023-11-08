@@ -1,0 +1,40 @@
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+
+name: "Validate contract artifacts"
+
+jobs:
+  check-artifacts:
+    name: "Check artifacts"
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: "Checkout source code"
+        uses: "actions/checkout@v3"
+        with:
+          submodules: true
+
+      - name: "Generate artifacts (Cairo 0)"
+        run: |
+          cd ./starknet-core/test-data/contracts/cairo0
+          ./generate_artifacts.sh
+
+      - name: "Generate artifacts (Cairo 1)"
+        run: |
+          cd ./starknet-core/test-data/contracts/cairo1
+          ./generate_artifacts.sh
+
+      - name: "Generate artifacts (Cairo 2)"
+        run: |
+          cd ./starknet-core/test-data/contracts/cairo2
+          ./generate_artifacts.sh
+
+      - name: "Check Git diffs"
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Git diffs found. Make sure contract artifacts are up to date." >&2
+            exit 1
+          fi
