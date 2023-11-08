@@ -4,7 +4,7 @@ set -e
 
 # Deterministically generate contract artifacts
 
-docker run -it --rm \
+docker run --rm \
     -v "$(pwd)/artifacts:/artifacts" \
     -v "$(pwd)/contracts:/contracts:ro" \
     -v "$(pwd)/docker_entry_compile.sh:/entry.sh:ro" \
@@ -14,7 +14,7 @@ docker run -it --rm \
     starknet/cairo:1.1.0
 
 
-docker run -it --rm \
+docker run --rm \
     -v "$(pwd)/artifacts:/artifacts" \
     -v "$(pwd)/docker_entry_hashes.sh:/entry.sh:ro" \
     -v "$(pwd)/scripts/generate_hashes.py:/generate_hashes.py:ro" \
