@@ -100,11 +100,11 @@ pub struct PreparedAccountDeployment<'f, F> {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum AccountFactoryError<S, P> {
+pub enum AccountFactoryError<S> {
     #[error(transparent)]
     Signing(S),
     #[error(transparent)]
-    Provider(ProviderError<P>),
+    Provider(ProviderError),
 }
 
 impl<'f, F> AccountDeployment<'f, F> {
@@ -170,9 +170,7 @@ where
         )
     }
 
-    pub async fn fetch_nonce(
-        &self,
-    ) -> Result<FieldElement, ProviderError<<F::Provider as Provider>::Error>> {
+    pub async fn fetch_nonce(&self) -> Result<FieldElement, ProviderError> {
         match self
             .factory
             .provider()
@@ -188,10 +186,7 @@ where
         }
     }
 
-    pub async fn estimate_fee(
-        &self,
-    ) -> Result<FeeEstimate, AccountFactoryError<F::SignError, <F::Provider as Provider>::Error>>
-    {
+    pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountFactoryError<F::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
             Some(value) => value,
@@ -208,10 +203,7 @@ where
         &self,
         skip_validate: bool,
         skip_fee_charge: bool,
-    ) -> Result<
-        SimulatedTransaction,
-        AccountFactoryError<F::SignError, <F::Provider as Provider>::Error>,
-    > {
+    ) -> Result<SimulatedTransaction, AccountFactoryError<F::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
             Some(value) => value,
@@ -227,19 +219,13 @@ where
 
     pub async fn send(
         &self,
-    ) -> Result<
-        DeployAccountTransactionResult,
-        AccountFactoryError<F::SignError, <F::Provider as Provider>::Error>,
-    > {
+    ) -> Result<DeployAccountTransactionResult, AccountFactoryError<F::SignError>> {
         self.prepare().await?.send().await
     }
 
     async fn prepare(
         &self,
-    ) -> Result<
-        PreparedAccountDeployment<'f, F>,
-        AccountFactoryError<F::SignError, <F::Provider as Provider>::Error>,
-    > {
+    ) -> Result<PreparedAccountDeployment<'f, F>, AccountFactoryError<F::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
             Some(value) => value,
@@ -271,8 +257,7 @@ where
     async fn estimate_fee_with_nonce(
         &self,
         nonce: FieldElement,
-    ) -> Result<FeeEstimate, AccountFactoryError<F::SignError, <F::Provider as Provider>::Error>>
-    {
+    ) -> Result<FeeEstimate, AccountFactoryError<F::SignError>> {
         let prepared = PreparedAccountDeployment {
             factory: self.factory,
             inner: RawAccountDeployment {
@@ -301,10 +286,7 @@ where
         nonce: FieldElement,
         skip_validate: bool,
         skip_fee_charge: bool,
-    ) -> Result<
-        SimulatedTransaction,
-        AccountFactoryError<F::SignError, <F::Provider as Provider>::Error>,
-    > {
+    ) -> Result<SimulatedTransaction, AccountFactoryError<F::SignError>> {
         let prepared = PreparedAccountDeployment {
             factory: self.factory,
             inner: RawAccountDeployment {
@@ -379,10 +361,7 @@ where
 
     pub async fn send(
         &self,
-    ) -> Result<
-        DeployAccountTransactionResult,
-        AccountFactoryError<F::SignError, <F::Provider as Provider>::Error>,
-    > {
+    ) -> Result<DeployAccountTransactionResult, AccountFactoryError<F::SignError>> {
         let tx_request = self
             .get_deploy_request()
             .await

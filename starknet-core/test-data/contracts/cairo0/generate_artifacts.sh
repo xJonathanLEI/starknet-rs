@@ -2,7 +2,7 @@
 
 # Deterministically generate contract artifacts
 
-docker run -it --rm \
+docker run --rm \
     -v "$(pwd)/artifacts:/artifacts" \
     -v "$(pwd)/contracts:/contracts:ro" \
     -v "$(pwd)/docker_entry.sh:/entry.sh:ro" \

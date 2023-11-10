@@ -98,6 +98,8 @@ Examples can be found in the [examples folder](./examples):
 
 9. [Parsing a JSON-RPC request on the server side](./examples/parse_jsonrpc_request.rs)
 
+10. [Inspecting a erased provider-specific error type](./examples/downcast_provider_error.rs)
+
 ## License
 
 Licensed under either of

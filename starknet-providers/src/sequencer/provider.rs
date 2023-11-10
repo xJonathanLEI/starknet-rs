@@ -1,5 +1,7 @@
 #![allow(deprecated)]
 
+use std::any::Any;
+
 use async_trait::async_trait;
 use starknet_core::types::{
     BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
@@ -12,7 +14,7 @@ use starknet_core::types::{
 };
 
 use crate::{
-    provider::{MaybeUnknownErrorCode, StarknetErrorWithMessage},
+    provider::{MaybeUnknownErrorCode, ProviderImplError, StarknetErrorWithMessage},
     sequencer::{
         models::conversions::{ConversionError, TransactionWithReceipt},
         GatewayClientError,
@@ -24,12 +26,10 @@ use crate::{
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl Provider for SequencerGatewayProvider {
-    type Error = GatewayClientError;
-
     async fn get_block_with_tx_hashes<B>(
         &self,
         block_id: B,
-    ) -> Result<MaybePendingBlockWithTxHashes, ProviderError<Self::Error>>
+    ) -> Result<MaybePendingBlockWithTxHashes, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
@@ -42,7 +42,7 @@ impl Provider for SequencerGatewayProvider {
     async fn get_block_with_txs<B>(
         &self,
         block_id: B,
-    ) -> Result<MaybePendingBlockWithTxs, ProviderError<Self::Error>>
+    ) -> Result<MaybePendingBlockWithTxs, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
@@ -55,7 +55,7 @@ impl Provider for SequencerGatewayProvider {
     async fn get_state_update<B>(
         &self,
         block_id: B,
-    ) -> Result<MaybePendingStateUpdate, ProviderError<Self::Error>>
+    ) -> Result<MaybePendingStateUpdate, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
@@ -70,7 +70,7 @@ impl Provider for SequencerGatewayProvider {
         contract_address: A,
         key: K,
         block_id: B,
-    ) -> Result<FieldElement, ProviderError<Self::Error>>
+    ) -> Result<FieldElement, ProviderError>
     where
         A: AsRef<FieldElement> + Send + Sync,
         K: AsRef<FieldElement> + Send + Sync,
@@ -88,7 +88,7 @@ impl Provider for SequencerGatewayProvider {
     async fn get_transaction_by_hash<H>(
         &self,
         transaction_hash: H,
-    ) -> Result<Transaction, ProviderError<Self::Error>>
+    ) -> Result<Transaction, ProviderError>
     where
         H: AsRef<FieldElement> + Send + Sync,
     {
@@ -102,7 +102,7 @@ impl Provider for SequencerGatewayProvider {
         &self,
         block_id: B,
         index: u64,
-    ) -> Result<Transaction, ProviderError<Self::Error>>
+    ) -> Result<Transaction, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
@@ -112,19 +112,17 @@ impl Provider for SequencerGatewayProvider {
         if index < block.transactions.len() {
             Ok(block.transactions.remove(index).try_into()?)
         } else {
-            Err(ProviderError::<Self::Error>::StarknetError(
-                StarknetErrorWithMessage {
-                    code: MaybeUnknownErrorCode::Known(StarknetError::InvalidTransactionIndex),
-                    message: "Invalid transaction index in a block".into(),
-                },
-            ))
+            Err(ProviderError::StarknetError(StarknetErrorWithMessage {
+                code: MaybeUnknownErrorCode::Known(StarknetError::InvalidTransactionIndex),
+                message: "Invalid transaction index in a block".into(),
+            }))
         }
     }
 
     async fn get_transaction_receipt<H>(
         &self,
         transaction_hash: H,
-    ) -> Result<MaybePendingTransactionReceipt, ProviderError<Self::Error>>
+    ) -> Result<MaybePendingTransactionReceipt, ProviderError>
     where
         H: AsRef<FieldElement> + Send + Sync,
     {
@@ -136,12 +134,10 @@ impl Provider for SequencerGatewayProvider {
         if receipt.status == super::models::TransactionStatus::NotReceived
             || receipt.status == super::models::TransactionStatus::Received
         {
-            Err(ProviderError::<Self::Error>::StarknetError(
-                StarknetErrorWithMessage {
-                    code: MaybeUnknownErrorCode::Known(StarknetError::TransactionHashNotFound),
-                    message: "Transaction hash not found".into(),
-                },
-            ))
+            Err(ProviderError::StarknetError(StarknetErrorWithMessage {
+                code: MaybeUnknownErrorCode::Known(StarknetError::TransactionHashNotFound),
+                message: "Transaction hash not found".into(),
+            }))
         } else {
             // JSON-RPC also sends tx type, which is not available in our receipt type
             let tx = self.get_transaction(*transaction_hash.as_ref()).await?;
@@ -158,7 +154,7 @@ impl Provider for SequencerGatewayProvider {
         &self,
         block_id: B,
         class_hash: H,
-    ) -> Result<ContractClass, ProviderError<Self::Error>>
+    ) -> Result<ContractClass, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
         H: AsRef<FieldElement> + Send + Sync,
@@ -173,7 +169,7 @@ impl Provider for SequencerGatewayProvider {
         &self,
         block_id: B,
         contract_address: A,
-    ) -> Result<FieldElement, ProviderError<Self::Error>>
+    ) -> Result<FieldElement, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
         A: AsRef<FieldElement> + Send + Sync,
@@ -190,7 +186,7 @@ impl Provider for SequencerGatewayProvider {
         &self,
         block_id: B,
         contract_address: A,
-    ) -> Result<ContractClass, ProviderError<Self::Error>>
+    ) -> Result<ContractClass, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
         A: AsRef<FieldElement> + Send + Sync,
@@ -204,10 +200,7 @@ impl Provider for SequencerGatewayProvider {
             .try_into()?)
     }
 
-    async fn get_block_transaction_count<B>(
-        &self,
-        block_id: B,
-    ) -> Result<u64, ProviderError<Self::Error>>
+    async fn get_block_transaction_count<B>(&self, block_id: B) -> Result<u64, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
@@ -215,11 +208,7 @@ impl Provider for SequencerGatewayProvider {
         Ok(block.transactions.len() as u64)
     }
 
-    async fn call<R, B>(
-        &self,
-        request: R,
-        block_id: B,
-    ) -> Result<Vec<FieldElement>, ProviderError<Self::Error>>
+    async fn call<R, B>(&self, request: R, block_id: B) -> Result<Vec<FieldElement>, ProviderError>
     where
         R: AsRef<FunctionCall> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
@@ -237,7 +226,7 @@ impl Provider for SequencerGatewayProvider {
         &self,
         request: R,
         block_id: B,
-    ) -> Result<Vec<FeeEstimate>, ProviderError<Self::Error>>
+    ) -> Result<Vec<FeeEstimate>, ProviderError>
     where
         R: AsRef<[BroadcastedTransaction]> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
@@ -262,7 +251,7 @@ impl Provider for SequencerGatewayProvider {
         &self,
         message: M,
         block_id: B,
-    ) -> Result<FeeEstimate, ProviderError<Self::Error>>
+    ) -> Result<FeeEstimate, ProviderError>
     where
         M: AsRef<MsgFromL1> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
@@ -276,14 +265,12 @@ impl Provider for SequencerGatewayProvider {
             .into())
     }
 
-    async fn block_number(&self) -> Result<u64, ProviderError<Self::Error>> {
+    async fn block_number(&self) -> Result<u64, ProviderError> {
         let block = self.get_block(super::models::BlockId::Latest).await?;
         Ok(block.block_number.ok_or(ConversionError)?)
     }
 
-    async fn block_hash_and_number(
-        &self,
-    ) -> Result<BlockHashAndNumber, ProviderError<Self::Error>> {
+    async fn block_hash_and_number(&self) -> Result<BlockHashAndNumber, ProviderError> {
         let block = self.get_block(super::models::BlockId::Latest).await?;
         Ok(BlockHashAndNumber {
             block_hash: block.block_hash.ok_or(ConversionError)?,
@@ -291,11 +278,11 @@ impl Provider for SequencerGatewayProvider {
         })
     }
 
-    async fn chain_id(&self) -> Result<FieldElement, ProviderError<Self::Error>> {
+    async fn chain_id(&self) -> Result<FieldElement, ProviderError> {
         Ok(self.chain_id)
     }
 
-    async fn pending_transactions(&self) -> Result<Vec<Transaction>, ProviderError<Self::Error>> {
+    async fn pending_transactions(&self) -> Result<Vec<Transaction>, ProviderError> {
         let block = self.get_block(super::models::BlockId::Pending).await?;
         if block.status == super::models::BlockStatus::Pending {
             Ok(block
@@ -308,7 +295,7 @@ impl Provider for SequencerGatewayProvider {
         }
     }
 
-    async fn syncing(&self) -> Result<SyncStatusType, ProviderError<Self::Error>> {
+    async fn syncing(&self) -> Result<SyncStatusType, ProviderError> {
         Ok(SyncStatusType::NotSyncing)
     }
 
@@ -317,15 +304,17 @@ impl Provider for SequencerGatewayProvider {
         filter: EventFilter,
         continuation_token: Option<String>,
         chunk_size: u64,
-    ) -> Result<EventsPage, ProviderError<Self::Error>> {
-        Err(ProviderError::Other(Self::Error::MethodNotSupported))
+    ) -> Result<EventsPage, ProviderError> {
+        Err(ProviderError::Other(Box::new(
+            GatewayClientError::MethodNotSupported,
+        )))
     }
 
     async fn get_nonce<B, A>(
         &self,
         block_id: B,
         contract_address: A,
-    ) -> Result<FieldElement, ProviderError<Self::Error>>
+    ) -> Result<FieldElement, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
         A: AsRef<FieldElement> + Send + Sync,
@@ -341,7 +330,7 @@ impl Provider for SequencerGatewayProvider {
     async fn add_invoke_transaction<I>(
         &self,
         invoke_transaction: I,
-    ) -> Result<InvokeTransactionResult, ProviderError<Self::Error>>
+    ) -> Result<InvokeTransactionResult, ProviderError>
     where
         I: AsRef<BroadcastedInvokeTransaction> + Send + Sync,
     {
@@ -359,7 +348,7 @@ impl Provider for SequencerGatewayProvider {
     async fn add_declare_transaction<D>(
         &self,
         declare_transaction: D,
-    ) -> Result<DeclareTransactionResult, ProviderError<Self::Error>>
+    ) -> Result<DeclareTransactionResult, ProviderError>
     where
         D: AsRef<BroadcastedDeclareTransaction> + Send + Sync,
     {
@@ -378,7 +367,7 @@ impl Provider for SequencerGatewayProvider {
     async fn add_deploy_account_transaction<D>(
         &self,
         deploy_account_transaction: D,
-    ) -> Result<DeployAccountTransactionResult, ProviderError<Self::Error>>
+    ) -> Result<DeployAccountTransactionResult, ProviderError>
     where
         D: AsRef<BroadcastedDeployAccountTransaction> + Send + Sync,
     {
@@ -397,7 +386,7 @@ impl Provider for SequencerGatewayProvider {
     async fn trace_transaction<H>(
         &self,
         transaction_hash: H,
-    ) -> Result<TransactionTrace, ProviderError<Self::Error>>
+    ) -> Result<TransactionTrace, ProviderError>
     where
         H: AsRef<FieldElement> + Send + Sync,
     {
@@ -412,7 +401,7 @@ impl Provider for SequencerGatewayProvider {
         block_id: B,
         transactions: T,
         simulation_flags: S,
-    ) -> Result<Vec<SimulatedTransaction>, ProviderError<Self::Error>>
+    ) -> Result<Vec<SimulatedTransaction>, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
         T: AsRef<[BroadcastedTransaction]> + Send + Sync,
@@ -420,9 +409,9 @@ impl Provider for SequencerGatewayProvider {
     {
         let transactions = transactions.as_ref();
         if transactions.len() != 1 {
-            return Err(ProviderError::Other(
+            return Err(ProviderError::Other(Box::new(
                 GatewayClientError::BulkSimulationNotSupported,
-            ));
+            )));
         }
 
         let transaction = transactions[0].to_owned();
@@ -434,9 +423,9 @@ impl Provider for SequencerGatewayProvider {
                     skip_validate = true;
                 }
                 SimulationFlag::SkipFeeCharge => {
-                    return Err(ProviderError::Other(
+                    return Err(ProviderError::Other(Box::new(
                         GatewayClientError::UnsupportedSimulationFlag,
-                    ));
+                    )));
                 }
             }
         }
@@ -455,7 +444,7 @@ impl Provider for SequencerGatewayProvider {
     async fn trace_block_transactions<H>(
         &self,
         block_hash: H,
-    ) -> Result<Vec<TransactionTraceWithHash>, ProviderError<Self::Error>>
+    ) -> Result<Vec<TransactionTraceWithHash>, ProviderError>
     where
         H: AsRef<FieldElement> + Send + Sync,
     {
@@ -466,5 +455,17 @@ impl Provider for SequencerGatewayProvider {
             .into_iter()
             .map(|est| est.try_into())
             .collect::<Result<Vec<_>, _>>()?)
+    }
+}
+
+impl ProviderImplError for GatewayClientError {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
+
+impl From<GatewayClientError> for ProviderError {
+    fn from(value: GatewayClientError) -> Self {
+        Self::Other(Box::new(value))
     }
 }

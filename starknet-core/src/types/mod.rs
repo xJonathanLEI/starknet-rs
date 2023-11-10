@@ -39,8 +39,14 @@ pub use codegen::{
 pub mod eth_address;
 pub use eth_address::EthAddress;
 
+pub mod hash_256;
+pub use hash_256::Hash256;
+
 mod execution_result;
 pub use execution_result::ExecutionResult;
+
+mod msg;
+pub use msg::MsgToL2;
 
 // TODO: move generated request code to `starknet-providers`
 pub mod requests;
@@ -262,6 +268,36 @@ pub enum ExecuteInvocation {
     Reverted(RevertedInvocation),
 }
 
+mod errors {
+    use core::fmt::{Display, Formatter, Result};
+
+    #[derive(Debug)]
+    pub enum ParseMsgToL2Error {
+        EmptyCalldata,
+        FromAddressOutOfRange,
+    }
+
+    #[cfg(feature = "std")]
+    impl std::error::Error for ParseMsgToL2Error {}
+
+    impl Display for ParseMsgToL2Error {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+            match self {
+                Self::EmptyCalldata => {
+                    write!(
+                        f,
+                        "calldata must contain at least 1 element for from_address"
+                    )
+                }
+                Self::FromAddressOutOfRange => {
+                    write!(f, "from_address is larger than 20 bytes")
+                }
+            }
+        }
+    }
+}
+pub use errors::ParseMsgToL2Error;
+
 impl MaybePendingBlockWithTxHashes {
     pub fn transactions(&self) -> &[FieldElement] {
         match self {
@@ -392,6 +428,24 @@ impl PendingTransactionReceipt {
     }
 }
 
+impl L1HandlerTransaction {
+    pub fn parse_msg_to_l2(&self) -> Result<MsgToL2, ParseMsgToL2Error> {
+        if self.calldata.is_empty() {
+            return Err(ParseMsgToL2Error::EmptyCalldata);
+        }
+
+        Ok(MsgToL2 {
+            from_address: self.calldata[0]
+                .try_into()
+                .map_err(|_| ParseMsgToL2Error::FromAddressOutOfRange)?,
+            to_address: self.contract_address,
+            selector: self.entry_point_selector,
+            payload: self.calldata[1..].to_vec(),
+            nonce: self.nonce,
+        })
+    }
+}
+
 impl AsRef<BlockId> for BlockId {
     fn as_ref(&self) -> &BlockId {
         self
@@ -431,6 +485,14 @@ impl AsRef<BroadcastedDeclareTransaction> for BroadcastedDeclareTransaction {
 impl AsRef<BroadcastedDeployAccountTransaction> for BroadcastedDeployAccountTransaction {
     fn as_ref(&self) -> &BroadcastedDeployAccountTransaction {
         self
+    }
+}
+
+impl TryFrom<&L1HandlerTransaction> for MsgToL2 {
+    type Error = ParseMsgToL2Error;
+
+    fn try_from(value: &L1HandlerTransaction) -> Result<Self, Self::Error> {
+        value.parse_msg_to_l2()
     }
 }
 
@@ -491,5 +553,43 @@ mod tests {
 
         let parsed_object = serde_json::from_str::<BroadcastedInvokeTransaction>(raw).unwrap();
         assert!(parsed_object.is_query);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_parse_msg_to_l2() {
+        let l1_handler_tx = L1HandlerTransaction {
+            transaction_hash: FieldElement::from_hex_be(
+                "0x374286ae28f201e61ffbc5b022cc9701208640b405ea34ea9799f97d5d2d23c",
+            )
+            .unwrap(),
+            version: 0,
+            nonce: 775628,
+            contract_address: FieldElement::from_hex_be(
+                "0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82",
+            )
+            .unwrap(),
+            entry_point_selector: FieldElement::from_hex_be(
+                "0x2d757788a8d8d6f21d1cd40bce38a8222d70654214e96ff95d8086e684fbee5",
+            )
+            .unwrap(),
+            calldata: vec![
+                FieldElement::from_hex_be("0xc3511006c04ef1d78af4c8e0e74ec18a6e64ff9e").unwrap(),
+                FieldElement::from_hex_be(
+                    "0x689ead7d814e51ed93644bc145f0754839b8dcb340027ce0c30953f38f55d7",
+                )
+                .unwrap(),
+                FieldElement::from_hex_be("0x2c68af0bb140000").unwrap(),
+                FieldElement::from_hex_be("0x0").unwrap(),
+            ],
+        };
+
+        let msg_to_l2 = l1_handler_tx.parse_msg_to_l2().unwrap();
+
+        let expected_hash =
+            Hash256::from_hex("c51a543ef9563ad2545342b390b67edfcddf9886aa36846cf70382362fc5fab3")
+                .unwrap();
+
+        assert_eq!(msg_to_l2.hash(), expected_hash);
     }
 }

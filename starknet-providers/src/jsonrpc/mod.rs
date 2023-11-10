@@ -1,3 +1,5 @@
+use std::{any::Any, error::Error};
+
 use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_with::serde_as;
@@ -16,7 +18,7 @@ use starknet_core::{
 };
 
 use crate::{
-    provider::{MaybeUnknownErrorCode, StarknetErrorWithMessage},
+    provider::{MaybeUnknownErrorCode, ProviderImplError, StarknetErrorWithMessage},
     Provider, ProviderError,
 };
 
@@ -28,7 +30,7 @@ pub struct JsonRpcClient<T> {
     transport: T,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum JsonRpcMethod {
     #[serde(rename = "starknet_getBlockWithTxHashes")]
     GetBlockWithTxHashes,
@@ -171,22 +173,18 @@ impl<T> JsonRpcClient<T> {
 
 impl<T> JsonRpcClient<T>
 where
-    T: JsonRpcTransport,
+    T: 'static + JsonRpcTransport + Send + Sync,
 {
-    async fn send_request<P, R>(
-        &self,
-        method: JsonRpcMethod,
-        params: P,
-    ) -> Result<R, ProviderError<JsonRpcClientError<T::Error>>>
+    async fn send_request<P, R>(&self, method: JsonRpcMethod, params: P) -> Result<R, ProviderError>
     where
-        P: Serialize + Send,
+        P: Serialize + Send + Sync,
         R: DeserializeOwned,
     {
         match self
             .transport
             .send_request(method, params)
             .await
-            .map_err(|err| ProviderError::Other(JsonRpcClientError::TransportError(err)))?
+            .map_err(JsonRpcClientError::TransportError)?
         {
             JsonRpcResponse::Success { result, .. } => Ok(result),
             JsonRpcResponse::Error { error, .. } => {
@@ -206,15 +204,13 @@ where
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl<T> Provider for JsonRpcClient<T>
 where
-    T: JsonRpcTransport + Sync + Send,
+    T: 'static + JsonRpcTransport + Sync + Send,
 {
-    type Error = JsonRpcClientError<T::Error>;
-
     /// Get block information with transaction hashes given the block id
     async fn get_block_with_tx_hashes<B>(
         &self,
         block_id: B,
-    ) -> Result<MaybePendingBlockWithTxHashes, ProviderError<Self::Error>>
+    ) -> Result<MaybePendingBlockWithTxHashes, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
@@ -231,7 +227,7 @@ where
     async fn get_block_with_txs<B>(
         &self,
         block_id: B,
-    ) -> Result<MaybePendingBlockWithTxs, ProviderError<Self::Error>>
+    ) -> Result<MaybePendingBlockWithTxs, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
@@ -248,7 +244,7 @@ where
     async fn get_state_update<B>(
         &self,
         block_id: B,
-    ) -> Result<MaybePendingStateUpdate, ProviderError<Self::Error>>
+    ) -> Result<MaybePendingStateUpdate, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
@@ -267,7 +263,7 @@ where
         contract_address: A,
         key: K,
         block_id: B,
-    ) -> Result<FieldElement, ProviderError<Self::Error>>
+    ) -> Result<FieldElement, ProviderError>
     where
         A: AsRef<FieldElement> + Send + Sync,
         K: AsRef<FieldElement> + Send + Sync,
@@ -290,7 +286,7 @@ where
     async fn get_transaction_by_hash<H>(
         &self,
         transaction_hash: H,
-    ) -> Result<Transaction, ProviderError<Self::Error>>
+    ) -> Result<Transaction, ProviderError>
     where
         H: AsRef<FieldElement> + Send + Sync,
     {
@@ -308,7 +304,7 @@ where
         &self,
         block_id: B,
         index: u64,
-    ) -> Result<Transaction, ProviderError<Self::Error>>
+    ) -> Result<Transaction, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
@@ -326,7 +322,7 @@ where
     async fn get_transaction_receipt<H>(
         &self,
         transaction_hash: H,
-    ) -> Result<MaybePendingTransactionReceipt, ProviderError<Self::Error>>
+    ) -> Result<MaybePendingTransactionReceipt, ProviderError>
     where
         H: AsRef<FieldElement> + Send + Sync,
     {
@@ -344,7 +340,7 @@ where
         &self,
         block_id: B,
         class_hash: H,
-    ) -> Result<ContractClass, ProviderError<Self::Error>>
+    ) -> Result<ContractClass, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
         H: AsRef<FieldElement> + Send + Sync,
@@ -364,7 +360,7 @@ where
         &self,
         block_id: B,
         contract_address: A,
-    ) -> Result<FieldElement, ProviderError<Self::Error>>
+    ) -> Result<FieldElement, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
         A: AsRef<FieldElement> + Send + Sync,
@@ -386,7 +382,7 @@ where
         &self,
         block_id: B,
         contract_address: A,
-    ) -> Result<ContractClass, ProviderError<Self::Error>>
+    ) -> Result<ContractClass, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
         A: AsRef<FieldElement> + Send + Sync,
@@ -402,10 +398,7 @@ where
     }
 
     /// Get the number of transactions in a block given a block id
-    async fn get_block_transaction_count<B>(
-        &self,
-        block_id: B,
-    ) -> Result<u64, ProviderError<Self::Error>>
+    async fn get_block_transaction_count<B>(&self, block_id: B) -> Result<u64, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
@@ -419,11 +412,7 @@ where
     }
 
     /// Call a starknet function without creating a Starknet transaction
-    async fn call<R, B>(
-        &self,
-        request: R,
-        block_id: B,
-    ) -> Result<Vec<FieldElement>, ProviderError<Self::Error>>
+    async fn call<R, B>(&self, request: R, block_id: B) -> Result<Vec<FieldElement>, ProviderError>
     where
         R: AsRef<FunctionCall> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
@@ -445,7 +434,7 @@ where
         &self,
         request: R,
         block_id: B,
-    ) -> Result<Vec<FeeEstimate>, ProviderError<Self::Error>>
+    ) -> Result<Vec<FeeEstimate>, ProviderError>
     where
         R: AsRef<[BroadcastedTransaction]> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
@@ -465,7 +454,7 @@ where
         &self,
         message: M,
         block_id: B,
-    ) -> Result<FeeEstimate, ProviderError<Self::Error>>
+    ) -> Result<FeeEstimate, ProviderError>
     where
         M: AsRef<MsgFromL1> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
@@ -481,21 +470,19 @@ where
     }
 
     /// Get the most recent accepted block number
-    async fn block_number(&self) -> Result<u64, ProviderError<Self::Error>> {
+    async fn block_number(&self) -> Result<u64, ProviderError> {
         self.send_request(JsonRpcMethod::BlockNumber, BlockNumberRequest)
             .await
     }
 
     /// Get the most recent accepted block hash and number
-    async fn block_hash_and_number(
-        &self,
-    ) -> Result<BlockHashAndNumber, ProviderError<Self::Error>> {
+    async fn block_hash_and_number(&self) -> Result<BlockHashAndNumber, ProviderError> {
         self.send_request(JsonRpcMethod::BlockHashAndNumber, BlockHashAndNumberRequest)
             .await
     }
 
     /// Return the currently configured Starknet chain id
-    async fn chain_id(&self) -> Result<FieldElement, ProviderError<Self::Error>> {
+    async fn chain_id(&self) -> Result<FieldElement, ProviderError> {
         Ok(self
             .send_request::<_, Felt>(JsonRpcMethod::ChainId, ChainIdRequest)
             .await?
@@ -503,7 +490,7 @@ where
     }
 
     /// Returns the transactions in the transaction pool, recognized by this sequencer
-    async fn pending_transactions(&self) -> Result<Vec<Transaction>, ProviderError<Self::Error>> {
+    async fn pending_transactions(&self) -> Result<Vec<Transaction>, ProviderError> {
         self.send_request(
             JsonRpcMethod::PendingTransactions,
             PendingTransactionsRequest,
@@ -512,7 +499,7 @@ where
     }
 
     /// Returns an object about the sync status, or false if the node is not synching
-    async fn syncing(&self) -> Result<SyncStatusType, ProviderError<Self::Error>> {
+    async fn syncing(&self) -> Result<SyncStatusType, ProviderError> {
         self.send_request(JsonRpcMethod::Syncing, SyncingRequest)
             .await
     }
@@ -523,7 +510,7 @@ where
         filter: EventFilter,
         continuation_token: Option<String>,
         chunk_size: u64,
-    ) -> Result<EventsPage, ProviderError<Self::Error>> {
+    ) -> Result<EventsPage, ProviderError> {
         self.send_request(
             JsonRpcMethod::GetEvents,
             GetEventsRequestRef {
@@ -544,7 +531,7 @@ where
         &self,
         block_id: B,
         contract_address: A,
-    ) -> Result<FieldElement, ProviderError<Self::Error>>
+    ) -> Result<FieldElement, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
         A: AsRef<FieldElement> + Send + Sync,
@@ -565,7 +552,7 @@ where
     async fn add_invoke_transaction<I>(
         &self,
         invoke_transaction: I,
-    ) -> Result<InvokeTransactionResult, ProviderError<Self::Error>>
+    ) -> Result<InvokeTransactionResult, ProviderError>
     where
         I: AsRef<BroadcastedInvokeTransaction> + Send + Sync,
     {
@@ -582,7 +569,7 @@ where
     async fn add_declare_transaction<D>(
         &self,
         declare_transaction: D,
-    ) -> Result<DeclareTransactionResult, ProviderError<Self::Error>>
+    ) -> Result<DeclareTransactionResult, ProviderError>
     where
         D: AsRef<BroadcastedDeclareTransaction> + Send + Sync,
     {
@@ -599,7 +586,7 @@ where
     async fn add_deploy_account_transaction<D>(
         &self,
         deploy_account_transaction: D,
-    ) -> Result<DeployAccountTransactionResult, ProviderError<Self::Error>>
+    ) -> Result<DeployAccountTransactionResult, ProviderError>
     where
         D: AsRef<BroadcastedDeployAccountTransaction> + Send + Sync,
     {
@@ -617,7 +604,7 @@ where
     async fn trace_transaction<H>(
         &self,
         transaction_hash: H,
-    ) -> Result<TransactionTrace, ProviderError<Self::Error>>
+    ) -> Result<TransactionTrace, ProviderError>
     where
         H: AsRef<FieldElement> + Send + Sync,
     {
@@ -637,7 +624,7 @@ where
         block_id: B,
         transactions: TX,
         simulation_flags: S,
-    ) -> Result<Vec<SimulatedTransaction>, ProviderError<Self::Error>>
+    ) -> Result<Vec<SimulatedTransaction>, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
         TX: AsRef<[BroadcastedTransaction]> + Send + Sync,
@@ -658,7 +645,7 @@ where
     async fn trace_block_transactions<H>(
         &self,
         block_hash: H,
-    ) -> Result<Vec<TransactionTraceWithHash>, ProviderError<Self::Error>>
+    ) -> Result<Vec<TransactionTraceWithHash>, ProviderError>
     where
         H: AsRef<FieldElement> + Send + Sync,
     {
@@ -812,6 +799,24 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
             id: raw_request.id,
             data: request_data,
         })
+    }
+}
+
+impl<T> ProviderImplError for JsonRpcClientError<T>
+where
+    T: 'static + Error + Send + Sync,
+{
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
+
+impl<T> From<JsonRpcClientError<T>> for ProviderError
+where
+    T: 'static + Error + Send + Sync,
+{
+    fn from(value: JsonRpcClientError<T>) -> Self {
+        Self::Other(Box::new(value))
     }
 }
 

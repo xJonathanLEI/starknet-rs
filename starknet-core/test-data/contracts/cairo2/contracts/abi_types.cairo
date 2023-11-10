@@ -9,13 +9,13 @@ mod AbiTypes {
     #[storage]
     struct Storage {}
 
-    #[derive(Drop, Serde)]
+    #[derive(Copy, Drop, PartialEq, Serde)]
     enum ExampleEnum {
         variant_a: felt252,
         variant_b: u256,
     }
 
-    #[derive(Drop, Serde)]
+    #[derive(Copy, Drop, PartialEq, Serde)]
     struct ExampleStruct {
         field_a: felt252,
         field_b: felt252,
@@ -25,10 +25,28 @@ mod AbiTypes {
 
 
     #[event]
-    fn ExampleEvent(value_a: u256, value_b: ExampleStruct) {}
+    #[derive(Copy, Drop, PartialEq, starknet::Event)]
+    enum Event {
+        ExampleEvent: ExampleEvent,
+        #[flat]
+        FlatEvent: FlatEvent,
+    }
+
+    #[derive(Copy, Drop, PartialEq, starknet::Event)]
+    struct ExampleEvent {
+        value_a: u256,
+        value_b: ExampleStruct
+    }
+
+    #[derive(Copy, Drop, PartialEq, starknet::Event)]
+    struct StaticEvent {}
+
+    #[derive(Copy, Drop, PartialEq, starknet::Event)]
+    enum FlatEvent {
+        FlatEvent: StaticEvent,
+    }
 
 
-    #[view]
     fn example_view_function() -> ExampleEnum {
         ExampleEnum::variant_a(100)
     }
