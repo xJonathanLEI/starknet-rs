@@ -14,16 +14,18 @@ impl CairoContract {
         let q = quote! {
 
             #[derive(Debug)]
-            pub struct #contract_name<'a, A: starknet::accounts::ConnectedAccount + Sync> {
+            pub struct #contract_name<A: starknet::accounts::ConnectedAccount + Sync> {
                 pub address: starknet::core::types::FieldElement,
-                pub account: &'a A,
-                pub reader: #reader<'a, A::Provider>,
+                pub account: A,
             }
 
-            impl<'a, A: starknet::accounts::ConnectedAccount + Sync> #contract_name<'a, A> {
-                pub fn new(address: starknet::core::types::FieldElement, account: &'a A) -> Self {
-                    let reader = #reader::new(address, account.provider());
-                Self { address, account, reader  }
+            impl<A: starknet::accounts::ConnectedAccount + Sync> #contract_name<A> {
+                pub fn new(address: starknet::core::types::FieldElement, account: A) -> Self {
+                    Self { address, account }
+                }
+
+                pub fn reader(&self) -> #reader<A::Provider> {
+                    #reader::new(self.address, self.account.provider())
                 }
             }
 

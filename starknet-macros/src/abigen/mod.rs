@@ -72,7 +72,7 @@ pub fn abigen_internal(input: TokenStream) -> TokenStream {
 
     let reader = utils::str_to_ident(format!("{}Reader", contract_name).as_str());
     tokens.push(quote! {
-        impl<'a, A: starknet::accounts::ConnectedAccount + Sync> #contract_name<'a, A> {
+        impl<A: starknet::accounts::ConnectedAccount + Sync> #contract_name<A> {
             #(#externals)*
         }
 

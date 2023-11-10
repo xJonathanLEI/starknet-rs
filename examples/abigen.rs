@@ -63,7 +63,7 @@ async fn main() {
     // Example here of querying again the balance, using the internal reader of the
     // contract setup with an account.
     token_contract
-        .reader
+        .reader()
         .balanceOf(&ContractAddress(
             FieldElement::from_hex_be("YOUR_HEX_CONTRACT_ADDRESS_HERE").unwrap(),
         ))
