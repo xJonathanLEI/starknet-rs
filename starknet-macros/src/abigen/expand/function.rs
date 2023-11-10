@@ -34,7 +34,7 @@ impl Expandable for CairoFunction {
             },
             StateMutability::External => {
                 quote!(-> Result<starknet::core::types::InvokeTransactionResult,
-                       starknet::accounts::AccountError<A::SignError, <A::Provider as starknet::providers::Provider>::Error>>
+                       starknet::accounts::AccountError<A::SignError>>
                 )
             }
         };
