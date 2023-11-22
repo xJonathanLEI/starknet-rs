@@ -12,7 +12,7 @@ const MAX_L1_ADDRESS: FieldElement = FieldElement::from_mont([
     461478224317121089,
 ]);
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EthAddress {
     inner: [u8; 20],
 }

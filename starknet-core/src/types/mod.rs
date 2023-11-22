@@ -54,28 +54,28 @@ pub mod requests;
 pub mod contract;
 pub use contract::ContractArtifact;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePendingBlockWithTxHashes {
     Block(BlockWithTxHashes),
     PendingBlock(PendingBlockWithTxHashes),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePendingBlockWithTxs {
     Block(BlockWithTxs),
     PendingBlock(PendingBlockWithTxs),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePendingTransactionReceipt {
     Receipt(TransactionReceipt),
     PendingReceipt(PendingTransactionReceipt),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePendingStateUpdate {
     Update(StateUpdate),
@@ -83,20 +83,20 @@ pub enum MaybePendingStateUpdate {
 }
 
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BlockHashAndNumber {
     #[serde_as(as = "UfeHex")]
     pub block_hash: FieldElement,
     pub block_number: u64,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SyncStatusType {
     Syncing(SyncStatus),
     NotSyncing,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EventsPage {
     /// Matching events
     pub events: Vec<EmittedEvent>,
@@ -106,7 +106,7 @@ pub struct EventsPage {
 }
 
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct InvokeTransactionResult {
     /// The hash of the invoke transaction
     #[serde_as(as = "UfeHex")]
@@ -114,7 +114,7 @@ pub struct InvokeTransactionResult {
 }
 
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DeclareTransactionResult {
     /// The hash of the declare transaction
     #[serde_as(as = "UfeHex")]
@@ -125,7 +125,7 @@ pub struct DeclareTransactionResult {
 }
 
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DeployTransactionResult {
     /// The hash of the deploy transaction
     #[serde_as(as = "UfeHex")]
@@ -136,7 +136,7 @@ pub struct DeployTransactionResult {
 }
 
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DeployAccountTransactionResult {
     /// The hash of the deploy transaction
     #[serde_as(as = "UfeHex")]
@@ -154,14 +154,14 @@ pub enum BlockId {
     Tag(BlockTag),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ContractClass {
     Sierra(FlattenedSierraClass),
     Legacy(CompressedLegacyContractClass),
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(tag = "type")]
 pub enum Transaction {
     #[serde(rename = "INVOKE")]
@@ -176,7 +176,7 @@ pub enum Transaction {
     DeployAccount(DeployAccountTransaction),
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(tag = "type")]
 pub enum BroadcastedTransaction {
     #[serde(rename = "INVOKE")]
@@ -187,7 +187,7 @@ pub enum BroadcastedTransaction {
     DeployAccount(BroadcastedDeployAccountTransaction),
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(tag = "version")]
 pub enum InvokeTransaction {
     #[serde(rename = "0x0")]
@@ -196,7 +196,7 @@ pub enum InvokeTransaction {
     V1(InvokeTransactionV1),
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(tag = "version")]
 pub enum DeclareTransaction {
     #[serde(rename = "0x0")]
@@ -207,14 +207,14 @@ pub enum DeclareTransaction {
     V2(DeclareTransactionV2),
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(untagged)]
 pub enum BroadcastedDeclareTransaction {
     V1(BroadcastedDeclareTransactionV1),
     V2(BroadcastedDeclareTransactionV2),
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(tag = "type")]
 pub enum TransactionReceipt {
     #[serde(rename = "INVOKE")]
@@ -229,7 +229,7 @@ pub enum TransactionReceipt {
     DeployAccount(DeployAccountTransactionReceipt),
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(tag = "type")]
 pub enum PendingTransactionReceipt {
     #[serde(rename = "INVOKE")]
@@ -244,7 +244,7 @@ pub enum PendingTransactionReceipt {
     DeployAccount(PendingDeployAccountTransactionReceipt),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum LegacyContractAbiEntry {
     Function(LegacyFunctionAbiEntry),
@@ -252,7 +252,7 @@ pub enum LegacyContractAbiEntry {
     Struct(LegacyStructAbiEntry),
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(untagged)]
 pub enum TransactionTrace {
     Invoke(InvokeTransactionTrace),
@@ -261,7 +261,7 @@ pub enum TransactionTrace {
     Declare(DeclareTransactionTrace),
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(untagged)]
 pub enum ExecuteInvocation {
     Success(FunctionInvocation),

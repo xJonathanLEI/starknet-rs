@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#8c7cf4308e9925665679ec05c42b120b6bfa3719
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#3215ab04aee89aafa48973cdcf027219f662f49d
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -73,7 +73,7 @@ pub enum BlockTag {
 ///
 /// The block object.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct BlockWithTxHashes {
     /// Status
@@ -103,7 +103,7 @@ pub struct BlockWithTxHashes {
 ///
 /// The block object.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct BlockWithTxs {
     /// Status
@@ -131,7 +131,7 @@ pub struct BlockWithTxs {
 /// Broadcasted declare transaction v1.
 ///
 /// Mempool representation of a declare transaction.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BroadcastedDeclareTransactionV1 {
     /// The class to be declared
     pub contract_class: OwnedPtr<CompressedLegacyContractClass>,
@@ -150,7 +150,7 @@ pub struct BroadcastedDeclareTransactionV1 {
 /// Broadcasted declare transaction v2.
 ///
 /// Mempool representation of a declare transaction v2.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BroadcastedDeclareTransactionV2 {
     /// The class to be declared
     pub contract_class: OwnedPtr<FlattenedSierraClass>,
@@ -171,7 +171,7 @@ pub struct BroadcastedDeclareTransactionV2 {
 /// Broadcasted deploy account transaction.
 ///
 /// Mempool representation of a deploy account transaction.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BroadcastedDeployAccountTransaction {
     /// The maximal fee that can be charged for including the transaction
     pub max_fee: FieldElement,
@@ -192,7 +192,7 @@ pub struct BroadcastedDeployAccountTransaction {
 /// Invoke transaction v1.
 ///
 /// Initiates a transaction from a given account.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BroadcastedInvokeTransaction {
     /// Sender address
     pub sender_address: FieldElement,
@@ -220,7 +220,7 @@ pub enum CallType {
 /// Deprecated contract class.
 ///
 /// The definition of a legacy (cairo 0) Starknet contract class.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct CompressedLegacyContractClass {
     /// A base64 representation of the compressed program code
@@ -234,7 +234,7 @@ pub struct CompressedLegacyContractClass {
 
 /// Contract storage diff item.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ContractStorageDiffItem {
     /// The contract address for which the storage changed
@@ -245,7 +245,7 @@ pub struct ContractStorageDiffItem {
 }
 
 /// Declare transaction receipt.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeclareTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -266,7 +266,7 @@ pub struct DeclareTransactionReceipt {
 }
 
 /// The execution trace of a declare transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct DeclareTransactionTrace {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -278,7 +278,7 @@ pub struct DeclareTransactionTrace {
 /// Declare contract transaction v0.
 ///
 /// Declare contract transaction v0.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeclareTransactionV0 {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -295,7 +295,7 @@ pub struct DeclareTransactionV0 {
 /// Declare contract transaction v1.
 ///
 /// Declare contract transaction v1.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeclareTransactionV1 {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -314,7 +314,7 @@ pub struct DeclareTransactionV1 {
 /// Declare transaction v2.
 ///
 /// Declare contract transaction v2.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeclareTransactionV2 {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -334,7 +334,7 @@ pub struct DeclareTransactionV2 {
 
 /// The declared class hash and compiled class hash.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct DeclaredClassItem {
     /// The hash of the declared class
@@ -348,7 +348,7 @@ pub struct DeclaredClassItem {
 /// Deploy account transaction.
 ///
 /// Deploys an account contract, charges fee from the pre-funded account addresses.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeployAccountTransaction {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -367,7 +367,7 @@ pub struct DeployAccountTransaction {
 }
 
 /// Deploy account transaction receipt.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeployAccountTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -390,7 +390,7 @@ pub struct DeployAccountTransactionReceipt {
 }
 
 /// The execution trace of a deploy account transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct DeployAccountTransactionTrace {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -406,7 +406,7 @@ pub struct DeployAccountTransactionTrace {
 ///
 /// The structure of a deploy transaction. Note that this transaction type is deprecated and will no
 /// longer be supported in future versions.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeployTransaction {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -421,7 +421,7 @@ pub struct DeployTransaction {
 }
 
 /// Deploy transaction receipt.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeployTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -445,7 +445,7 @@ pub struct DeployTransactionReceipt {
 
 /// Deployed contract item.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct DeployedContractItem {
     /// The address of the contract
@@ -461,7 +461,7 @@ pub struct DeployedContractItem {
 /// Event information decorated with metadata on where it was emitted / an event emitted as a result
 /// of transaction execution.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct EmittedEvent {
     /// From address
@@ -493,7 +493,7 @@ pub enum EntryPointType {
     Constructor,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct EntryPointsByType {
     /// Constructor
@@ -511,7 +511,7 @@ pub struct EntryPointsByType {
 ///
 /// A Starknet event.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct Event {
     /// From address
@@ -529,7 +529,7 @@ pub struct Event {
 ///
 /// The content of an event.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct EventContent {
     /// Keys
@@ -544,7 +544,7 @@ pub struct EventContent {
 ///
 /// An event filter/query.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct EventFilter {
     /// From block
@@ -563,7 +563,7 @@ pub struct EventFilter {
     pub keys: Option<Vec<Vec<FieldElement>>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct EventFilterWithPage {
     #[serde(flatten)]
@@ -573,7 +573,7 @@ pub struct EventFilterWithPage {
 }
 
 /// Events chunk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct EventsChunk {
     /// Matching events
@@ -586,7 +586,7 @@ pub struct EventsChunk {
 
 /// Fee estimation.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct FeeEstimate {
     /// The Ethereum gas cost of the transaction (see
@@ -603,7 +603,7 @@ pub struct FeeEstimate {
 
 /// The definition of a sierra Starknet contract class.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct FlattenedSierraClass {
     /// The list of sierra instructions of which the program consists
@@ -621,7 +621,7 @@ pub struct FlattenedSierraClass {
 ///
 /// Function call information.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct FunctionCall {
     /// Contract address
@@ -636,7 +636,7 @@ pub struct FunctionCall {
 }
 
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct FunctionInvocation {
     /// Contract address
@@ -675,7 +675,7 @@ pub enum FunctionStateMutability {
 }
 
 /// Invoke transaction receipt.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InvokeTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -696,7 +696,7 @@ pub struct InvokeTransactionReceipt {
 }
 
 /// The execution trace of an invoke transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct InvokeTransactionTrace {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -709,7 +709,7 @@ pub struct InvokeTransactionTrace {
 /// Invoke transaction v0.
 ///
 /// Invokes a specific function in the desired contract (not necessarily an account).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InvokeTransactionV0 {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -728,7 +728,7 @@ pub struct InvokeTransactionV0 {
 /// Invoke transaction v1.
 ///
 /// Initiates a transaction from a given account.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InvokeTransactionV1 {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -746,7 +746,7 @@ pub struct InvokeTransactionV1 {
 }
 
 /// L1 handler transaction.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct L1HandlerTransaction {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -766,7 +766,7 @@ pub struct L1HandlerTransaction {
 /// L1 handler transaction receipt.
 ///
 /// Receipt for L1 handler transaction.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct L1HandlerTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -787,7 +787,7 @@ pub struct L1HandlerTransactionReceipt {
 }
 
 /// The execution trace of an L1 handler transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct L1HandlerTransactionTrace {
     /// The trace of the __execute__ call or constructor call, depending on the transaction type
@@ -797,7 +797,7 @@ pub struct L1HandlerTransactionTrace {
 
 /// Deprecated cairo entry point.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyContractEntryPoint {
     /// The offset of the entry point in the program
@@ -809,7 +809,7 @@ pub struct LegacyContractEntryPoint {
 }
 
 /// Deprecated entry points by type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyEntryPointsByType {
     /// Deprecated constructor
@@ -824,7 +824,7 @@ pub struct LegacyEntryPointsByType {
 }
 
 /// Event abi entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyEventAbiEntry {
     /// Event abi type
@@ -845,7 +845,7 @@ pub enum LegacyEventAbiType {
 }
 
 /// Function abi entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyFunctionAbiEntry {
     /// Function abi type
@@ -874,7 +874,7 @@ pub enum LegacyFunctionAbiType {
 }
 
 /// Struct abi entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyStructAbiEntry {
     /// Struct abi type
@@ -895,7 +895,7 @@ pub enum LegacyStructAbiType {
 }
 
 /// Struct member.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyStructMember {
     /// The parameter's name
@@ -907,7 +907,7 @@ pub struct LegacyStructMember {
 }
 
 /// Typed parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyTypedParameter {
     /// The parameter's name
@@ -918,7 +918,7 @@ pub struct LegacyTypedParameter {
 
 /// Message from L1.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct MsgFromL1 {
     /// The address of the L1 contract sending the message
@@ -936,7 +936,7 @@ pub struct MsgFromL1 {
 
 /// Message to L1.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct MsgToL1 {
     /// The address of the L2 contract sending the message
@@ -951,7 +951,7 @@ pub struct MsgToL1 {
 }
 
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct NonceUpdate {
     /// The address of the contract
@@ -967,7 +967,7 @@ pub struct NonceUpdate {
 /// The dynamic block being constructed by the sequencer. Note that this object will be deprecated
 /// upon decentralization.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct PendingBlockWithTxHashes {
     /// The hashes of the transactions included in this block
@@ -988,7 +988,7 @@ pub struct PendingBlockWithTxHashes {
 /// The dynamic block being constructed by the sequencer. Note that this object will be deprecated
 /// upon decentralization.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct PendingBlockWithTxs {
     /// The transactions in this block
@@ -1004,7 +1004,7 @@ pub struct PendingBlockWithTxs {
 }
 
 /// Pending declare transaction receipt.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PendingDeclareTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -1019,7 +1019,7 @@ pub struct PendingDeclareTransactionReceipt {
 }
 
 /// Pending deploy account transaction receipt.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PendingDeployAccountTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -1034,7 +1034,7 @@ pub struct PendingDeployAccountTransactionReceipt {
 }
 
 /// Pending deploy transaction receipt.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PendingDeployTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -1051,7 +1051,7 @@ pub struct PendingDeployTransactionReceipt {
 }
 
 /// Pending invoke transaction receipt.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PendingInvokeTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -1066,7 +1066,7 @@ pub struct PendingInvokeTransactionReceipt {
 }
 
 /// Pending receipt for L1 handler transaction.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PendingL1HandlerTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
@@ -1084,7 +1084,7 @@ pub struct PendingL1HandlerTransactionReceipt {
 ///
 /// Pending state update.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct PendingStateUpdate {
     /// The previous global state root
@@ -1096,7 +1096,7 @@ pub struct PendingStateUpdate {
 }
 
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ReplacedClassItem {
     /// The address of the contract whose class was replaced
@@ -1108,7 +1108,7 @@ pub struct ReplacedClassItem {
 }
 
 /// Result page request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ResultPageRequest {
     /// The token returned from the previous query. If no token is provided the first page is
@@ -1119,7 +1119,7 @@ pub struct ResultPageRequest {
     pub chunk_size: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct RevertedInvocation {
     /// The revert reason for the failed execution
@@ -1128,7 +1128,7 @@ pub struct RevertedInvocation {
 
 /// Sierra entry point.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct SierraEntryPoint {
     /// A unique identifier of the entry point (function) in the program
@@ -1138,7 +1138,7 @@ pub struct SierraEntryPoint {
     pub function_idx: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct SimulatedTransaction {
     /// The transaction's trace
@@ -1256,7 +1256,7 @@ impl core::fmt::Display for StarknetError {
 }
 
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct StateDiff {
     /// Storage diffs
@@ -1276,7 +1276,7 @@ pub struct StateDiff {
 
 /// State update.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct StateUpdate {
     /// Block hash
@@ -1294,7 +1294,7 @@ pub struct StateUpdate {
 }
 
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct StorageEntry {
     /// The key of the changed value
@@ -1309,7 +1309,7 @@ pub struct StorageEntry {
 ///
 /// An object describing the node synchronization status.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct SyncStatus {
     /// The hash of the block from which the sync started
@@ -1353,7 +1353,7 @@ pub enum TransactionFinalityStatus {
 
 /// A single pair of transaction hash and corresponding trace.
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct TransactionTraceWithHash {
     #[serde_as(as = "UfeHex")]
@@ -1362,54 +1362,54 @@ pub struct TransactionTraceWithHash {
 }
 
 /// Request for method starknet_addDeclareTransaction
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AddDeclareTransactionRequest {
     /// Declare transaction required to declare a new class on Starknet
     pub declare_transaction: BroadcastedDeclareTransaction,
 }
 
 /// Reference version of [AddDeclareTransactionRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AddDeclareTransactionRequestRef<'a> {
     pub declare_transaction: &'a BroadcastedDeclareTransaction,
 }
 
 /// Request for method starknet_addDeployAccountTransaction
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AddDeployAccountTransactionRequest {
     /// The deploy account transaction
     pub deploy_account_transaction: BroadcastedDeployAccountTransaction,
 }
 
 /// Reference version of [AddDeployAccountTransactionRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AddDeployAccountTransactionRequestRef<'a> {
     pub deploy_account_transaction: &'a BroadcastedDeployAccountTransaction,
 }
 
 /// Request for method starknet_addInvokeTransaction
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AddInvokeTransactionRequest {
     /// The information needed to invoke the function (or account, for version 1 transactions)
     pub invoke_transaction: BroadcastedInvokeTransaction,
 }
 
 /// Reference version of [AddInvokeTransactionRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AddInvokeTransactionRequestRef<'a> {
     pub invoke_transaction: &'a BroadcastedInvokeTransaction,
 }
 
 /// Request for method starknet_blockHashAndNumber
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BlockHashAndNumberRequest;
 
 /// Request for method starknet_blockNumber
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BlockNumberRequest;
 
 /// Request for method starknet_call
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CallRequest {
     pub request: FunctionCall,
     /// The hash of the requested block, or number (height) of the requested block, or a block tag,
@@ -1418,18 +1418,18 @@ pub struct CallRequest {
 }
 
 /// Reference version of [CallRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CallRequestRef<'a> {
     pub request: &'a FunctionCall,
     pub block_id: &'a BlockId,
 }
 
 /// Request for method starknet_chainId
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ChainIdRequest;
 
 /// Request for method starknet_estimateFee
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EstimateFeeRequest {
     pub request: Vec<BroadcastedTransaction>,
     /// The hash of the requested block, or number (height) of the requested block, or a block tag,
@@ -1438,14 +1438,14 @@ pub struct EstimateFeeRequest {
 }
 
 /// Reference version of [EstimateFeeRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EstimateFeeRequestRef<'a> {
     pub request: &'a [BroadcastedTransaction],
     pub block_id: &'a BlockId,
 }
 
 /// Request for method starknet_estimateMessageFee
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EstimateMessageFeeRequest {
     /// the message's parameters
     pub message: MsgFromL1,
@@ -1455,53 +1455,53 @@ pub struct EstimateMessageFeeRequest {
 }
 
 /// Reference version of [EstimateMessageFeeRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EstimateMessageFeeRequestRef<'a> {
     pub message: &'a MsgFromL1,
     pub block_id: &'a BlockId,
 }
 
 /// Request for method starknet_getBlockTransactionCount
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetBlockTransactionCountRequest {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
 }
 
 /// Reference version of [GetBlockTransactionCountRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetBlockTransactionCountRequestRef<'a> {
     pub block_id: &'a BlockId,
 }
 
 /// Request for method starknet_getBlockWithTxHashes
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetBlockWithTxHashesRequest {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
 }
 
 /// Reference version of [GetBlockWithTxHashesRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetBlockWithTxHashesRequestRef<'a> {
     pub block_id: &'a BlockId,
 }
 
 /// Request for method starknet_getBlockWithTxs
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetBlockWithTxsRequest {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
 }
 
 /// Reference version of [GetBlockWithTxsRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetBlockWithTxsRequestRef<'a> {
     pub block_id: &'a BlockId,
 }
 
 /// Request for method starknet_getClassAt
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetClassAtRequest {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
@@ -1510,14 +1510,14 @@ pub struct GetClassAtRequest {
 }
 
 /// Reference version of [GetClassAtRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetClassAtRequestRef<'a> {
     pub block_id: &'a BlockId,
     pub contract_address: &'a FieldElement,
 }
 
 /// Request for method starknet_getClassHashAt
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetClassHashAtRequest {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
@@ -1526,14 +1526,14 @@ pub struct GetClassHashAtRequest {
 }
 
 /// Reference version of [GetClassHashAtRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetClassHashAtRequestRef<'a> {
     pub block_id: &'a BlockId,
     pub contract_address: &'a FieldElement,
 }
 
 /// Request for method starknet_getClass
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetClassRequest {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
@@ -1542,26 +1542,26 @@ pub struct GetClassRequest {
 }
 
 /// Reference version of [GetClassRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetClassRequestRef<'a> {
     pub block_id: &'a BlockId,
     pub class_hash: &'a FieldElement,
 }
 
 /// Request for method starknet_getEvents
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetEventsRequest {
     pub filter: EventFilterWithPage,
 }
 
 /// Reference version of [GetEventsRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetEventsRequestRef<'a> {
     pub filter: &'a EventFilterWithPage,
 }
 
 /// Request for method starknet_getNonce
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetNonceRequest {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
@@ -1570,27 +1570,27 @@ pub struct GetNonceRequest {
 }
 
 /// Reference version of [GetNonceRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetNonceRequestRef<'a> {
     pub block_id: &'a BlockId,
     pub contract_address: &'a FieldElement,
 }
 
 /// Request for method starknet_getStateUpdate
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetStateUpdateRequest {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
 }
 
 /// Reference version of [GetStateUpdateRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetStateUpdateRequestRef<'a> {
     pub block_id: &'a BlockId,
 }
 
 /// Request for method starknet_getStorageAt
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetStorageAtRequest {
     /// The address of the contract to read from
     pub contract_address: FieldElement,
@@ -1601,7 +1601,7 @@ pub struct GetStorageAtRequest {
 }
 
 /// Reference version of [GetStorageAtRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetStorageAtRequestRef<'a> {
     pub contract_address: &'a FieldElement,
     pub key: &'a FieldElement,
@@ -1609,7 +1609,7 @@ pub struct GetStorageAtRequestRef<'a> {
 }
 
 /// Request for method starknet_getTransactionByBlockIdAndIndex
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetTransactionByBlockIdAndIndexRequest {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
@@ -1617,42 +1617,42 @@ pub struct GetTransactionByBlockIdAndIndexRequest {
 }
 
 /// Reference version of [GetTransactionByBlockIdAndIndexRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetTransactionByBlockIdAndIndexRequestRef<'a> {
     pub block_id: &'a BlockId,
     pub index: &'a u64,
 }
 
 /// Request for method starknet_getTransactionByHash
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetTransactionByHashRequest {
     pub transaction_hash: FieldElement,
 }
 
 /// Reference version of [GetTransactionByHashRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetTransactionByHashRequestRef<'a> {
     pub transaction_hash: &'a FieldElement,
 }
 
 /// Request for method starknet_getTransactionReceipt
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetTransactionReceiptRequest {
     pub transaction_hash: FieldElement,
 }
 
 /// Reference version of [GetTransactionReceiptRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetTransactionReceiptRequestRef<'a> {
     pub transaction_hash: &'a FieldElement,
 }
 
 /// Request for method starknet_pendingTransactions
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PendingTransactionsRequest;
 
 /// Request for method starknet_simulateTransactions
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SimulateTransactionsRequest {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag,
     /// for the block referencing the state or call the transaction on.
@@ -1664,7 +1664,7 @@ pub struct SimulateTransactionsRequest {
 }
 
 /// Reference version of [SimulateTransactionsRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SimulateTransactionsRequestRef<'a> {
     pub block_id: &'a BlockId,
     pub transactions: &'a [BroadcastedTransaction],
@@ -1672,29 +1672,29 @@ pub struct SimulateTransactionsRequestRef<'a> {
 }
 
 /// Request for method starknet_syncing
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SyncingRequest;
 
 /// Request for method starknet_traceBlockTransactions
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TraceBlockTransactionsRequest {
     pub block_hash: FieldElement,
 }
 
 /// Reference version of [TraceBlockTransactionsRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TraceBlockTransactionsRequestRef<'a> {
     pub block_hash: &'a FieldElement,
 }
 
 /// Request for method starknet_traceTransaction
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TraceTransactionRequest {
     pub transaction_hash: FieldElement,
 }
 
 /// Reference version of [TraceTransactionRequest].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TraceTransactionRequestRef<'a> {
     pub transaction_hash: &'a FieldElement,
 }

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use super::TransactionExecutionStatus;
 
 /// A more idiomatic way to access `execution_status` and `revert_reason`.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ExecutionResult {
     Succeeded,
     Reverted { reason: String },
