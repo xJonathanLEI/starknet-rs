@@ -312,6 +312,8 @@ where
     }
 }
 
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl<A> ConnectedAccount for &A
 where
     A: ConnectedAccount + Sync,
@@ -321,8 +323,18 @@ where
     fn provider(&self) -> &Self::Provider {
         (*self).provider()
     }
+
+    fn block_id(&self) -> BlockId {
+        (*self).block_id()
+    }
+
+    async fn get_nonce(&self) -> Result<FieldElement, ProviderError> {
+        (*self).get_nonce().await
+    }
 }
 
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl<A> ConnectedAccount for Box<A>
 where
     A: ConnectedAccount + Sync + Send,
@@ -332,8 +344,18 @@ where
     fn provider(&self) -> &Self::Provider {
         self.as_ref().provider()
     }
+
+    fn block_id(&self) -> BlockId {
+        self.as_ref().block_id()
+    }
+
+    async fn get_nonce(&self) -> Result<FieldElement, ProviderError> {
+        self.as_ref().get_nonce().await
+    }
 }
 
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl<A> ConnectedAccount for Arc<A>
 where
     A: ConnectedAccount + Sync + Send,
@@ -342,5 +364,13 @@ where
 
     fn provider(&self) -> &Self::Provider {
         self.as_ref().provider()
+    }
+
+    fn block_id(&self) -> BlockId {
+        self.as_ref().block_id()
+    }
+
+    async fn get_nonce(&self) -> Result<FieldElement, ProviderError> {
+        self.as_ref().get_nonce().await
     }
 }
