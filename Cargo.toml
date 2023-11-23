@@ -40,7 +40,7 @@ starknet-core = { version = "0.7.2", path = "./starknet-core", default-features 
 starknet-providers = { version = "0.7.0", path = "./starknet-providers" }
 starknet-contract = { version = "0.6.0", path = "./starknet-contract" }
 starknet-signers = { version = "0.5.0", path = "./starknet-signers" }
-starknet-accounts = { version = "0.6.0", path = "./starknet-accounts" }
+starknet-accounts = { version = "0.6.1", path = "./starknet-accounts" }
 starknet-macros = { version = "0.1.4", path = "./starknet-macros" }
 
 [dev-dependencies]
