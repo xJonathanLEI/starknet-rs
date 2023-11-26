@@ -23,7 +23,7 @@ use crate::{
 };
 
 mod transports;
-pub use transports::{HttpTransport, HttpTransportError, JsonRpcTransport};
+pub use transports::{HttpTransport, HttpTransportError, JsonRpcTransport, MockTransport};
 
 #[derive(Debug)]
 pub struct JsonRpcClient<T> {
