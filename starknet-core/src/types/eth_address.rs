@@ -175,7 +175,7 @@ impl TryFrom<&[u8]> for EthAddress {
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         if value.len() != 20 {
             return Err(FromBytesSliceError(format!(
-                "invalid slice len for ETH address, expected 20 bytes found {}",
+                "expected 20 bytes found {}",
                 value.len()
             )));
         }
@@ -183,7 +183,7 @@ impl TryFrom<&[u8]> for EthAddress {
         Ok(Self {
             inner: value
                 .try_into()
-                .map_err(|e| FromBytesSliceError(format!("error TryFromSlice: {}", e)))?,
+                .map_err(|e| FromBytesSliceError(format!("can't convert slice to array: {}", e)))?,
         })
     }
 }
@@ -230,5 +230,14 @@ mod tests {
             EthAddress::from_hex("0xe7f1725e7734ce288f8367e1bb143e90bb3f0512").unwrap(),
             eth_address
         );
+    }
+
+    #[test]
+    #[should_panic(expected = "fail: FromBytesSliceError(\"expected 20 bytes found 4\")")]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_eth_address_from_slice_invalid_slice() {
+        let buffer: Vec<u8> = vec![0, 1, 2, 3, 4, 5, 6, 7];
+
+        EthAddress::try_from(&buffer[0..4]).expect("fail");
     }
 }
