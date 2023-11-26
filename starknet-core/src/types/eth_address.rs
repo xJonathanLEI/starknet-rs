@@ -234,7 +234,6 @@ mod tests {
 
     #[test]
     #[should_panic(expected = "fail: FromBytesSliceError(\"expected 20 bytes found 4\")")]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_eth_address_from_slice_invalid_slice() {
         let buffer: Vec<u8> = vec![0, 1, 2, 3, 4, 5, 6, 7];
 
