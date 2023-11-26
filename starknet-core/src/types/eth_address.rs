@@ -156,3 +156,30 @@ impl From<EthAddress> for FieldElement {
         FieldElement::from_byte_slice_be(&value.inner).unwrap()
     }
 }
+
+impl From<[u8; 20]> for EthAddress {
+    fn from(value: [u8; 20]) -> Self {
+        Self { inner: value }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::EthAddress;
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_eth_address_from_bytes() {
+        // address: e7f1725e7734ce288f8367e1bb143e90bb3f0512
+        let address_bytes: [u8; 20] = [
+            231, 241, 114, 94, 119, 52, 206, 40, 143, 131, 103, 225, 187, 20, 62, 144, 187, 63, 5,
+            18,
+        ];
+
+        let eth_address: EthAddress = address_bytes.into();
+        assert_eq!(
+            EthAddress::from_hex("0xe7f1725e7734ce288f8367e1bb143e90bb3f0512").unwrap(),
+            eth_address
+        );
+    }
+}
