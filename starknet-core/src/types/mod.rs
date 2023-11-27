@@ -17,23 +17,24 @@ pub use codegen::{
     BlockStatus, BlockTag, BlockWithTxHashes, BlockWithTxs, BroadcastedDeclareTransactionV1,
     BroadcastedDeclareTransactionV2, BroadcastedDeployAccountTransaction,
     BroadcastedInvokeTransaction, CallType, CompressedLegacyContractClass, ContractStorageDiffItem,
-    DeclareTransactionReceipt, DeclareTransactionTrace, DeclareTransactionV0, DeclareTransactionV1,
-    DeclareTransactionV2, DeclaredClassItem, DeployAccountTransaction,
+    DataAvailabilityMode, DeclareTransactionReceipt, DeclareTransactionTrace, DeclareTransactionV0,
+    DeclareTransactionV1, DeclareTransactionV2, DeclaredClassItem, DeployAccountTransaction,
     DeployAccountTransactionReceipt, DeployAccountTransactionTrace, DeployTransaction,
     DeployTransactionReceipt, DeployedContractItem, EmittedEvent, EntryPointType,
-    EntryPointsByType, Event, EventContent, EventFilter, EventFilterWithPage, EventsChunk,
+    EntryPointsByType, Event, EventFilter, EventFilterWithPage, EventsChunk, ExecutionResources,
     FeeEstimate, FlattenedSierraClass, FunctionCall, FunctionInvocation, FunctionStateMutability,
     InvokeTransactionReceipt, InvokeTransactionTrace, InvokeTransactionV0, InvokeTransactionV1,
     L1HandlerTransaction, L1HandlerTransactionReceipt, L1HandlerTransactionTrace,
     LegacyContractEntryPoint, LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType,
     LegacyFunctionAbiEntry, LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType,
-    LegacyStructMember, LegacyTypedParameter, MsgFromL1, MsgToL1, NonceUpdate,
-    PendingBlockWithTxHashes, PendingBlockWithTxs, PendingDeclareTransactionReceipt,
-    PendingDeployAccountTransactionReceipt, PendingDeployTransactionReceipt,
+    LegacyStructMember, LegacyTypedParameter, MsgFromL1, MsgToL1, NonceUpdate, OrderedEvent,
+    OrderedMessage, PendingBlockWithTxHashes, PendingBlockWithTxs,
+    PendingDeclareTransactionReceipt, PendingDeployAccountTransactionReceipt,
     PendingInvokeTransactionReceipt, PendingL1HandlerTransactionReceipt, PendingStateUpdate,
-    ReplacedClassItem, ResultPageRequest, RevertedInvocation, SierraEntryPoint,
-    SimulatedTransaction, SimulationFlag, StarknetError, StateDiff, StateUpdate, StorageEntry,
-    SyncStatus, TransactionExecutionStatus, TransactionFinalityStatus, TransactionTraceWithHash,
+    ReplacedClassItem, ResourceLimits, ResourcePrice, ResultPageRequest, RevertedInvocation,
+    SequencerTransactionStatus, SierraEntryPoint, SimulatedTransaction, SimulationFlag,
+    StarknetError, StateDiff, StateUpdate, StorageEntry, SyncStatus, TransactionExecutionStatus,
+    TransactionFinalityStatus, TransactionTraceWithHash,
 };
 
 pub mod eth_address;
@@ -161,6 +162,14 @@ pub enum ContractClass {
     Legacy(CompressedLegacyContractClass),
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TransactionStatus {
+    Received,
+    Rejected,
+    AcceptedOnL2(TransactionExecutionStatus),
+    AcceptedOnL1(TransactionExecutionStatus),
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(tag = "type")]
 pub enum Transaction {
@@ -238,8 +247,6 @@ pub enum PendingTransactionReceipt {
     L1Handler(PendingL1HandlerTransactionReceipt),
     #[serde(rename = "DECLARE")]
     Declare(PendingDeclareTransactionReceipt),
-    #[serde(rename = "DEPLOY")]
-    Deploy(PendingDeployTransactionReceipt),
     #[serde(rename = "DEPLOY_ACCOUNT")]
     DeployAccount(PendingDeployAccountTransactionReceipt),
 }
@@ -253,11 +260,15 @@ pub enum LegacyContractAbiEntry {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
-#[serde(untagged)]
+#[serde(tag = "type")]
 pub enum TransactionTrace {
+    #[serde(rename = "INVOKE")]
     Invoke(InvokeTransactionTrace),
+    #[serde(rename = "DEPLOY_ACCOUNT")]
     DeployAccount(DeployAccountTransactionTrace),
+    #[serde(rename = "L1_HANDLER")]
     L1Handler(L1HandlerTransactionTrace),
+    #[serde(rename = "DECLARE")]
     Declare(DeclareTransactionTrace),
 }
 
@@ -312,6 +323,17 @@ impl MaybePendingBlockWithTxs {
         match self {
             MaybePendingBlockWithTxs::Block(block) => &block.transactions,
             MaybePendingBlockWithTxs::PendingBlock(block) => &block.transactions,
+        }
+    }
+}
+
+impl TransactionStatus {
+    pub fn finality_status(&self) -> SequencerTransactionStatus {
+        match self {
+            TransactionStatus::Received => SequencerTransactionStatus::Received,
+            TransactionStatus::Rejected => SequencerTransactionStatus::Rejected,
+            TransactionStatus::AcceptedOnL2(_) => SequencerTransactionStatus::AcceptedOnL2,
+            TransactionStatus::AcceptedOnL1(_) => SequencerTransactionStatus::AcceptedOnL1,
         }
     }
 }
@@ -408,7 +430,6 @@ impl PendingTransactionReceipt {
             PendingTransactionReceipt::Invoke(receipt) => &receipt.transaction_hash,
             PendingTransactionReceipt::L1Handler(receipt) => &receipt.transaction_hash,
             PendingTransactionReceipt::Declare(receipt) => &receipt.transaction_hash,
-            PendingTransactionReceipt::Deploy(receipt) => &receipt.transaction_hash,
             PendingTransactionReceipt::DeployAccount(receipt) => &receipt.transaction_hash,
         }
     }
@@ -422,7 +443,6 @@ impl PendingTransactionReceipt {
             PendingTransactionReceipt::Invoke(receipt) => &receipt.execution_result,
             PendingTransactionReceipt::L1Handler(receipt) => &receipt.execution_result,
             PendingTransactionReceipt::Declare(receipt) => &receipt.execution_result,
-            PendingTransactionReceipt::Deploy(receipt) => &receipt.execution_result,
             PendingTransactionReceipt::DeployAccount(receipt) => &receipt.execution_result,
         }
     }
@@ -527,7 +547,6 @@ impl TryFrom<i64> for StarknetError {
             63 => StarknetError::UnexpectedError,
             10 => StarknetError::NoTraceAvailable,
             25 => StarknetError::InvalidTransactionHash,
-            26 => StarknetError::InvalidBlockHash,
             _ => return Err(()),
         })
     }

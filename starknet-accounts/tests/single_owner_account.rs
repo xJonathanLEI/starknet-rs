@@ -24,7 +24,7 @@ fn create_sequencer_client() -> SequencerGatewayProvider {
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     let rpc_url =
-        std::env::var("STARKNET_RPC").unwrap_or("https://rpc-goerli-1.starknet.rs/rpc/v0.4".into());
+        std::env::var("STARKNET_RPC").unwrap_or("https://rpc-goerli-1.starknet.rs/rpc/v0.5".into());
     JsonRpcClient::new(HttpTransport::new(url::Url::parse(&rpc_url).unwrap()))
 }
 

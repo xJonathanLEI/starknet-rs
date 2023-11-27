@@ -13,7 +13,7 @@ use starknet_core::{
         InvokeTransactionResult, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
         MaybePendingStateUpdate, MaybePendingTransactionReceipt, MsgFromL1, ResultPageRequest,
         SimulatedTransaction, SimulationFlag, StarknetError, SyncStatusType, Transaction,
-        TransactionTrace, TransactionTraceWithHash,
+        TransactionStatus, TransactionTrace, TransactionTraceWithHash,
     },
 };
 
@@ -32,6 +32,8 @@ pub struct JsonRpcClient<T> {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum JsonRpcMethod {
+    #[serde(rename = "starknet_specVersion")]
+    SpecVersion,
     #[serde(rename = "starknet_getBlockWithTxHashes")]
     GetBlockWithTxHashes,
     #[serde(rename = "starknet_getBlockWithTxs")]
@@ -40,6 +42,8 @@ pub enum JsonRpcMethod {
     GetStateUpdate,
     #[serde(rename = "starknet_getStorageAt")]
     GetStorageAt,
+    #[serde(rename = "starknet_getTransactionStatus")]
+    GetTransactionStatus,
     #[serde(rename = "starknet_getTransactionByHash")]
     GetTransactionByHash,
     #[serde(rename = "starknet_getTransactionByBlockIdAndIndex")]
@@ -66,8 +70,6 @@ pub enum JsonRpcMethod {
     BlockHashAndNumber,
     #[serde(rename = "starknet_chainId")]
     ChainId,
-    #[serde(rename = "starknet_pendingTransactions")]
-    PendingTransactions,
     #[serde(rename = "starknet_syncing")]
     Syncing,
     #[serde(rename = "starknet_getEvents")]
@@ -96,10 +98,12 @@ pub struct JsonRpcRequest {
 
 #[derive(Debug, Clone)]
 pub enum JsonRpcRequestData {
+    SpecVersion(SpecVersionRequest),
     GetBlockWithTxHashes(GetBlockWithTxHashesRequest),
     GetBlockWithTxs(GetBlockWithTxsRequest),
     GetStateUpdate(GetStateUpdateRequest),
     GetStorageAt(GetStorageAtRequest),
+    GetTransactionStatus(GetTransactionStatusRequest),
     GetTransactionByHash(GetTransactionByHashRequest),
     GetTransactionByBlockIdAndIndex(GetTransactionByBlockIdAndIndexRequest),
     GetTransactionReceipt(GetTransactionReceiptRequest),
@@ -113,7 +117,6 @@ pub enum JsonRpcRequestData {
     BlockNumber(BlockNumberRequest),
     BlockHashAndNumber(BlockHashAndNumberRequest),
     ChainId(ChainIdRequest),
-    PendingTransactions(PendingTransactionsRequest),
     Syncing(SyncingRequest),
     GetEvents(GetEventsRequest),
     GetNonce(GetNonceRequest),
@@ -206,6 +209,12 @@ impl<T> Provider for JsonRpcClient<T>
 where
     T: 'static + JsonRpcTransport + Sync + Send,
 {
+    /// Returns the version of the Starknet JSON-RPC specification being used
+    async fn spec_version(&self) -> Result<String, ProviderError> {
+        self.send_request(JsonRpcMethod::SpecVersion, SpecVersionRequest)
+            .await
+    }
+
     /// Get block information with transaction hashes given the block id
     async fn get_block_with_tx_hashes<B>(
         &self,
@@ -280,6 +289,24 @@ where
             )
             .await?
             .0)
+    }
+
+    /// Gets the transaction status (possibly reflecting that the tx is still in
+    /// the mempool, or dropped from it)
+    async fn get_transaction_status<H>(
+        &self,
+        transaction_hash: H,
+    ) -> Result<TransactionStatus, ProviderError>
+    where
+        H: AsRef<FieldElement> + Send + Sync,
+    {
+        self.send_request(
+            JsonRpcMethod::GetTransactionStatus,
+            GetTransactionStatusRequestRef {
+                transaction_hash: transaction_hash.as_ref(),
+            },
+        )
+        .await
     }
 
     /// Get the details and status of a submitted transaction
@@ -489,15 +516,6 @@ where
             .0)
     }
 
-    /// Returns the transactions in the transaction pool, recognized by this sequencer
-    async fn pending_transactions(&self) -> Result<Vec<Transaction>, ProviderError> {
-        self.send_request(
-            JsonRpcMethod::PendingTransactions,
-            PendingTransactionsRequest,
-        )
-        .await
-    }
-
     /// Returns an object about the sync status, or false if the node is not synching
     async fn syncing(&self) -> Result<SyncStatusType, ProviderError> {
         self.send_request(JsonRpcMethod::Syncing, SyncingRequest)
@@ -642,17 +660,17 @@ where
     }
 
     /// Retrieve traces for all transactions in the given block.
-    async fn trace_block_transactions<H>(
+    async fn trace_block_transactions<B>(
         &self,
-        block_hash: H,
+        block_id: B,
     ) -> Result<Vec<TransactionTraceWithHash>, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync,
+        B: AsRef<BlockId> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::TraceBlockTransactions,
             TraceBlockTransactionsRequestRef {
-                block_hash: block_hash.as_ref(),
+                block_id: block_id.as_ref(),
             },
         )
         .await
@@ -676,6 +694,10 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
 
         let raw_request = RawRequest::deserialize(deserializer)?;
         let request_data = match raw_request.method {
+            JsonRpcMethod::SpecVersion => JsonRpcRequestData::SpecVersion(
+                serde_json::from_value::<SpecVersionRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
             JsonRpcMethod::GetBlockWithTxHashes => JsonRpcRequestData::GetBlockWithTxHashes(
                 serde_json::from_value::<GetBlockWithTxHashesRequest>(raw_request.params)
                     .map_err(error_mapper)?,
@@ -690,6 +712,10 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
             ),
             JsonRpcMethod::GetStorageAt => JsonRpcRequestData::GetStorageAt(
                 serde_json::from_value::<GetStorageAtRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::GetTransactionStatus => JsonRpcRequestData::GetTransactionStatus(
+                serde_json::from_value::<GetTransactionStatusRequest>(raw_request.params)
                     .map_err(error_mapper)?,
             ),
             JsonRpcMethod::GetTransactionByHash => JsonRpcRequestData::GetTransactionByHash(
@@ -747,10 +773,6 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
             ),
             JsonRpcMethod::ChainId => JsonRpcRequestData::ChainId(
                 serde_json::from_value::<ChainIdRequest>(raw_request.params)
-                    .map_err(error_mapper)?,
-            ),
-            JsonRpcMethod::PendingTransactions => JsonRpcRequestData::PendingTransactions(
-                serde_json::from_value::<PendingTransactionsRequest>(raw_request.params)
                     .map_err(error_mapper)?,
             ),
             JsonRpcMethod::Syncing => JsonRpcRequestData::Syncing(
