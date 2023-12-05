@@ -29,6 +29,7 @@ fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
 }
 
 #[tokio::test]
+#[ignore = "endpoint deprecated since Starknet v0.12.3"]
 async fn can_get_nonce_with_sequencer() {
     can_get_nonce_inner(
         create_sequencer_client(),
@@ -47,6 +48,7 @@ async fn can_get_nonce_with_jsonrpc() {
 }
 
 #[tokio::test]
+#[ignore = "endpoint deprecated since Starknet v0.12.3"]
 async fn can_estimate_fee_with_sequencer() {
     can_estimate_fee_inner(
         create_sequencer_client(),
@@ -68,6 +70,7 @@ async fn can_estimate_fee_with_jsonrpc() {
 // TODO: add `simulate` test cases back once transaction simulation in supported
 
 #[tokio::test]
+#[ignore = "endpoint deprecated since Starknet v0.12.3"]
 async fn can_execute_tst_mint_with_sequencer() {
     can_execute_tst_mint_inner(
         create_sequencer_client(),
@@ -86,6 +89,7 @@ async fn can_execute_tst_mint_with_jsonrpc() {
 }
 
 #[tokio::test]
+#[ignore = "endpoint deprecated since Starknet v0.12.3"]
 async fn can_declare_cairo1_contract_with_sequencer() {
     can_declare_cairo1_contract_inner(
         create_sequencer_client(),
@@ -104,6 +108,7 @@ async fn can_declare_cairo1_contract_with_jsonrpc() {
 }
 
 #[tokio::test]
+#[ignore = "endpoint deprecated since Starknet v0.12.3"]
 async fn can_declare_cairo0_contract_with_sequencer() {
     can_declare_cairo0_contract_inner(
         create_sequencer_client(),
