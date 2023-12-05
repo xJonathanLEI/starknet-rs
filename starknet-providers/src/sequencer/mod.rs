@@ -95,6 +95,8 @@ pub enum ErrorCode {
     DuplicatedTransaction,
     #[serde(rename = "StarknetErrorCode.INVALID_CONTRACT_CLASS")]
     InvalidContractClass,
+    #[serde(rename = "StarknetErrorCode.DEPRECATED_ENDPOINT")]
+    DeprecatedEndpoint,
 }
 
 impl SequencerGatewayProvider {
@@ -727,6 +729,7 @@ impl From<SequencerError> for ProviderError {
             ErrorCode::InvalidCompiledClassHash => Some(StarknetError::CompiledClassHashMismatch),
             ErrorCode::DuplicatedTransaction => Some(StarknetError::DuplicateTx),
             ErrorCode::InvalidContractClass => None,
+            ErrorCode::DeprecatedEndpoint => None,
         };
 
         match matching_code {
