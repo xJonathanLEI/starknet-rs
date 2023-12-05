@@ -14,7 +14,7 @@ use starknet_core::types::{
 };
 
 use crate::{
-    provider::{MaybeUnknownErrorCode, ProviderImplError, StarknetErrorWithMessage},
+    provider::ProviderImplError,
     sequencer::{
         models::conversions::{ConversionError, TransactionWithReceipt},
         GatewayClientError,
@@ -106,10 +106,9 @@ impl Provider for SequencerGatewayProvider {
 
         // `NotReceived` is not a valid status for JSON-RPC. It's an error.
         if let Some(TransactionFinalityStatus::NotReceived) = &status.finality_status {
-            return Err(ProviderError::StarknetError(StarknetErrorWithMessage {
-                code: MaybeUnknownErrorCode::Known(StarknetError::TransactionHashNotFound),
-                message: "Transaction hash not found".into(),
-            }));
+            return Err(ProviderError::StarknetError(
+                StarknetError::TransactionHashNotFound,
+            ));
         }
 
         Ok(status.try_into()?)
@@ -142,10 +141,9 @@ impl Provider for SequencerGatewayProvider {
         if index < block.transactions.len() {
             Ok(block.transactions.remove(index).try_into()?)
         } else {
-            Err(ProviderError::StarknetError(StarknetErrorWithMessage {
-                code: MaybeUnknownErrorCode::Known(StarknetError::InvalidTransactionIndex),
-                message: "Invalid transaction index in a block".into(),
-            }))
+            Err(ProviderError::StarknetError(
+                StarknetError::InvalidTransactionIndex,
+            ))
         }
     }
 
@@ -164,10 +162,9 @@ impl Provider for SequencerGatewayProvider {
         if receipt.status == super::models::TransactionStatus::NotReceived
             || receipt.status == super::models::TransactionStatus::Received
         {
-            Err(ProviderError::StarknetError(StarknetErrorWithMessage {
-                code: MaybeUnknownErrorCode::Known(StarknetError::TransactionHashNotFound),
-                message: "Transaction hash not found".into(),
-            }))
+            Err(ProviderError::StarknetError(
+                StarknetError::TransactionHashNotFound,
+            ))
         } else {
             // JSON-RPC also sends tx type, which is not available in our receipt type
             let tx = self.get_transaction(*transaction_hash.as_ref()).await?;

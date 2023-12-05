@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#3215ab04aee89aafa48973cdcf027219f662f49d
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#51260963a0723fdbc715598efb7198ce5a1d49b9
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -1393,6 +1393,39 @@ impl core::fmt::Display for StarknetError {
             Self::UnexpectedError => write!(f, "UnexpectedError"),
             Self::NoTraceAvailable => write!(f, "NoTraceAvailable"),
             Self::InvalidTransactionHash => write!(f, "InvalidTransactionHash"),
+        }
+    }
+}
+
+impl StarknetError {
+    pub fn message(&self) -> &'static str {
+        match self {
+            Self::FailedToReceiveTransaction => "Failed to write transaction",
+            Self::ContractNotFound => "Contract not found",
+            Self::BlockNotFound => "Block not found",
+            Self::InvalidTransactionIndex => "Invalid transaction index in a block",
+            Self::ClassHashNotFound => "Class hash not found",
+            Self::TransactionHashNotFound => "Transaction hash not found",
+            Self::PageSizeTooBig => "Requested page size is too big",
+            Self::NoBlocks => "There are no blocks",
+            Self::InvalidContinuationToken => "The supplied continuation token is invalid or unknown",
+            Self::TooManyKeysInFilter => "Too many keys provided in a filter",
+            Self::ContractError => "Contract error",
+            Self::ClassAlreadyDeclared => "Class already declared",
+            Self::InvalidTransactionNonce => "Invalid transaction nonce",
+            Self::InsufficientMaxFee => "Max fee is smaller than the minimal transaction cost (validation plus fee transfer)",
+            Self::InsufficientAccountBalance => "Account balance is smaller than the transaction's max_fee",
+            Self::ValidationFailure => "Account validation failed",
+            Self::CompilationFailed => "Compilation failed",
+            Self::ContractClassSizeIsTooLarge => "Contract class size it too large",
+            Self::NonAccount => "Sender address in not an account contract",
+            Self::DuplicateTx => "A transaction with the same hash already exists in the mempool",
+            Self::CompiledClassHashMismatch => "the compiled class hash did not match the one supplied in the transaction",
+            Self::UnsupportedTxVersion => "the transaction version is not supported",
+            Self::UnsupportedContractClassVersion => "the contract class version is not supported",
+            Self::UnexpectedError => "An unexpected error occurred",
+            Self::NoTraceAvailable => "No trace available for transaction",
+            Self::InvalidTransactionHash => "Invalid transaction hash",
         }
     }
 }
