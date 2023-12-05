@@ -23,6 +23,7 @@ fn felt_dec(dec: &str) -> FieldElement {
 }
 
 #[tokio::test]
+#[ignore = "endpoint deprecated since Starknet v0.12.3"]
 async fn sequencer_goerli_can_estimate_message_fee() {
     let client = create_sequencer_client();
 
@@ -63,6 +64,7 @@ async fn sequencer_goerli_can_estimate_message_fee() {
 }
 
 #[tokio::test]
+#[ignore = "endpoint deprecated since Starknet v0.12.3"]
 async fn sequencer_goerli_can_simulate_transaction() {
     let client = create_sequencer_client();
 
@@ -149,6 +151,7 @@ async fn sequencer_goerli_can_simulate_transaction() {
 }
 
 #[tokio::test]
+#[ignore = "endpoint deprecated since Starknet v0.12.3"]
 async fn sequencer_goerli_can_get_nonce() {
     let client = create_sequencer_client();
 
@@ -167,6 +170,7 @@ async fn sequencer_goerli_can_get_nonce() {
 }
 
 #[tokio::test]
+#[ignore = "endpoint deprecated since Starknet v0.12.3"]
 async fn sequencer_goerli_can_bulk_estimate_fee() {
     let client = create_sequencer_client();
 
