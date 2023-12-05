@@ -1,5 +1,7 @@
 use rand::RngCore;
-use starknet_accounts::{Account, Call, ConnectedAccount, ExecutionEncoding, SingleOwnerAccount};
+use starknet_accounts::{
+    Account, AccountError, Call, ConnectedAccount, ExecutionEncoding, SingleOwnerAccount,
+};
 use starknet_core::{
     chain_id,
     types::{
@@ -7,13 +9,13 @@ use starknet_core::{
             legacy::{LegacyContractClass, RawLegacyAbiEntry, RawLegacyFunction},
             SierraClass,
         },
-        BlockId, BlockTag, FieldElement,
+        BlockId, BlockTag, FieldElement, StarknetError,
     },
     utils::get_selector_from_name,
 };
 use starknet_providers::{
     jsonrpc::{HttpTransport, JsonRpcClient},
-    Provider, SequencerGatewayProvider,
+    Provider, ProviderError, SequencerGatewayProvider,
 };
 use starknet_signers::{LocalWallet, SigningKey};
 use std::sync::Arc;
@@ -60,6 +62,15 @@ async fn can_estimate_fee_with_sequencer() {
 #[tokio::test]
 async fn can_estimate_fee_with_jsonrpc() {
     can_estimate_fee_inner(
+        create_jsonrpc_client(),
+        "0x44c3c30803ea9c4e063ae052e6b7ef537284fca6b93849dae9a093e42aa1574",
+    )
+    .await
+}
+
+#[tokio::test]
+async fn can_parse_fee_estimation_error_with_jsonrpc() {
+    can_parse_fee_estimation_error_inner(
         create_jsonrpc_client(),
         "0x44c3c30803ea9c4e063ae052e6b7ef537284fca6b93849dae9a093e42aa1574",
     )
@@ -195,6 +206,54 @@ async fn can_estimate_fee_inner<P: Provider + Send + Sync>(provider: P, address:
         .unwrap();
 
     assert!(fee_estimate.overall_fee > 0);
+}
+
+async fn can_parse_fee_estimation_error_inner<P: Provider + Send + Sync>(
+    provider: P,
+    address: &str,
+) {
+    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
+        FieldElement::from_hex_be(
+            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        )
+        .unwrap(),
+    ));
+    let address = FieldElement::from_hex_be(address).unwrap();
+    let eth_token_address = FieldElement::from_hex_be(
+        "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+    )
+    .unwrap();
+
+    let mut account = SingleOwnerAccount::new(
+        provider,
+        signer,
+        address,
+        chain_id::TESTNET,
+        ExecutionEncoding::Legacy,
+    );
+    account.set_block_id(BlockId::Tag(BlockTag::Pending));
+
+    match account
+        .execute(vec![Call {
+            to: eth_token_address,
+            selector: get_selector_from_name("transfer").unwrap(),
+            calldata: vec![
+                address,
+                FieldElement::from_dec_str("1000000000000000000000").unwrap(),
+                FieldElement::ZERO,
+            ],
+        }])
+        .estimate_fee()
+        .await
+    {
+        Ok(_) => panic!("unexpected successful fee estimation"),
+        Err(AccountError::Provider(ProviderError::StarknetError(
+            StarknetError::ContractError(err_data),
+        ))) => {
+            assert!(!err_data.revert_error.is_empty());
+        }
+        _ => panic!("unexpected error type"),
+    }
 }
 
 async fn can_execute_tst_mint_inner<P: Provider + Send + Sync>(provider: P, address: &str) {

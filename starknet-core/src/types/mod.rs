@@ -16,18 +16,19 @@ mod codegen;
 pub use codegen::{
     BlockStatus, BlockTag, BlockWithTxHashes, BlockWithTxs, BroadcastedDeclareTransactionV1,
     BroadcastedDeclareTransactionV2, BroadcastedDeployAccountTransaction,
-    BroadcastedInvokeTransaction, CallType, CompressedLegacyContractClass, ContractStorageDiffItem,
-    DataAvailabilityMode, DeclareTransactionReceipt, DeclareTransactionTrace, DeclareTransactionV0,
-    DeclareTransactionV1, DeclareTransactionV2, DeclaredClassItem, DeployAccountTransaction,
-    DeployAccountTransactionReceipt, DeployAccountTransactionTrace, DeployTransaction,
-    DeployTransactionReceipt, DeployedContractItem, EmittedEvent, EntryPointType,
-    EntryPointsByType, Event, EventFilter, EventFilterWithPage, EventsChunk, ExecutionResources,
-    FeeEstimate, FlattenedSierraClass, FunctionCall, FunctionInvocation, FunctionStateMutability,
-    InvokeTransactionReceipt, InvokeTransactionTrace, InvokeTransactionV0, InvokeTransactionV1,
-    L1HandlerTransaction, L1HandlerTransactionReceipt, L1HandlerTransactionTrace,
-    LegacyContractEntryPoint, LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType,
-    LegacyFunctionAbiEntry, LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType,
-    LegacyStructMember, LegacyTypedParameter, MsgFromL1, MsgToL1, NonceUpdate, OrderedEvent,
+    BroadcastedInvokeTransaction, CallType, CompressedLegacyContractClass, ContractErrorData,
+    ContractStorageDiffItem, DataAvailabilityMode, DeclareTransactionReceipt,
+    DeclareTransactionTrace, DeclareTransactionV0, DeclareTransactionV1, DeclareTransactionV2,
+    DeclaredClassItem, DeployAccountTransaction, DeployAccountTransactionReceipt,
+    DeployAccountTransactionTrace, DeployTransaction, DeployTransactionReceipt,
+    DeployedContractItem, EmittedEvent, EntryPointType, EntryPointsByType, Event, EventFilter,
+    EventFilterWithPage, EventsChunk, ExecutionResources, FeeEstimate, FlattenedSierraClass,
+    FunctionCall, FunctionInvocation, FunctionStateMutability, InvokeTransactionReceipt,
+    InvokeTransactionTrace, InvokeTransactionV0, InvokeTransactionV1, L1HandlerTransaction,
+    L1HandlerTransactionReceipt, L1HandlerTransactionTrace, LegacyContractEntryPoint,
+    LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType, LegacyFunctionAbiEntry,
+    LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType, LegacyStructMember,
+    LegacyTypedParameter, MsgFromL1, MsgToL1, NoTraceAvailableErrorData, NonceUpdate, OrderedEvent,
     OrderedMessage, PendingBlockWithTxHashes, PendingBlockWithTxs,
     PendingDeclareTransactionReceipt, PendingDeployAccountTransactionReceipt,
     PendingInvokeTransactionReceipt, PendingL1HandlerTransactionReceipt, PendingStateUpdate,
@@ -513,42 +514,6 @@ impl TryFrom<&L1HandlerTransaction> for MsgToL2 {
 
     fn try_from(value: &L1HandlerTransaction) -> Result<Self, Self::Error> {
         value.parse_msg_to_l2()
-    }
-}
-
-impl TryFrom<i64> for StarknetError {
-    type Error = ();
-
-    fn try_from(value: i64) -> Result<Self, Self::Error> {
-        Ok(match value {
-            1 => StarknetError::FailedToReceiveTransaction,
-            20 => StarknetError::ContractNotFound,
-            24 => StarknetError::BlockNotFound,
-            27 => StarknetError::InvalidTransactionIndex,
-            28 => StarknetError::ClassHashNotFound,
-            29 => StarknetError::TransactionHashNotFound,
-            31 => StarknetError::PageSizeTooBig,
-            32 => StarknetError::NoBlocks,
-            33 => StarknetError::InvalidContinuationToken,
-            34 => StarknetError::TooManyKeysInFilter,
-            40 => StarknetError::ContractError,
-            51 => StarknetError::ClassAlreadyDeclared,
-            52 => StarknetError::InvalidTransactionNonce,
-            53 => StarknetError::InsufficientMaxFee,
-            54 => StarknetError::InsufficientAccountBalance,
-            55 => StarknetError::ValidationFailure,
-            56 => StarknetError::CompilationFailed,
-            57 => StarknetError::ContractClassSizeIsTooLarge,
-            58 => StarknetError::NonAccount,
-            59 => StarknetError::DuplicateTx,
-            60 => StarknetError::CompiledClassHashMismatch,
-            61 => StarknetError::UnsupportedTxVersion,
-            62 => StarknetError::UnsupportedContractClassVersion,
-            63 => StarknetError::UnexpectedError,
-            10 => StarknetError::NoTraceAvailable,
-            25 => StarknetError::InvalidTransactionHash,
-            _ => return Err(()),
-        })
     }
 }
 
