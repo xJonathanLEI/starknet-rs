@@ -12,15 +12,12 @@ use starknet_core::{
         EventFilterWithPage, EventsPage, FeeEstimate, FieldElement, FunctionCall,
         InvokeTransactionResult, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
         MaybePendingStateUpdate, MaybePendingTransactionReceipt, MsgFromL1, ResultPageRequest,
-        SimulatedTransaction, SimulationFlag, StarknetError, SyncStatusType, Transaction,
-        TransactionStatus, TransactionTrace, TransactionTraceWithHash,
+        SimulatedTransaction, SimulationFlag, SyncStatusType, Transaction, TransactionStatus,
+        TransactionTrace, TransactionTraceWithHash,
     },
 };
 
-use crate::{
-    provider::{MaybeUnknownErrorCode, ProviderImplError, StarknetErrorWithMessage},
-    Provider, ProviderError,
-};
+use crate::{provider::ProviderImplError, Provider, ProviderError};
 
 mod transports;
 pub use transports::{HttpTransport, HttpTransportError, JsonRpcTransport};
@@ -135,15 +132,7 @@ pub enum JsonRpcClientError<T> {
     #[error(transparent)]
     TransportError(T),
     #[error(transparent)]
-    RpcError(RpcError),
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum RpcError {
-    #[error(transparent)]
-    Code(StarknetError),
-    #[error(transparent)]
-    Unknown(JsonRpcError),
+    JsonRpcError(JsonRpcError),
 }
 
 #[derive(Debug, thiserror::Error, Deserialize)]
@@ -190,15 +179,10 @@ where
             .map_err(JsonRpcClientError::TransportError)?
         {
             JsonRpcResponse::Success { result, .. } => Ok(result),
-            JsonRpcResponse::Error { error, .. } => {
-                Err(ProviderError::StarknetError(StarknetErrorWithMessage {
-                    code: match error.code.try_into() {
-                        Ok(code) => MaybeUnknownErrorCode::Known(code),
-                        Err(_) => MaybeUnknownErrorCode::Unknown(error.code),
-                    },
-                    message: error.message,
-                }))
-            }
+            JsonRpcResponse::Error { error, .. } => Err(match error.code.try_into() {
+                Ok(code) => ProviderError::StarknetError(code),
+                Err(_) => JsonRpcClientError::<T::Error>::JsonRpcError(error).into(),
+            }),
         }
     }
 }

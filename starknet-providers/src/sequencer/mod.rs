@@ -1,4 +1,4 @@
-use crate::provider::{MaybeUnknownErrorCode, ProviderError, StarknetErrorWithMessage};
+use crate::provider::ProviderError;
 
 use log::trace;
 use reqwest::{Client, Error as ReqwestError, StatusCode};
@@ -730,10 +730,7 @@ impl From<SequencerError> for ProviderError {
         };
 
         match matching_code {
-            Some(code) => ProviderError::StarknetError(StarknetErrorWithMessage {
-                code: MaybeUnknownErrorCode::Known(code),
-                message: value.message,
-            }),
+            Some(code) => ProviderError::StarknetError(code),
             None => GatewayClientError::SequencerError(value).into(),
         }
     }
