@@ -1,4 +1,4 @@
-use std::{any::Any, error::Error};
+use std::{any::Any, error::Error, fmt::Display};
 
 use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -8,12 +8,13 @@ use starknet_core::{
     types::{
         requests::*, BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
         BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
-        ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
-        EventFilterWithPage, EventsPage, FeeEstimate, FieldElement, FunctionCall,
+        ContractClass, ContractErrorData, DeclareTransactionResult, DeployAccountTransactionResult,
+        EventFilter, EventFilterWithPage, EventsPage, FeeEstimate, FieldElement, FunctionCall,
         InvokeTransactionResult, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
-        MaybePendingStateUpdate, MaybePendingTransactionReceipt, MsgFromL1, ResultPageRequest,
-        SimulatedTransaction, SimulationFlag, SyncStatusType, Transaction, TransactionStatus,
-        TransactionTrace, TransactionTraceWithHash,
+        MaybePendingStateUpdate, MaybePendingTransactionReceipt, MsgFromL1,
+        NoTraceAvailableErrorData, ResultPageRequest, SimulatedTransaction, SimulationFlag,
+        StarknetError, SyncStatusType, Transaction, TransactionStatus, TransactionTrace,
+        TransactionTraceWithHash,
     },
 };
 
@@ -135,11 +136,12 @@ pub enum JsonRpcClientError<T> {
     JsonRpcError(JsonRpcError),
 }
 
-#[derive(Debug, thiserror::Error, Deserialize)]
-#[error("JSON-RPC error: code={code}, message=\"{message}\"")]
+#[derive(Debug, Deserialize)]
 pub struct JsonRpcError {
     pub code: i64,
     pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -147,6 +149,17 @@ pub struct JsonRpcError {
 pub enum JsonRpcResponse<T> {
     Success { id: u64, result: T },
     Error { id: u64, error: JsonRpcError },
+}
+
+/// Failures trying to parse a [JsonRpcError] into [StarknetError].
+#[derive(Debug, thiserror::Error)]
+pub enum JsonRpcErrorConversionError {
+    #[error("unknown error code")]
+    UnknownCode,
+    #[error("missing data field")]
+    MissingData,
+    #[error("unable to parse the data field")]
+    DataParsingFailure,
 }
 
 #[serde_as]
@@ -179,10 +192,12 @@ where
             .map_err(JsonRpcClientError::TransportError)?
         {
             JsonRpcResponse::Success { result, .. } => Ok(result),
-            JsonRpcResponse::Error { error, .. } => Err(match error.code.try_into() {
-                Ok(code) => ProviderError::StarknetError(code),
-                Err(_) => JsonRpcClientError::<T::Error>::JsonRpcError(error).into(),
-            }),
+            JsonRpcResponse::Error { error, .. } => {
+                Err(match TryInto::<StarknetError>::try_into(&error) {
+                    Ok(error) => ProviderError::StarknetError(error),
+                    Err(_) => JsonRpcClientError::<T::Error>::JsonRpcError(error).into(),
+                })
+            }
         }
     }
 }
@@ -829,5 +844,93 @@ where
 impl<T> From<serde_json::Error> for JsonRpcClientError<T> {
     fn from(value: serde_json::Error) -> Self {
         Self::JsonError(value)
+    }
+}
+
+impl TryFrom<&JsonRpcError> for StarknetError {
+    type Error = JsonRpcErrorConversionError;
+
+    fn try_from(value: &JsonRpcError) -> Result<Self, Self::Error> {
+        match value.code {
+            1 => Ok(StarknetError::FailedToReceiveTransaction),
+            20 => Ok(StarknetError::ContractNotFound),
+            24 => Ok(StarknetError::BlockNotFound),
+            27 => Ok(StarknetError::InvalidTransactionIndex),
+            28 => Ok(StarknetError::ClassHashNotFound),
+            29 => Ok(StarknetError::TransactionHashNotFound),
+            31 => Ok(StarknetError::PageSizeTooBig),
+            32 => Ok(StarknetError::NoBlocks),
+            33 => Ok(StarknetError::InvalidContinuationToken),
+            34 => Ok(StarknetError::TooManyKeysInFilter),
+            40 => {
+                let data = ContractErrorData::deserialize(
+                    value
+                        .data
+                        .as_ref()
+                        .ok_or(JsonRpcErrorConversionError::MissingData)?,
+                )
+                .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
+                Ok(StarknetError::ContractError(data))
+            }
+            51 => Ok(StarknetError::ClassAlreadyDeclared),
+            52 => Ok(StarknetError::InvalidTransactionNonce),
+            53 => Ok(StarknetError::InsufficientMaxFee),
+            54 => Ok(StarknetError::InsufficientAccountBalance),
+            55 => Ok(StarknetError::ValidationFailure),
+            56 => Ok(StarknetError::CompilationFailed),
+            57 => Ok(StarknetError::ContractClassSizeIsTooLarge),
+            58 => Ok(StarknetError::NonAccount),
+            59 => Ok(StarknetError::DuplicateTx),
+            60 => Ok(StarknetError::CompiledClassHashMismatch),
+            61 => Ok(StarknetError::UnsupportedTxVersion),
+            62 => Ok(StarknetError::UnsupportedContractClassVersion),
+            63 => {
+                let data = String::deserialize(
+                    value
+                        .data
+                        .as_ref()
+                        .ok_or(JsonRpcErrorConversionError::MissingData)?,
+                )
+                .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
+                Ok(StarknetError::UnexpectedError(data))
+            }
+            10 => {
+                let data = NoTraceAvailableErrorData::deserialize(
+                    value
+                        .data
+                        .as_ref()
+                        .ok_or(JsonRpcErrorConversionError::MissingData)?,
+                )
+                .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
+                Ok(StarknetError::NoTraceAvailable(data))
+            }
+            25 => Ok(StarknetError::InvalidTransactionHash),
+            _ => Err(JsonRpcErrorConversionError::UnknownCode),
+        }
+    }
+}
+
+impl Error for JsonRpcError {}
+
+impl Display for JsonRpcError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.data {
+            Some(data) => {
+                write!(
+                    f,
+                    "JSON-RPC error: code={}, message=\"{}\", data={}",
+                    self.code,
+                    self.message,
+                    serde_json::to_string(data).map_err(|_| std::fmt::Error)?
+                )
+            }
+            None => {
+                write!(
+                    f,
+                    "JSON-RPC error: code={}, message=\"{}\"",
+                    self.code, self.message
+                )
+            }
+        }
     }
 }

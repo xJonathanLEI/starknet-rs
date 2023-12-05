@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#51260963a0723fdbc715598efb7198ce5a1d49b9
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#bddc1b829c33b14440d22a85bc937e3d16e32ed1
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -239,6 +239,14 @@ pub struct CompressedLegacyContractClass {
     /// Contract abi
     #[serde(skip_serializing_if = "Option::is_none")]
     pub abi: Option<Vec<LegacyContractAbiEntry>>,
+}
+
+/// More data about the execution failure.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct ContractErrorData {
+    /// A string encoding the execution trace up to the point of failure
+    pub revert_error: String,
 }
 
 /// Contract storage diff item.
@@ -1007,6 +1015,14 @@ pub struct MsgToL1 {
     pub payload: Vec<FieldElement>,
 }
 
+/// Extra information on why trace is not available. Either it wasn't executed yet (received), or
+/// the transaction failed (rejected).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct NoTraceAvailableErrorData {
+    pub status: SequencerTransactionStatus,
+}
+
 /// Nonce update.
 ///
 /// The updated nonce per contract address.
@@ -1305,7 +1321,7 @@ pub enum SimulationFlag {
 }
 
 /// JSON-RPC error codes
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StarknetError {
     /// Failed to write transaction
     FailedToReceiveTransaction,
@@ -1328,7 +1344,7 @@ pub enum StarknetError {
     /// Too many keys provided in a filter
     TooManyKeysInFilter,
     /// Contract error
-    ContractError,
+    ContractError(ContractErrorData),
     /// Class already declared
     ClassAlreadyDeclared,
     /// Invalid transaction nonce
@@ -1354,9 +1370,9 @@ pub enum StarknetError {
     /// the contract class version is not supported
     UnsupportedContractClassVersion,
     /// An unexpected error occurred
-    UnexpectedError,
+    UnexpectedError(String),
     /// No trace available for transaction
-    NoTraceAvailable,
+    NoTraceAvailable(NoTraceAvailableErrorData),
     /// Invalid transaction hash
     InvalidTransactionHash,
 }
@@ -1377,7 +1393,7 @@ impl core::fmt::Display for StarknetError {
             Self::NoBlocks => write!(f, "NoBlocks"),
             Self::InvalidContinuationToken => write!(f, "InvalidContinuationToken"),
             Self::TooManyKeysInFilter => write!(f, "TooManyKeysInFilter"),
-            Self::ContractError => write!(f, "ContractError"),
+            Self::ContractError(_) => write!(f, "ContractError"),
             Self::ClassAlreadyDeclared => write!(f, "ClassAlreadyDeclared"),
             Self::InvalidTransactionNonce => write!(f, "InvalidTransactionNonce"),
             Self::InsufficientMaxFee => write!(f, "InsufficientMaxFee"),
@@ -1390,8 +1406,8 @@ impl core::fmt::Display for StarknetError {
             Self::CompiledClassHashMismatch => write!(f, "CompiledClassHashMismatch"),
             Self::UnsupportedTxVersion => write!(f, "UnsupportedTxVersion"),
             Self::UnsupportedContractClassVersion => write!(f, "UnsupportedContractClassVersion"),
-            Self::UnexpectedError => write!(f, "UnexpectedError"),
-            Self::NoTraceAvailable => write!(f, "NoTraceAvailable"),
+            Self::UnexpectedError(_) => write!(f, "UnexpectedError"),
+            Self::NoTraceAvailable(_) => write!(f, "NoTraceAvailable"),
             Self::InvalidTransactionHash => write!(f, "InvalidTransactionHash"),
         }
     }
@@ -1410,7 +1426,7 @@ impl StarknetError {
             Self::NoBlocks => "There are no blocks",
             Self::InvalidContinuationToken => "The supplied continuation token is invalid or unknown",
             Self::TooManyKeysInFilter => "Too many keys provided in a filter",
-            Self::ContractError => "Contract error",
+            Self::ContractError(_) => "Contract error",
             Self::ClassAlreadyDeclared => "Class already declared",
             Self::InvalidTransactionNonce => "Invalid transaction nonce",
             Self::InsufficientMaxFee => "Max fee is smaller than the minimal transaction cost (validation plus fee transfer)",
@@ -1423,8 +1439,8 @@ impl StarknetError {
             Self::CompiledClassHashMismatch => "the compiled class hash did not match the one supplied in the transaction",
             Self::UnsupportedTxVersion => "the transaction version is not supported",
             Self::UnsupportedContractClassVersion => "the contract class version is not supported",
-            Self::UnexpectedError => "An unexpected error occurred",
-            Self::NoTraceAvailable => "No trace available for transaction",
+            Self::UnexpectedError(_) => "An unexpected error occurred",
+            Self::NoTraceAvailable(_) => "No trace available for transaction",
             Self::InvalidTransactionHash => "Invalid transaction hash",
         }
     }

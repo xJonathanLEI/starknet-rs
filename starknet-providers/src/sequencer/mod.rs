@@ -715,7 +715,7 @@ impl From<SequencerError> for ProviderError {
         let matching_code = match value.code {
             ErrorCode::BlockNotFound => Some(StarknetError::BlockNotFound),
             ErrorCode::EntryPointNotFoundInContract => None,
-            ErrorCode::InvalidProgram => Some(StarknetError::ContractError),
+            ErrorCode::InvalidProgram => None,
             ErrorCode::TransactionFailed => Some(StarknetError::ValidationFailure),
             ErrorCode::TransactionNotFound => Some(StarknetError::ContractNotFound),
             ErrorCode::UninitializedContract => Some(StarknetError::ContractNotFound),
@@ -726,7 +726,7 @@ impl From<SequencerError> for ProviderError {
             ErrorCode::CompilationFailed => Some(StarknetError::CompilationFailed),
             ErrorCode::InvalidCompiledClassHash => Some(StarknetError::CompiledClassHashMismatch),
             ErrorCode::DuplicatedTransaction => Some(StarknetError::DuplicateTx),
-            ErrorCode::InvalidContractClass => Some(StarknetError::ContractError),
+            ErrorCode::InvalidContractClass => None,
         };
 
         match matching_code {
