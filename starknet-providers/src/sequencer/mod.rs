@@ -8,10 +8,7 @@ use serde_with::serde_as;
 use starknet_core::{
     chain_id,
     serde::unsigned_field_element::UfeHex,
-    types::{
-        contract::{legacy::LegacyContractCode, CompiledClass},
-        FieldElement, StarknetError,
-    },
+    types::{contract::CompiledClass, FieldElement, StarknetError},
 };
 use url::Url;
 
@@ -152,15 +149,6 @@ enum GatewayResponse<D> {
     SequencerError(SequencerError),
 }
 
-// Work around gateway sending `abi` as `{}` instead of `[]` when the code doesn't exist
-#[derive(Deserialize)]
-#[serde(untagged)]
-enum GetCodeResponse {
-    ContractCode(LegacyContractCode),
-    EmptyContractCode(EmptyContractCode),
-    SequencerError(SequencerError),
-}
-
 // Work FieldElement deserialization
 #[serde_as]
 #[derive(Deserialize)]
@@ -168,14 +156,6 @@ enum GetCodeResponse {
 enum RawFieldElementResponse {
     Data(#[serde_as(as = "UfeHex")] FieldElement),
     SequencerError(SequencerError),
-}
-
-// Work around gateway sending `abi` as `{}` instead of `[]` when the code doesn't exist
-#[allow(unused)]
-#[derive(Deserialize)]
-struct EmptyContractCode {
-    pub bytecode: Vec<EmptyObject>,
-    pub abi: EmptyObject,
 }
 
 #[derive(Deserialize)]
@@ -279,98 +259,6 @@ impl SequencerGatewayProvider {
     #[deprecated(
         note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
     )]
-    pub async fn call_contract(
-        &self,
-        call_function: CallFunction,
-        block_identifier: BlockId,
-    ) -> Result<CallContractResult, ProviderError> {
-        let mut request_url = self.extend_feeder_gateway_url("call_contract");
-        append_block_id(&mut request_url, block_identifier);
-
-        self.send_post_request::<_, GatewayResponse<_>>(request_url, &call_function)
-            .await?
-            .into()
-    }
-
-    #[deprecated(
-        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
-    )]
-    pub async fn estimate_fee(
-        &self,
-        tx: AccountTransaction,
-        block_identifier: BlockId,
-        skip_validate: bool,
-    ) -> Result<FeeEstimate, ProviderError> {
-        let mut request_url = self.extend_feeder_gateway_url("estimate_fee");
-        request_url
-            .query_pairs_mut()
-            .append_pair("skipValidate", if skip_validate { "true" } else { "false" });
-        append_block_id(&mut request_url, block_identifier);
-
-        self.send_post_request::<_, GatewayResponse<_>>(request_url, &tx)
-            .await?
-            .into()
-    }
-
-    #[deprecated(
-        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
-    )]
-    pub async fn estimate_fee_bulk(
-        &self,
-        txs: &[AccountTransaction],
-        block_identifier: BlockId,
-        skip_validate: bool,
-    ) -> Result<Vec<FeeEstimate>, ProviderError> {
-        let mut request_url = self.extend_feeder_gateway_url("estimate_fee_bulk");
-        request_url
-            .query_pairs_mut()
-            .append_pair("skipValidate", if skip_validate { "true" } else { "false" });
-        append_block_id(&mut request_url, block_identifier);
-
-        self.send_post_request::<_, GatewayResponse<_>>(request_url, &txs)
-            .await?
-            .into()
-    }
-
-    #[deprecated(
-        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
-    )]
-    pub async fn estimate_message_fee(
-        &self,
-        call_l1_handler: CallL1Handler,
-        block_identifier: BlockId,
-    ) -> Result<FeeEstimate, ProviderError> {
-        let mut request_url = self.extend_feeder_gateway_url("estimate_message_fee");
-        append_block_id(&mut request_url, block_identifier);
-
-        self.send_post_request::<_, GatewayResponse<_>>(request_url, &call_l1_handler)
-            .await?
-            .into()
-    }
-
-    #[deprecated(
-        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
-    )]
-    pub async fn simulate_transaction(
-        &self,
-        tx: AccountTransaction,
-        block_identifier: BlockId,
-        skip_validate: bool,
-    ) -> Result<TransactionSimulationInfo, ProviderError> {
-        let mut request_url = self.extend_feeder_gateway_url("simulate_transaction");
-        request_url
-            .query_pairs_mut()
-            .append_pair("skipValidate", if skip_validate { "true" } else { "false" });
-        append_block_id(&mut request_url, block_identifier);
-
-        self.send_post_request::<_, GatewayResponse<_>>(request_url, &tx)
-            .await?
-            .into()
-    }
-
-    #[deprecated(
-        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
-    )]
     pub async fn get_block(&self, block_identifier: BlockId) -> Result<Block, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_block");
         append_block_id(&mut request_url, block_identifier);
@@ -413,52 +301,6 @@ impl SequencerGatewayProvider {
     #[deprecated(
         note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
     )]
-    pub async fn get_code(
-        &self,
-        contract_address: FieldElement,
-        block_identifier: BlockId,
-    ) -> Result<LegacyContractCode, ProviderError> {
-        let mut request_url = self.extend_feeder_gateway_url("get_code");
-        request_url
-            .query_pairs_mut()
-            .append_pair("contractAddress", &format!("{contract_address:#x}"));
-        append_block_id(&mut request_url, block_identifier);
-
-        match self
-            .send_get_request::<GetCodeResponse>(request_url)
-            .await?
-        {
-            GetCodeResponse::ContractCode(code) => Ok(code),
-            GetCodeResponse::EmptyContractCode(_) => Ok(LegacyContractCode {
-                bytecode: vec![],
-                abi: Some(vec![]),
-            }),
-            GetCodeResponse::SequencerError(err) => Err(err.into()),
-        }
-    }
-
-    #[deprecated(
-        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
-    )]
-    pub async fn get_full_contract(
-        &self,
-        contract_address: FieldElement,
-        block_identifier: BlockId,
-    ) -> Result<DeployedClass, ProviderError> {
-        let mut request_url = self.extend_feeder_gateway_url("get_full_contract");
-        request_url
-            .query_pairs_mut()
-            .append_pair("contractAddress", &format!("{contract_address:#x}"));
-        append_block_id(&mut request_url, block_identifier);
-
-        self.send_get_request::<GatewayResponse<_>>(request_url)
-            .await?
-            .into()
-    }
-
-    #[deprecated(
-        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
-    )]
     pub async fn get_compiled_class_by_class_hash(
         &self,
         class_hash: FieldElement,
@@ -478,25 +320,6 @@ impl SequencerGatewayProvider {
     #[deprecated(
         note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
     )]
-    pub async fn get_class_hash_at(
-        &self,
-        contract_address: FieldElement,
-        block_identifier: BlockId,
-    ) -> Result<FieldElement, ProviderError> {
-        let mut request_url = self.extend_feeder_gateway_url("get_class_hash_at");
-        request_url
-            .query_pairs_mut()
-            .append_pair("contractAddress", &format!("{contract_address:#x}"));
-        append_block_id(&mut request_url, block_identifier);
-
-        self.send_get_request::<RawFieldElementResponse>(request_url)
-            .await?
-            .into()
-    }
-
-    #[deprecated(
-        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
-    )]
     pub async fn get_class_by_hash(
         &self,
         class_hash: FieldElement,
@@ -509,46 +332,6 @@ impl SequencerGatewayProvider {
         append_block_id(&mut request_url, block_identifier);
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
-            .await?
-            .into()
-    }
-
-    #[deprecated(
-        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
-    )]
-    pub async fn get_storage_at(
-        &self,
-        contract_address: FieldElement,
-        key: FieldElement,
-        block_identifier: BlockId,
-    ) -> Result<FieldElement, ProviderError> {
-        let mut request_url = self.extend_feeder_gateway_url("get_storage_at");
-        request_url
-            .query_pairs_mut()
-            .append_pair("contractAddress", &format!("{contract_address:#x}"))
-            .append_pair("key", &key.to_string());
-        append_block_id(&mut request_url, block_identifier);
-
-        self.send_get_request::<RawFieldElementResponse>(request_url)
-            .await?
-            .into()
-    }
-
-    #[deprecated(
-        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
-    )]
-    pub async fn get_nonce(
-        &self,
-        contract_address: FieldElement,
-        block_identifier: BlockId,
-    ) -> Result<FieldElement, ProviderError> {
-        let mut request_url = self.extend_feeder_gateway_url("get_nonce");
-        request_url
-            .query_pairs_mut()
-            .append_pair("contractAddress", &format!("{contract_address:#x}"));
-        append_block_id(&mut request_url, block_identifier);
-
-        self.send_get_request::<RawFieldElementResponse>(request_url)
             .await?
             .into()
     }
@@ -578,23 +361,6 @@ impl SequencerGatewayProvider {
         transaction_hash: FieldElement,
     ) -> Result<TransactionInfo, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction");
-        request_url
-            .query_pairs_mut()
-            .append_pair("transactionHash", &format!("{transaction_hash:#x}"));
-
-        self.send_get_request::<GatewayResponse<_>>(request_url)
-            .await?
-            .into()
-    }
-
-    #[deprecated(
-        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
-    )]
-    pub async fn get_transaction_receipt(
-        &self,
-        transaction_hash: FieldElement,
-    ) -> Result<TransactionReceipt, ProviderError> {
-        let mut request_url = self.extend_feeder_gateway_url("get_transaction_receipt");
         request_url
             .query_pairs_mut()
             .append_pair("transactionHash", &format!("{transaction_hash:#x}"));
@@ -649,40 +415,6 @@ impl SequencerGatewayProvider {
         request_url
             .query_pairs_mut()
             .append_pair("blockHash", &format!("{block_hash:#x}"));
-
-        self.send_get_request::<GatewayResponse<_>>(request_url)
-            .await?
-            .into()
-    }
-
-    #[deprecated(
-        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
-    )]
-    pub async fn get_transaction_hash_by_id(
-        &self,
-        transaction_number: u64,
-    ) -> Result<FieldElement, ProviderError> {
-        let mut request_url = self.extend_feeder_gateway_url("get_transaction_hash_by_id");
-        request_url
-            .query_pairs_mut()
-            .append_pair("transactionId", &transaction_number.to_string());
-
-        self.send_get_request::<RawFieldElementResponse>(request_url)
-            .await?
-            .into()
-    }
-
-    #[deprecated(
-        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
-    )]
-    pub async fn get_transaction_id_by_hash(
-        &self,
-        transaction_hash: FieldElement,
-    ) -> Result<u64, ProviderError> {
-        let mut request_url = self.extend_feeder_gateway_url("get_transaction_id_by_hash");
-        request_url
-            .query_pairs_mut()
-            .append_pair("transactionHash", &format!("{transaction_hash:#x}"));
 
         self.send_get_request::<GatewayResponse<_>>(request_url)
             .await?
@@ -812,46 +544,6 @@ fn append_block_id(url: &mut Url, block_identifier: BlockId) {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_estimate_fee_deser() {
-        serde_json::from_str::<GatewayResponse<FeeEstimate>>(include_str!(
-            "../../test-data/raw_gateway_responses/estimate_fee/1_success.txt"
-        ))
-        .unwrap();
-    }
-
-    #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_estimate_fee_bulk_deser() {
-        serde_json::from_str::<GatewayResponse<Vec<FeeEstimate>>>(include_str!(
-            "../../test-data/raw_gateway_responses/estimate_fee_bulk/1_success.txt"
-        ))
-        .unwrap();
-    }
-
-    #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_get_storage_at_deser() {
-        serde_json::from_str::<RawFieldElementResponse>(include_str!(
-            "../../test-data/raw_gateway_responses/get_storage_at/1_empty.txt"
-        ))
-        .unwrap();
-    }
-
-    #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_get_full_contract_deser() {
-        for raw in [
-            include_str!("../../test-data/raw_gateway_responses/get_full_contract/1_cairo_0.txt"),
-            include_str!("../../test-data/raw_gateway_responses/get_full_contract/2_cairo_1.txt"),
-        ]
-        .into_iter()
-        {
-            serde_json::from_str::<GatewayResponse<DeployedClass>>(raw).unwrap();
-        }
-    }
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]

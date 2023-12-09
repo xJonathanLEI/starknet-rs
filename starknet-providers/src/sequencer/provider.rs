@@ -15,10 +15,7 @@ use starknet_core::types::{
 
 use crate::{
     provider::ProviderImplError,
-    sequencer::{
-        models::conversions::{ConversionError, TransactionWithReceipt},
-        GatewayClientError,
-    },
+    sequencer::{models::conversions::ConversionError, GatewayClientError},
     Provider, ProviderError, SequencerGatewayProvider,
 };
 
@@ -82,13 +79,10 @@ impl Provider for SequencerGatewayProvider {
         K: AsRef<FieldElement> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
-        Ok(self
-            .get_storage_at(
-                *contract_address.as_ref(),
-                *key.as_ref(),
-                block_id.as_ref().to_owned().into(),
-            )
-            .await?)
+        // Deprecated since Starknet v0.12.3
+        Err(ProviderError::Other(Box::new(
+            GatewayClientError::MethodNotSupported,
+        )))
     }
 
     /// Gets the transaction status (possibly reflecting that the tx is still in
@@ -154,27 +148,10 @@ impl Provider for SequencerGatewayProvider {
     where
         H: AsRef<FieldElement> + Send + Sync,
     {
-        let receipt = self
-            .get_transaction_receipt(*transaction_hash.as_ref())
-            .await?;
-
-        // Even if it's `Received` we pretend it's not found to align with JSON-RPC
-        if receipt.status == super::models::TransactionStatus::NotReceived
-            || receipt.status == super::models::TransactionStatus::Received
-        {
-            Err(ProviderError::StarknetError(
-                StarknetError::TransactionHashNotFound,
-            ))
-        } else {
-            // JSON-RPC also sends tx type, which is not available in our receipt type
-            let tx = self.get_transaction(*transaction_hash.as_ref()).await?;
-            let tx = TransactionWithReceipt {
-                transaction: tx,
-                receipt,
-            };
-
-            Ok(tx.try_into()?)
-        }
+        // Deprecated since Starknet v0.12.3
+        Err(ProviderError::Other(Box::new(
+            GatewayClientError::MethodNotSupported,
+        )))
     }
 
     async fn get_class<B, H>(
@@ -201,12 +178,10 @@ impl Provider for SequencerGatewayProvider {
         B: AsRef<BlockId> + Send + Sync,
         A: AsRef<FieldElement> + Send + Sync,
     {
-        Ok(self
-            .get_class_hash_at(
-                *contract_address.as_ref(),
-                block_id.as_ref().to_owned().into(),
-            )
-            .await?)
+        // Deprecated since Starknet v0.12.3
+        Err(ProviderError::Other(Box::new(
+            GatewayClientError::MethodNotSupported,
+        )))
     }
 
     async fn get_class_at<B, A>(
@@ -218,13 +193,10 @@ impl Provider for SequencerGatewayProvider {
         B: AsRef<BlockId> + Send + Sync,
         A: AsRef<FieldElement> + Send + Sync,
     {
-        Ok(self
-            .get_full_contract(
-                *contract_address.as_ref(),
-                block_id.as_ref().to_owned().into(),
-            )
-            .await?
-            .try_into()?)
+        // Deprecated since Starknet v0.12.3
+        Err(ProviderError::Other(Box::new(
+            GatewayClientError::MethodNotSupported,
+        )))
     }
 
     async fn get_block_transaction_count<B>(&self, block_id: B) -> Result<u64, ProviderError>
@@ -240,13 +212,10 @@ impl Provider for SequencerGatewayProvider {
         R: AsRef<FunctionCall> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
-        Ok(self
-            .call_contract(
-                request.as_ref().to_owned().into(),
-                block_id.as_ref().to_owned().into(),
-            )
-            .await?
-            .result)
+        // Deprecated since Starknet v0.12.3
+        Err(ProviderError::Other(Box::new(
+            GatewayClientError::MethodNotSupported,
+        )))
     }
 
     async fn estimate_fee<R, B>(
@@ -258,20 +227,10 @@ impl Provider for SequencerGatewayProvider {
         R: AsRef<[BroadcastedTransaction]> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
-        Ok(self
-            .estimate_fee_bulk(
-                &request
-                    .as_ref()
-                    .iter()
-                    .map(|tx| tx.to_owned().try_into())
-                    .collect::<Result<Vec<_>, _>>()?,
-                block_id.as_ref().to_owned().into(),
-                false,
-            )
-            .await?
-            .into_iter()
-            .map(|est| est.into())
-            .collect())
+        // Deprecated since Starknet v0.12.3
+        Err(ProviderError::Other(Box::new(
+            GatewayClientError::MethodNotSupported,
+        )))
     }
 
     async fn estimate_message_fee<M, B>(
@@ -283,13 +242,10 @@ impl Provider for SequencerGatewayProvider {
         M: AsRef<MsgFromL1> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
-        Ok(self
-            .estimate_message_fee(
-                message.as_ref().to_owned().into(),
-                block_id.as_ref().to_owned().into(),
-            )
-            .await?
-            .into())
+        // Deprecated since Starknet v0.12.3
+        Err(ProviderError::Other(Box::new(
+            GatewayClientError::MethodNotSupported,
+        )))
     }
 
     async fn block_number(&self) -> Result<u64, ProviderError> {
@@ -333,12 +289,10 @@ impl Provider for SequencerGatewayProvider {
         B: AsRef<BlockId> + Send + Sync,
         A: AsRef<FieldElement> + Send + Sync,
     {
-        Ok(self
-            .get_nonce(
-                *contract_address.as_ref(),
-                block_id.as_ref().to_owned().into(),
-            )
-            .await?)
+        // Deprecated since Starknet v0.12.3
+        Err(ProviderError::Other(Box::new(
+            GatewayClientError::MethodNotSupported,
+        )))
     }
 
     async fn add_invoke_transaction<I>(
