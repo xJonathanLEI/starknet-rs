@@ -32,7 +32,7 @@ mod errors {
     pub struct FromFieldElementError;
 
     #[derive(Debug)]
-    pub struct FromBytesSliceError(pub alloc::string::String);
+    pub struct FromBytesSliceError;
 
     #[cfg(feature = "std")]
     impl std::error::Error for FromHexError {}
@@ -64,7 +64,7 @@ mod errors {
 
     impl Display for FromBytesSliceError {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-            write!(f, "invalid slice for ETH address: {}", self.0)
+            write!(f, "invalid slice for ETH address")
         }
     }
 }
@@ -174,17 +174,13 @@ impl TryFrom<&[u8]> for EthAddress {
 
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         if value.len() != 20 {
-            return Err(FromBytesSliceError(format!(
-                "expected 20 bytes found {}",
-                value.len()
-            )));
+            Err(FromBytesSliceError)
+        } else {
+            // Safe to unwrap as we know length is 20.
+            Ok(Self {
+                inner: value.try_into().unwrap(),
+            })
         }
-
-        Ok(Self {
-            inner: value
-                .try_into()
-                .map_err(|e| FromBytesSliceError(format!("can't convert slice to array: {}", e)))?,
-        })
     }
 }
 
@@ -233,10 +229,10 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "fail: FromBytesSliceError(\"expected 20 bytes found 4\")")]
+    #[should_panic(expected = "FromBytesSliceError")]
     fn test_eth_address_from_slice_invalid_slice() {
         let buffer: Vec<u8> = vec![0, 1, 2, 3, 4, 5, 6, 7];
 
-        EthAddress::try_from(&buffer[0..4]).expect("fail");
+        EthAddress::try_from(&buffer[0..4]).unwrap();
     }
 }
