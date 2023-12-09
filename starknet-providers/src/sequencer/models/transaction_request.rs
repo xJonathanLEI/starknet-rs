@@ -67,32 +67,6 @@ pub enum AccountTransaction {
     DeployAccount(DeployAccountTransaction),
 }
 
-/// Represents a contract function call in the Starknet network.
-#[serde_as]
-#[derive(Debug, Serialize)]
-pub struct CallFunction {
-    #[serde_as(as = "UfeHex")]
-    pub contract_address: FieldElement,
-    #[serde_as(as = "UfeHex")]
-    pub entry_point_selector: FieldElement,
-    pub calldata: Vec<FieldElement>,
-}
-
-/// Represents an L1 handler call in the Starknet network.
-#[serde_as]
-#[derive(Debug, Serialize)]
-pub struct CallL1Handler {
-    // The sequencer excepts the address in decimal representation
-    #[serde(serialize_with = "l1_addr_as_dec")]
-    pub from_address: L1Address,
-    #[serde_as(as = "UfeHex")]
-    pub to_address: FieldElement,
-    #[serde_as(as = "UfeHex")]
-    pub entry_point_selector: FieldElement,
-    #[serde_as(as = "Vec<UfeHex>")]
-    pub payload: Vec<FieldElement>,
-}
-
 #[derive(Debug, Serialize)]
 #[serde(untagged)]
 pub enum DeclareTransaction {

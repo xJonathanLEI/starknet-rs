@@ -1,4 +1,4 @@
-use std::{any::Any, error::Error};
+use std::{any::Any, error::Error, fmt::Display};
 
 use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -8,19 +8,17 @@ use starknet_core::{
     types::{
         requests::*, BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
         BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
-        ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
-        EventFilterWithPage, EventsPage, FeeEstimate, FieldElement, FunctionCall,
+        ContractClass, ContractErrorData, DeclareTransactionResult, DeployAccountTransactionResult,
+        EventFilter, EventFilterWithPage, EventsPage, FeeEstimate, FieldElement, FunctionCall,
         InvokeTransactionResult, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
-        MaybePendingStateUpdate, MaybePendingTransactionReceipt, MsgFromL1, ResultPageRequest,
-        SimulatedTransaction, SimulationFlag, StarknetError, SyncStatusType, Transaction,
-        TransactionTrace, TransactionTraceWithHash,
+        MaybePendingStateUpdate, MaybePendingTransactionReceipt, MsgFromL1,
+        NoTraceAvailableErrorData, ResultPageRequest, SimulatedTransaction, SimulationFlag,
+        StarknetError, SyncStatusType, Transaction, TransactionStatus, TransactionTrace,
+        TransactionTraceWithHash,
     },
 };
 
-use crate::{
-    provider::{MaybeUnknownErrorCode, ProviderImplError, StarknetErrorWithMessage},
-    Provider, ProviderError,
-};
+use crate::{provider::ProviderImplError, Provider, ProviderError};
 
 mod transports;
 pub use transports::{HttpTransport, HttpTransportError, JsonRpcTransport};
@@ -32,6 +30,8 @@ pub struct JsonRpcClient<T> {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum JsonRpcMethod {
+    #[serde(rename = "starknet_specVersion")]
+    SpecVersion,
     #[serde(rename = "starknet_getBlockWithTxHashes")]
     GetBlockWithTxHashes,
     #[serde(rename = "starknet_getBlockWithTxs")]
@@ -40,6 +40,8 @@ pub enum JsonRpcMethod {
     GetStateUpdate,
     #[serde(rename = "starknet_getStorageAt")]
     GetStorageAt,
+    #[serde(rename = "starknet_getTransactionStatus")]
+    GetTransactionStatus,
     #[serde(rename = "starknet_getTransactionByHash")]
     GetTransactionByHash,
     #[serde(rename = "starknet_getTransactionByBlockIdAndIndex")]
@@ -66,8 +68,6 @@ pub enum JsonRpcMethod {
     BlockHashAndNumber,
     #[serde(rename = "starknet_chainId")]
     ChainId,
-    #[serde(rename = "starknet_pendingTransactions")]
-    PendingTransactions,
     #[serde(rename = "starknet_syncing")]
     Syncing,
     #[serde(rename = "starknet_getEvents")]
@@ -96,10 +96,12 @@ pub struct JsonRpcRequest {
 
 #[derive(Debug, Clone)]
 pub enum JsonRpcRequestData {
+    SpecVersion(SpecVersionRequest),
     GetBlockWithTxHashes(GetBlockWithTxHashesRequest),
     GetBlockWithTxs(GetBlockWithTxsRequest),
     GetStateUpdate(GetStateUpdateRequest),
     GetStorageAt(GetStorageAtRequest),
+    GetTransactionStatus(GetTransactionStatusRequest),
     GetTransactionByHash(GetTransactionByHashRequest),
     GetTransactionByBlockIdAndIndex(GetTransactionByBlockIdAndIndexRequest),
     GetTransactionReceipt(GetTransactionReceiptRequest),
@@ -113,7 +115,6 @@ pub enum JsonRpcRequestData {
     BlockNumber(BlockNumberRequest),
     BlockHashAndNumber(BlockHashAndNumberRequest),
     ChainId(ChainIdRequest),
-    PendingTransactions(PendingTransactionsRequest),
     Syncing(SyncingRequest),
     GetEvents(GetEventsRequest),
     GetNonce(GetNonceRequest),
@@ -132,22 +133,15 @@ pub enum JsonRpcClientError<T> {
     #[error(transparent)]
     TransportError(T),
     #[error(transparent)]
-    RpcError(RpcError),
+    JsonRpcError(JsonRpcError),
 }
 
-#[derive(Debug, thiserror::Error)]
-pub enum RpcError {
-    #[error(transparent)]
-    Code(StarknetError),
-    #[error(transparent)]
-    Unknown(JsonRpcError),
-}
-
-#[derive(Debug, thiserror::Error, Deserialize)]
-#[error("JSON-RPC error: code={code}, message=\"{message}\"")]
+#[derive(Debug, Deserialize)]
 pub struct JsonRpcError {
     pub code: i64,
     pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -155,6 +149,17 @@ pub struct JsonRpcError {
 pub enum JsonRpcResponse<T> {
     Success { id: u64, result: T },
     Error { id: u64, error: JsonRpcError },
+}
+
+/// Failures trying to parse a [JsonRpcError] into [StarknetError].
+#[derive(Debug, thiserror::Error)]
+pub enum JsonRpcErrorConversionError {
+    #[error("unknown error code")]
+    UnknownCode,
+    #[error("missing data field")]
+    MissingData,
+    #[error("unable to parse the data field")]
+    DataParsingFailure,
 }
 
 #[serde_as]
@@ -188,13 +193,10 @@ where
         {
             JsonRpcResponse::Success { result, .. } => Ok(result),
             JsonRpcResponse::Error { error, .. } => {
-                Err(ProviderError::StarknetError(StarknetErrorWithMessage {
-                    code: match error.code.try_into() {
-                        Ok(code) => MaybeUnknownErrorCode::Known(code),
-                        Err(_) => MaybeUnknownErrorCode::Unknown(error.code),
-                    },
-                    message: error.message,
-                }))
+                Err(match TryInto::<StarknetError>::try_into(&error) {
+                    Ok(error) => ProviderError::StarknetError(error),
+                    Err(_) => JsonRpcClientError::<T::Error>::JsonRpcError(error).into(),
+                })
             }
         }
     }
@@ -206,6 +208,12 @@ impl<T> Provider for JsonRpcClient<T>
 where
     T: 'static + JsonRpcTransport + Sync + Send,
 {
+    /// Returns the version of the Starknet JSON-RPC specification being used
+    async fn spec_version(&self) -> Result<String, ProviderError> {
+        self.send_request(JsonRpcMethod::SpecVersion, SpecVersionRequest)
+            .await
+    }
+
     /// Get block information with transaction hashes given the block id
     async fn get_block_with_tx_hashes<B>(
         &self,
@@ -280,6 +288,24 @@ where
             )
             .await?
             .0)
+    }
+
+    /// Gets the transaction status (possibly reflecting that the tx is still in
+    /// the mempool, or dropped from it)
+    async fn get_transaction_status<H>(
+        &self,
+        transaction_hash: H,
+    ) -> Result<TransactionStatus, ProviderError>
+    where
+        H: AsRef<FieldElement> + Send + Sync,
+    {
+        self.send_request(
+            JsonRpcMethod::GetTransactionStatus,
+            GetTransactionStatusRequestRef {
+                transaction_hash: transaction_hash.as_ref(),
+            },
+        )
+        .await
     }
 
     /// Get the details and status of a submitted transaction
@@ -489,15 +515,6 @@ where
             .0)
     }
 
-    /// Returns the transactions in the transaction pool, recognized by this sequencer
-    async fn pending_transactions(&self) -> Result<Vec<Transaction>, ProviderError> {
-        self.send_request(
-            JsonRpcMethod::PendingTransactions,
-            PendingTransactionsRequest,
-        )
-        .await
-    }
-
     /// Returns an object about the sync status, or false if the node is not synching
     async fn syncing(&self) -> Result<SyncStatusType, ProviderError> {
         self.send_request(JsonRpcMethod::Syncing, SyncingRequest)
@@ -642,17 +659,17 @@ where
     }
 
     /// Retrieve traces for all transactions in the given block.
-    async fn trace_block_transactions<H>(
+    async fn trace_block_transactions<B>(
         &self,
-        block_hash: H,
+        block_id: B,
     ) -> Result<Vec<TransactionTraceWithHash>, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync,
+        B: AsRef<BlockId> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::TraceBlockTransactions,
             TraceBlockTransactionsRequestRef {
-                block_hash: block_hash.as_ref(),
+                block_id: block_id.as_ref(),
             },
         )
         .await
@@ -676,6 +693,10 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
 
         let raw_request = RawRequest::deserialize(deserializer)?;
         let request_data = match raw_request.method {
+            JsonRpcMethod::SpecVersion => JsonRpcRequestData::SpecVersion(
+                serde_json::from_value::<SpecVersionRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
             JsonRpcMethod::GetBlockWithTxHashes => JsonRpcRequestData::GetBlockWithTxHashes(
                 serde_json::from_value::<GetBlockWithTxHashesRequest>(raw_request.params)
                     .map_err(error_mapper)?,
@@ -690,6 +711,10 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
             ),
             JsonRpcMethod::GetStorageAt => JsonRpcRequestData::GetStorageAt(
                 serde_json::from_value::<GetStorageAtRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::GetTransactionStatus => JsonRpcRequestData::GetTransactionStatus(
+                serde_json::from_value::<GetTransactionStatusRequest>(raw_request.params)
                     .map_err(error_mapper)?,
             ),
             JsonRpcMethod::GetTransactionByHash => JsonRpcRequestData::GetTransactionByHash(
@@ -747,10 +772,6 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
             ),
             JsonRpcMethod::ChainId => JsonRpcRequestData::ChainId(
                 serde_json::from_value::<ChainIdRequest>(raw_request.params)
-                    .map_err(error_mapper)?,
-            ),
-            JsonRpcMethod::PendingTransactions => JsonRpcRequestData::PendingTransactions(
-                serde_json::from_value::<PendingTransactionsRequest>(raw_request.params)
                     .map_err(error_mapper)?,
             ),
             JsonRpcMethod::Syncing => JsonRpcRequestData::Syncing(
@@ -823,5 +844,93 @@ where
 impl<T> From<serde_json::Error> for JsonRpcClientError<T> {
     fn from(value: serde_json::Error) -> Self {
         Self::JsonError(value)
+    }
+}
+
+impl TryFrom<&JsonRpcError> for StarknetError {
+    type Error = JsonRpcErrorConversionError;
+
+    fn try_from(value: &JsonRpcError) -> Result<Self, Self::Error> {
+        match value.code {
+            1 => Ok(StarknetError::FailedToReceiveTransaction),
+            20 => Ok(StarknetError::ContractNotFound),
+            24 => Ok(StarknetError::BlockNotFound),
+            27 => Ok(StarknetError::InvalidTransactionIndex),
+            28 => Ok(StarknetError::ClassHashNotFound),
+            29 => Ok(StarknetError::TransactionHashNotFound),
+            31 => Ok(StarknetError::PageSizeTooBig),
+            32 => Ok(StarknetError::NoBlocks),
+            33 => Ok(StarknetError::InvalidContinuationToken),
+            34 => Ok(StarknetError::TooManyKeysInFilter),
+            40 => {
+                let data = ContractErrorData::deserialize(
+                    value
+                        .data
+                        .as_ref()
+                        .ok_or(JsonRpcErrorConversionError::MissingData)?,
+                )
+                .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
+                Ok(StarknetError::ContractError(data))
+            }
+            51 => Ok(StarknetError::ClassAlreadyDeclared),
+            52 => Ok(StarknetError::InvalidTransactionNonce),
+            53 => Ok(StarknetError::InsufficientMaxFee),
+            54 => Ok(StarknetError::InsufficientAccountBalance),
+            55 => Ok(StarknetError::ValidationFailure),
+            56 => Ok(StarknetError::CompilationFailed),
+            57 => Ok(StarknetError::ContractClassSizeIsTooLarge),
+            58 => Ok(StarknetError::NonAccount),
+            59 => Ok(StarknetError::DuplicateTx),
+            60 => Ok(StarknetError::CompiledClassHashMismatch),
+            61 => Ok(StarknetError::UnsupportedTxVersion),
+            62 => Ok(StarknetError::UnsupportedContractClassVersion),
+            63 => {
+                let data = String::deserialize(
+                    value
+                        .data
+                        .as_ref()
+                        .ok_or(JsonRpcErrorConversionError::MissingData)?,
+                )
+                .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
+                Ok(StarknetError::UnexpectedError(data))
+            }
+            10 => {
+                let data = NoTraceAvailableErrorData::deserialize(
+                    value
+                        .data
+                        .as_ref()
+                        .ok_or(JsonRpcErrorConversionError::MissingData)?,
+                )
+                .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
+                Ok(StarknetError::NoTraceAvailable(data))
+            }
+            25 => Ok(StarknetError::InvalidTransactionHash),
+            _ => Err(JsonRpcErrorConversionError::UnknownCode),
+        }
+    }
+}
+
+impl Error for JsonRpcError {}
+
+impl Display for JsonRpcError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.data {
+            Some(data) => {
+                write!(
+                    f,
+                    "JSON-RPC error: code={}, message=\"{}\", data={}",
+                    self.code,
+                    self.message,
+                    serde_json::to_string(data).map_err(|_| std::fmt::Error)?
+                )
+            }
+            None => {
+                write!(
+                    f,
+                    "JSON-RPC error: code={}, message=\"{}\"",
+                    self.code, self.message
+                )
+            }
+        }
     }
 }

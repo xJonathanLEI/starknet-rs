@@ -7,7 +7,7 @@ use starknet_core::types::{
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
     MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag, StarknetError,
-    SyncStatusType, Transaction, TransactionTrace, TransactionTraceWithHash,
+    SyncStatusType, Transaction, TransactionStatus, TransactionTrace, TransactionTraceWithHash,
 };
 use std::{any::Any, error::Error, fmt::Debug};
 
@@ -15,6 +15,9 @@ use std::{any::Any, error::Error, fmt::Debug};
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[auto_impl(&, Box, Arc)]
 pub trait Provider {
+    /// Returns the version of the Starknet JSON-RPC specification being used
+    async fn spec_version(&self) -> Result<String, ProviderError>;
+
     /// Get block information with transaction hashes given the block id
     async fn get_block_with_tx_hashes<B>(
         &self,
@@ -50,6 +53,15 @@ pub trait Provider {
         A: AsRef<FieldElement> + Send + Sync,
         K: AsRef<FieldElement> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync;
+
+    /// Gets the transaction status (possibly reflecting that the tx is still in
+    /// the mempool, or dropped from it)
+    async fn get_transaction_status<H>(
+        &self,
+        transaction_hash: H,
+    ) -> Result<TransactionStatus, ProviderError>
+    where
+        H: AsRef<FieldElement> + Send + Sync;
 
     /// Get the details and status of a submitted transaction
     async fn get_transaction_by_hash<H>(
@@ -145,9 +157,6 @@ pub trait Provider {
     /// Return the currently configured Starknet chain id
     async fn chain_id(&self) -> Result<FieldElement, ProviderError>;
 
-    /// Returns the transactions in the transaction pool, recognized by this sequencer
-    async fn pending_transactions(&self) -> Result<Vec<Transaction>, ProviderError>;
-
     /// Returns an object about the sync status, or false if the node is not synching
     async fn syncing(&self) -> Result<SyncStatusType, ProviderError>;
 
@@ -216,12 +225,12 @@ pub trait Provider {
         S: AsRef<[SimulationFlag]> + Send + Sync;
 
     /// Retrieve traces for all transactions in the given block.
-    async fn trace_block_transactions<H>(
+    async fn trace_block_transactions<B>(
         &self,
-        block_hash: H,
+        block_id: B,
     ) -> Result<Vec<TransactionTraceWithHash>, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync;
+        B: AsRef<BlockId> + Send + Sync;
 
     /// Same as [estimate_fee], but only with one estimate.
     async fn estimate_fee_single<R, B>(
@@ -288,33 +297,11 @@ pub trait ProviderImplError: Error + Debug + Send + Sync {
 #[derive(Debug, thiserror::Error)]
 pub enum ProviderError {
     #[error(transparent)]
-    StarknetError(StarknetErrorWithMessage),
+    StarknetError(StarknetError),
     #[error("Request rate limited")]
     RateLimited,
     #[error("Array length mismatch")]
     ArrayLengthMismatch,
     #[error("{0}")]
     Other(Box<dyn ProviderImplError>),
-}
-
-#[derive(Debug, thiserror::Error)]
-#[error("code={code}, message=\"{message}\"")]
-pub struct StarknetErrorWithMessage {
-    pub code: MaybeUnknownErrorCode,
-    pub message: String,
-}
-
-#[derive(Debug)]
-pub enum MaybeUnknownErrorCode {
-    Known(StarknetError),
-    Unknown(i64),
-}
-
-impl core::fmt::Display for MaybeUnknownErrorCode {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match self {
-            MaybeUnknownErrorCode::Known(code) => write!(f, "{}", code),
-            MaybeUnknownErrorCode::Unknown(code) => write!(f, "{}", code),
-        }
-    }
 }

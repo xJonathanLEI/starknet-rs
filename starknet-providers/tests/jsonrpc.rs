@@ -4,21 +4,30 @@ use starknet_core::{
         DeclareTransaction, EthAddress, EventFilter, ExecuteInvocation, ExecutionResult,
         FieldElement, FunctionCall, InvokeTransaction, MaybePendingBlockWithTxHashes,
         MaybePendingBlockWithTxs, MaybePendingStateUpdate, MaybePendingTransactionReceipt,
-        MsgFromL1, StarknetError, SyncStatusType, Transaction, TransactionReceipt,
-        TransactionTrace,
+        MsgFromL1, StarknetError, SyncStatusType, Transaction, TransactionExecutionStatus,
+        TransactionReceipt, TransactionStatus, TransactionTrace,
     },
     utils::{get_selector_from_name, get_storage_var_address},
 };
 use starknet_providers::{
     jsonrpc::{HttpTransport, JsonRpcClient},
-    MaybeUnknownErrorCode, Provider, ProviderError, StarknetErrorWithMessage,
+    Provider, ProviderError,
 };
 use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     let rpc_url =
-        std::env::var("STARKNET_RPC").unwrap_or("https://rpc-goerli-1.starknet.rs/rpc/v0.4".into());
+        std::env::var("STARKNET_RPC").unwrap_or("https://rpc-goerli-1.starknet.rs/rpc/v0.5".into());
     JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()))
+}
+
+#[tokio::test]
+async fn jsonrpc_spec_version() {
+    let rpc_client = create_jsonrpc_client();
+
+    let version = rpc_client.spec_version().await.unwrap();
+
+    assert_eq!(version, "0.5.1");
 }
 
 #[tokio::test]
@@ -97,6 +106,66 @@ async fn jsonrpc_get_storage_at() {
         .unwrap();
 
     assert!(eth_balance > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_transaction_status_rejected() {
+    let rpc_client = create_jsonrpc_client();
+
+    let status = rpc_client
+        .get_transaction_status(
+            FieldElement::from_hex_be(
+                "0x07362a9daa42d9e4be657ed5a50f7fc04ac2017714cddb6c88dc08f48a782632",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    match status {
+        TransactionStatus::Rejected => {}
+        _ => panic!("unexpected transaction status"),
+    }
+}
+
+#[tokio::test]
+async fn jsonrpc_get_transaction_status_succeeded() {
+    let rpc_client = create_jsonrpc_client();
+
+    let status = rpc_client
+        .get_transaction_status(
+            FieldElement::from_hex_be(
+                "0x042fe661cf973a9e62dbf587cfb6d1808e377f394e4fea2c62a4fd02b5ba3473",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    match status {
+        TransactionStatus::AcceptedOnL1(TransactionExecutionStatus::Succeeded) => {}
+        _ => panic!("unexpected transaction status"),
+    }
+}
+
+#[tokio::test]
+async fn jsonrpc_get_transaction_status_reverted() {
+    let rpc_client = create_jsonrpc_client();
+
+    let status = rpc_client
+        .get_transaction_status(
+            FieldElement::from_hex_be(
+                "0x03998d935e23ee0b4956c40e8a5f64f6767176e7e44981328295a2fc20e6892c",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    match status {
+        TransactionStatus::AcceptedOnL1(TransactionExecutionStatus::Reverted) => {}
+        _ => panic!("unexpected transaction status"),
+    }
 }
 
 #[tokio::test]
@@ -302,10 +371,7 @@ async fn jsonrpc_get_transaction_by_hash_non_existent_tx() {
         .unwrap_err();
 
     match err {
-        ProviderError::StarknetError(StarknetErrorWithMessage {
-            code: MaybeUnknownErrorCode::Known(StarknetError::TransactionHashNotFound),
-            ..
-        }) => {
+        ProviderError::StarknetError(StarknetError::TransactionHashNotFound) => {
             // TXN_HASH_NOT_FOUND
         }
         _ => panic!("Unexpected error"),
@@ -366,15 +432,18 @@ async fn jsonrpc_get_transaction_receipt_invoke_reverted() {
 async fn jsonrpc_get_transaction_receipt_l1_handler() {
     let rpc_client = create_jsonrpc_client();
 
-    let receipt = rpc_client
-        .get_transaction_receipt(
-            FieldElement::from_hex_be(
-                "0374286ae28f201e61ffbc5b022cc9701208640b405ea34ea9799f97d5d2d23c",
-            )
-            .unwrap(),
-        )
-        .await
-        .unwrap();
+    let tx_hash = FieldElement::from_hex_be(
+        "0374286ae28f201e61ffbc5b022cc9701208640b405ea34ea9799f97d5d2d23c",
+    )
+    .unwrap();
+
+    let tx = rpc_client.get_transaction_by_hash(tx_hash).await.unwrap();
+    let receipt = rpc_client.get_transaction_receipt(tx_hash).await.unwrap();
+
+    let tx = match tx {
+        Transaction::L1Handler(tx) => tx,
+        _ => panic!("unexpected tx type"),
+    };
 
     let receipt = match receipt {
         MaybePendingTransactionReceipt::Receipt(TransactionReceipt::L1Handler(receipt)) => receipt,
@@ -385,6 +454,8 @@ async fn jsonrpc_get_transaction_receipt_l1_handler() {
         ExecutionResult::Succeeded => {}
         _ => panic!("unexpected execution result"),
     }
+
+    assert_eq!(tx.parse_msg_to_l2().unwrap().hash(), receipt.message_hash);
 }
 
 #[tokio::test]
@@ -704,13 +775,6 @@ async fn jsonrpc_chain_id() {
 
     let chain_id = rpc_client.chain_id().await.unwrap();
     assert!(chain_id > FieldElement::ZERO);
-}
-
-#[tokio::test]
-async fn jsonrpc_pending_transactions() {
-    let rpc_client = create_jsonrpc_client();
-
-    rpc_client.pending_transactions().await.unwrap();
 }
 
 #[tokio::test]
