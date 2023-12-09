@@ -192,16 +192,14 @@ impl From<[u8; 20]> for EthAddress {
 
 #[cfg(test)]
 mod tests {
+    use hex_literal::hex;
+
     use super::EthAddress;
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_eth_address_from_bytes_array() {
-        // address: e7f1725e7734ce288f8367e1bb143e90bb3f0512
-        let address_bytes: [u8; 20] = [
-            231, 241, 114, 94, 119, 52, 206, 40, 143, 131, 103, 225, 187, 20, 62, 144, 187, 63, 5,
-            18,
-        ];
+        let address_bytes: [u8; 20] = hex!("e7f1725e7734ce288f8367e1bb143e90bb3f0512");
 
         let eth_address: EthAddress = address_bytes.into();
         assert_eq!(
@@ -214,14 +212,11 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_eth_address_from_slice() {
         // address: e7f1725e7734ce288f8367e1bb143e90bb3f0512, inside a buffer with more data.
-        let buffer: Vec<u8> = vec![
-            0, 1, 2, 231, 241, 114, 94, 119, 52, 206, 40, 143, 131, 103, 225, 187, 20, 62, 144,
-            187, 63, 5, 18, 11, 22, 33,
-        ];
+        let buffer = hex!("010203e7f1725e7734ce288f8367e1bb143e90bb3f0512");
 
         let eth_address: EthAddress = (&buffer[3..23])
             .try_into()
-            .expect("failed to get eth_address from slice");
+            .expect("failed to get EthAddress from slice");
         assert_eq!(
             EthAddress::from_hex("0xe7f1725e7734ce288f8367e1bb143e90bb3f0512").unwrap(),
             eth_address
