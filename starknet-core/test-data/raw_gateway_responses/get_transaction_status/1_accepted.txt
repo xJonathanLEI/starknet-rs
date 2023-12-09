@@ -1,1 +1,1 @@
-{"tx_status": "ACCEPTED_ON_L1", "finality_status": "ACCEPTED_ON_L1", "execution_status": "SUCCEEDED", "block_hash": "0xca6e3e44d58747b398a0b4e882245c6bc9f5cd666674824e14929708fb8d09"}
+{"tx_status": "ACCEPTED_ON_L1", "finality_status": "ACCEPTED_ON_L1", "execution_status": "SUCCEEDED", "block_hash": "0x42553deb16a14de4153f28312971f825e83d924e0f2883c1178de86a64a398f"}
