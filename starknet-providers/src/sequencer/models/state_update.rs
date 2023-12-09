@@ -79,7 +79,7 @@ mod tests {
             .storage_diffs
             .get(
                 &FieldElement::from_hex_be(
-                    "0x243b1e9ae747179e11ac685548ee1d6c5691ee9bda33ab0adee6f4838bddc55",
+                    "0xdc2e5d3d73589a12037d1cdf1ba3f69bde2e8983faa0a5c6b3b051b2c46e14",
                 )
                 .unwrap(),
             )
@@ -88,13 +88,13 @@ mod tests {
         assert_eq!(
             storage_diff.key,
             FieldElement::from_hex_be(
-                "0x37501df619c4fc4e96f6c0243f55e3abe7d1aca7db9af8f3740ba3696b3fdac"
+                "0x23444ef42446d7a7ebaaceea3dedfa11c3306fa839f98611e5efcd38ea59350"
             )
             .unwrap()
         );
         assert_eq!(
             storage_diff.value,
-            FieldElement::from_hex_be("0x1a").unwrap()
+            FieldElement::from_hex_be("0x7c7").unwrap()
         );
 
         let deployed_contract = &state_update.state_diff.deployed_contracts[0];
@@ -102,14 +102,14 @@ mod tests {
         assert_eq!(
             deployed_contract.address,
             FieldElement::from_hex_be(
-                "0x7da57050effcee2a29d8ed3e3e42f9371bb827cbf96c1d2bcedbefd9004c72c"
+                "0xa251264114855c3d59281ad5a912730fbba38dddbcce7abce115440db7868f"
             )
             .unwrap()
         );
         assert_eq!(
             deployed_contract.class_hash,
             FieldElement::from_hex_be(
-                "02c3348ad109f7f3967df6494b3c48741d61675d9a7915b265aa7101a631dc33"
+                "048498ebae1afc22157322db4bb7814b668c7ee20237cc8be64d934649679da1"
             )
             .unwrap()
         );
@@ -146,6 +146,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "block with the same criteria not found in goerli-integration yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_state_update_deser_with_replaced_classes() {
         let raw = include_str!(

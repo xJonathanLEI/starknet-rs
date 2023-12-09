@@ -131,6 +131,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "transaction with the same criteria not found in goerli-integration yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_trace_deser_with_validation() {
         let trace = serde_json::from_str::<TransactionTrace>(include_str!(

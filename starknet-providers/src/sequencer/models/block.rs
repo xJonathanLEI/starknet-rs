@@ -51,7 +51,9 @@ pub struct Block {
     pub state_root: Option<FieldElement>,
     pub status: BlockStatus,
     #[serde_as(as = "UfeHex")]
-    pub gas_price: FieldElement,
+    pub eth_l1_gas_price: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub strk_l1_gas_price: FieldElement,
     pub transactions: Vec<TransactionType>,
     pub transaction_receipts: Vec<ConfirmedTransactionReceipt>,
     // Field marked optional as old blocks don't include it yet. Drop optional once resolved.
@@ -71,30 +73,30 @@ mod tests {
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
-        assert_eq!(block.block_number.unwrap(), 39232);
+        assert_eq!(block.block_number.unwrap(), 100);
         assert_eq!(block.status, BlockStatus::AcceptedOnL1);
         assert_eq!(
             block.state_root.unwrap(),
             FieldElement::from_hex_be(
-                "06cb132715b8687f1c1d79a7282975986fb0a9c166d64b384cfad965a602fe02"
+                "04be6496e74b3877db0b958a197b32ad797b3d2b1045e0697c01c1481501ea39"
             )
             .unwrap()
         );
-        assert_eq!(block.transactions.len(), 3);
-        assert_eq!(block.transaction_receipts.len(), 3);
+        assert_eq!(block.transactions.len(), 5);
+        assert_eq!(block.transaction_receipts.len(), 5);
 
         if let TransactionType::Deploy(tx) = &block.transactions[0] {
             assert_eq!(tx.constructor_calldata.len(), 2);
         } else {
             panic!("Did not deserialize Transaction::Deploy properly");
         }
-        if let TransactionType::InvokeFunction(tx) = &block.transactions[1] {
-            assert_eq!(tx.calldata.len(), 7);
+        if let TransactionType::InvokeFunction(tx) = &block.transactions[2] {
+            assert_eq!(tx.calldata.len(), 4);
         } else {
             panic!("Did not deserialize Transaction::InvokeFunction properly");
         }
         let receipt = &block.transaction_receipts[0];
-        assert_eq!(receipt.execution_resources.as_ref().unwrap().n_steps, 68);
+        assert_eq!(receipt.execution_resources.as_ref().unwrap().n_steps, 29);
     }
 
     #[test]
@@ -106,14 +108,15 @@ mod tests {
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
-        assert_eq!(block.block_number.unwrap(), 122387);
-        assert_eq!(block.transaction_receipts.len(), 49);
-        let receipt = &block.transaction_receipts[22];
+        assert_eq!(block.block_number.unwrap(), 102);
+        assert_eq!(block.transaction_receipts.len(), 6);
+        let receipt = &block.transaction_receipts[0];
         assert_eq!(receipt.l2_to_l1_messages.len(), 1);
         assert_eq!(receipt.l2_to_l1_messages[0].payload.len(), 2);
     }
 
     #[test]
+    #[ignore = "block with the same criteria not found in goerli-integration yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_with_messages_without_nonce() {
         // has an L2 to L1 message
@@ -142,11 +145,12 @@ mod tests {
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
-        assert_eq!(block.block_number.unwrap(), 47543);
-        assert_eq!(block.transaction_receipts.len(), 4);
+        assert_eq!(block.block_number.unwrap(), 70000);
+        assert_eq!(block.transaction_receipts.len(), 35);
         let receipt = &block.transaction_receipts[3];
         assert_eq!(receipt.events.len(), 1);
-        assert_eq!(receipt.events[0].data.len(), 2);
+        assert_eq!(receipt.events[0].keys.len(), 8);
+        assert_eq!(receipt.events[0].data.len(), 0);
     }
 
     #[test]
@@ -206,7 +210,7 @@ mod tests {
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
-        let tx = match &block.transactions[26] {
+        let tx = match &block.transactions[1] {
             TransactionType::Declare(tx) => tx,
             _ => panic!("Unexpected tx type"),
         };
@@ -223,7 +227,7 @@ mod tests {
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
-        let tx = match &block.transactions[23] {
+        let tx = match &block.transactions[26] {
             TransactionType::L1Handler(tx) => tx,
             _ => panic!("Unexpected tx type"),
         };
@@ -231,13 +235,14 @@ mod tests {
         assert_eq!(
             tx.contract_address,
             FieldElement::from_hex_be(
-                "0x4a472fe795cc40e9dc838fe4f1608cb91bf027854d016675ec81e172a2e3599"
+                "0x7e829edae4832b140c73ba615e02f2d593122d43724352e21716daff98bd1da"
             )
             .unwrap()
         );
     }
 
     #[test]
+    #[ignore = "block with the same criteria not found in goerli-integration yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_without_execution_resources() {
         let raw = include_str!(
@@ -252,6 +257,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "block with the same criteria not found in goerli-integration yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_l1_handler_without_nonce() {
         let raw = include_str!(
@@ -269,6 +275,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "block with the same criteria not found in goerli-integration yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_without_entry_point() {
         let raw = include_str!(
@@ -294,7 +301,7 @@ mod tests {
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
-        let tx = match &block.transactions[43] {
+        let tx = match &block.transactions[0] {
             TransactionType::DeployAccount(tx) => tx,
             _ => panic!("Unexpected tx type"),
         };
@@ -317,6 +324,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "block with the same criteria not found in goerli-integration yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_with_reverted_tx() {
         let raw = include_str!(

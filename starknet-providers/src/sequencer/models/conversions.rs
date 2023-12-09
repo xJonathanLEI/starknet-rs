@@ -47,8 +47,16 @@ impl TryFrom<Block> for core::MaybePendingBlockWithTxHashes {
                     timestamp: value.timestamp,
                     sequencer_address: value.sequencer_address.unwrap_or_default(),
                     l1_gas_price: core::ResourcePrice {
-                        price_in_strk: None,
-                        price_in_wei: value.gas_price.try_into().map_err(|_| ConversionError)?,
+                        price_in_strk: Some(
+                            value
+                                .strk_l1_gas_price
+                                .try_into()
+                                .map_err(|_| ConversionError)?,
+                        ),
+                        price_in_wei: value
+                            .eth_l1_gas_price
+                            .try_into()
+                            .map_err(|_| ConversionError)?,
                     },
                     starknet_version: value.starknet_version.ok_or(ConversionError)?,
                     transactions: value
@@ -69,8 +77,16 @@ impl TryFrom<Block> for core::MaybePendingBlockWithTxHashes {
                 sequencer_address: value.sequencer_address.unwrap_or_default(),
                 parent_hash: value.parent_block_hash,
                 l1_gas_price: core::ResourcePrice {
-                    price_in_strk: None,
-                    price_in_wei: value.gas_price.try_into().map_err(|_| ConversionError)?,
+                    price_in_strk: Some(
+                        value
+                            .strk_l1_gas_price
+                            .try_into()
+                            .map_err(|_| ConversionError)?,
+                    ),
+                    price_in_wei: value
+                        .eth_l1_gas_price
+                        .try_into()
+                        .map_err(|_| ConversionError)?,
                 },
                 starknet_version: value.starknet_version.ok_or(ConversionError)?,
             })),
@@ -96,8 +112,16 @@ impl TryFrom<Block> for core::MaybePendingBlockWithTxs {
                     timestamp: value.timestamp,
                     sequencer_address: value.sequencer_address.unwrap_or_default(),
                     l1_gas_price: core::ResourcePrice {
-                        price_in_strk: None,
-                        price_in_wei: value.gas_price.try_into().map_err(|_| ConversionError)?,
+                        price_in_strk: Some(
+                            value
+                                .strk_l1_gas_price
+                                .try_into()
+                                .map_err(|_| ConversionError)?,
+                        ),
+                        price_in_wei: value
+                            .eth_l1_gas_price
+                            .try_into()
+                            .map_err(|_| ConversionError)?,
                     },
                     starknet_version: value.starknet_version.ok_or(ConversionError)?,
                     transactions: value
@@ -118,8 +142,16 @@ impl TryFrom<Block> for core::MaybePendingBlockWithTxs {
                 sequencer_address: value.sequencer_address.unwrap_or_default(),
                 parent_hash: value.parent_block_hash,
                 l1_gas_price: core::ResourcePrice {
-                    price_in_strk: None,
-                    price_in_wei: value.gas_price.try_into().map_err(|_| ConversionError)?,
+                    price_in_strk: Some(
+                        value
+                            .strk_l1_gas_price
+                            .try_into()
+                            .map_err(|_| ConversionError)?,
+                    ),
+                    price_in_wei: value
+                        .eth_l1_gas_price
+                        .try_into()
+                        .map_err(|_| ConversionError)?,
                 },
                 starknet_version: value.starknet_version.ok_or(ConversionError)?,
             })),
@@ -150,7 +182,7 @@ impl TryFrom<TransactionType> for core::Transaction {
         match value {
             TransactionType::Declare(inner) => Ok(Self::Declare(inner.try_into()?)),
             TransactionType::Deploy(inner) => Ok(Self::Deploy(inner.try_into()?)),
-            TransactionType::DeployAccount(inner) => Ok(Self::DeployAccount(inner.into())),
+            TransactionType::DeployAccount(inner) => Ok(Self::DeployAccount(inner.try_into()?)),
             TransactionType::InvokeFunction(inner) => Ok(Self::Invoke(inner.try_into()?)),
             TransactionType::L1Handler(inner) => Ok(Self::L1Handler(inner.try_into()?)),
         }
@@ -164,7 +196,7 @@ impl TryFrom<DeclareTransaction> for core::DeclareTransaction {
         if value.version == FieldElement::ZERO {
             Ok(Self::V0(core::DeclareTransactionV0 {
                 transaction_hash: value.transaction_hash,
-                max_fee: value.max_fee,
+                max_fee: value.max_fee.ok_or(ConversionError)?,
                 signature: value.signature,
                 class_hash: value.class_hash,
                 sender_address: value.sender_address,
@@ -172,7 +204,7 @@ impl TryFrom<DeclareTransaction> for core::DeclareTransaction {
         } else if value.version == FieldElement::ONE {
             Ok(Self::V1(core::DeclareTransactionV1 {
                 transaction_hash: value.transaction_hash,
-                max_fee: value.max_fee,
+                max_fee: value.max_fee.ok_or(ConversionError)?,
                 signature: value.signature,
                 nonce: value.nonce,
                 class_hash: value.class_hash,
@@ -181,7 +213,7 @@ impl TryFrom<DeclareTransaction> for core::DeclareTransaction {
         } else if value.version == FieldElement::TWO {
             Ok(Self::V2(core::DeclareTransactionV2 {
                 transaction_hash: value.transaction_hash,
-                max_fee: value.max_fee,
+                max_fee: value.max_fee.ok_or(ConversionError)?,
                 signature: value.signature,
                 nonce: value.nonce,
                 class_hash: value.class_hash,
@@ -208,17 +240,19 @@ impl TryFrom<DeployTransaction> for core::DeployTransaction {
     }
 }
 
-impl From<DeployAccountTransaction> for core::DeployAccountTransaction {
-    fn from(value: DeployAccountTransaction) -> Self {
-        Self {
+impl TryFrom<DeployAccountTransaction> for core::DeployAccountTransaction {
+    type Error = ConversionError;
+
+    fn try_from(value: DeployAccountTransaction) -> Result<Self, Self::Error> {
+        Ok(Self {
             transaction_hash: value.transaction_hash,
-            max_fee: value.max_fee,
+            max_fee: value.max_fee.ok_or(ConversionError)?,
             signature: value.signature,
             nonce: value.nonce,
             contract_address_salt: value.contract_address_salt,
             constructor_calldata: value.constructor_calldata,
             class_hash: value.class_hash,
-        }
+        })
     }
 }
 
@@ -229,7 +263,7 @@ impl TryFrom<InvokeFunctionTransaction> for core::InvokeTransaction {
         if value.version == FieldElement::ZERO {
             Ok(Self::V0(core::InvokeTransactionV0 {
                 transaction_hash: value.transaction_hash,
-                max_fee: value.max_fee,
+                max_fee: value.max_fee.ok_or(ConversionError)?,
                 signature: value.signature,
                 contract_address: value.sender_address,
                 entry_point_selector: value.entry_point_selector.ok_or(ConversionError)?,
@@ -238,7 +272,7 @@ impl TryFrom<InvokeFunctionTransaction> for core::InvokeTransaction {
         } else if value.version == FieldElement::ONE {
             Ok(Self::V1(core::InvokeTransactionV1 {
                 transaction_hash: value.transaction_hash,
-                max_fee: value.max_fee,
+                max_fee: value.max_fee.ok_or(ConversionError)?,
                 signature: value.signature,
                 nonce: value.nonce.ok_or(ConversionError)?,
                 sender_address: value.sender_address,

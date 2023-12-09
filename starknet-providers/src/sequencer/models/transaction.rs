@@ -93,14 +93,25 @@ pub struct DeclareTransaction {
     pub sender_address: FieldElement,
     #[serde_as(as = "UfeHex")]
     pub nonce: FieldElement,
-    #[serde_as(as = "UfeHex")]
-    pub max_fee: FieldElement,
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub max_fee: Option<FieldElement>,
     #[serde_as(as = "UfeHex")]
     pub version: FieldElement,
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub signature: Vec<FieldElement>,
+    pub nonce_data_availability_mode: Option<u32>,
+    pub fee_data_availability_mode: Option<u32>,
+    pub resource_bounds: Option<ResourceBoundsMapping>,
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub tip: Option<FieldElement>,
+    #[serde_as(as = "Option<Vec<UfeHex>>")]
+    pub paymaster_data: Option<Vec<FieldElement>>,
+    #[serde_as(deserialize_as = "Option<Vec<UfeHex>>")]
+    pub account_deployment_data: Option<Vec<FieldElement>>,
 }
 
 #[serde_as]
@@ -127,8 +138,9 @@ pub struct DeployTransaction {
 pub struct DeployAccountTransaction {
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub constructor_calldata: Vec<FieldElement>,
-    #[serde_as(as = "UfeHex")]
-    pub contract_address: FieldElement,
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub contract_address: Option<FieldElement>,
     #[serde_as(as = "UfeHex")]
     pub contract_address_salt: FieldElement,
     #[serde_as(as = "UfeHex")]
@@ -141,8 +153,20 @@ pub struct DeployAccountTransaction {
     pub version: FieldElement,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub signature: Vec<FieldElement>,
-    #[serde_as(as = "UfeHex")]
-    pub max_fee: FieldElement,
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub max_fee: Option<FieldElement>,
+    pub nonce_data_availability_mode: Option<u32>,
+    pub fee_data_availability_mode: Option<u32>,
+    pub resource_bounds: Option<ResourceBoundsMapping>,
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub tip: Option<FieldElement>,
+    #[serde_as(as = "Option<Vec<UfeHex>>")]
+    pub paymaster_data: Option<Vec<FieldElement>>,
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub sender_address: Option<FieldElement>,
 }
 
 #[serde_as]
@@ -161,10 +185,21 @@ pub struct InvokeFunctionTransaction {
     pub signature: Vec<FieldElement>,
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
-    #[serde_as(as = "UfeHex")]
-    pub max_fee: FieldElement,
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub max_fee: Option<FieldElement>,
     #[serde_as(as = "Option<UfeHex>")]
     pub nonce: Option<FieldElement>,
+    pub nonce_data_availability_mode: Option<u32>,
+    pub fee_data_availability_mode: Option<u32>,
+    pub resource_bounds: Option<ResourceBoundsMapping>,
+    #[serde(default)]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub tip: Option<FieldElement>,
+    #[serde_as(as = "Option<Vec<UfeHex>>")]
+    pub paymaster_data: Option<Vec<FieldElement>>,
+    #[serde_as(deserialize_as = "Option<Vec<UfeHex>>")]
+    pub account_deployment_data: Option<Vec<FieldElement>>,
     #[serde_as(as = "UfeHex")]
     pub version: FieldElement,
 }
@@ -185,6 +220,24 @@ pub struct L1HandlerTransaction {
     pub nonce: Option<FieldElement>,
     #[serde_as(as = "UfeHex")]
     pub version: FieldElement,
+}
+
+#[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub struct ResourceBoundsMapping {
+    l1_gas: ResourceBounds,
+    l2_gas: ResourceBounds,
+}
+
+#[serde_as]
+#[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct ResourceBounds {
+    #[serde_as(as = "UfeHex")]
+    pub max_amount: FieldElement,
+    #[serde_as(as = "UfeHex")]
+    pub max_price_per_unit: FieldElement,
 }
 
 impl TransactionType {
@@ -210,9 +263,9 @@ mod tests {
             include_str!("../../../test-data/raw_gateway_responses/get_transaction/1_invoke.txt");
         let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
 
-        assert_eq!(tx.block_number, Some(39099));
+        assert_eq!(tx.block_number, Some(100));
         if let TransactionType::InvokeFunction(invoke) = tx.r#type.unwrap() {
-            assert_eq!(invoke.signature.len(), 2);
+            assert_eq!(invoke.signature.len(), 0);
         } else {
             panic!("Did not deserialize TransactionType::InvokeFunction properly")
         }
@@ -225,7 +278,7 @@ mod tests {
             include_str!("../../../test-data/raw_gateway_responses/get_transaction/2_deploy.txt");
         let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
 
-        assert_eq!(tx.block_number, Some(39181));
+        assert_eq!(tx.block_number, Some(100));
         if let TransactionType::Deploy(deploy) = tx.r#type.unwrap() {
             assert_eq!(deploy.constructor_calldata.len(), 2);
         } else {
@@ -246,6 +299,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "transaction with the same criteria not found in goerli-integration yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_failure() {
         let raw =
@@ -286,6 +340,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "transaction with the same criteria not found in goerli-integration yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_reverted() {
         let raw =
@@ -295,6 +350,54 @@ mod tests {
         match tx.execution_status.unwrap() {
             TransactionExecutionStatus::Reverted => {}
             _ => panic!("Unexpected execution status"),
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_deser_invoke_v3_transaction() {
+        let raw = include_str!(
+            "../../../test-data/raw_gateway_responses/get_transaction/8_invoke_v3.txt"
+        );
+        let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
+
+        match tx.r#type.unwrap() {
+            TransactionType::InvokeFunction(tx) => {
+                assert_eq!(tx.version, FieldElement::THREE);
+            }
+            _ => panic!("Did not deserialize TransactionType::InvokeFunction properly"),
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_deser_declare_v3_transaction() {
+        let raw = include_str!(
+            "../../../test-data/raw_gateway_responses/get_transaction/9_declare_v3.txt"
+        );
+        let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
+
+        match tx.r#type.unwrap() {
+            TransactionType::Declare(tx) => {
+                assert_eq!(tx.version, FieldElement::THREE);
+            }
+            _ => panic!("Did not deserialize TransactionType::Declare properly"),
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_deser_deploy_account_v3_transaction() {
+        let raw = include_str!(
+            "../../../test-data/raw_gateway_responses/get_transaction/10_deploy_account_v3.txt"
+        );
+        let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
+
+        match tx.r#type.unwrap() {
+            TransactionType::DeployAccount(tx) => {
+                assert_eq!(tx.version, FieldElement::THREE);
+            }
+            _ => panic!("Did not deserialize TransactionType::DeployAccount properly"),
         }
     }
 
@@ -312,7 +415,7 @@ mod tests {
             tx.block_hash,
             Some(
                 FieldElement::from_hex_be(
-                    "0xca6e3e44d58747b398a0b4e882245c6bc9f5cd666674824e14929708fb8d09"
+                    "0x42553deb16a14de4153f28312971f825e83d924e0f2883c1178de86a64a398f"
                 )
                 .unwrap()
             )
@@ -333,6 +436,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "transaction with the same criteria not found in goerli-integration yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_brief_failure() {
         let raw = include_str!(
@@ -347,6 +451,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "transaction with the same criteria not found in goerli-integration yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_brief_reverted() {
         let raw = include_str!(
