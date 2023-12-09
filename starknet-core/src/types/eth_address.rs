@@ -31,11 +31,17 @@ mod errors {
     #[derive(Debug)]
     pub struct FromFieldElementError;
 
+    #[derive(Debug)]
+    pub struct FromBytesSliceError;
+
     #[cfg(feature = "std")]
     impl std::error::Error for FromHexError {}
 
     #[cfg(feature = "std")]
     impl std::error::Error for FromFieldElementError {}
+
+    #[cfg(feature = "std")]
+    impl std::error::Error for FromBytesSliceError {}
 
     impl Display for FromHexError {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
@@ -55,8 +61,14 @@ mod errors {
             write!(f, "FieldElement value out of range")
         }
     }
+
+    impl Display for FromBytesSliceError {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+            write!(f, "invalid slice for ETH address")
+        }
+    }
 }
-pub use errors::{FromFieldElementError, FromHexError};
+pub use errors::{FromBytesSliceError, FromFieldElementError, FromHexError};
 
 impl EthAddress {
     pub fn from_hex(hex: &str) -> Result<Self, FromHexError> {
@@ -154,5 +166,68 @@ impl From<EthAddress> for FieldElement {
     fn from(value: EthAddress) -> Self {
         // Safe to unwrap here as the value is never out of range
         FieldElement::from_byte_slice_be(&value.inner).unwrap()
+    }
+}
+
+impl TryFrom<&[u8]> for EthAddress {
+    type Error = FromBytesSliceError;
+
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
+        if value.len() != 20 {
+            Err(FromBytesSliceError)
+        } else {
+            // Safe to unwrap as we know length is 20.
+            Ok(Self {
+                inner: value.try_into().unwrap(),
+            })
+        }
+    }
+}
+
+impl From<[u8; 20]> for EthAddress {
+    fn from(value: [u8; 20]) -> Self {
+        Self { inner: value }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use hex_literal::hex;
+
+    use super::EthAddress;
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_eth_address_from_bytes_array() {
+        let address_bytes: [u8; 20] = hex!("e7f1725e7734ce288f8367e1bb143e90bb3f0512");
+
+        let eth_address: EthAddress = address_bytes.into();
+        assert_eq!(
+            EthAddress::from_hex("0xe7f1725e7734ce288f8367e1bb143e90bb3f0512").unwrap(),
+            eth_address
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_eth_address_from_slice() {
+        // address: e7f1725e7734ce288f8367e1bb143e90bb3f0512, inside a buffer with more data.
+        let buffer = hex!("010203e7f1725e7734ce288f8367e1bb143e90bb3f0512");
+
+        let eth_address: EthAddress = (&buffer[3..23])
+            .try_into()
+            .expect("failed to get EthAddress from slice");
+        assert_eq!(
+            EthAddress::from_hex("0xe7f1725e7734ce288f8367e1bb143e90bb3f0512").unwrap(),
+            eth_address
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "FromBytesSliceError")]
+    fn test_eth_address_from_slice_invalid_slice() {
+        let buffer: Vec<u8> = vec![0, 1, 2, 3, 4, 5, 6, 7];
+
+        EthAddress::try_from(&buffer[0..4]).unwrap();
     }
 }

@@ -30,6 +30,7 @@ sha3 = { version = "0.10.7", default-features = false }
 
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false }
+hex-literal = "0.4.1"
 starknet-core = { path = ".", features = ["no_unknown_fields"] }
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
