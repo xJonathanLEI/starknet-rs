@@ -9,8 +9,10 @@
 //!
 //! In the data structure, everything is represented as a felt to be compatible
 //! with the Cairo implementation.
-use alloc::string::FromUtf8Error;
-use core::str::{self};
+use alloc::{
+    str::{self},
+    string::FromUtf8Error,
+};
 
 use starknet_ff::FieldElement;
 
