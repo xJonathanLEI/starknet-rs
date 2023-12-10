@@ -11,7 +11,8 @@
 //! with the Cairo implementation.
 use alloc::{
     str::{self},
-    string::FromUtf8Error,
+    string::{FromUtf8Error, String},
+    vec::Vec,
 };
 
 use starknet_ff::FieldElement;
@@ -60,7 +61,7 @@ impl ByteArray {
             (FieldElement::ZERO, 0)
         };
 
-        let mut data = vec![];
+        let mut data = Vec::new();
         for chunk in full_chunks {
             // Safe to unwrap as full chunks are 31 bytes long, always fit in a felt.
             data.push(FieldElement::from_byte_slice_be(chunk).unwrap())
@@ -102,7 +103,7 @@ impl ByteArray {
 ///           of `ByteArray`, we don't need to check `len` as the `MAX_WORD_LEN`
 ///           already protect against that.
 fn felt_to_utf8(felt: &FieldElement, len: usize) -> Result<String, FromUtf8Error> {
-    let mut buffer = vec![];
+    let mut buffer = Vec::new();
 
     // ByteArray always enforce to have the first byte equal to 0.
     // That's why we start to 1.
