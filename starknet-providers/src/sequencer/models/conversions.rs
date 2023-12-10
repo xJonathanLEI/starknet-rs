@@ -455,20 +455,6 @@ impl TryFrom<TransactionFinalityStatus> for core::TransactionFinalityStatus {
     }
 }
 
-impl TryFrom<core::BroadcastedTransaction> for AccountTransaction {
-    type Error = ConversionError;
-
-    fn try_from(value: core::BroadcastedTransaction) -> Result<Self, Self::Error> {
-        match value {
-            core::BroadcastedTransaction::Invoke(inner) => Ok(Self::InvokeFunction(inner.into())),
-            core::BroadcastedTransaction::Declare(inner) => Ok(Self::Declare(inner.try_into()?)),
-            core::BroadcastedTransaction::DeployAccount(inner) => {
-                Ok(Self::DeployAccount(inner.into()))
-            }
-        }
-    }
-}
-
 impl From<core::BroadcastedInvokeTransaction> for InvokeFunctionTransactionRequest {
     fn from(value: core::BroadcastedInvokeTransaction) -> Self {
         Self {

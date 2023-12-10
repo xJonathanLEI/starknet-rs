@@ -27,6 +27,14 @@ const QUERY_VERSION_TWO: FieldElement = FieldElement::from_mont([
     576460752142433232,
 ]);
 
+/// 2 ^ 128 + 3
+const QUERY_VERSION_THREE: FieldElement = FieldElement::from_mont([
+    18446744073700081569,
+    17407,
+    18446744073709551584,
+    576460752142432688,
+]);
+
 #[serde_as]
 #[derive(Debug, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
@@ -52,16 +60,6 @@ pub enum AddTransactionResultCode {
 #[derive(Debug, Serialize)]
 #[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TransactionRequest {
-    Declare(DeclareTransaction),
-    InvokeFunction(InvokeFunctionTransaction),
-    DeployAccount(DeployAccountTransaction),
-}
-
-/// Represents a transaction in the Starknet network that is originated from an action of an
-/// account.
-#[derive(Debug, Serialize)]
-#[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum AccountTransaction {
     Declare(DeclareTransaction),
     InvokeFunction(InvokeFunctionTransaction),
     DeployAccount(DeployAccountTransaction),

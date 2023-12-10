@@ -29,7 +29,7 @@ pub use contract_addresses::ContractAddresses;
 
 mod transaction_request;
 pub use transaction_request::{
-    AccountTransaction, AddTransactionResult, AddTransactionResultCode,
+    AddTransactionResult, AddTransactionResultCode,
     DeclareTransaction as DeclareTransactionRequest,
     DeclareV1Transaction as DeclareV1TransactionRequest,
     DeclareV2Transaction as DeclareV2TransactionRequest,
