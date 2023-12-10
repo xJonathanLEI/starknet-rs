@@ -13,3 +13,6 @@ pub use jsonrpc::JsonRpcClient;
 
 mod any;
 pub use any::AnyProvider;
+
+// Re-export
+pub use url::Url;
