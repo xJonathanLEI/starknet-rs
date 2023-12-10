@@ -87,6 +87,7 @@ pub struct BuiltinInstanceCounter {
     pub ec_op_builtin: Option<u64>,
     pub poseidon_builtin: Option<u64>,
     pub keccak_builtin: Option<u64>,
+    pub segment_arena_builtin: Option<u64>,
 }
 
 #[serde_as]

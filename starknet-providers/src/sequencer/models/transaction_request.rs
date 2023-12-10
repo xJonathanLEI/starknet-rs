@@ -8,6 +8,8 @@ use std::sync::Arc;
 
 use super::{
     contract::{CompressedLegacyContractClass, CompressedSierraClass},
+    serde_impls::u64_hex,
+    transaction::{DataAvailabilityMode, ResourceBoundsMapping},
     L1Address,
 };
 
@@ -70,6 +72,7 @@ pub enum TransactionRequest {
 pub enum DeclareTransaction {
     V1(DeclareV1Transaction),
     V2(DeclareV2Transaction),
+    V3(DeclareV3Transaction),
 }
 
 #[derive(Debug)]
@@ -106,7 +109,37 @@ pub struct DeclareV2Transaction {
 }
 
 #[derive(Debug)]
-pub struct InvokeFunctionTransaction {
+pub struct DeclareV3Transaction {
+    pub contract_class: Arc<CompressedSierraClass>,
+    /// Hash of the compiled class obtained by running `starknet-sierra-compile` on the Sierra
+    /// class. This is required because at the moment, Sierra compilation is not proven, allowing
+    /// the sequencer to run arbitrary code if this is not signed. It's expected that in the future
+    /// this will no longer be required.
+    pub compiled_class_hash: FieldElement,
+    /// The address of the account contract sending the declaration transaction.
+    pub sender_address: FieldElement,
+    /// Additional information given by the caller that represents the signature of the transaction.
+    pub signature: Vec<FieldElement>,
+    /// A sequential integer used to distinguish between transactions and order them.
+    pub nonce: FieldElement,
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    pub fee_data_availability_mode: DataAvailabilityMode,
+    pub resource_bounds: ResourceBoundsMapping,
+    pub tip: u64,
+    pub paymaster_data: Vec<FieldElement>,
+    pub account_deployment_data: Vec<FieldElement>,
+    pub is_query: bool,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(untagged)]
+pub enum InvokeFunctionTransaction {
+    V1(InvokeFunctionV1Transaction),
+    V3(InvokeFunctionV3Transaction),
+}
+
+#[derive(Debug)]
+pub struct InvokeFunctionV1Transaction {
     pub sender_address: FieldElement,
     pub calldata: Vec<FieldElement>,
     pub signature: Vec<FieldElement>,
@@ -116,7 +149,29 @@ pub struct InvokeFunctionTransaction {
 }
 
 #[derive(Debug)]
-pub struct DeployAccountTransaction {
+pub struct InvokeFunctionV3Transaction {
+    pub sender_address: FieldElement,
+    pub calldata: Vec<FieldElement>,
+    pub signature: Vec<FieldElement>,
+    pub nonce: FieldElement,
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    pub fee_data_availability_mode: DataAvailabilityMode,
+    pub resource_bounds: ResourceBoundsMapping,
+    pub tip: u64,
+    pub paymaster_data: Vec<FieldElement>,
+    pub account_deployment_data: Vec<FieldElement>,
+    pub is_query: bool,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(untagged)]
+pub enum DeployAccountTransaction {
+    V1(DeployAccountV1Transaction),
+    V3(DeployAccountV3Transaction),
+}
+
+#[derive(Debug)]
+pub struct DeployAccountV1Transaction {
     pub class_hash: FieldElement,
     pub contract_address_salt: FieldElement,
     pub constructor_calldata: Vec<FieldElement>,
@@ -126,6 +181,23 @@ pub struct DeployAccountTransaction {
     pub signature: Vec<FieldElement>,
     // The nonce of the transaction.
     pub nonce: FieldElement,
+    pub is_query: bool,
+}
+
+#[derive(Debug)]
+pub struct DeployAccountV3Transaction {
+    pub class_hash: FieldElement,
+    pub contract_address_salt: FieldElement,
+    pub constructor_calldata: Vec<FieldElement>,
+    // The signature of the transaction.
+    pub signature: Vec<FieldElement>,
+    // The nonce of the transaction.
+    pub nonce: FieldElement,
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    pub fee_data_availability_mode: DataAvailabilityMode,
+    pub resource_bounds: ResourceBoundsMapping,
+    pub tip: u64,
+    pub paymaster_data: Vec<FieldElement>,
     pub is_query: bool,
 }
 
@@ -206,7 +278,60 @@ impl Serialize for DeclareV2Transaction {
     }
 }
 
-impl Serialize for InvokeFunctionTransaction {
+impl Serialize for DeclareV3Transaction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct Versioned<'a> {
+            #[serde_as(as = "UfeHex")]
+            version: FieldElement,
+            contract_class: &'a CompressedSierraClass,
+            #[serde_as(as = "UfeHex")]
+            compiled_class_hash: &'a FieldElement,
+            #[serde_as(as = "UfeHex")]
+            sender_address: &'a FieldElement,
+            #[serde_as(as = "Vec<UfeHex>")]
+            signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            nonce: &'a FieldElement,
+            nonce_data_availability_mode: &'a DataAvailabilityMode,
+            fee_data_availability_mode: &'a DataAvailabilityMode,
+            resource_bounds: &'a ResourceBoundsMapping,
+            #[serde(with = "u64_hex")]
+            tip: &'a u64,
+            #[serde_as(as = "Vec<UfeHex>")]
+            paymaster_data: &'a Vec<FieldElement>,
+            #[serde_as(as = "Vec<UfeHex>")]
+            account_deployment_data: &'a Vec<FieldElement>,
+        }
+
+        let versioned = Versioned {
+            version: if self.is_query {
+                QUERY_VERSION_THREE
+            } else {
+                FieldElement::THREE
+            },
+            contract_class: &self.contract_class,
+            compiled_class_hash: &self.compiled_class_hash,
+            sender_address: &self.sender_address,
+            signature: &self.signature,
+            nonce: &self.nonce,
+            nonce_data_availability_mode: &self.nonce_data_availability_mode,
+            fee_data_availability_mode: &self.fee_data_availability_mode,
+            resource_bounds: &self.resource_bounds,
+            tip: &self.tip,
+            paymaster_data: &self.paymaster_data,
+            account_deployment_data: &self.account_deployment_data,
+        };
+
+        Versioned::serialize(&versioned, serializer)
+    }
+}
+
+impl Serialize for InvokeFunctionV1Transaction {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -243,7 +368,57 @@ impl Serialize for InvokeFunctionTransaction {
     }
 }
 
-impl Serialize for DeployAccountTransaction {
+impl Serialize for InvokeFunctionV3Transaction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct Versioned<'a> {
+            #[serde_as(as = "UfeHex")]
+            version: FieldElement,
+            #[serde_as(as = "UfeHex")]
+            sender_address: &'a FieldElement,
+            calldata: &'a Vec<FieldElement>,
+            #[serde_as(as = "Vec<UfeHex>")]
+            signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            nonce: &'a FieldElement,
+            nonce_data_availability_mode: &'a DataAvailabilityMode,
+            fee_data_availability_mode: &'a DataAvailabilityMode,
+            resource_bounds: &'a ResourceBoundsMapping,
+            #[serde(with = "u64_hex")]
+            tip: &'a u64,
+            #[serde_as(as = "Vec<UfeHex>")]
+            paymaster_data: &'a Vec<FieldElement>,
+            #[serde_as(as = "Vec<UfeHex>")]
+            account_deployment_data: &'a Vec<FieldElement>,
+        }
+
+        let versioned = Versioned {
+            version: if self.is_query {
+                QUERY_VERSION_THREE
+            } else {
+                FieldElement::THREE
+            },
+            sender_address: &self.sender_address,
+            calldata: &self.calldata,
+            signature: &self.signature,
+            nonce: &self.nonce,
+            nonce_data_availability_mode: &self.nonce_data_availability_mode,
+            fee_data_availability_mode: &self.fee_data_availability_mode,
+            resource_bounds: &self.resource_bounds,
+            tip: &self.tip,
+            paymaster_data: &self.paymaster_data,
+            account_deployment_data: &self.account_deployment_data,
+        };
+
+        Versioned::serialize(&versioned, serializer)
+    }
+}
+
+impl Serialize for DeployAccountV1Transaction {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -277,6 +452,57 @@ impl Serialize for DeployAccountTransaction {
             max_fee: &self.max_fee,
             signature: &self.signature,
             nonce: &self.nonce,
+        };
+
+        Versioned::serialize(&versioned, serializer)
+    }
+}
+
+impl Serialize for DeployAccountV3Transaction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct Versioned<'a> {
+            #[serde_as(as = "UfeHex")]
+            version: FieldElement,
+            #[serde_as(as = "UfeHex")]
+            class_hash: &'a FieldElement,
+            #[serde_as(as = "UfeHex")]
+            contract_address_salt: &'a FieldElement,
+            #[serde_as(as = "Vec<UfeHex>")]
+            constructor_calldata: &'a Vec<FieldElement>,
+            #[serde_as(as = "Vec<UfeHex>")]
+            signature: &'a Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            nonce: &'a FieldElement,
+            nonce_data_availability_mode: &'a DataAvailabilityMode,
+            fee_data_availability_mode: &'a DataAvailabilityMode,
+            resource_bounds: &'a ResourceBoundsMapping,
+            #[serde(with = "u64_hex")]
+            tip: &'a u64,
+            #[serde_as(as = "Vec<UfeHex>")]
+            paymaster_data: &'a Vec<FieldElement>,
+        }
+
+        let versioned = Versioned {
+            version: if self.is_query {
+                QUERY_VERSION_THREE
+            } else {
+                FieldElement::THREE
+            },
+            class_hash: &self.class_hash,
+            contract_address_salt: &self.contract_address_salt,
+            constructor_calldata: &self.constructor_calldata,
+            signature: &self.signature,
+            nonce: &self.nonce,
+            nonce_data_availability_mode: &self.nonce_data_availability_mode,
+            fee_data_availability_mode: &self.fee_data_availability_mode,
+            resource_bounds: &self.resource_bounds,
+            tip: &self.tip,
+            paymaster_data: &self.paymaster_data,
         };
 
         Versioned::serialize(&versioned, serializer)

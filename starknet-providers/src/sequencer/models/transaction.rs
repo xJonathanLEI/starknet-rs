@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{de::Visitor, Deserialize, Serialize};
 use serde_with::serde_as;
 use starknet_core::{
     serde::unsigned_field_element::{UfeHex, UfePendingBlockHash},
@@ -6,6 +6,7 @@ use starknet_core::{
 };
 
 use super::{
+    serde_impls::{u128_hex, u64_hex, u64_hex_opt},
     transaction_receipt::{TransactionExecutionStatus, TransactionFinalityStatus},
     TransactionStatus,
 };
@@ -102,12 +103,11 @@ pub struct DeclareTransaction {
     pub transaction_hash: FieldElement,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
     pub signature: Vec<FieldElement>,
-    pub nonce_data_availability_mode: Option<u32>,
-    pub fee_data_availability_mode: Option<u32>,
+    pub nonce_data_availability_mode: Option<DataAvailabilityMode>,
+    pub fee_data_availability_mode: Option<DataAvailabilityMode>,
     pub resource_bounds: Option<ResourceBoundsMapping>,
-    #[serde(default)]
-    #[serde_as(as = "Option<UfeHex>")]
-    pub tip: Option<FieldElement>,
+    #[serde(default, with = "u64_hex_opt")]
+    pub tip: Option<u64>,
     #[serde_as(as = "Option<Vec<UfeHex>>")]
     pub paymaster_data: Option<Vec<FieldElement>>,
     #[serde_as(deserialize_as = "Option<Vec<UfeHex>>")]
@@ -156,12 +156,11 @@ pub struct DeployAccountTransaction {
     #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
     pub max_fee: Option<FieldElement>,
-    pub nonce_data_availability_mode: Option<u32>,
-    pub fee_data_availability_mode: Option<u32>,
+    pub nonce_data_availability_mode: Option<DataAvailabilityMode>,
+    pub fee_data_availability_mode: Option<DataAvailabilityMode>,
     pub resource_bounds: Option<ResourceBoundsMapping>,
-    #[serde(default)]
-    #[serde_as(as = "Option<UfeHex>")]
-    pub tip: Option<FieldElement>,
+    #[serde(default, with = "u64_hex_opt")]
+    pub tip: Option<u64>,
     #[serde_as(as = "Option<Vec<UfeHex>>")]
     pub paymaster_data: Option<Vec<FieldElement>>,
     #[serde(default)]
@@ -190,12 +189,11 @@ pub struct InvokeFunctionTransaction {
     pub max_fee: Option<FieldElement>,
     #[serde_as(as = "Option<UfeHex>")]
     pub nonce: Option<FieldElement>,
-    pub nonce_data_availability_mode: Option<u32>,
-    pub fee_data_availability_mode: Option<u32>,
+    pub nonce_data_availability_mode: Option<DataAvailabilityMode>,
+    pub fee_data_availability_mode: Option<DataAvailabilityMode>,
     pub resource_bounds: Option<ResourceBoundsMapping>,
-    #[serde(default)]
-    #[serde_as(as = "Option<UfeHex>")]
-    pub tip: Option<FieldElement>,
+    #[serde(default, with = "u64_hex_opt")]
+    pub tip: Option<u64>,
     #[serde_as(as = "Option<Vec<UfeHex>>")]
     pub paymaster_data: Option<Vec<FieldElement>>,
     #[serde_as(deserialize_as = "Option<Vec<UfeHex>>")]
@@ -222,23 +220,30 @@ pub struct L1HandlerTransaction {
     pub version: FieldElement,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub struct ResourceBoundsMapping {
-    l1_gas: ResourceBounds,
-    l2_gas: ResourceBounds,
+    pub l1_gas: ResourceBounds,
+    pub l2_gas: ResourceBounds,
 }
 
-#[serde_as]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ResourceBounds {
-    #[serde_as(as = "UfeHex")]
-    pub max_amount: FieldElement,
-    #[serde_as(as = "UfeHex")]
-    pub max_price_per_unit: FieldElement,
+    #[serde(with = "u64_hex")]
+    pub max_amount: u64,
+    #[serde(with = "u128_hex")]
+    pub max_price_per_unit: u128,
 }
+
+#[derive(Debug)]
+pub enum DataAvailabilityMode {
+    L1,
+    L2,
+}
+
+struct DataAvailabilityModeVisitor;
 
 impl TransactionType {
     pub fn transaction_hash(&self) -> FieldElement {
@@ -248,6 +253,49 @@ impl TransactionType {
             TransactionType::DeployAccount(inner) => inner.transaction_hash,
             TransactionType::InvokeFunction(inner) => inner.transaction_hash,
             TransactionType::L1Handler(inner) => inner.transaction_hash,
+        }
+    }
+}
+
+impl Serialize for DataAvailabilityMode {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_u32(match self {
+            Self::L1 => 0,
+            Self::L2 => 1,
+        })
+    }
+}
+
+impl<'de> Deserialize<'de> for DataAvailabilityMode {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_any(DataAvailabilityModeVisitor)
+    }
+}
+
+impl<'de> Visitor<'de> for DataAvailabilityModeVisitor {
+    type Value = DataAvailabilityMode;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(formatter, "integer")
+    }
+
+    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        match v {
+            0 => Ok(DataAvailabilityMode::L1),
+            1 => Ok(DataAvailabilityMode::L2),
+            _ => Err(serde::de::Error::invalid_value(
+                serde::de::Unexpected::Unsigned(v),
+                &"0 or 1",
+            )),
         }
     }
 }
