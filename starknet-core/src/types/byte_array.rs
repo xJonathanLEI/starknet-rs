@@ -10,7 +10,7 @@
 //! In the data structure, everything is represented as a felt to be compatible
 //! with the Cairo implementation.
 use alloc::string::FromUtf8Error;
-use core::str::{self, FromStr};
+use core::str::{self};
 
 use starknet_ff::FieldElement;
 
@@ -31,7 +31,7 @@ impl ByteArray {
     /// # Arguments
     ///
     /// * `string` - The always valid UTF-8 string to convert.
-    fn internal_from_string(string: &str) -> Self {
+    pub fn from_string(string: &str) -> Self {
         let bytes = string.as_bytes();
         let chunks: Vec<_> = bytes.chunks(MAX_WORD_LEN).collect();
 
@@ -111,11 +111,15 @@ fn felt_to_utf8(felt: &FieldElement, len: usize) -> Result<String, FromUtf8Error
     String::from_utf8(buffer)
 }
 
-impl FromStr for ByteArray {
-    type Err = std::convert::Infallible;
+impl From<String> for ByteArray {
+    fn from(value: String) -> Self {
+        ByteArray::from_string(&value)
+    }
+}
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::internal_from_string(s))
+impl From<&str> for ByteArray {
+    fn from(value: &str) -> Self {
+        ByteArray::from_string(value)
     }
 }
 
@@ -126,13 +130,13 @@ mod tests {
 
     #[test]
     fn test_from_string_empty_string_default() {
-        let b = "".parse::<ByteArray>().unwrap();
+        let b = ByteArray::from_string("");
         assert_eq!(b, ByteArray::default());
     }
 
     #[test]
     fn test_from_string_only_pending_word() {
-        let b = "ABCD".parse::<ByteArray>().unwrap();
+        let b = ByteArray::from_string("ABCD");
         assert_eq!(
             b,
             ByteArray {
@@ -149,9 +153,8 @@ mod tests {
     #[test]
     fn test_from_string_max_pending_word_len() {
         // pending word is at most 30 bytes long.
-        let b = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234"
-            .parse::<ByteArray>()
-            .unwrap();
+        let b = ByteArray::from_string("ABCDEFGHIJKLMNOPQRSTUVWXYZ1234");
+
         assert_eq!(
             b,
             ByteArray {
@@ -167,9 +170,8 @@ mod tests {
 
     #[test]
     fn test_from_string_data_only() {
-        let b = "ABCDEFGHIJKLMNOPQRSTUVWXYZ12345"
-            .parse::<ByteArray>()
-            .unwrap();
+        let b = ByteArray::from_string("ABCDEFGHIJKLMNOPQRSTUVWXYZ12345");
+
         assert_eq!(
             b,
             ByteArray {
@@ -185,9 +187,10 @@ mod tests {
 
     #[test]
     fn test_from_string_data_only_multiple() {
-        let b = "ABCDEFGHIJKLMNOPQRSTUVWXYZ12345ABCDEFGHIJKLMNOPQRSTUVWXYZ12345"
-            .parse::<ByteArray>()
-            .unwrap();
+        let b = ByteArray::from_string(
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ12345ABCDEFGHIJKLMNOPQRSTUVWXYZ12345",
+        );
+
         assert_eq!(
             b,
             ByteArray {
@@ -209,9 +212,10 @@ mod tests {
 
     #[test]
     fn test_from_string_data_and_pending_word() {
-        let b = "ABCDEFGHIJKLMNOPQRSTUVWXYZ12345ABCDEFGHIJKLMNOPQRSTUVWXYZ12345ABCD"
-            .parse::<ByteArray>()
-            .unwrap();
+        let b = ByteArray::from_string(
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ12345ABCDEFGHIJKLMNOPQRSTUVWXYZ12345ABCD",
+        );
+
         assert_eq!(
             b,
             ByteArray {
@@ -344,5 +348,22 @@ mod tests {
         };
 
         b.to_string().unwrap();
+    }
+
+    #[test]
+    fn test_from_utf8() {
+        let b: ByteArray = "🦀🌟".into();
+
+        assert_eq!(
+            b,
+            ByteArray {
+                data: vec![],
+                pending_word: FieldElement::from_hex_be(
+                    "0x000000000000000000000000000000000000000000000000f09fa680f09f8c9f",
+                )
+                .unwrap(),
+                pending_word_len: 8,
+            }
+        );
     }
 }
