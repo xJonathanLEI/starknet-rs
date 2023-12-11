@@ -7,10 +7,20 @@ use super::{SyncStatus, SyncStatusType};
 
 pub(crate) struct NumAsHex;
 
-struct NumAsHexVisitor;
+struct NumAsHexVisitorU64;
+struct NumAsHexVisitorU128;
 
 impl SerializeAs<u64> for NumAsHex {
     fn serialize_as<S>(value: &u64, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&format!("{value:#x}"))
+    }
+}
+
+impl SerializeAs<&u64> for NumAsHex {
+    fn serialize_as<S>(value: &&u64, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
@@ -23,11 +33,29 @@ impl<'de> DeserializeAs<'de, u64> for NumAsHex {
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_any(NumAsHexVisitor)
+        deserializer.deserialize_any(NumAsHexVisitorU64)
     }
 }
 
-impl<'de> Visitor<'de> for NumAsHexVisitor {
+impl SerializeAs<u128> for NumAsHex {
+    fn serialize_as<S>(value: &u128, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&format!("{value:#x}"))
+    }
+}
+
+impl<'de> DeserializeAs<'de, u128> for NumAsHex {
+    fn deserialize_as<D>(deserializer: D) -> Result<u128, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_any(NumAsHexVisitorU128)
+    }
+}
+
+impl<'de> Visitor<'de> for NumAsHexVisitorU64 {
     type Value = u64;
 
     fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
@@ -64,6 +92,26 @@ impl<'de> Visitor<'de> for NumAsHexVisitor {
         E: serde::de::Error,
     {
         Ok(v)
+    }
+}
+
+impl<'de> Visitor<'de> for NumAsHexVisitorU128 {
+    type Value = u128;
+
+    fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
+        write!(formatter, "string or number")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        match u128::from_str_radix(v.trim_start_matches("0x"), 16) {
+            Ok(value) => Ok(value),
+            Err(err) => Err(serde::de::Error::custom(format!(
+                "invalid hex string: {err}"
+            ))),
+        }
     }
 }
 
@@ -262,6 +310,7 @@ mod enum_ser_impls {
             match self {
                 Self::V0(variant) => variant.serialize(serializer),
                 Self::V1(variant) => variant.serialize(serializer),
+                Self::V3(variant) => variant.serialize(serializer),
             }
         }
     }
@@ -272,6 +321,25 @@ mod enum_ser_impls {
                 Self::V0(variant) => variant.serialize(serializer),
                 Self::V1(variant) => variant.serialize(serializer),
                 Self::V2(variant) => variant.serialize(serializer),
+                Self::V3(variant) => variant.serialize(serializer),
+            }
+        }
+    }
+
+    impl Serialize for DeployAccountTransaction {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            match self {
+                Self::V1(variant) => variant.serialize(serializer),
+                Self::V3(variant) => variant.serialize(serializer),
+            }
+        }
+    }
+
+    impl Serialize for BroadcastedInvokeTransaction {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            match self {
+                Self::V1(variant) => variant.serialize(serializer),
+                Self::V3(variant) => variant.serialize(serializer),
             }
         }
     }
@@ -281,6 +349,16 @@ mod enum_ser_impls {
             match self {
                 Self::V1(variant) => variant.serialize(serializer),
                 Self::V2(variant) => variant.serialize(serializer),
+                Self::V3(variant) => variant.serialize(serializer),
+            }
+        }
+    }
+
+    impl Serialize for BroadcastedDeployAccountTransaction {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            match self {
+                Self::V1(variant) => variant.serialize(serializer),
+                Self::V3(variant) => variant.serialize(serializer),
             }
         }
     }

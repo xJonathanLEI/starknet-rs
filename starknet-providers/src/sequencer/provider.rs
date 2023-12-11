@@ -9,8 +9,9 @@ use starknet_core::types::{
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-    MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag, StarknetError,
-    SyncStatusType, Transaction, TransactionStatus, TransactionTrace, TransactionTraceWithHash,
+    MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag,
+    SimulationFlagForEstimateFee, StarknetError, SyncStatusType, Transaction, TransactionStatus,
+    TransactionTrace, TransactionTraceWithHash,
 };
 
 use crate::{
@@ -218,13 +219,15 @@ impl Provider for SequencerGatewayProvider {
         )))
     }
 
-    async fn estimate_fee<R, B>(
+    async fn estimate_fee<R, S, B>(
         &self,
         request: R,
+        simulation_flags: S,
         block_id: B,
     ) -> Result<Vec<FeeEstimate>, ProviderError>
     where
         R: AsRef<[BroadcastedTransaction]> + Send + Sync,
+        S: AsRef<[SimulationFlagForEstimateFee]> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
         // Deprecated since Starknet v0.12.3

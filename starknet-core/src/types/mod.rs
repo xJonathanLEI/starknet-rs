@@ -15,16 +15,18 @@ mod serde_impls;
 mod codegen;
 pub use codegen::{
     BlockStatus, BlockTag, BlockWithTxHashes, BlockWithTxs, BroadcastedDeclareTransactionV1,
-    BroadcastedDeclareTransactionV2, BroadcastedDeployAccountTransaction,
-    BroadcastedInvokeTransaction, CallType, CompressedLegacyContractClass, ContractErrorData,
-    ContractStorageDiffItem, DataAvailabilityMode, DeclareTransactionReceipt,
-    DeclareTransactionTrace, DeclareTransactionV0, DeclareTransactionV1, DeclareTransactionV2,
-    DeclaredClassItem, DeployAccountTransaction, DeployAccountTransactionReceipt,
-    DeployAccountTransactionTrace, DeployTransaction, DeployTransactionReceipt,
-    DeployedContractItem, EmittedEvent, EntryPointType, EntryPointsByType, Event, EventFilter,
-    EventFilterWithPage, EventsChunk, ExecutionResources, FeeEstimate, FlattenedSierraClass,
-    FunctionCall, FunctionInvocation, FunctionStateMutability, InvokeTransactionReceipt,
-    InvokeTransactionTrace, InvokeTransactionV0, InvokeTransactionV1, L1HandlerTransaction,
+    BroadcastedDeclareTransactionV2, BroadcastedDeclareTransactionV3,
+    BroadcastedDeployAccountTransactionV1, BroadcastedDeployAccountTransactionV3,
+    BroadcastedInvokeTransactionV1, BroadcastedInvokeTransactionV3, CallType,
+    CompressedLegacyContractClass, ContractErrorData, ContractStorageDiffItem,
+    DataAvailabilityMode, DeclareTransactionReceipt, DeclareTransactionTrace, DeclareTransactionV0,
+    DeclareTransactionV1, DeclareTransactionV2, DeclareTransactionV3, DeclaredClassItem,
+    DeployAccountTransactionReceipt, DeployAccountTransactionTrace, DeployAccountTransactionV1,
+    DeployAccountTransactionV3, DeployTransaction, DeployTransactionReceipt, DeployedContractItem,
+    EmittedEvent, EntryPointType, EntryPointsByType, Event, EventFilter, EventFilterWithPage,
+    EventsChunk, ExecutionResources, FeeEstimate, FeePayment, FlattenedSierraClass, FunctionCall,
+    FunctionInvocation, FunctionStateMutability, InvokeTransactionReceipt, InvokeTransactionTrace,
+    InvokeTransactionV0, InvokeTransactionV1, InvokeTransactionV3, L1HandlerTransaction,
     L1HandlerTransactionReceipt, L1HandlerTransactionTrace, LegacyContractEntryPoint,
     LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType, LegacyFunctionAbiEntry,
     LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType, LegacyStructMember,
@@ -32,10 +34,11 @@ pub use codegen::{
     OrderedMessage, PendingBlockWithTxHashes, PendingBlockWithTxs,
     PendingDeclareTransactionReceipt, PendingDeployAccountTransactionReceipt,
     PendingInvokeTransactionReceipt, PendingL1HandlerTransactionReceipt, PendingStateUpdate,
-    ReplacedClassItem, ResourceLimits, ResourcePrice, ResultPageRequest, RevertedInvocation,
-    SequencerTransactionStatus, SierraEntryPoint, SimulatedTransaction, SimulationFlag,
-    StarknetError, StateDiff, StateUpdate, StorageEntry, SyncStatus, TransactionExecutionStatus,
-    TransactionFinalityStatus, TransactionTraceWithHash,
+    PriceUnit, ReplacedClassItem, ResourceBounds, ResourceBoundsMapping, ResourcePrice,
+    ResultPageRequest, RevertedInvocation, SequencerTransactionStatus, SierraEntryPoint,
+    SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, StarknetError, StateDiff,
+    StateUpdate, StorageEntry, SyncStatus, TransactionExecutionErrorData,
+    TransactionExecutionStatus, TransactionFinalityStatus, TransactionTraceWithHash,
 };
 
 pub mod eth_address;
@@ -204,6 +207,8 @@ pub enum InvokeTransaction {
     V0(InvokeTransactionV0),
     #[serde(rename = "0x1")]
     V1(InvokeTransactionV1),
+    #[serde(rename = "0x3")]
+    V3(InvokeTransactionV3),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
@@ -215,6 +220,24 @@ pub enum DeclareTransaction {
     V1(DeclareTransactionV1),
     #[serde(rename = "0x2")]
     V2(DeclareTransactionV2),
+    #[serde(rename = "0x3")]
+    V3(DeclareTransactionV3),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(tag = "version")]
+pub enum DeployAccountTransaction {
+    #[serde(rename = "0x1")]
+    V1(DeployAccountTransactionV1),
+    #[serde(rename = "0x3")]
+    V3(DeployAccountTransactionV3),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(untagged)]
+pub enum BroadcastedInvokeTransaction {
+    V1(BroadcastedInvokeTransactionV1),
+    V3(BroadcastedInvokeTransactionV3),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
@@ -222,6 +245,14 @@ pub enum DeclareTransaction {
 pub enum BroadcastedDeclareTransaction {
     V1(BroadcastedDeclareTransactionV1),
     V2(BroadcastedDeclareTransactionV2),
+    V3(BroadcastedDeclareTransactionV3),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(untagged)]
+pub enum BroadcastedDeployAccountTransaction {
+    V1(BroadcastedDeployAccountTransactionV1),
+    V3(BroadcastedDeployAccountTransactionV3),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
@@ -346,7 +377,7 @@ impl Transaction {
             Transaction::L1Handler(tx) => &tx.transaction_hash,
             Transaction::Declare(tx) => tx.transaction_hash(),
             Transaction::Deploy(tx) => &tx.transaction_hash,
-            Transaction::DeployAccount(tx) => &tx.transaction_hash,
+            Transaction::DeployAccount(tx) => tx.transaction_hash(),
         }
     }
 }
@@ -356,6 +387,7 @@ impl InvokeTransaction {
         match self {
             InvokeTransaction::V0(tx) => &tx.transaction_hash,
             InvokeTransaction::V1(tx) => &tx.transaction_hash,
+            InvokeTransaction::V3(tx) => &tx.transaction_hash,
         }
     }
 }
@@ -366,6 +398,16 @@ impl DeclareTransaction {
             DeclareTransaction::V0(tx) => &tx.transaction_hash,
             DeclareTransaction::V1(tx) => &tx.transaction_hash,
             DeclareTransaction::V2(tx) => &tx.transaction_hash,
+            DeclareTransaction::V3(tx) => &tx.transaction_hash,
+        }
+    }
+}
+
+impl DeployAccountTransaction {
+    pub fn transaction_hash(&self) -> &FieldElement {
+        match self {
+            DeployAccountTransaction::V1(tx) => &tx.transaction_hash,
+            DeployAccountTransaction::V3(tx) => &tx.transaction_hash,
         }
     }
 }
@@ -526,7 +568,7 @@ mod tests {
     fn test_broadcasted_invoke_v1_non_query_deser() {
         let raw = include_str!("../../test-data/serde/broadcasted_invoke_v1_non_query.json");
 
-        let parsed_object = serde_json::from_str::<BroadcastedInvokeTransaction>(raw).unwrap();
+        let parsed_object = serde_json::from_str::<BroadcastedInvokeTransactionV1>(raw).unwrap();
         assert!(!parsed_object.is_query);
     }
 
@@ -535,7 +577,7 @@ mod tests {
     fn test_broadcasted_invoke_v1_query_deser() {
         let raw = include_str!("../../test-data/serde/broadcasted_invoke_v1_query.json");
 
-        let parsed_object = serde_json::from_str::<BroadcastedInvokeTransaction>(raw).unwrap();
+        let parsed_object = serde_json::from_str::<BroadcastedInvokeTransactionV1>(raw).unwrap();
         assert!(parsed_object.is_query);
     }
 
@@ -547,7 +589,7 @@ mod tests {
                 "0x374286ae28f201e61ffbc5b022cc9701208640b405ea34ea9799f97d5d2d23c",
             )
             .unwrap(),
-            version: 0,
+            version: FieldElement::ZERO,
             nonce: 775628,
             contract_address: FieldElement::from_hex_be(
                 "0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82",

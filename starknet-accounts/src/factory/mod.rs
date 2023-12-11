@@ -4,7 +4,8 @@ use async_trait::async_trait;
 use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
-        BlockId, BlockTag, BroadcastedDeployAccountTransaction, BroadcastedTransaction,
+        BlockId, BlockTag, BroadcastedDeployAccountTransaction,
+        BroadcastedDeployAccountTransactionV1, BroadcastedTransaction,
         DeployAccountTransactionResult, FeeEstimate, FieldElement, SimulatedTransaction,
         SimulationFlag, StarknetError,
     },
@@ -103,6 +104,8 @@ pub enum AccountFactoryError<S> {
     Signing(S),
     #[error(transparent)]
     Provider(ProviderError),
+    #[error("fee calculation overflow")]
+    FeeOutOfRange,
 }
 
 impl<'f, F> AccountDeployment<'f, F> {
@@ -237,7 +240,10 @@ where
             Some(value) => value,
             None => {
                 let fee_estimate = self.estimate_fee_with_nonce(nonce).await?;
-                ((fee_estimate.overall_fee as f64 * self.fee_estimate_multiplier) as u64).into()
+                ((((TryInto::<u64>::try_into(fee_estimate.overall_fee)
+                    .map_err(|_| AccountFactoryError::FeeOutOfRange)?) as f64)
+                    * self.fee_estimate_multiplier) as u64)
+                    .into()
             }
         };
 
@@ -272,6 +278,7 @@ where
             .provider()
             .estimate_fee_single(
                 BroadcastedTransaction::DeployAccount(deploy),
+                [],
                 self.factory.block_id(),
             )
             .await
@@ -375,16 +382,18 @@ where
     ) -> Result<BroadcastedDeployAccountTransaction, F::SignError> {
         let signature = self.factory.sign_deployment(&self.inner).await?;
 
-        Ok(BroadcastedDeployAccountTransaction {
-            max_fee: self.inner.max_fee,
-            signature,
-            nonce: self.inner.nonce,
-            contract_address_salt: self.inner.salt,
-            constructor_calldata: self.factory.calldata(),
-            class_hash: self.factory.class_hash(),
-            // TODO: make use of query version tx for estimating fees
-            is_query: false,
-        })
+        Ok(BroadcastedDeployAccountTransaction::V1(
+            BroadcastedDeployAccountTransactionV1 {
+                max_fee: self.inner.max_fee,
+                signature,
+                nonce: self.inner.nonce,
+                contract_address_salt: self.inner.salt,
+                constructor_calldata: self.factory.calldata(),
+                class_hash: self.factory.class_hash(),
+                // TODO: make use of query version tx for estimating fees
+                is_query: false,
+            },
+        ))
     }
 }
 

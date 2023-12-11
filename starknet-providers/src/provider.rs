@@ -6,8 +6,9 @@ use starknet_core::types::{
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-    MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag, StarknetError,
-    SyncStatusType, Transaction, TransactionStatus, TransactionTrace, TransactionTraceWithHash,
+    MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag,
+    SimulationFlagForEstimateFee, StarknetError, SyncStatusType, Transaction, TransactionStatus,
+    TransactionTrace, TransactionTraceWithHash,
 };
 use std::{any::Any, error::Error, fmt::Debug};
 
@@ -130,13 +131,15 @@ pub trait Provider {
         B: AsRef<BlockId> + Send + Sync;
 
     /// Estimate the fee for a given Starknet transaction
-    async fn estimate_fee<R, B>(
+    async fn estimate_fee<R, S, B>(
         &self,
         request: R,
+        simulation_flags: S,
         block_id: B,
     ) -> Result<Vec<FeeEstimate>, ProviderError>
     where
         R: AsRef<[BroadcastedTransaction]> + Send + Sync,
+        S: AsRef<[SimulationFlagForEstimateFee]> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync;
 
     async fn estimate_message_fee<M, B>(
@@ -212,7 +215,11 @@ pub trait Provider {
         H: AsRef<FieldElement> + Send + Sync;
 
     /// Simulate a given sequence of transactions on the requested state, and generate the execution
-    /// traces. If one of the transactions is reverted, raises CONTRACT_ERROR.
+    /// traces. Note that some of the transactions may revert, in which case no error is thrown, but
+    /// revert details can be seen on the returned trace object. . Note that some of the
+    /// transactions may revert, this will be reflected by the revert_error property in the trace.
+    /// Other types of failures (e.g. unexpected error or failure in the validation phase) will
+    /// result in TRANSACTION_EXECUTION_ERROR.
     async fn simulate_transactions<B, T, S>(
         &self,
         block_id: B,
@@ -233,17 +240,19 @@ pub trait Provider {
         B: AsRef<BlockId> + Send + Sync;
 
     /// Same as [estimate_fee], but only with one estimate.
-    async fn estimate_fee_single<R, B>(
+    async fn estimate_fee_single<R, S, B>(
         &self,
         request: R,
+        simulation_flags: S,
         block_id: B,
     ) -> Result<FeeEstimate, ProviderError>
     where
         R: AsRef<BroadcastedTransaction> + Send + Sync,
+        S: AsRef<[SimulationFlagForEstimateFee]> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
         let mut result = self
-            .estimate_fee([request.as_ref().to_owned()], block_id)
+            .estimate_fee([request.as_ref().to_owned()], simulation_flags, block_id)
             .await?;
 
         if result.len() == 1 {

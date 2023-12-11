@@ -25,8 +25,8 @@ fn create_sequencer_client() -> SequencerGatewayProvider {
 }
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
-    let rpc_url =
-        std::env::var("STARKNET_RPC").unwrap_or("https://rpc-goerli-1.starknet.rs/rpc/v0.5".into());
+    let rpc_url = std::env::var("STARKNET_RPC")
+        .unwrap_or("https://juno.rpc.goerli.starknet.rs/rpc/v0_6".into());
     JsonRpcClient::new(HttpTransport::new(url::Url::parse(&rpc_url).unwrap()))
 }
 
@@ -205,7 +205,7 @@ async fn can_estimate_fee_inner<P: Provider + Send + Sync>(provider: P, address:
         .await
         .unwrap();
 
-    assert!(fee_estimate.overall_fee > 0);
+    assert!(fee_estimate.overall_fee > FieldElement::ZERO);
 }
 
 async fn can_parse_fee_estimation_error_inner<P: Provider + Send + Sync>(
@@ -248,9 +248,9 @@ async fn can_parse_fee_estimation_error_inner<P: Provider + Send + Sync>(
     {
         Ok(_) => panic!("unexpected successful fee estimation"),
         Err(AccountError::Provider(ProviderError::StarknetError(
-            StarknetError::ContractError(err_data),
+            StarknetError::TransactionExecutionError(err_data),
         ))) => {
-            assert!(!err_data.revert_error.is_empty());
+            assert!(!err_data.execution_error.is_empty());
         }
         _ => panic!("unexpected error type"),
     }

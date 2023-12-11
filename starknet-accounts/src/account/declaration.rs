@@ -152,7 +152,10 @@ where
             Some(value) => value,
             None => {
                 let fee_estimate = self.estimate_fee_with_nonce(nonce).await?;
-                ((fee_estimate.overall_fee as f64 * self.fee_estimate_multiplier) as u64).into()
+                ((((TryInto::<u64>::try_into(fee_estimate.overall_fee)
+                    .map_err(|_| AccountError::FeeOutOfRange)?) as f64)
+                    * self.fee_estimate_multiplier) as u64)
+                    .into()
             }
         };
 
@@ -186,6 +189,7 @@ where
             .provider()
             .estimate_fee_single(
                 BroadcastedTransaction::Declare(BroadcastedDeclareTransaction::V2(declare)),
+                [],
                 self.account.block_id(),
             )
             .await
@@ -339,7 +343,10 @@ where
             Some(value) => value,
             None => {
                 let fee_estimate = self.estimate_fee_with_nonce(nonce).await?;
-                ((fee_estimate.overall_fee as f64 * self.fee_estimate_multiplier) as u64).into()
+                ((((TryInto::<u64>::try_into(fee_estimate.overall_fee)
+                    .map_err(|_| AccountError::FeeOutOfRange)?) as f64)
+                    * self.fee_estimate_multiplier) as u64)
+                    .into()
             }
         };
 
@@ -371,6 +378,7 @@ where
             .provider()
             .estimate_fee_single(
                 BroadcastedTransaction::Declare(BroadcastedDeclareTransaction::V1(declare)),
+                [],
                 self.account.block_id(),
             )
             .await
