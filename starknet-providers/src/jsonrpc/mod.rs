@@ -13,7 +13,8 @@ use starknet_core::{
         InvokeTransactionResult, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
         MaybePendingStateUpdate, MaybePendingTransactionReceipt, MsgFromL1,
         NoTraceAvailableErrorData, ResultPageRequest, SimulatedTransaction, SimulationFlag,
-        StarknetError, SyncStatusType, Transaction, TransactionStatus, TransactionTrace,
+        SimulationFlagForEstimateFee, StarknetError, SyncStatusType, Transaction,
+        TransactionExecutionErrorData, TransactionStatus, TransactionTrace,
         TransactionTraceWithHash,
     },
 };
@@ -456,19 +457,22 @@ where
     }
 
     /// Estimate the fee for a given Starknet transaction
-    async fn estimate_fee<R, B>(
+    async fn estimate_fee<R, S, B>(
         &self,
         request: R,
+        simulation_flags: S,
         block_id: B,
     ) -> Result<Vec<FeeEstimate>, ProviderError>
     where
         R: AsRef<[BroadcastedTransaction]> + Send + Sync,
+        S: AsRef<[SimulationFlagForEstimateFee]> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::EstimateFee,
             EstimateFeeRequestRef {
                 request: request.as_ref(),
+                simulation_flags: simulation_flags.as_ref(),
                 block_id: block_id.as_ref(),
             },
         )
@@ -635,7 +639,11 @@ where
     }
 
     /// Simulate a given sequence of transactions on the requested state, and generate the execution
-    /// traces. If one of the transactions is reverted, raises CONTRACT_ERROR.
+    /// traces. Note that some of the transactions may revert, in which case no error is thrown, but
+    /// revert details can be seen on the returned trace object. . Note that some of the
+    /// transactions may revert, this will be reflected by the revert_error property in the trace.
+    /// Other types of failures (e.g. unexpected error or failure in the validation phase) will
+    /// result in TRANSACTION_EXECUTION_ERROR.
     async fn simulate_transactions<B, TX, S>(
         &self,
         block_id: B,
@@ -872,11 +880,30 @@ impl TryFrom<&JsonRpcError> for StarknetError {
                 .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
                 Ok(StarknetError::ContractError(data))
             }
+            41 => {
+                let data = TransactionExecutionErrorData::deserialize(
+                    value
+                        .data
+                        .as_ref()
+                        .ok_or(JsonRpcErrorConversionError::MissingData)?,
+                )
+                .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
+                Ok(StarknetError::TransactionExecutionError(data))
+            }
             51 => Ok(StarknetError::ClassAlreadyDeclared),
             52 => Ok(StarknetError::InvalidTransactionNonce),
             53 => Ok(StarknetError::InsufficientMaxFee),
             54 => Ok(StarknetError::InsufficientAccountBalance),
-            55 => Ok(StarknetError::ValidationFailure),
+            55 => {
+                let data = String::deserialize(
+                    value
+                        .data
+                        .as_ref()
+                        .ok_or(JsonRpcErrorConversionError::MissingData)?,
+                )
+                .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
+                Ok(StarknetError::ValidationFailure(data))
+            }
             56 => Ok(StarknetError::CompilationFailed),
             57 => Ok(StarknetError::ContractClassSizeIsTooLarge),
             58 => Ok(StarknetError::NonAccount),
@@ -904,7 +931,6 @@ impl TryFrom<&JsonRpcError> for StarknetError {
                 .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
                 Ok(StarknetError::NoTraceAvailable(data))
             }
-            25 => Ok(StarknetError::InvalidTransactionHash),
             _ => Err(JsonRpcErrorConversionError::UnknownCode),
         }
     }

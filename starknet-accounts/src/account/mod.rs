@@ -177,6 +177,8 @@ pub enum AccountError<S> {
     ClassHashCalculation(ComputeClassHashError),
     #[error(transparent)]
     ClassCompression(CompressProgramError),
+    #[error("fee calculation overflow")]
+    FeeOutOfRange,
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]

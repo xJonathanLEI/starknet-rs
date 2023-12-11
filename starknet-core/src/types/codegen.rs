@@ -3,15 +3,18 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#bddc1b829c33b14440d22a85bc937e3d16e32ed1
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#1c8e5c6b5b12771ff714ddfd5978f80d96e067c1
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
 // - `BROADCASTED_DECLARE_TXN`
+// - `BROADCASTED_DEPLOY_ACCOUNT_TXN`
+// - `BROADCASTED_INVOKE_TXN`
 // - `BROADCASTED_TXN`
 // - `CONTRACT_ABI_ENTRY`
 // - `CONTRACT_CLASS`
 // - `DECLARE_TXN`
+// - `DEPLOY_ACCOUNT_TXN`
 // - `EXECUTE_INVOCATION`
 // - `INVOKE_TXN`
 // - `PENDING_TXN_RECEIPT`
@@ -174,11 +177,42 @@ pub struct BroadcastedDeclareTransactionV2 {
     pub is_query: bool,
 }
 
+/// Broadcasted declare transaction v3.
+///
+/// Broadcasted declare contract transaction v3.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BroadcastedDeclareTransactionV3 {
+    /// The address of the account contract sending the declaration transaction
+    pub sender_address: FieldElement,
+    /// The hash of the cairo assembly resulting from the sierra compilation
+    pub compiled_class_hash: FieldElement,
+    /// Signature
+    pub signature: Vec<FieldElement>,
+    /// Nonce
+    pub nonce: FieldElement,
+    /// The class to be declared
+    pub contract_class: OwnedPtr<FlattenedSierraClass>,
+    /// Resource bounds for the transaction execution
+    pub resource_bounds: ResourceBoundsMapping,
+    /// The tip for the transaction
+    pub tip: u64,
+    /// Data needed to allow the paymaster to pay for the transaction in native tokens
+    pub paymaster_data: Vec<FieldElement>,
+    /// Data needed to deploy the account contract from which this tx will be initiated
+    pub account_deployment_data: Vec<FieldElement>,
+    /// The storage domain of the account's nonce (an account has a nonce per da mode)
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    /// The storage domain of the account's balance from which fee will be charged
+    pub fee_data_availability_mode: DataAvailabilityMode,
+    /// If set to `true`, uses a query-only transaction version that's invalid for execution
+    pub is_query: bool,
+}
+
 /// Deploy account transaction.
 ///
 /// Deploys an account contract, charges fee from the pre-funded account addresses.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct BroadcastedDeployAccountTransaction {
+pub struct BroadcastedDeployAccountTransactionV1 {
     /// The maximal fee that can be charged for including the transaction
     pub max_fee: FieldElement,
     /// Signature
@@ -195,11 +229,40 @@ pub struct BroadcastedDeployAccountTransaction {
     pub is_query: bool,
 }
 
+/// Deploy account transaction.
+///
+/// Deploys an account contract, charges fee from the pre-funded account addresses.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BroadcastedDeployAccountTransactionV3 {
+    /// Signature
+    pub signature: Vec<FieldElement>,
+    /// Nonce
+    pub nonce: FieldElement,
+    /// The salt for the address of the deployed contract
+    pub contract_address_salt: FieldElement,
+    /// The parameters passed to the constructor
+    pub constructor_calldata: Vec<FieldElement>,
+    /// The hash of the deployed contract's class
+    pub class_hash: FieldElement,
+    /// Resource bounds for the transaction execution
+    pub resource_bounds: ResourceBoundsMapping,
+    /// The tip for the transaction
+    pub tip: u64,
+    /// Data needed to allow the paymaster to pay for the transaction in native tokens
+    pub paymaster_data: Vec<FieldElement>,
+    /// The storage domain of the account's nonce (an account has a nonce per da mode)
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    /// The storage domain of the account's balance from which fee will be charged
+    pub fee_data_availability_mode: DataAvailabilityMode,
+    /// If set to `true`, uses a query-only transaction version that's invalid for execution
+    pub is_query: bool,
+}
+
 /// Invoke transaction v1.
 ///
 /// Initiates a transaction from a given account.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct BroadcastedInvokeTransaction {
+pub struct BroadcastedInvokeTransactionV1 {
     /// Sender address
     pub sender_address: FieldElement,
     /// The data expected by the account's `execute` function (in most usecases, this includes the
@@ -215,19 +278,49 @@ pub struct BroadcastedInvokeTransaction {
     pub is_query: bool,
 }
 
+/// Invoke transaction v3.
+///
+/// Initiates a transaction from a given account.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BroadcastedInvokeTransactionV3 {
+    /// Sender address
+    pub sender_address: FieldElement,
+    /// The data expected by the account's `execute` function (in most usecases, this includes the
+    /// called contract address and a function selector)
+    pub calldata: Vec<FieldElement>,
+    /// Signature
+    pub signature: Vec<FieldElement>,
+    /// Nonce
+    pub nonce: FieldElement,
+    /// Resource bounds for the transaction execution
+    pub resource_bounds: ResourceBoundsMapping,
+    /// The tip for the transaction
+    pub tip: u64,
+    /// Data needed to allow the paymaster to pay for the transaction in native tokens
+    pub paymaster_data: Vec<FieldElement>,
+    /// Data needed to deploy the account contract from which this tx will be initiated
+    pub account_deployment_data: Vec<FieldElement>,
+    /// The storage domain of the account's nonce (an account has a nonce per da mode)
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    /// The storage domain of the account's balance from which fee will be charged
+    pub fee_data_availability_mode: DataAvailabilityMode,
+    /// If set to `true`, uses a query-only transaction version that's invalid for execution
+    pub is_query: bool,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CallType {
-    #[serde(rename = "DELEGATE")]
-    Delegate,
     #[serde(rename = "LIBRARY_CALL")]
     LibraryCall,
     #[serde(rename = "CALL")]
     Call,
+    #[serde(rename = "DELEGATE")]
+    Delegate,
 }
 
 /// Deprecated contract class.
 ///
-/// The definition of a legacy (cairo 0) Starknet contract class.
+/// The definition of a Starknet contract class.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct CompressedLegacyContractClass {
@@ -279,7 +372,7 @@ pub struct DeclareTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
     /// The fee that was charged by the sequencer
-    pub actual_fee: FieldElement,
+    pub actual_fee: FeePayment,
     /// Finality status
     pub finality_status: TransactionFinalityStatus,
     /// Block hash
@@ -362,6 +455,37 @@ pub struct DeclareTransactionV2 {
     pub class_hash: FieldElement,
 }
 
+/// Declare transaction v3.
+///
+/// Declare contract transaction v3.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DeclareTransactionV3 {
+    /// Transaction hash
+    pub transaction_hash: FieldElement,
+    /// The address of the account contract sending the declaration transaction
+    pub sender_address: FieldElement,
+    /// The hash of the cairo assembly resulting from the sierra compilation
+    pub compiled_class_hash: FieldElement,
+    /// Signature
+    pub signature: Vec<FieldElement>,
+    /// Nonce
+    pub nonce: FieldElement,
+    /// The hash of the declared class
+    pub class_hash: FieldElement,
+    /// Resource bounds for the transaction execution
+    pub resource_bounds: ResourceBoundsMapping,
+    /// The tip for the transaction
+    pub tip: u64,
+    /// Data needed to allow the paymaster to pay for the transaction in native tokens
+    pub paymaster_data: Vec<FieldElement>,
+    /// Data needed to deploy the account contract from which this tx will be initiated
+    pub account_deployment_data: Vec<FieldElement>,
+    /// The storage domain of the account's nonce (an account has a nonce per da mode)
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    /// The storage domain of the account's balance from which fee will be charged
+    pub fee_data_availability_mode: DataAvailabilityMode,
+}
+
 /// New classes.
 ///
 /// The declared class hash and compiled class hash.
@@ -377,34 +501,13 @@ pub struct DeclaredClassItem {
     pub compiled_class_hash: FieldElement,
 }
 
-/// Deploy account transaction.
-///
-/// Deploys an account contract, charges fee from the pre-funded account addresses.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DeployAccountTransaction {
-    /// Transaction hash
-    pub transaction_hash: FieldElement,
-    /// The maximal fee that can be charged for including the transaction
-    pub max_fee: FieldElement,
-    /// Signature
-    pub signature: Vec<FieldElement>,
-    /// Nonce
-    pub nonce: FieldElement,
-    /// The salt for the address of the deployed contract
-    pub contract_address_salt: FieldElement,
-    /// The parameters passed to the constructor
-    pub constructor_calldata: Vec<FieldElement>,
-    /// The hash of the deployed contract's class
-    pub class_hash: FieldElement,
-}
-
 /// Deploy account transaction receipt.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeployAccountTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
     /// The fee that was charged by the sequencer
-    pub actual_fee: FieldElement,
+    pub actual_fee: FeePayment,
     /// Finality status
     pub finality_status: TransactionFinalityStatus,
     /// Block hash
@@ -435,6 +538,56 @@ pub struct DeployAccountTransactionTrace {
     pub state_diff: Option<StateDiff>,
 }
 
+/// Deploy account transaction.
+///
+/// Deploys an account contract, charges fee from the pre-funded account addresses.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DeployAccountTransactionV1 {
+    /// Transaction hash
+    pub transaction_hash: FieldElement,
+    /// The maximal fee that can be charged for including the transaction
+    pub max_fee: FieldElement,
+    /// Signature
+    pub signature: Vec<FieldElement>,
+    /// Nonce
+    pub nonce: FieldElement,
+    /// The salt for the address of the deployed contract
+    pub contract_address_salt: FieldElement,
+    /// The parameters passed to the constructor
+    pub constructor_calldata: Vec<FieldElement>,
+    /// The hash of the deployed contract's class
+    pub class_hash: FieldElement,
+}
+
+/// Deploy account transaction.
+///
+/// Deploys an account contract, charges fee from the pre-funded account addresses.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DeployAccountTransactionV3 {
+    /// Transaction hash
+    pub transaction_hash: FieldElement,
+    /// Signature
+    pub signature: Vec<FieldElement>,
+    /// Nonce
+    pub nonce: FieldElement,
+    /// The salt for the address of the deployed contract
+    pub contract_address_salt: FieldElement,
+    /// The parameters passed to the constructor
+    pub constructor_calldata: Vec<FieldElement>,
+    /// The hash of the deployed contract's class
+    pub class_hash: FieldElement,
+    /// Resource bounds for the transaction execution
+    pub resource_bounds: ResourceBoundsMapping,
+    /// The tip for the transaction
+    pub tip: u64,
+    /// Data needed to allow the paymaster to pay for the transaction in native tokens
+    pub paymaster_data: Vec<FieldElement>,
+    /// The storage domain of the account's nonce (an account has a nonce per da mode)
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    /// The storage domain of the account's balance from which fee will be charged
+    pub fee_data_availability_mode: DataAvailabilityMode,
+}
+
 /// Deploy contract transaction.
 ///
 /// The structure of a deploy transaction. Note that this transaction type is deprecated and will no
@@ -444,7 +597,7 @@ pub struct DeployTransaction {
     /// Transaction hash
     pub transaction_hash: FieldElement,
     /// Version of the transaction scheme
-    pub version: u64,
+    pub version: FieldElement,
     /// The salt for the address of the deployed contract
     pub contract_address_salt: FieldElement,
     /// The parameters passed to the constructor
@@ -459,7 +612,7 @@ pub struct DeployTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
     /// The fee that was charged by the sequencer
-    pub actual_fee: FieldElement,
+    pub actual_fee: FeePayment,
     /// Finality status
     pub finality_status: TransactionFinalityStatus,
     /// Block hash
@@ -509,10 +662,12 @@ pub struct EmittedEvent {
     #[serde_as(as = "Vec<UfeHex>")]
     pub data: Vec<FieldElement>,
     /// The hash of the block in which the event was emitted
-    #[serde_as(as = "UfeHex")]
-    pub block_hash: FieldElement,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde_as(as = "Option<UfeHex>")]
+    pub block_hash: Option<FieldElement>,
     /// The number of the block in which the event was emitted
-    pub block_number: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub block_number: Option<u64>,
     /// The transaction that emitted the event
     #[serde_as(as = "UfeHex")]
     pub transaction_hash: FieldElement,
@@ -608,39 +763,39 @@ pub struct EventsChunk {
 
 /// Execution resources.
 ///
-/// The resources consumed by the transaction.
-#[serde_as]
+/// The resources consumed by the vm.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ExecutionResources {
     /// The number of cairo steps used
-    #[serde_as(as = "NumAsHex")]
     pub steps: u64,
     /// The number of unused memory cells (each cell is roughly equivalent to a step)
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde_as(as = "Option<NumAsHex>")]
     pub memory_holes: Option<u64>,
     /// The number of range_check builtin instances
-    #[serde_as(as = "NumAsHex")]
-    pub range_check_builtin_applications: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub range_check_builtin_applications: Option<u64>,
     /// The number of pedersen builtin instances
-    #[serde_as(as = "NumAsHex")]
-    pub pedersen_builtin_applications: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pedersen_builtin_applications: Option<u64>,
     /// The number of poseidon builtin instances
-    #[serde_as(as = "NumAsHex")]
-    pub poseidon_builtin_applications: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub poseidon_builtin_applications: Option<u64>,
     /// The number of ec_op builtin instances
-    #[serde_as(as = "NumAsHex")]
-    pub ec_op_builtin_applications: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ec_op_builtin_applications: Option<u64>,
     /// The number of ecdsa builtin instances
-    #[serde_as(as = "NumAsHex")]
-    pub ecdsa_builtin_applications: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ecdsa_builtin_applications: Option<u64>,
     /// The number of bitwise builtin instances
-    #[serde_as(as = "NumAsHex")]
-    pub bitwise_builtin_applications: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bitwise_builtin_applications: Option<u64>,
     /// The number of keccak builtin instances
-    #[serde_as(as = "NumAsHex")]
-    pub keccak_builtin_applications: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub keccak_builtin_applications: Option<u64>,
+    /// The number of accesses to the segment arena
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub segment_arena_builtin: Option<u64>,
 }
 
 /// Fee estimation.
@@ -650,14 +805,32 @@ pub struct ExecutionResources {
 pub struct FeeEstimate {
     /// The Ethereum gas cost of the transaction (see
     /// https://docs.starknet.io/docs/fees/fee-mechanism for more info)
-    #[serde_as(as = "NumAsHex")]
-    pub gas_consumed: u64,
-    /// The gas price (in gwei) that was used in the cost estimation
-    #[serde_as(as = "NumAsHex")]
-    pub gas_price: u64,
-    /// The estimated fee for the transaction (in gwei), product of gas_consumed and gas_price
-    #[serde_as(as = "NumAsHex")]
-    pub overall_fee: u64,
+    #[serde_as(as = "UfeHex")]
+    pub gas_consumed: FieldElement,
+    /// The gas price (in gwei or fri, depending on the tx version) that was used in the cost
+    /// estimation
+    #[serde_as(as = "UfeHex")]
+    pub gas_price: FieldElement,
+    /// The estimated fee for the transaction (in gwei or fri, depending on the tx version), product
+    /// of gas_consumed and gas_price
+    #[serde_as(as = "UfeHex")]
+    pub overall_fee: FieldElement,
+    /// Units in which the fee is given
+    pub unit: PriceUnit,
+}
+
+/// Fee payment.
+///
+/// Fee payment info as it appears in receipts.
+#[serde_as]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct FeePayment {
+    /// Amount paid
+    #[serde_as(as = "UfeHex")]
+    pub amount: FieldElement,
+    /// Units in which the fee is given
+    pub unit: PriceUnit,
 }
 
 /// The definition of a sierra Starknet contract class.
@@ -724,6 +897,8 @@ pub struct FunctionInvocation {
     pub events: Vec<OrderedEvent>,
     /// The messages sent by this invocation to L1
     pub messages: Vec<OrderedMessage>,
+    /// Resources consumed by the internal call
+    pub execution_resources: ExecutionResources,
 }
 
 /// Function state mutability type.
@@ -739,7 +914,7 @@ pub struct InvokeTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
     /// The fee that was charged by the sequencer
-    pub actual_fee: FieldElement,
+    pub actual_fee: FeePayment,
     /// Finality status
     pub finality_status: TransactionFinalityStatus,
     /// Block hash
@@ -805,13 +980,43 @@ pub struct InvokeTransactionV1 {
     pub nonce: FieldElement,
 }
 
+/// Invoke transaction v3.
+///
+/// Initiates a transaction from a given account.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InvokeTransactionV3 {
+    /// Transaction hash
+    pub transaction_hash: FieldElement,
+    /// Sender address
+    pub sender_address: FieldElement,
+    /// The data expected by the account's `execute` function (in most usecases, this includes the
+    /// called contract address and a function selector)
+    pub calldata: Vec<FieldElement>,
+    /// Signature
+    pub signature: Vec<FieldElement>,
+    /// Nonce
+    pub nonce: FieldElement,
+    /// Resource bounds for the transaction execution
+    pub resource_bounds: ResourceBoundsMapping,
+    /// The tip for the transaction
+    pub tip: u64,
+    /// Data needed to allow the paymaster to pay for the transaction in native tokens
+    pub paymaster_data: Vec<FieldElement>,
+    /// Data needed to deploy the account contract from which this tx will be initiated
+    pub account_deployment_data: Vec<FieldElement>,
+    /// The storage domain of the account's nonce (an account has a nonce per da mode)
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    /// The storage domain of the account's balance from which fee will be charged
+    pub fee_data_availability_mode: DataAvailabilityMode,
+}
+
 /// L1 handler transaction.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct L1HandlerTransaction {
     /// Transaction hash
     pub transaction_hash: FieldElement,
     /// Version of the transaction scheme
-    pub version: u64,
+    pub version: FieldElement,
     /// The L1->L2 message nonce field of the sn core L1 contract at the time the transaction was
     /// sent
     pub nonce: u64,
@@ -833,7 +1038,7 @@ pub struct L1HandlerTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
     /// The fee that was charged by the sequencer
-    pub actual_fee: FieldElement,
+    pub actual_fee: FeePayment,
     /// Finality status
     pub finality_status: TransactionFinalityStatus,
     /// Block hash
@@ -1130,7 +1335,7 @@ pub struct PendingDeclareTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
     /// The fee that was charged by the sequencer
-    pub actual_fee: FieldElement,
+    pub actual_fee: FeePayment,
     /// Messages sent
     pub messages_sent: Vec<MsgToL1>,
     /// The events emitted as part of this transaction
@@ -1147,7 +1352,7 @@ pub struct PendingDeployAccountTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
     /// The fee that was charged by the sequencer
-    pub actual_fee: FieldElement,
+    pub actual_fee: FeePayment,
     /// Messages sent
     pub messages_sent: Vec<MsgToL1>,
     /// The events emitted as part of this transaction
@@ -1166,7 +1371,7 @@ pub struct PendingInvokeTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
     /// The fee that was charged by the sequencer
-    pub actual_fee: FieldElement,
+    pub actual_fee: FeePayment,
     /// Messages sent
     pub messages_sent: Vec<MsgToL1>,
     /// The events emitted as part of this transaction
@@ -1187,7 +1392,7 @@ pub struct PendingL1HandlerTransactionReceipt {
     /// The hash identifying the transaction
     pub transaction_hash: FieldElement,
     /// The fee that was charged by the sequencer
-    pub actual_fee: FieldElement,
+    pub actual_fee: FeePayment,
     /// Messages sent
     pub messages_sent: Vec<MsgToL1>,
     /// The events emitted as part of this transaction
@@ -1212,6 +1417,15 @@ pub struct PendingStateUpdate {
     pub state_diff: StateDiff,
 }
 
+/// Price unit.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum PriceUnit {
+    #[serde(rename = "WEI")]
+    Wei,
+    #[serde(rename = "FRI")]
+    Fri,
+}
+
 /// Replaced class.
 ///
 /// The list of contracts whose class was replaced.
@@ -1230,26 +1444,34 @@ pub struct ReplacedClassItem {
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct ResourceLimits {
+pub struct ResourceBounds {
     /// The max amount of the resource that can be used in the tx
     #[serde_as(as = "NumAsHex")]
     pub max_amount: u64,
     /// The max price per unit of this resource for this tx
     #[serde_as(as = "NumAsHex")]
-    pub max_price_per_unit: u64,
+    pub max_price_per_unit: u128,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct ResourceBoundsMapping {
+    /// The max amount and max price per unit of L1 gas used in this tx
+    pub l1_gas: ResourceBounds,
+    /// The max amount and max price per unit of L2 gas used in this tx
+    pub l2_gas: ResourceBounds,
 }
 
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ResourcePrice {
-    /// The price of one unit of the given resource, denominated in strk
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde_as(as = "Option<NumAsHex>")]
-    pub price_in_strk: Option<u64>,
+    /// The price of one unit of the given resource, denominated in fri (10^-18 strk)
+    #[serde_as(as = "UfeHex")]
+    pub price_in_fri: FieldElement,
     /// The price of one unit of the given resource, denominated in wei
-    #[serde_as(as = "NumAsHex")]
-    pub price_in_wei: u64,
+    #[serde_as(as = "UfeHex")]
+    pub price_in_wei: FieldElement,
 }
 
 /// Result page request.
@@ -1320,6 +1542,14 @@ pub enum SimulationFlag {
     SkipFeeCharge,
 }
 
+/// Flags that indicate how to simulate a given transaction. By default, the sequencer behavior is
+/// replicated locally.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum SimulationFlagForEstimateFee {
+    #[serde(rename = "SKIP_VALIDATE")]
+    SkipValidate,
+}
+
 /// JSON-RPC error codes
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StarknetError {
@@ -1345,6 +1575,8 @@ pub enum StarknetError {
     TooManyKeysInFilter,
     /// Contract error
     ContractError(ContractErrorData),
+    /// Transaction execution error
+    TransactionExecutionError(TransactionExecutionErrorData),
     /// Class already declared
     ClassAlreadyDeclared,
     /// Invalid transaction nonce
@@ -1354,7 +1586,7 @@ pub enum StarknetError {
     /// Account balance is smaller than the transaction's max_fee
     InsufficientAccountBalance,
     /// Account validation failed
-    ValidationFailure,
+    ValidationFailure(String),
     /// Compilation failed
     CompilationFailed,
     /// Contract class size it too large
@@ -1373,8 +1605,6 @@ pub enum StarknetError {
     UnexpectedError(String),
     /// No trace available for transaction
     NoTraceAvailable(NoTraceAvailableErrorData),
-    /// Invalid transaction hash
-    InvalidTransactionHash,
 }
 
 #[cfg(feature = "std")]
@@ -1394,11 +1624,12 @@ impl core::fmt::Display for StarknetError {
             Self::InvalidContinuationToken => write!(f, "InvalidContinuationToken"),
             Self::TooManyKeysInFilter => write!(f, "TooManyKeysInFilter"),
             Self::ContractError(_) => write!(f, "ContractError"),
+            Self::TransactionExecutionError(_) => write!(f, "TransactionExecutionError"),
             Self::ClassAlreadyDeclared => write!(f, "ClassAlreadyDeclared"),
             Self::InvalidTransactionNonce => write!(f, "InvalidTransactionNonce"),
             Self::InsufficientMaxFee => write!(f, "InsufficientMaxFee"),
             Self::InsufficientAccountBalance => write!(f, "InsufficientAccountBalance"),
-            Self::ValidationFailure => write!(f, "ValidationFailure"),
+            Self::ValidationFailure(_) => write!(f, "ValidationFailure"),
             Self::CompilationFailed => write!(f, "CompilationFailed"),
             Self::ContractClassSizeIsTooLarge => write!(f, "ContractClassSizeIsTooLarge"),
             Self::NonAccount => write!(f, "NonAccount"),
@@ -1408,7 +1639,6 @@ impl core::fmt::Display for StarknetError {
             Self::UnsupportedContractClassVersion => write!(f, "UnsupportedContractClassVersion"),
             Self::UnexpectedError(_) => write!(f, "UnexpectedError"),
             Self::NoTraceAvailable(_) => write!(f, "NoTraceAvailable"),
-            Self::InvalidTransactionHash => write!(f, "InvalidTransactionHash"),
         }
     }
 }
@@ -1427,11 +1657,12 @@ impl StarknetError {
             Self::InvalidContinuationToken => "The supplied continuation token is invalid or unknown",
             Self::TooManyKeysInFilter => "Too many keys provided in a filter",
             Self::ContractError(_) => "Contract error",
+            Self::TransactionExecutionError(_) => "Transaction execution error",
             Self::ClassAlreadyDeclared => "Class already declared",
             Self::InvalidTransactionNonce => "Invalid transaction nonce",
             Self::InsufficientMaxFee => "Max fee is smaller than the minimal transaction cost (validation plus fee transfer)",
             Self::InsufficientAccountBalance => "Account balance is smaller than the transaction's max_fee",
-            Self::ValidationFailure => "Account validation failed",
+            Self::ValidationFailure(_) => "Account validation failed",
             Self::CompilationFailed => "Compilation failed",
             Self::ContractClassSizeIsTooLarge => "Contract class size it too large",
             Self::NonAccount => "Sender address in not an account contract",
@@ -1441,7 +1672,6 @@ impl StarknetError {
             Self::UnsupportedContractClassVersion => "the contract class version is not supported",
             Self::UnexpectedError(_) => "An unexpected error occurred",
             Self::NoTraceAvailable(_) => "No trace available for transaction",
-            Self::InvalidTransactionHash => "Invalid transaction hash",
         }
     }
 }
@@ -1520,6 +1750,16 @@ pub struct SyncStatus {
     pub highest_block_hash: FieldElement,
     /// The number (height) of the estimated highest block to be synchronized
     pub highest_block_num: u64,
+}
+
+/// More data about the execution failure.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct TransactionExecutionErrorData {
+    /// The index of the first transaction failing in a sequence of given transactions
+    pub transaction_index: u64,
+    /// A string encoding the execution trace up to the point of failure
+    pub execution_error: String,
 }
 
 /// Execution status.
@@ -1625,6 +1865,8 @@ pub struct ChainIdRequest;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EstimateFeeRequest {
     pub request: Vec<BroadcastedTransaction>,
+    /// describes what parts of the transaction should be executed
+    pub simulation_flags: Vec<SimulationFlagForEstimateFee>,
     /// The hash of the requested block, or number (height) of the requested block, or a block tag,
     /// for the block referencing the state or call the transaction on.
     pub block_id: BlockId,
@@ -1634,6 +1876,7 @@ pub struct EstimateFeeRequest {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EstimateFeeRequestRef<'a> {
     pub request: &'a [BroadcastedTransaction],
+    pub simulation_flags: &'a [SimulationFlagForEstimateFee],
     pub block_id: &'a BlockId,
 }
 
@@ -2087,7 +2330,125 @@ impl<'de> Deserialize<'de> for BroadcastedDeclareTransactionV2 {
     }
 }
 
-impl Serialize for BroadcastedDeployAccountTransaction {
+impl Serialize for BroadcastedDeclareTransactionV3 {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct Tagged<'a> {
+            pub r#type: &'a str,
+            #[serde_as(as = "UfeHex")]
+            pub sender_address: &'a FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub compiled_class_hash: &'a FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub version: &'a FieldElement,
+            #[serde_as(as = "[UfeHex]")]
+            pub signature: &'a [FieldElement],
+            #[serde_as(as = "UfeHex")]
+            pub nonce: &'a FieldElement,
+            pub contract_class: &'a FlattenedSierraClass,
+            pub resource_bounds: &'a ResourceBoundsMapping,
+            #[serde_as(as = "NumAsHex")]
+            pub tip: &'a u64,
+            #[serde_as(as = "[UfeHex]")]
+            pub paymaster_data: &'a [FieldElement],
+            #[serde_as(as = "[UfeHex]")]
+            pub account_deployment_data: &'a [FieldElement],
+            pub nonce_data_availability_mode: &'a DataAvailabilityMode,
+            pub fee_data_availability_mode: &'a DataAvailabilityMode,
+        }
+
+        let r#type = "DECLARE";
+
+        let version = &(if self.is_query {
+            FieldElement::THREE + QUERY_VERSION_OFFSET
+        } else {
+            FieldElement::THREE
+        });
+
+        let tagged = Tagged {
+            r#type,
+            sender_address: &self.sender_address,
+            compiled_class_hash: &self.compiled_class_hash,
+            version,
+            signature: &self.signature,
+            nonce: &self.nonce,
+            contract_class: &self.contract_class,
+            resource_bounds: &self.resource_bounds,
+            tip: &self.tip,
+            paymaster_data: &self.paymaster_data,
+            account_deployment_data: &self.account_deployment_data,
+            nonce_data_availability_mode: &self.nonce_data_availability_mode,
+            fee_data_availability_mode: &self.fee_data_availability_mode,
+        };
+
+        Tagged::serialize(&tagged, serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for BroadcastedDeclareTransactionV3 {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+        struct Tagged {
+            pub r#type: Option<String>,
+            #[serde_as(as = "UfeHex")]
+            pub sender_address: FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub compiled_class_hash: FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub version: FieldElement,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub signature: Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            pub nonce: FieldElement,
+            pub contract_class: FlattenedSierraClass,
+            pub resource_bounds: ResourceBoundsMapping,
+            #[serde_as(as = "NumAsHex")]
+            pub tip: u64,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub paymaster_data: Vec<FieldElement>,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub account_deployment_data: Vec<FieldElement>,
+            pub nonce_data_availability_mode: DataAvailabilityMode,
+            pub fee_data_availability_mode: DataAvailabilityMode,
+        }
+
+        let tagged = Tagged::deserialize(deserializer)?;
+
+        if let Some(tag_field) = &tagged.r#type {
+            if tag_field != "DECLARE" {
+                return Err(serde::de::Error::custom("invalid `type` value"));
+            }
+        }
+
+        let is_query = if tagged.version == FieldElement::THREE {
+            false
+        } else if tagged.version == FieldElement::THREE + QUERY_VERSION_OFFSET {
+            true
+        } else {
+            return Err(serde::de::Error::custom("invalid `version` value"));
+        };
+
+        Ok(Self {
+            sender_address: tagged.sender_address,
+            compiled_class_hash: tagged.compiled_class_hash,
+            signature: tagged.signature,
+            nonce: tagged.nonce,
+            contract_class: OwnedPtr::new(tagged.contract_class),
+            resource_bounds: tagged.resource_bounds,
+            tip: tagged.tip,
+            paymaster_data: tagged.paymaster_data,
+            account_deployment_data: tagged.account_deployment_data,
+            nonce_data_availability_mode: tagged.nonce_data_availability_mode,
+            fee_data_availability_mode: tagged.fee_data_availability_mode,
+            is_query,
+        })
+    }
+}
+
+impl Serialize for BroadcastedDeployAccountTransactionV1 {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[serde_as]
         #[derive(Serialize)]
@@ -2132,7 +2493,7 @@ impl Serialize for BroadcastedDeployAccountTransaction {
     }
 }
 
-impl<'de> Deserialize<'de> for BroadcastedDeployAccountTransaction {
+impl<'de> Deserialize<'de> for BroadcastedDeployAccountTransactionV1 {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
@@ -2183,7 +2544,121 @@ impl<'de> Deserialize<'de> for BroadcastedDeployAccountTransaction {
     }
 }
 
-impl Serialize for BroadcastedInvokeTransaction {
+impl Serialize for BroadcastedDeployAccountTransactionV3 {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct Tagged<'a> {
+            pub r#type: &'a str,
+            #[serde_as(as = "UfeHex")]
+            pub version: &'a FieldElement,
+            #[serde_as(as = "[UfeHex]")]
+            pub signature: &'a [FieldElement],
+            #[serde_as(as = "UfeHex")]
+            pub nonce: &'a FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub contract_address_salt: &'a FieldElement,
+            #[serde_as(as = "[UfeHex]")]
+            pub constructor_calldata: &'a [FieldElement],
+            #[serde_as(as = "UfeHex")]
+            pub class_hash: &'a FieldElement,
+            pub resource_bounds: &'a ResourceBoundsMapping,
+            #[serde_as(as = "NumAsHex")]
+            pub tip: &'a u64,
+            #[serde_as(as = "[UfeHex]")]
+            pub paymaster_data: &'a [FieldElement],
+            pub nonce_data_availability_mode: &'a DataAvailabilityMode,
+            pub fee_data_availability_mode: &'a DataAvailabilityMode,
+        }
+
+        let r#type = "DEPLOY_ACCOUNT";
+
+        let version = &(if self.is_query {
+            FieldElement::THREE + QUERY_VERSION_OFFSET
+        } else {
+            FieldElement::THREE
+        });
+
+        let tagged = Tagged {
+            r#type,
+            version,
+            signature: &self.signature,
+            nonce: &self.nonce,
+            contract_address_salt: &self.contract_address_salt,
+            constructor_calldata: &self.constructor_calldata,
+            class_hash: &self.class_hash,
+            resource_bounds: &self.resource_bounds,
+            tip: &self.tip,
+            paymaster_data: &self.paymaster_data,
+            nonce_data_availability_mode: &self.nonce_data_availability_mode,
+            fee_data_availability_mode: &self.fee_data_availability_mode,
+        };
+
+        Tagged::serialize(&tagged, serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for BroadcastedDeployAccountTransactionV3 {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+        struct Tagged {
+            pub r#type: Option<String>,
+            #[serde_as(as = "UfeHex")]
+            pub version: FieldElement,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub signature: Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            pub nonce: FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub contract_address_salt: FieldElement,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub constructor_calldata: Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            pub class_hash: FieldElement,
+            pub resource_bounds: ResourceBoundsMapping,
+            #[serde_as(as = "NumAsHex")]
+            pub tip: u64,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub paymaster_data: Vec<FieldElement>,
+            pub nonce_data_availability_mode: DataAvailabilityMode,
+            pub fee_data_availability_mode: DataAvailabilityMode,
+        }
+
+        let tagged = Tagged::deserialize(deserializer)?;
+
+        if let Some(tag_field) = &tagged.r#type {
+            if tag_field != "DEPLOY_ACCOUNT" {
+                return Err(serde::de::Error::custom("invalid `type` value"));
+            }
+        }
+
+        let is_query = if tagged.version == FieldElement::THREE {
+            false
+        } else if tagged.version == FieldElement::THREE + QUERY_VERSION_OFFSET {
+            true
+        } else {
+            return Err(serde::de::Error::custom("invalid `version` value"));
+        };
+
+        Ok(Self {
+            signature: tagged.signature,
+            nonce: tagged.nonce,
+            contract_address_salt: tagged.contract_address_salt,
+            constructor_calldata: tagged.constructor_calldata,
+            class_hash: tagged.class_hash,
+            resource_bounds: tagged.resource_bounds,
+            tip: tagged.tip,
+            paymaster_data: tagged.paymaster_data,
+            nonce_data_availability_mode: tagged.nonce_data_availability_mode,
+            fee_data_availability_mode: tagged.fee_data_availability_mode,
+            is_query,
+        })
+    }
+}
+
+impl Serialize for BroadcastedInvokeTransactionV1 {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[serde_as]
         #[derive(Serialize)]
@@ -2225,7 +2700,7 @@ impl Serialize for BroadcastedInvokeTransaction {
     }
 }
 
-impl<'de> Deserialize<'de> for BroadcastedInvokeTransaction {
+impl<'de> Deserialize<'de> for BroadcastedInvokeTransactionV1 {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
@@ -2273,6 +2748,120 @@ impl<'de> Deserialize<'de> for BroadcastedInvokeTransaction {
     }
 }
 
+impl Serialize for BroadcastedInvokeTransactionV3 {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct Tagged<'a> {
+            pub r#type: &'a str,
+            #[serde_as(as = "UfeHex")]
+            pub sender_address: &'a FieldElement,
+            #[serde_as(as = "[UfeHex]")]
+            pub calldata: &'a [FieldElement],
+            #[serde_as(as = "UfeHex")]
+            pub version: &'a FieldElement,
+            #[serde_as(as = "[UfeHex]")]
+            pub signature: &'a [FieldElement],
+            #[serde_as(as = "UfeHex")]
+            pub nonce: &'a FieldElement,
+            pub resource_bounds: &'a ResourceBoundsMapping,
+            #[serde_as(as = "NumAsHex")]
+            pub tip: &'a u64,
+            #[serde_as(as = "[UfeHex]")]
+            pub paymaster_data: &'a [FieldElement],
+            #[serde_as(as = "[UfeHex]")]
+            pub account_deployment_data: &'a [FieldElement],
+            pub nonce_data_availability_mode: &'a DataAvailabilityMode,
+            pub fee_data_availability_mode: &'a DataAvailabilityMode,
+        }
+
+        let r#type = "INVOKE";
+
+        let version = &(if self.is_query {
+            FieldElement::THREE + QUERY_VERSION_OFFSET
+        } else {
+            FieldElement::THREE
+        });
+
+        let tagged = Tagged {
+            r#type,
+            sender_address: &self.sender_address,
+            calldata: &self.calldata,
+            version,
+            signature: &self.signature,
+            nonce: &self.nonce,
+            resource_bounds: &self.resource_bounds,
+            tip: &self.tip,
+            paymaster_data: &self.paymaster_data,
+            account_deployment_data: &self.account_deployment_data,
+            nonce_data_availability_mode: &self.nonce_data_availability_mode,
+            fee_data_availability_mode: &self.fee_data_availability_mode,
+        };
+
+        Tagged::serialize(&tagged, serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for BroadcastedInvokeTransactionV3 {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+        struct Tagged {
+            pub r#type: Option<String>,
+            #[serde_as(as = "UfeHex")]
+            pub sender_address: FieldElement,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub calldata: Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            pub version: FieldElement,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub signature: Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            pub nonce: FieldElement,
+            pub resource_bounds: ResourceBoundsMapping,
+            #[serde_as(as = "NumAsHex")]
+            pub tip: u64,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub paymaster_data: Vec<FieldElement>,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub account_deployment_data: Vec<FieldElement>,
+            pub nonce_data_availability_mode: DataAvailabilityMode,
+            pub fee_data_availability_mode: DataAvailabilityMode,
+        }
+
+        let tagged = Tagged::deserialize(deserializer)?;
+
+        if let Some(tag_field) = &tagged.r#type {
+            if tag_field != "INVOKE" {
+                return Err(serde::de::Error::custom("invalid `type` value"));
+            }
+        }
+
+        let is_query = if tagged.version == FieldElement::THREE {
+            false
+        } else if tagged.version == FieldElement::THREE + QUERY_VERSION_OFFSET {
+            true
+        } else {
+            return Err(serde::de::Error::custom("invalid `version` value"));
+        };
+
+        Ok(Self {
+            sender_address: tagged.sender_address,
+            calldata: tagged.calldata,
+            signature: tagged.signature,
+            nonce: tagged.nonce,
+            resource_bounds: tagged.resource_bounds,
+            tip: tagged.tip,
+            paymaster_data: tagged.paymaster_data,
+            account_deployment_data: tagged.account_deployment_data,
+            nonce_data_availability_mode: tagged.nonce_data_availability_mode,
+            fee_data_availability_mode: tagged.fee_data_availability_mode,
+            is_query,
+        })
+    }
+}
+
 impl Serialize for DeclareTransactionReceipt {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[serde_as]
@@ -2281,8 +2870,7 @@ impl Serialize for DeclareTransactionReceipt {
             pub r#type: &'a str,
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: &'a FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: &'a FieldElement,
+            pub actual_fee: &'a FeePayment,
             pub finality_status: &'a TransactionFinalityStatus,
             #[serde_as(as = "UfeHex")]
             pub block_hash: &'a FieldElement,
@@ -2322,8 +2910,7 @@ impl<'de> Deserialize<'de> for DeclareTransactionReceipt {
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: FieldElement,
+            pub actual_fee: FeePayment,
             pub finality_status: TransactionFinalityStatus,
             #[serde_as(as = "UfeHex")]
             pub block_hash: FieldElement,
@@ -2680,7 +3267,7 @@ impl<'de> Deserialize<'de> for DeclareTransactionV2 {
     }
 }
 
-impl Serialize for DeployAccountTransaction {
+impl Serialize for DeclareTransactionV3 {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[serde_as]
         #[derive(Serialize)]
@@ -2689,7 +3276,9 @@ impl Serialize for DeployAccountTransaction {
             pub transaction_hash: &'a FieldElement,
             pub r#type: &'a str,
             #[serde_as(as = "UfeHex")]
-            pub max_fee: &'a FieldElement,
+            pub sender_address: &'a FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub compiled_class_hash: &'a FieldElement,
             #[serde_as(as = "NumAsHex")]
             pub version: &'a u64,
             #[serde_as(as = "[UfeHex]")]
@@ -2697,34 +3286,44 @@ impl Serialize for DeployAccountTransaction {
             #[serde_as(as = "UfeHex")]
             pub nonce: &'a FieldElement,
             #[serde_as(as = "UfeHex")]
-            pub contract_address_salt: &'a FieldElement,
-            #[serde_as(as = "[UfeHex]")]
-            pub constructor_calldata: &'a [FieldElement],
-            #[serde_as(as = "UfeHex")]
             pub class_hash: &'a FieldElement,
+            pub resource_bounds: &'a ResourceBoundsMapping,
+            #[serde_as(as = "NumAsHex")]
+            pub tip: &'a u64,
+            #[serde_as(as = "[UfeHex]")]
+            pub paymaster_data: &'a [FieldElement],
+            #[serde_as(as = "[UfeHex]")]
+            pub account_deployment_data: &'a [FieldElement],
+            pub nonce_data_availability_mode: &'a DataAvailabilityMode,
+            pub fee_data_availability_mode: &'a DataAvailabilityMode,
         }
 
-        let r#type = "DEPLOY_ACCOUNT";
+        let r#type = "DECLARE";
 
-        let version = &1;
+        let version = &3;
 
         let tagged = Tagged {
             transaction_hash: &self.transaction_hash,
             r#type,
-            max_fee: &self.max_fee,
+            sender_address: &self.sender_address,
+            compiled_class_hash: &self.compiled_class_hash,
             version,
             signature: &self.signature,
             nonce: &self.nonce,
-            contract_address_salt: &self.contract_address_salt,
-            constructor_calldata: &self.constructor_calldata,
             class_hash: &self.class_hash,
+            resource_bounds: &self.resource_bounds,
+            tip: &self.tip,
+            paymaster_data: &self.paymaster_data,
+            account_deployment_data: &self.account_deployment_data,
+            nonce_data_availability_mode: &self.nonce_data_availability_mode,
+            fee_data_availability_mode: &self.fee_data_availability_mode,
         };
 
         Tagged::serialize(&tagged, serializer)
     }
 }
 
-impl<'de> Deserialize<'de> for DeployAccountTransaction {
+impl<'de> Deserialize<'de> for DeclareTransactionV3 {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[serde_as]
         #[derive(Deserialize)]
@@ -2734,7 +3333,9 @@ impl<'de> Deserialize<'de> for DeployAccountTransaction {
             pub transaction_hash: FieldElement,
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
-            pub max_fee: FieldElement,
+            pub sender_address: FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub compiled_class_hash: FieldElement,
             #[serde_as(as = "Option<NumAsHex>")]
             pub version: Option<u64>,
             #[serde_as(as = "Vec<UfeHex>")]
@@ -2742,35 +3343,45 @@ impl<'de> Deserialize<'de> for DeployAccountTransaction {
             #[serde_as(as = "UfeHex")]
             pub nonce: FieldElement,
             #[serde_as(as = "UfeHex")]
-            pub contract_address_salt: FieldElement,
-            #[serde_as(as = "Vec<UfeHex>")]
-            pub constructor_calldata: Vec<FieldElement>,
-            #[serde_as(as = "UfeHex")]
             pub class_hash: FieldElement,
+            pub resource_bounds: ResourceBoundsMapping,
+            #[serde_as(as = "NumAsHex")]
+            pub tip: u64,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub paymaster_data: Vec<FieldElement>,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub account_deployment_data: Vec<FieldElement>,
+            pub nonce_data_availability_mode: DataAvailabilityMode,
+            pub fee_data_availability_mode: DataAvailabilityMode,
         }
 
         let tagged = Tagged::deserialize(deserializer)?;
 
         if let Some(tag_field) = &tagged.r#type {
-            if tag_field != "DEPLOY_ACCOUNT" {
+            if tag_field != "DECLARE" {
                 return Err(serde::de::Error::custom("invalid `type` value"));
             }
         }
 
         if let Some(tag_field) = &tagged.version {
-            if tag_field != &1 {
+            if tag_field != &3 {
                 return Err(serde::de::Error::custom("invalid `version` value"));
             }
         }
 
         Ok(Self {
             transaction_hash: tagged.transaction_hash,
-            max_fee: tagged.max_fee,
+            sender_address: tagged.sender_address,
+            compiled_class_hash: tagged.compiled_class_hash,
             signature: tagged.signature,
             nonce: tagged.nonce,
-            contract_address_salt: tagged.contract_address_salt,
-            constructor_calldata: tagged.constructor_calldata,
             class_hash: tagged.class_hash,
+            resource_bounds: tagged.resource_bounds,
+            tip: tagged.tip,
+            paymaster_data: tagged.paymaster_data,
+            account_deployment_data: tagged.account_deployment_data,
+            nonce_data_availability_mode: tagged.nonce_data_availability_mode,
+            fee_data_availability_mode: tagged.fee_data_availability_mode,
         })
     }
 }
@@ -2782,8 +3393,7 @@ impl Serialize for DeployAccountTransactionReceipt {
         struct Tagged<'a> {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: &'a FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: &'a FieldElement,
+            pub actual_fee: &'a FeePayment,
             pub finality_status: &'a TransactionFinalityStatus,
             #[serde_as(as = "UfeHex")]
             pub block_hash: &'a FieldElement,
@@ -2826,8 +3436,7 @@ impl<'de> Deserialize<'de> for DeployAccountTransactionReceipt {
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: FieldElement,
+            pub actual_fee: FeePayment,
             pub finality_status: TransactionFinalityStatus,
             #[serde_as(as = "UfeHex")]
             pub block_hash: FieldElement,
@@ -2925,6 +3534,214 @@ impl<'de> Deserialize<'de> for DeployAccountTransactionTrace {
     }
 }
 
+impl Serialize for DeployAccountTransactionV1 {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct Tagged<'a> {
+            #[serde_as(as = "UfeHex")]
+            pub transaction_hash: &'a FieldElement,
+            pub r#type: &'a str,
+            #[serde_as(as = "UfeHex")]
+            pub max_fee: &'a FieldElement,
+            #[serde_as(as = "NumAsHex")]
+            pub version: &'a u64,
+            #[serde_as(as = "[UfeHex]")]
+            pub signature: &'a [FieldElement],
+            #[serde_as(as = "UfeHex")]
+            pub nonce: &'a FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub contract_address_salt: &'a FieldElement,
+            #[serde_as(as = "[UfeHex]")]
+            pub constructor_calldata: &'a [FieldElement],
+            #[serde_as(as = "UfeHex")]
+            pub class_hash: &'a FieldElement,
+        }
+
+        let r#type = "DEPLOY_ACCOUNT";
+
+        let version = &1;
+
+        let tagged = Tagged {
+            transaction_hash: &self.transaction_hash,
+            r#type,
+            max_fee: &self.max_fee,
+            version,
+            signature: &self.signature,
+            nonce: &self.nonce,
+            contract_address_salt: &self.contract_address_salt,
+            constructor_calldata: &self.constructor_calldata,
+            class_hash: &self.class_hash,
+        };
+
+        Tagged::serialize(&tagged, serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for DeployAccountTransactionV1 {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+        struct Tagged {
+            #[serde_as(as = "UfeHex")]
+            pub transaction_hash: FieldElement,
+            pub r#type: Option<String>,
+            #[serde_as(as = "UfeHex")]
+            pub max_fee: FieldElement,
+            #[serde_as(as = "Option<NumAsHex>")]
+            pub version: Option<u64>,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub signature: Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            pub nonce: FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub contract_address_salt: FieldElement,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub constructor_calldata: Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            pub class_hash: FieldElement,
+        }
+
+        let tagged = Tagged::deserialize(deserializer)?;
+
+        if let Some(tag_field) = &tagged.r#type {
+            if tag_field != "DEPLOY_ACCOUNT" {
+                return Err(serde::de::Error::custom("invalid `type` value"));
+            }
+        }
+
+        if let Some(tag_field) = &tagged.version {
+            if tag_field != &1 {
+                return Err(serde::de::Error::custom("invalid `version` value"));
+            }
+        }
+
+        Ok(Self {
+            transaction_hash: tagged.transaction_hash,
+            max_fee: tagged.max_fee,
+            signature: tagged.signature,
+            nonce: tagged.nonce,
+            contract_address_salt: tagged.contract_address_salt,
+            constructor_calldata: tagged.constructor_calldata,
+            class_hash: tagged.class_hash,
+        })
+    }
+}
+
+impl Serialize for DeployAccountTransactionV3 {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct Tagged<'a> {
+            #[serde_as(as = "UfeHex")]
+            pub transaction_hash: &'a FieldElement,
+            pub r#type: &'a str,
+            #[serde_as(as = "NumAsHex")]
+            pub version: &'a u64,
+            #[serde_as(as = "[UfeHex]")]
+            pub signature: &'a [FieldElement],
+            #[serde_as(as = "UfeHex")]
+            pub nonce: &'a FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub contract_address_salt: &'a FieldElement,
+            #[serde_as(as = "[UfeHex]")]
+            pub constructor_calldata: &'a [FieldElement],
+            #[serde_as(as = "UfeHex")]
+            pub class_hash: &'a FieldElement,
+            pub resource_bounds: &'a ResourceBoundsMapping,
+            #[serde_as(as = "NumAsHex")]
+            pub tip: &'a u64,
+            #[serde_as(as = "[UfeHex]")]
+            pub paymaster_data: &'a [FieldElement],
+            pub nonce_data_availability_mode: &'a DataAvailabilityMode,
+            pub fee_data_availability_mode: &'a DataAvailabilityMode,
+        }
+
+        let r#type = "DEPLOY_ACCOUNT";
+
+        let version = &3;
+
+        let tagged = Tagged {
+            transaction_hash: &self.transaction_hash,
+            r#type,
+            version,
+            signature: &self.signature,
+            nonce: &self.nonce,
+            contract_address_salt: &self.contract_address_salt,
+            constructor_calldata: &self.constructor_calldata,
+            class_hash: &self.class_hash,
+            resource_bounds: &self.resource_bounds,
+            tip: &self.tip,
+            paymaster_data: &self.paymaster_data,
+            nonce_data_availability_mode: &self.nonce_data_availability_mode,
+            fee_data_availability_mode: &self.fee_data_availability_mode,
+        };
+
+        Tagged::serialize(&tagged, serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for DeployAccountTransactionV3 {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+        struct Tagged {
+            #[serde_as(as = "UfeHex")]
+            pub transaction_hash: FieldElement,
+            pub r#type: Option<String>,
+            #[serde_as(as = "Option<NumAsHex>")]
+            pub version: Option<u64>,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub signature: Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            pub nonce: FieldElement,
+            #[serde_as(as = "UfeHex")]
+            pub contract_address_salt: FieldElement,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub constructor_calldata: Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            pub class_hash: FieldElement,
+            pub resource_bounds: ResourceBoundsMapping,
+            #[serde_as(as = "NumAsHex")]
+            pub tip: u64,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub paymaster_data: Vec<FieldElement>,
+            pub nonce_data_availability_mode: DataAvailabilityMode,
+            pub fee_data_availability_mode: DataAvailabilityMode,
+        }
+
+        let tagged = Tagged::deserialize(deserializer)?;
+
+        if let Some(tag_field) = &tagged.r#type {
+            if tag_field != "DEPLOY_ACCOUNT" {
+                return Err(serde::de::Error::custom("invalid `type` value"));
+            }
+        }
+
+        if let Some(tag_field) = &tagged.version {
+            if tag_field != &3 {
+                return Err(serde::de::Error::custom("invalid `version` value"));
+            }
+        }
+
+        Ok(Self {
+            transaction_hash: tagged.transaction_hash,
+            signature: tagged.signature,
+            nonce: tagged.nonce,
+            contract_address_salt: tagged.contract_address_salt,
+            constructor_calldata: tagged.constructor_calldata,
+            class_hash: tagged.class_hash,
+            resource_bounds: tagged.resource_bounds,
+            tip: tagged.tip,
+            paymaster_data: tagged.paymaster_data,
+            nonce_data_availability_mode: tagged.nonce_data_availability_mode,
+            fee_data_availability_mode: tagged.fee_data_availability_mode,
+        })
+    }
+}
+
 impl Serialize for DeployTransaction {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[serde_as]
@@ -2932,8 +3749,8 @@ impl Serialize for DeployTransaction {
         struct Tagged<'a> {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: &'a FieldElement,
-            #[serde_as(as = "NumAsHex")]
-            pub version: &'a u64,
+            #[serde_as(as = "UfeHex")]
+            pub version: &'a FieldElement,
             pub r#type: &'a str,
             #[serde_as(as = "UfeHex")]
             pub contract_address_salt: &'a FieldElement,
@@ -2966,8 +3783,8 @@ impl<'de> Deserialize<'de> for DeployTransaction {
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
-            #[serde_as(as = "NumAsHex")]
-            pub version: u64,
+            #[serde_as(as = "UfeHex")]
+            pub version: FieldElement,
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub contract_address_salt: FieldElement,
@@ -3002,8 +3819,7 @@ impl Serialize for DeployTransactionReceipt {
         struct Tagged<'a> {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: &'a FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: &'a FieldElement,
+            pub actual_fee: &'a FeePayment,
             pub finality_status: &'a TransactionFinalityStatus,
             #[serde_as(as = "UfeHex")]
             pub block_hash: &'a FieldElement,
@@ -3046,8 +3862,7 @@ impl<'de> Deserialize<'de> for DeployTransactionReceipt {
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: FieldElement,
+            pub actual_fee: FeePayment,
             pub finality_status: TransactionFinalityStatus,
             #[serde_as(as = "UfeHex")]
             pub block_hash: FieldElement,
@@ -3093,8 +3908,7 @@ impl Serialize for InvokeTransactionReceipt {
             pub r#type: &'a str,
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: &'a FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: &'a FieldElement,
+            pub actual_fee: &'a FeePayment,
             pub finality_status: &'a TransactionFinalityStatus,
             #[serde_as(as = "UfeHex")]
             pub block_hash: &'a FieldElement,
@@ -3134,8 +3948,7 @@ impl<'de> Deserialize<'de> for InvokeTransactionReceipt {
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: FieldElement,
+            pub actual_fee: FeePayment,
             pub finality_status: TransactionFinalityStatus,
             #[serde_as(as = "UfeHex")]
             pub block_hash: FieldElement,
@@ -3407,6 +4220,119 @@ impl<'de> Deserialize<'de> for InvokeTransactionV1 {
     }
 }
 
+impl Serialize for InvokeTransactionV3 {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct Tagged<'a> {
+            #[serde_as(as = "UfeHex")]
+            pub transaction_hash: &'a FieldElement,
+            pub r#type: &'a str,
+            #[serde_as(as = "UfeHex")]
+            pub sender_address: &'a FieldElement,
+            #[serde_as(as = "[UfeHex]")]
+            pub calldata: &'a [FieldElement],
+            #[serde_as(as = "NumAsHex")]
+            pub version: &'a u64,
+            #[serde_as(as = "[UfeHex]")]
+            pub signature: &'a [FieldElement],
+            #[serde_as(as = "UfeHex")]
+            pub nonce: &'a FieldElement,
+            pub resource_bounds: &'a ResourceBoundsMapping,
+            #[serde_as(as = "NumAsHex")]
+            pub tip: &'a u64,
+            #[serde_as(as = "[UfeHex]")]
+            pub paymaster_data: &'a [FieldElement],
+            #[serde_as(as = "[UfeHex]")]
+            pub account_deployment_data: &'a [FieldElement],
+            pub nonce_data_availability_mode: &'a DataAvailabilityMode,
+            pub fee_data_availability_mode: &'a DataAvailabilityMode,
+        }
+
+        let r#type = "INVOKE";
+
+        let version = &3;
+
+        let tagged = Tagged {
+            transaction_hash: &self.transaction_hash,
+            r#type,
+            sender_address: &self.sender_address,
+            calldata: &self.calldata,
+            version,
+            signature: &self.signature,
+            nonce: &self.nonce,
+            resource_bounds: &self.resource_bounds,
+            tip: &self.tip,
+            paymaster_data: &self.paymaster_data,
+            account_deployment_data: &self.account_deployment_data,
+            nonce_data_availability_mode: &self.nonce_data_availability_mode,
+            fee_data_availability_mode: &self.fee_data_availability_mode,
+        };
+
+        Tagged::serialize(&tagged, serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for InvokeTransactionV3 {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+        struct Tagged {
+            #[serde_as(as = "UfeHex")]
+            pub transaction_hash: FieldElement,
+            pub r#type: Option<String>,
+            #[serde_as(as = "UfeHex")]
+            pub sender_address: FieldElement,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub calldata: Vec<FieldElement>,
+            #[serde_as(as = "Option<NumAsHex>")]
+            pub version: Option<u64>,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub signature: Vec<FieldElement>,
+            #[serde_as(as = "UfeHex")]
+            pub nonce: FieldElement,
+            pub resource_bounds: ResourceBoundsMapping,
+            #[serde_as(as = "NumAsHex")]
+            pub tip: u64,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub paymaster_data: Vec<FieldElement>,
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub account_deployment_data: Vec<FieldElement>,
+            pub nonce_data_availability_mode: DataAvailabilityMode,
+            pub fee_data_availability_mode: DataAvailabilityMode,
+        }
+
+        let tagged = Tagged::deserialize(deserializer)?;
+
+        if let Some(tag_field) = &tagged.r#type {
+            if tag_field != "INVOKE" {
+                return Err(serde::de::Error::custom("invalid `type` value"));
+            }
+        }
+
+        if let Some(tag_field) = &tagged.version {
+            if tag_field != &3 {
+                return Err(serde::de::Error::custom("invalid `version` value"));
+            }
+        }
+
+        Ok(Self {
+            transaction_hash: tagged.transaction_hash,
+            sender_address: tagged.sender_address,
+            calldata: tagged.calldata,
+            signature: tagged.signature,
+            nonce: tagged.nonce,
+            resource_bounds: tagged.resource_bounds,
+            tip: tagged.tip,
+            paymaster_data: tagged.paymaster_data,
+            account_deployment_data: tagged.account_deployment_data,
+            nonce_data_availability_mode: tagged.nonce_data_availability_mode,
+            fee_data_availability_mode: tagged.fee_data_availability_mode,
+        })
+    }
+}
+
 impl Serialize for L1HandlerTransaction {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[serde_as]
@@ -3414,8 +4340,8 @@ impl Serialize for L1HandlerTransaction {
         struct Tagged<'a> {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: &'a FieldElement,
-            #[serde_as(as = "NumAsHex")]
-            pub version: &'a u64,
+            #[serde_as(as = "UfeHex")]
+            pub version: &'a FieldElement,
             pub r#type: &'a str,
             #[serde_as(as = "NumAsHex")]
             pub nonce: &'a u64,
@@ -3451,8 +4377,8 @@ impl<'de> Deserialize<'de> for L1HandlerTransaction {
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
-            #[serde_as(as = "NumAsHex")]
-            pub version: u64,
+            #[serde_as(as = "UfeHex")]
+            pub version: FieldElement,
             pub r#type: Option<String>,
             #[serde_as(as = "NumAsHex")]
             pub nonce: u64,
@@ -3492,8 +4418,7 @@ impl Serialize for L1HandlerTransactionReceipt {
             pub message_hash: &'a Hash256,
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: &'a FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: &'a FieldElement,
+            pub actual_fee: &'a FeePayment,
             pub finality_status: &'a TransactionFinalityStatus,
             #[serde_as(as = "UfeHex")]
             pub block_hash: &'a FieldElement,
@@ -3535,8 +4460,7 @@ impl<'de> Deserialize<'de> for L1HandlerTransactionReceipt {
             pub message_hash: Hash256,
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: FieldElement,
+            pub actual_fee: FeePayment,
             pub finality_status: TransactionFinalityStatus,
             #[serde_as(as = "UfeHex")]
             pub block_hash: FieldElement,
@@ -3627,8 +4551,7 @@ impl Serialize for PendingDeclareTransactionReceipt {
             pub r#type: &'a str,
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: &'a FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: &'a FieldElement,
+            pub actual_fee: &'a FeePayment,
             pub messages_sent: &'a [MsgToL1],
             pub events: &'a [Event],
             pub finality_status: &'a TransactionFinalityStatus,
@@ -3665,8 +4588,7 @@ impl<'de> Deserialize<'de> for PendingDeclareTransactionReceipt {
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: FieldElement,
+            pub actual_fee: FeePayment,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
             pub finality_status: TransactionFinalityStatus,
@@ -3705,8 +4627,7 @@ impl Serialize for PendingDeployAccountTransactionReceipt {
         struct Tagged<'a> {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: &'a FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: &'a FieldElement,
+            pub actual_fee: &'a FeePayment,
             pub messages_sent: &'a [MsgToL1],
             pub events: &'a [Event],
             pub finality_status: &'a TransactionFinalityStatus,
@@ -3746,8 +4667,7 @@ impl<'de> Deserialize<'de> for PendingDeployAccountTransactionReceipt {
         struct Tagged {
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: FieldElement,
+            pub actual_fee: FeePayment,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
             pub finality_status: TransactionFinalityStatus,
@@ -3791,8 +4711,7 @@ impl Serialize for PendingInvokeTransactionReceipt {
             pub r#type: &'a str,
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: &'a FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: &'a FieldElement,
+            pub actual_fee: &'a FeePayment,
             pub messages_sent: &'a [MsgToL1],
             pub events: &'a [Event],
             pub finality_status: &'a TransactionFinalityStatus,
@@ -3829,8 +4748,7 @@ impl<'de> Deserialize<'de> for PendingInvokeTransactionReceipt {
             pub r#type: Option<String>,
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: FieldElement,
+            pub actual_fee: FeePayment,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
             pub finality_status: TransactionFinalityStatus,
@@ -3871,8 +4789,7 @@ impl Serialize for PendingL1HandlerTransactionReceipt {
             pub message_hash: &'a Hash256,
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: &'a FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: &'a FieldElement,
+            pub actual_fee: &'a FeePayment,
             pub messages_sent: &'a [MsgToL1],
             pub events: &'a [Event],
             pub finality_status: &'a TransactionFinalityStatus,
@@ -3911,8 +4828,7 @@ impl<'de> Deserialize<'de> for PendingL1HandlerTransactionReceipt {
             pub message_hash: Hash256,
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: FieldElement,
-            #[serde_as(as = "UfeHex")]
-            pub actual_fee: FieldElement,
+            pub actual_fee: FeePayment,
             pub messages_sent: Vec<MsgToL1>,
             pub events: Vec<Event>,
             pub finality_status: TransactionFinalityStatus,
@@ -4354,6 +5270,12 @@ impl Serialize for EstimateFeeRequest {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
+            pub simulation_flags: &'a [SimulationFlagForEstimateFee],
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field2<'a> {
             pub block_id: &'a BlockId,
         }
 
@@ -4365,6 +5287,9 @@ impl Serialize for EstimateFeeRequest {
             request: &self.request,
         })?;
         seq.serialize_element(&Field1 {
+            simulation_flags: &self.simulation_flags,
+        })?;
+        seq.serialize_element(&Field2 {
             block_id: &self.block_id,
         })?;
 
@@ -4383,6 +5308,12 @@ impl<'a> Serialize for EstimateFeeRequestRef<'a> {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
+            pub simulation_flags: &'a [SimulationFlagForEstimateFee],
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field2<'a> {
             pub block_id: &'a BlockId,
         }
 
@@ -4394,6 +5325,9 @@ impl<'a> Serialize for EstimateFeeRequestRef<'a> {
             request: self.request,
         })?;
         seq.serialize_element(&Field1 {
+            simulation_flags: self.simulation_flags,
+        })?;
+        seq.serialize_element(&Field2 {
             block_id: self.block_id,
         })?;
 
@@ -4407,6 +5341,7 @@ impl<'de> Deserialize<'de> for EstimateFeeRequest {
         #[derive(Deserialize)]
         struct AsObject {
             pub request: Vec<BroadcastedTransaction>,
+            pub simulation_flags: Vec<SimulationFlagForEstimateFee>,
             pub block_id: BlockId,
         }
 
@@ -4419,12 +5354,24 @@ impl<'de> Deserialize<'de> for EstimateFeeRequest {
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field1 {
+            pub simulation_flags: Vec<SimulationFlagForEstimateFee>,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field2 {
             pub block_id: BlockId,
         }
 
         let temp = serde_json::Value::deserialize(deserializer)?;
 
         if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field2 = serde_json::from_value::<Field2>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
             let field1 = serde_json::from_value::<Field1>(
                 elements
                     .pop()
@@ -4440,11 +5387,13 @@ impl<'de> Deserialize<'de> for EstimateFeeRequest {
 
             Ok(Self {
                 request: field0.request,
-                block_id: field1.block_id,
+                simulation_flags: field1.simulation_flags,
+                block_id: field2.block_id,
             })
         } else if let Ok(object) = AsObject::deserialize(&temp) {
             Ok(Self {
                 request: object.request,
+                simulation_flags: object.simulation_flags,
                 block_id: object.block_id,
             })
         } else {

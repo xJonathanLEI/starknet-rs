@@ -7,8 +7,8 @@ use crate::{Call, ExecutionEncoder};
 use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
-        BroadcastedInvokeTransaction, BroadcastedTransaction, FeeEstimate, FieldElement,
-        InvokeTransactionResult, SimulatedTransaction, SimulationFlag,
+        BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1, BroadcastedTransaction,
+        FeeEstimate, FieldElement, InvokeTransactionResult, SimulatedTransaction, SimulationFlag,
     },
 };
 use starknet_providers::Provider;
@@ -135,7 +135,10 @@ where
             Some(value) => value,
             None => {
                 let fee_estimate = self.estimate_fee_with_nonce(nonce).await?;
-                ((fee_estimate.overall_fee as f64 * self.fee_estimate_multiplier) as u64).into()
+                ((((TryInto::<u64>::try_into(fee_estimate.overall_fee)
+                    .map_err(|_| AccountError::FeeOutOfRange)?) as f64)
+                    * self.fee_estimate_multiplier) as u64)
+                    .into()
             }
         };
 
@@ -170,6 +173,7 @@ where
             .provider()
             .estimate_fee_single(
                 BroadcastedTransaction::Invoke(invoke),
+                [],
                 self.account.block_id(),
             )
             .await
@@ -285,13 +289,15 @@ where
     ) -> Result<BroadcastedInvokeTransaction, A::SignError> {
         let signature = self.account.sign_execution(&self.inner, query_only).await?;
 
-        Ok(BroadcastedInvokeTransaction {
-            max_fee: self.inner.max_fee,
-            signature,
-            nonce: self.inner.nonce,
-            sender_address: self.account.address(),
-            calldata: self.account.encode_calls(&self.inner.calls),
-            is_query: query_only,
-        })
+        Ok(BroadcastedInvokeTransaction::V1(
+            BroadcastedInvokeTransactionV1 {
+                max_fee: self.inner.max_fee,
+                signature,
+                nonce: self.inner.nonce,
+                sender_address: self.account.address(),
+                calldata: self.account.encode_calls(&self.inner.calls),
+                is_query: query_only,
+            },
+        ))
     }
 }

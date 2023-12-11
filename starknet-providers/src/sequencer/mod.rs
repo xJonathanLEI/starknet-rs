@@ -450,7 +450,9 @@ impl From<SequencerError> for ProviderError {
             ErrorCode::BlockNotFound => Some(StarknetError::BlockNotFound),
             ErrorCode::EntryPointNotFoundInContract => None,
             ErrorCode::InvalidProgram => None,
-            ErrorCode::TransactionFailed => Some(StarknetError::ValidationFailure),
+            ErrorCode::TransactionFailed => {
+                Some(StarknetError::ValidationFailure(value.message.clone()))
+            }
             ErrorCode::TransactionNotFound => Some(StarknetError::ContractNotFound),
             ErrorCode::UninitializedContract => Some(StarknetError::ContractNotFound),
             ErrorCode::MalformedRequest => None,

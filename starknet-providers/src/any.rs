@@ -6,7 +6,8 @@ use starknet_core::types::{
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
     MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag,
-    SyncStatusType, Transaction, TransactionStatus, TransactionTrace, TransactionTraceWithHash,
+    SimulationFlagForEstimateFee, SyncStatusType, Transaction, TransactionStatus, TransactionTrace,
+    TransactionTraceWithHash,
 };
 
 use crate::{
@@ -342,22 +343,35 @@ impl Provider for AnyProvider {
         }
     }
 
-    async fn estimate_fee<R, B>(
+    async fn estimate_fee<R, S, B>(
         &self,
         request: R,
+        simulation_flags: S,
         block_id: B,
     ) -> Result<Vec<FeeEstimate>, ProviderError>
     where
         R: AsRef<[BroadcastedTransaction]> + Send + Sync,
+        S: AsRef<[SimulationFlagForEstimateFee]> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
         match self {
             Self::JsonRpcHttp(inner) => {
-                <JsonRpcClient<HttpTransport> as Provider>::estimate_fee(inner, request, block_id)
-                    .await
+                <JsonRpcClient<HttpTransport> as Provider>::estimate_fee(
+                    inner,
+                    request,
+                    simulation_flags,
+                    block_id,
+                )
+                .await
             }
             Self::SequencerGateway(inner) => {
-                <SequencerGatewayProvider as Provider>::estimate_fee(inner, request, block_id).await
+                <SequencerGatewayProvider as Provider>::estimate_fee(
+                    inner,
+                    request,
+                    simulation_flags,
+                    block_id,
+                )
+                .await
             }
         }
     }

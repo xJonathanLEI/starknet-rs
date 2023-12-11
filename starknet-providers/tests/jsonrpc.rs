@@ -1,11 +1,12 @@
 use starknet_core::{
     types::{
-        BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedTransaction, ContractClass,
-        DeclareTransaction, EthAddress, EventFilter, ExecuteInvocation, ExecutionResult,
-        FieldElement, FunctionCall, InvokeTransaction, MaybePendingBlockWithTxHashes,
-        MaybePendingBlockWithTxs, MaybePendingStateUpdate, MaybePendingTransactionReceipt,
-        MsgFromL1, StarknetError, SyncStatusType, Transaction, TransactionExecutionStatus,
-        TransactionReceipt, TransactionStatus, TransactionTrace,
+        BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1,
+        BroadcastedTransaction, ContractClass, DeclareTransaction, DeployAccountTransaction,
+        EthAddress, EventFilter, ExecuteInvocation, ExecutionResult, FieldElement, FunctionCall,
+        InvokeTransaction, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
+        MaybePendingStateUpdate, MaybePendingTransactionReceipt, MsgFromL1, StarknetError,
+        SyncStatusType, Transaction, TransactionExecutionStatus, TransactionReceipt,
+        TransactionStatus, TransactionTrace,
     },
     utils::{get_selector_from_name, get_storage_var_address},
 };
@@ -16,18 +17,19 @@ use starknet_providers::{
 use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
-    let rpc_url =
-        std::env::var("STARKNET_RPC").unwrap_or("https://rpc-goerli-1.starknet.rs/rpc/v0.5".into());
+    let rpc_url = std::env::var("STARKNET_RPC")
+        .unwrap_or("https://juno.rpc.goerli.starknet.rs/rpc/v0_6".into());
     JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()))
 }
 
+#[ignore = "nodes are incorrectly returning `0.6.0-rc5`"]
 #[tokio::test]
 async fn jsonrpc_spec_version() {
     let rpc_client = create_jsonrpc_client();
 
     let version = rpc_client.spec_version().await.unwrap();
 
-    assert_eq!(version, "0.5.1");
+    assert_eq!(version, "0.6.0");
 }
 
 #[tokio::test]
@@ -323,7 +325,7 @@ async fn jsonrpc_get_transaction_by_hash_deploy() {
 }
 
 #[tokio::test]
-async fn jsonrpc_get_transaction_by_hash_deploy_account() {
+async fn jsonrpc_get_transaction_by_hash_deploy_account_v1() {
     let rpc_client = create_jsonrpc_client();
 
     let tx = rpc_client
@@ -337,7 +339,7 @@ async fn jsonrpc_get_transaction_by_hash_deploy_account() {
         .unwrap();
 
     let tx = match tx {
-        Transaction::DeployAccount(tx) => tx,
+        Transaction::DeployAccount(DeployAccountTransaction::V1(tx)) => tx,
         _ => panic!("unexpected tx response type"),
     };
 
@@ -672,54 +674,57 @@ async fn jsonrpc_estimate_fee() {
 
     let estimate = rpc_client
         .estimate_fee_single(
-            &BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction {
-                max_fee: FieldElement::ZERO,
-                signature: vec![
-                    FieldElement::from_hex_be(
-                        "156a781f12e8743bd07e20a4484154fd0baccee95d9ea791c121c916ad44ee0",
-                    )
-                    .unwrap(),
-                    FieldElement::from_hex_be(
-                        "7228267473c670cbb86a644f8696973db978c51acde19431d3f1f8f100794c6",
-                    )
-                    .unwrap(),
-                ],
-                nonce: FieldElement::ZERO,
-                sender_address: FieldElement::from_hex_be(
-                    "5b5e9f6f6fb7d2647d81a8b2c2b99cbc9cc9d03d705576d7061812324dca5c0",
-                )
-                .unwrap(),
-                calldata: vec![
-                    FieldElement::from_hex_be("1").unwrap(),
-                    FieldElement::from_hex_be(
-                        "7394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
-                    )
-                    .unwrap(),
-                    FieldElement::from_hex_be(
-                        "2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
-                    )
-                    .unwrap(),
-                    FieldElement::from_hex_be("0").unwrap(),
-                    FieldElement::from_hex_be("3").unwrap(),
-                    FieldElement::from_hex_be("3").unwrap(),
-                    FieldElement::from_hex_be(
+            &BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction::V1(
+                BroadcastedInvokeTransactionV1 {
+                    max_fee: FieldElement::ZERO,
+                    signature: vec![
+                        FieldElement::from_hex_be(
+                            "156a781f12e8743bd07e20a4484154fd0baccee95d9ea791c121c916ad44ee0",
+                        )
+                        .unwrap(),
+                        FieldElement::from_hex_be(
+                            "7228267473c670cbb86a644f8696973db978c51acde19431d3f1f8f100794c6",
+                        )
+                        .unwrap(),
+                    ],
+                    nonce: FieldElement::ZERO,
+                    sender_address: FieldElement::from_hex_be(
                         "5b5e9f6f6fb7d2647d81a8b2c2b99cbc9cc9d03d705576d7061812324dca5c0",
                     )
                     .unwrap(),
-                    FieldElement::from_hex_be("3635c9adc5dea00000").unwrap(),
-                    FieldElement::from_hex_be("0").unwrap(),
-                ],
-                // TODO: make use of query version tx for estimating fees
-                is_query: false,
-            }),
+                    calldata: vec![
+                        FieldElement::from_hex_be("1").unwrap(),
+                        FieldElement::from_hex_be(
+                            "7394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
+                        )
+                        .unwrap(),
+                        FieldElement::from_hex_be(
+                            "2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+                        )
+                        .unwrap(),
+                        FieldElement::from_hex_be("0").unwrap(),
+                        FieldElement::from_hex_be("3").unwrap(),
+                        FieldElement::from_hex_be("3").unwrap(),
+                        FieldElement::from_hex_be(
+                            "5b5e9f6f6fb7d2647d81a8b2c2b99cbc9cc9d03d705576d7061812324dca5c0",
+                        )
+                        .unwrap(),
+                        FieldElement::from_hex_be("3635c9adc5dea00000").unwrap(),
+                        FieldElement::from_hex_be("0").unwrap(),
+                    ],
+                    // TODO: make use of query version tx for estimating fees
+                    is_query: false,
+                },
+            )),
+            [],
             BlockId::Tag(BlockTag::Latest),
         )
         .await
         .unwrap();
 
-    assert!(estimate.gas_consumed > 0);
-    assert!(estimate.gas_price > 0);
-    assert!(estimate.overall_fee > 0);
+    assert!(estimate.gas_consumed > FieldElement::ZERO);
+    assert!(estimate.gas_price > FieldElement::ZERO);
+    assert!(estimate.overall_fee > FieldElement::ZERO);
 }
 
 #[tokio::test]
@@ -746,9 +751,9 @@ async fn jsonrpc_estimate_message_fee() {
         .await
         .unwrap();
 
-    assert!(estimate.gas_consumed > 0);
-    assert!(estimate.gas_price > 0);
-    assert!(estimate.overall_fee > 0);
+    assert!(estimate.gas_consumed > FieldElement::ZERO);
+    assert!(estimate.gas_price > FieldElement::ZERO);
+    assert!(estimate.overall_fee > FieldElement::ZERO);
 }
 
 #[tokio::test]
