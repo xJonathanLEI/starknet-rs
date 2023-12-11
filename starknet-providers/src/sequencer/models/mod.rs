@@ -33,8 +33,13 @@ pub use transaction_request::{
     DeclareTransaction as DeclareTransactionRequest,
     DeclareV1Transaction as DeclareV1TransactionRequest,
     DeclareV2Transaction as DeclareV2TransactionRequest,
+    DeclareV3Transaction as DeclareV3TransactionRequest,
     DeployAccountTransaction as DeployAccountTransactionRequest,
-    InvokeFunctionTransaction as InvokeFunctionTransactionRequest, TransactionRequest,
+    DeployAccountV1Transaction as DeployAccountV1TransactionRequest,
+    DeployAccountV3Transaction as DeployAccountV3TransactionRequest,
+    InvokeFunctionTransaction as InvokeFunctionTransactionRequest,
+    InvokeFunctionV1Transaction as InvokeFunctionV1TransactionRequest,
+    InvokeFunctionV3Transaction as InvokeFunctionV3TransactionRequest, TransactionRequest,
 };
 
 mod contract;
@@ -45,3 +50,5 @@ pub use state_update::StateUpdate;
 
 pub mod trace;
 pub use trace::{BlockTraces, TransactionTrace};
+
+pub(crate) mod serde_impls;

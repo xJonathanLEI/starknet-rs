@@ -457,14 +457,14 @@ impl TryFrom<TransactionFinalityStatus> for core::TransactionFinalityStatus {
 
 impl From<core::BroadcastedInvokeTransaction> for InvokeFunctionTransactionRequest {
     fn from(value: core::BroadcastedInvokeTransaction) -> Self {
-        Self {
+        Self::V1(InvokeFunctionV1TransactionRequest {
             sender_address: value.sender_address,
             calldata: value.calldata,
             signature: value.signature,
             max_fee: value.max_fee,
             nonce: value.nonce,
             is_query: value.is_query,
-        }
+        })
     }
 }
 
@@ -513,7 +513,7 @@ impl TryFrom<core::BroadcastedDeclareTransactionV2> for DeclareV2TransactionRequ
 
 impl From<core::BroadcastedDeployAccountTransaction> for DeployAccountTransactionRequest {
     fn from(value: core::BroadcastedDeployAccountTransaction) -> Self {
-        Self {
+        Self::V1(DeployAccountV1TransactionRequest {
             class_hash: value.class_hash,
             contract_address_salt: value.contract_address_salt,
             constructor_calldata: value.constructor_calldata,
@@ -521,7 +521,7 @@ impl From<core::BroadcastedDeployAccountTransaction> for DeployAccountTransactio
             signature: value.signature,
             nonce: value.nonce,
             is_query: value.is_query,
-        }
+        })
     }
 }
 
