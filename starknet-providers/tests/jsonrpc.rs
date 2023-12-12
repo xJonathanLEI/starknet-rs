@@ -22,7 +22,6 @@ fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()))
 }
 
-#[ignore = "nodes are incorrectly returning `0.6.0-rc5`"]
 #[tokio::test]
 async fn jsonrpc_spec_version() {
     let rpc_client = create_jsonrpc_client();
