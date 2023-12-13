@@ -98,6 +98,23 @@ pub fn ecdsa_verify(
     }
 }
 
+pub fn mask_bits(mask: usize, word_size: usize, slice: &mut [u8]) {
+    let mut excess = slice.len() * word_size - mask;
+
+    for v in slice {
+        let by = v;
+        if excess > 0 {
+            if excess > word_size {
+                excess -= word_size;
+                continue;
+            }
+            *by <<= excess;
+            *by >>= excess;
+            excess = 0;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -225,5 +242,24 @@ mod tests {
         .unwrap();
 
         assert!(!ecdsa_verify(&public_key, &message_hash, &Signature { r, s }).unwrap());
+    }
+
+    #[test]
+    fn test_mask_bits() {
+        // Given
+        let mut to_mask: [u8; 32] = [
+            72, 232, 75, 188, 182, 142, 15, 124, 115, 169, 5, 139, 168, 43, 109, 169, 193, 255,
+            220, 80, 46, 252, 240, 52, 231, 139, 12, 0, 60, 34, 236, 201,
+        ];
+
+        // When
+        mask_bits(250, 8, &mut to_mask[..]);
+        let expected: [u8; 32] = [
+            0, 232, 75, 188, 182, 142, 15, 124, 115, 169, 5, 139, 168, 43, 109, 169, 193, 255, 220,
+            80, 46, 252, 240, 52, 231, 139, 12, 0, 60, 34, 236, 201,
+        ];
+
+        // Then
+        assert_eq!(to_mask, expected);
     }
 }
