@@ -98,6 +98,14 @@ pub fn ecdsa_verify(
     }
 }
 
+/// MaskBits masks the specified (excess) bits in a byte slice.
+///
+/// Parameters:
+/// - mask: is an integer representing the number of bits to mask
+/// - word_size: is an integer representing the number of bits in each element of the slice
+/// - slice: is a byte slice on which the masking operation is performed
+/// Makes the operation in place on slice, gets a new byte slice that contains the masked bits
+/// Porting the MaskBits from https://github.com/NethermindEth/starknet.go/blob/main/curve/utils.go#L128-L143
 pub fn mask_bits(mask: usize, word_size: usize, slice: &mut [u8]) {
     let mut excess = slice.len() * word_size - mask;
 
