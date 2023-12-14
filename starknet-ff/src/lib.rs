@@ -579,7 +579,7 @@ mod serde_field_element {
         where
             D: serde::Deserializer<'de>,
         {
-            deserializer.deserialize_any(FieldElementVisitor)
+            deserializer.deserialize_str(FieldElementVisitor)
         }
     }
 
