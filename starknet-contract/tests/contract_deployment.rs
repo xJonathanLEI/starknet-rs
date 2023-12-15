@@ -12,7 +12,7 @@ use url::Url;
 #[tokio::test]
 async fn can_deploy_contract_to_alpha_goerli() {
     let rpc_url = std::env::var("STARKNET_RPC")
-        .unwrap_or("https://juno.rpc.goerli.starknet.rs/rpc/v0_6".into());
+        .unwrap_or("https://pathfinder.rpc.goerli.starknet.rs/rpc/v0_6".into());
     let provider = JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()));
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be(
