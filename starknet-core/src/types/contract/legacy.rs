@@ -51,7 +51,7 @@ pub struct LegacyProgram {
     pub attributes: Option<Vec<LegacyAttribute>>,
     pub builtins: Vec<String>,
     // This field was introduced in Cairo 0.10.0. By making it optional we're keeping compatibility
-    // with older artifacts. This decision should be reviewd in the future.
+    // with older artifacts. This decision should be reviewed in the future.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub compiler_version: Option<String>,
     #[serde_as(as = "Vec<UfeHex>")]
