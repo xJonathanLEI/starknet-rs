@@ -78,7 +78,11 @@ impl Serialize for Hash256 {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&format!("0x{}", hex::encode(self.inner)))
+        if serializer.is_human_readable() {
+            serializer.serialize_str(&format!("0x{}", hex::encode(self.inner)))
+        } else {
+            serializer.serialize_bytes(self.as_bytes())
+        }
     }
 }
 
@@ -87,7 +91,11 @@ impl<'de> Deserialize<'de> for Hash256 {
     where
         D: serde::Deserializer<'de>,
     {
-        deserializer.deserialize_any(Hash256Visitor)
+        if deserializer.is_human_readable() {
+            deserializer.deserialize_any(Hash256Visitor)
+        } else {
+            deserializer.deserialize_bytes(Hash256Visitor)
+        }
     }
 }
 
@@ -95,7 +103,7 @@ impl<'de> Visitor<'de> for Hash256Visitor {
     type Value = Hash256;
 
     fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
-        write!(formatter, "string")
+        write!(formatter, "string, or an array of u8")
     }
 
     fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
@@ -104,6 +112,12 @@ impl<'de> Visitor<'de> for Hash256Visitor {
     {
         v.parse()
             .map_err(|err| serde::de::Error::custom(format!("{}", err)))
+    }
+
+    fn visit_bytes<E: serde::de::Error>(self, v: &[u8]) -> Result<Self::Value, E> {
+        <[u8; HASH_256_BYTE_COUNT]>::try_from(v)
+            .map(Hash256::from_bytes)
+            .map_err(serde::de::Error::custom)
     }
 }
 
