@@ -1,5 +1,6 @@
 pub mod u64 {
     use alloc::{fmt::Formatter, format};
+    use core::mem;
 
     use serde::{de::Visitor, Deserializer, Serializer};
 
@@ -43,7 +44,7 @@ pub mod u64 {
         }
 
         fn visit_bytes<E: serde::de::Error>(self, v: &[u8]) -> Result<Self::Value, E> {
-            <[u8; std::mem::size_of::<u64>()]>::try_from(v)
+            <[u8; mem::size_of::<u64>()]>::try_from(v)
                 .map(u64::from_be_bytes)
                 .map_err(serde::de::Error::custom)
         }
