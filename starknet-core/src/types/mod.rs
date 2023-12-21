@@ -103,7 +103,9 @@ pub struct EventsPage {
     /// Matching events
     pub events: Vec<EmittedEvent>,
     /// A pointer to the last element of the delivered page, use this token in a subsequent query to
-    /// obtain the next page
+    /// obtain the next page. If the value is `None`, don't add it to the response as clients might
+    /// use `contains_key` as a check for the last page.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub continuation_token: Option<String>,
 }
 
