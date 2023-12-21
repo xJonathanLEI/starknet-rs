@@ -570,7 +570,11 @@ mod serde_field_element {
         where
             S: serde::Serializer,
         {
-            serializer.serialize_str(&ToString::to_string(&self))
+            if serializer.is_human_readable() {
+                serializer.serialize_str(&ToString::to_string(&self))
+            } else {
+                serializer.serialize_bytes(&self.to_bytes_be())
+            }
         }
     }
 
@@ -579,7 +583,11 @@ mod serde_field_element {
         where
             D: serde::Deserializer<'de>,
         {
-            deserializer.deserialize_str(FieldElementVisitor)
+            if deserializer.is_human_readable() {
+                deserializer.deserialize_any(FieldElementVisitor)
+            } else {
+                deserializer.deserialize_bytes(FieldElementVisitor)
+            }
         }
     }
 
@@ -587,7 +595,7 @@ mod serde_field_element {
         type Value = FieldElement;
 
         fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
-            write!(formatter, "string")
+            write!(formatter, "string, or an array of u8")
         }
 
         fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
@@ -595,6 +603,11 @@ mod serde_field_element {
             E: serde::de::Error,
         {
             FieldElement::from_str(v).map_err(serde::de::Error::custom)
+        }
+
+        fn visit_bytes<E: serde::de::Error>(self, v: &[u8]) -> Result<Self::Value, E> {
+            let buf = <[u8; U256_BYTE_COUNT]>::try_from(v).map_err(serde::de::Error::custom)?;
+            FieldElement::from_bytes_be(&buf).map_err(serde::de::Error::custom)
         }
     }
 }
