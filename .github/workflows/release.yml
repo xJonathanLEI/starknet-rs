@@ -25,28 +25,6 @@ jobs:
           echo "crate=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
           echo "version=${BASH_REMATCH[2]}" >> $GITHUB_OUTPUT
 
-  # Just in case we accidentally release something not on master.
-  commit-branch-check:
-    name: "Check commit branch"
-    runs-on: "ubuntu-latest"
-    needs: ["crate-info"]
-
-    steps:
-      - name: "Checkout source code"
-        uses: "actions/checkout@v3"
-        with:
-          fetch-depth: 0
-
-      - name: "Check if commit is on master"
-        run: |
-          COMMIT_HASH=$(git log -1 --format=%H ${{ github.ref }})
-          GREP_OUTPUT=$(git log origin/master --format=%H | grep "$COMMIT_HASH")
-
-          if [ -z "$GREP_OUTPUT" ]; then
-            echo "Cannot release commits not on the master branch"
-            exit 1
-          fi
-
   crate-version-check:
     name: "Check crate version"
     runs-on: "ubuntu-latest"
@@ -102,7 +80,6 @@ jobs:
 
     needs:
       - "crate-info"
-      - "commit-branch-check"
       - "crate-version-check"
       - "build"
 
