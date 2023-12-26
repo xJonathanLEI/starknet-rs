@@ -78,6 +78,7 @@ pub struct RawLegacyEntryPoint {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyAttribute {
+    #[serde(default)]
     pub accessible_scopes: Vec<String>,
     pub end_pc: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
