@@ -325,6 +325,20 @@ where
     }
 }
 
+impl RawAccountDeployment {
+    pub fn salt(&self) -> FieldElement {
+        self.salt
+    }
+
+    pub fn nonce(&self) -> FieldElement {
+        self.nonce
+    }
+
+    pub fn max_fee(&self) -> FieldElement {
+        self.max_fee
+    }
+}
+
 impl<'f, F> PreparedAccountDeployment<'f, F> {
     pub fn from_raw(raw_deployment: RawAccountDeployment, factory: &'f F) -> Self {
         Self {
