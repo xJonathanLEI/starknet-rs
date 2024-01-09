@@ -445,6 +445,22 @@ impl RawDeclaration {
             self.compiled_class_hash,
         ])
     }
+
+    pub fn contract_class(&self) -> &FlattenedSierraClass {
+        &self.contract_class
+    }
+
+    pub fn compiled_class_hash(&self) -> FieldElement {
+        self.compiled_class_hash
+    }
+
+    pub fn nonce(&self) -> FieldElement {
+        self.nonce
+    }
+
+    pub fn max_fee(&self) -> FieldElement {
+        self.max_fee
+    }
 }
 
 impl RawLegacyDeclaration {
@@ -468,6 +484,18 @@ impl RawLegacyDeclaration {
             chain_id,
             self.nonce,
         ]))
+    }
+
+    pub fn contract_class(&self) -> &LegacyContractClass {
+        &self.contract_class
+    }
+
+    pub fn nonce(&self) -> FieldElement {
+        self.nonce
+    }
+
+    pub fn max_fee(&self) -> FieldElement {
+        self.max_fee
     }
 }
 

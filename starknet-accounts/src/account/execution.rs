@@ -246,6 +246,18 @@ impl RawExecution {
             self.nonce,
         ])
     }
+
+    pub fn calls(&self) -> &[Call] {
+        &self.calls
+    }
+
+    pub fn nonce(&self) -> FieldElement {
+        self.nonce
+    }
+
+    pub fn max_fee(&self) -> FieldElement {
+        self.max_fee
+    }
 }
 
 impl<'a, A> PreparedExecution<'a, A>
