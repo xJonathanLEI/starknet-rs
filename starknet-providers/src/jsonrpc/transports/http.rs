@@ -5,7 +5,7 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::jsonrpc::{transports::JsonRpcTransport, JsonRpcMethod, JsonRpcResponse};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct HttpTransport {
     client: Client,
     url: Url,

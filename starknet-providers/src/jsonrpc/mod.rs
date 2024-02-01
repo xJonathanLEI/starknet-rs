@@ -29,6 +29,17 @@ pub struct JsonRpcClient<T> {
     transport: T,
 }
 
+impl<T> Clone for JsonRpcClient<T>
+where
+    T: Clone,
+{
+    fn clone(&self) -> Self {
+        Self {
+            transport: self.transport.clone(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum JsonRpcMethod {
     #[serde(rename = "starknet_specVersion")]
