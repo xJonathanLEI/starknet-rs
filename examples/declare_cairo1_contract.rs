@@ -6,7 +6,10 @@ use starknet::{
         chain_id,
         types::{contract::SierraClass, BlockId, BlockTag, FieldElement},
     },
-    providers::SequencerGatewayProvider,
+    providers::{
+        jsonrpc::{HttpTransport, JsonRpcClient},
+        Url,
+    },
     signers::{LocalWallet, SigningKey},
 };
 
@@ -21,7 +24,10 @@ async fn main() {
     let compiled_class_hash =
         FieldElement::from_hex_be("COMPILED_CASM_CLASS_HASH_IN_HEX_HERE").unwrap();
 
-    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
+    let provider = JsonRpcClient::new(HttpTransport::new(
+        Url::parse("https://starknet-testnet.public.blastapi.io/rpc/v0_6").unwrap(),
+    ));
+
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
     ));
@@ -32,7 +38,7 @@ async fn main() {
         signer,
         address,
         chain_id::TESTNET,
-        ExecutionEncoding::Legacy,
+        ExecutionEncoding::New,
     );
 
     // `SingleOwnerAccount` defaults to checking nonce and estimating fees against the latest

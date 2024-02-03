@@ -2,7 +2,10 @@ use starknet::{
     accounts::{AccountFactory, ArgentAccountFactory},
     core::{chain_id, types::FieldElement},
     macros::felt,
-    providers::SequencerGatewayProvider,
+    providers::{
+        jsonrpc::{HttpTransport, JsonRpcClient},
+        Url,
+    },
     signers::{LocalWallet, SigningKey},
 };
 
@@ -14,7 +17,10 @@ async fn main() {
     // Anything you like here as salt
     let salt = felt!("12345678");
 
-    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
+    let provider = JsonRpcClient::new(HttpTransport::new(
+        Url::parse("https://starknet-testnet.public.blastapi.io/rpc/v0_6").unwrap(),
+    ));
+
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
     ));

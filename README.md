@@ -92,7 +92,7 @@ Examples can be found in the [examples folder](./examples):
 
 6. [Query the latest block number with JSON-RPC](./examples/jsonrpc.rs)
 
-7. [Call a contract view function via sequencer gateway](./examples/sequencer_erc20_balance.rs)
+7. [Call a contract view function](./examples/erc20_balance.rs)
 
 8. [Deploy an Argent X account to a pre-funded address](./examples/deploy_argent_account.rs)
 
