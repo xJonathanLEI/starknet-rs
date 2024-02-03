@@ -6,7 +6,10 @@ use starknet::{
         chain_id,
         types::{contract::legacy::LegacyContractClass, BlockId, BlockTag, FieldElement},
     },
-    providers::SequencerGatewayProvider,
+    providers::{
+        jsonrpc::{HttpTransport, JsonRpcClient},
+        Url,
+    },
     signers::{LocalWallet, SigningKey},
 };
 
@@ -15,7 +18,10 @@ async fn main() {
     let contract_artifact: LegacyContractClass =
         serde_json::from_reader(std::fs::File::open("/path/to/contract/artifact.json").unwrap())
             .unwrap();
-    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
+    let provider = JsonRpcClient::new(HttpTransport::new(
+        Url::parse("https://starknet-testnet.public.blastapi.io/rpc/v0_6").unwrap(),
+    ));
+
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
     ));
@@ -26,7 +32,7 @@ async fn main() {
         signer,
         address,
         chain_id::TESTNET,
-        ExecutionEncoding::Legacy,
+        ExecutionEncoding::New,
     );
 
     // `SingleOwnerAccount` defaults to checking nonce and estimating fees against the latest

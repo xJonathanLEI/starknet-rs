@@ -1,16 +1,14 @@
-use starknet_providers::{
+use starknet::providers::{
     jsonrpc::{HttpTransport, JsonRpcClient},
-    Provider,
+    Provider, Url,
 };
-use url::Url;
 
 #[tokio::main]
 async fn main() {
-    let rpc_client = JsonRpcClient::new(HttpTransport::new(
-        Url::parse("https://starknet-goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161")
-            .unwrap(),
+    let provider = JsonRpcClient::new(HttpTransport::new(
+        Url::parse("https://starknet-testnet.public.blastapi.io/rpc/v0_6").unwrap(),
     ));
 
-    let block_number = rpc_client.block_number().await.unwrap();
+    let block_number = provider.block_number().await.unwrap();
     println!("{block_number}");
 }

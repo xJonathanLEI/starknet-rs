@@ -5,13 +5,19 @@ use starknet::{
         types::{BlockId, BlockTag, FieldElement},
         utils::get_selector_from_name,
     },
-    providers::SequencerGatewayProvider,
+    providers::{
+        jsonrpc::{HttpTransport, JsonRpcClient},
+        Url,
+    },
     signers::{LocalWallet, SigningKey},
 };
 
 #[tokio::main]
 async fn main() {
-    let provider = SequencerGatewayProvider::starknet_alpha_goerli();
+    let provider = JsonRpcClient::new(HttpTransport::new(
+        Url::parse("https://starknet-testnet.public.blastapi.io/rpc/v0_6").unwrap(),
+    ));
+
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
     ));
@@ -26,7 +32,7 @@ async fn main() {
         signer,
         address,
         chain_id::TESTNET,
-        ExecutionEncoding::Legacy,
+        ExecutionEncoding::New,
     );
 
     // `SingleOwnerAccount` defaults to checking nonce and estimating fees against the latest
