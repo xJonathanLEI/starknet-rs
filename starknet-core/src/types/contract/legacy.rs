@@ -29,7 +29,8 @@ const API_VERSION: FieldElement = FieldElement::ZERO;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct LegacyContractClass {
-    pub abi: Vec<RawLegacyAbiEntry>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub abi: Option<Vec<RawLegacyAbiEntry>>,
     pub entry_points_by_type: RawLegacyEntryPoints,
     pub program: LegacyProgram,
 }
@@ -457,7 +458,7 @@ impl LegacyContractClass {
         }
 
         let serialized = to_string_pythonic(&ContractArtifactForHash {
-            abi: &self.abi,
+            abi: &self.abi.clone().unwrap_or_default(),
             program: &self.program,
         })
         .map_err(|err| {
@@ -474,13 +475,10 @@ impl LegacyContractClass {
         Ok(CompressedLegacyContractClass {
             program: self.program.compress()?,
             entry_points_by_type: self.entry_points_by_type.clone().into(),
-            abi: Some(
-                self.abi
-                    .clone()
-                    .into_iter()
-                    .map(|item| item.into())
-                    .collect(),
-            ),
+            abi: match &self.abi {
+                Some(abi) => Some(abi.clone().into_iter().map(|item| item.into()).collect()),
+                None => None,
+            },
         })
     }
 }
