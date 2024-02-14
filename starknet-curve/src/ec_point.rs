@@ -155,7 +155,7 @@ impl ProjectivePoint {
             x: p.x,
             y: p.y,
             z: FieldElement::ONE,
-            infinity: false,
+            infinity: p.infinity,
         }
     }
 
