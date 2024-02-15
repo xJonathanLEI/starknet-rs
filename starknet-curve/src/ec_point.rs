@@ -83,30 +83,22 @@ impl ops::AddAssign<&AffinePoint> for AffinePoint {
             return;
         }
         if self.infinity {
-            self.x = rhs.x;
-            self.y = rhs.y;
-            self.infinity = rhs.infinity;
+            *self = *rhs;
             return;
         }
         if self.x == rhs.x {
-            if self.y == -rhs.y {
-                self.x = FieldElement::ZERO;
-                self.y = FieldElement::ZERO;
-                self.infinity = true;
-                return;
+            if self.y == rhs.y {
+                self.double_assign();
+            } else {
+                *self = AffinePoint::identity();
             }
-            self.double_assign();
             return;
         }
 
-        // l = (y2-y1)/(x2-x1)
-        let lambda = {
-            let dividend = rhs.y - self.y;
-            let divisor_inv = (rhs.x - self.x).invert().unwrap();
-            dividend * divisor_inv
-        };
+        let lambda = (rhs.y - self.y) * (rhs.x - self.x).invert().unwrap();
 
-        let result_x = (lambda * lambda) - self.x - rhs.x;
+        let result_x = lambda * lambda - self.x - rhs.x;
+
         self.y = lambda * (self.x - result_x) - self.y;
         self.x = result_x;
     }
@@ -247,16 +239,17 @@ impl ops::AddAssign<&ProjectivePoint> for ProjectivePoint {
             return;
         }
         if self.infinity {
-            self.x = rhs.x;
-            self.y = rhs.y;
-            self.z = rhs.z;
-            self.infinity = rhs.infinity;
+            *self = *rhs;
             return;
         }
         let u0 = self.x * rhs.z;
         let u1 = rhs.x * self.z;
         if u0 == u1 {
-            self.double_assign();
+            if (self.y == rhs.y) {
+                self.double_assign();
+            } else {
+                *self = ProjectivePoint::identity();
+            }
             return;
         }
 
