@@ -75,8 +75,8 @@ pub fn compress_roundkeys_partial(rcs: &[[FieldElement; 3]]) -> Vec<FieldElement
 
         // MixLayer
         let t = state[0] + state[1] + state[2];
-        state[0] = t + FieldElement::TWO * state[0];
-        state[1] = t - FieldElement::TWO * state[1];
+        state[0] = t + state[0].double();
+        state[1] = t - state[1].double();
         state[2] = t - FieldElement::THREE * state[2];
 
         idx += 1;
