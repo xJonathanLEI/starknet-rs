@@ -3,7 +3,6 @@ use alloc::{
     format,
     str::FromStr,
 };
-
 use serde::{de::Visitor, Deserialize, Serialize};
 use starknet_ff::FieldElement;
 

@@ -1,11 +1,10 @@
-use starknet_curve::{
-    curve_params::{EC_ORDER, GENERATOR},
-    AffinePoint, ProjectivePoint,
-};
-
 use crate::{
     fe_utils::{add_unbounded, bigint_mul_mod_floor, mod_inverse, mul_mod_floor},
     FieldElement, RecoverError, SignError, VerifyError,
+};
+use starknet_curve::{
+    curve_params::{EC_ORDER, GENERATOR},
+    AffinePoint, ProjectivePoint,
 };
 
 const ELEMENT_UPPER_BOUND: FieldElement = FieldElement::from_mont([

@@ -1,9 +1,7 @@
+use crate::serde::unsigned_field_element::UfeHex;
 use alloc::{string::String, vec::Vec};
-
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-
-use crate::serde::unsigned_field_element::UfeHex;
 
 pub use starknet_ff::*;
 

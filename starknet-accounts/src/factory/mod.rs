@@ -1,5 +1,4 @@
 use super::NotPreparedError;
-
 use async_trait::async_trait;
 use starknet_core::{
     crypto::compute_hash_on_elements,

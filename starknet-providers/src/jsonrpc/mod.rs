@@ -1,5 +1,3 @@
-use std::{any::Any, error::Error, fmt::Display};
-
 use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_with::serde_as;
@@ -18,6 +16,7 @@ use starknet_core::{
         TransactionTraceWithHash,
     },
 };
+use std::{any::Any, error::Error, fmt::Display};
 
 use crate::{provider::ProviderImplError, Provider, ProviderError};
 

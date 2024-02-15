@@ -1,3 +1,7 @@
+use crate::{
+    jsonrpc::{HttpTransport, JsonRpcClient},
+    Provider, ProviderError, SequencerGatewayProvider,
+};
 use async_trait::async_trait;
 use starknet_core::types::{
     BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
@@ -8,11 +12,6 @@ use starknet_core::types::{
     MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag,
     SimulationFlagForEstimateFee, SyncStatusType, Transaction, TransactionStatus, TransactionTrace,
     TransactionTraceWithHash,
-};
-
-use crate::{
-    jsonrpc::{HttpTransport, JsonRpcClient},
-    Provider, ProviderError, SequencerGatewayProvider,
 };
 
 /// A convenient Box-able type that implements the [Provider] trait. This can be useful when you

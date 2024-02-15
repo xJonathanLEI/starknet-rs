@@ -1,12 +1,10 @@
+use crate::types::FieldElement;
 use alloc::{fmt::Formatter, format};
-
 use serde::{
     de::{Error as DeError, Visitor},
     Deserializer, Serializer,
 };
 use serde_with::{DeserializeAs, SerializeAs};
-
-use crate::types::FieldElement;
 
 pub struct UfeHex;
 

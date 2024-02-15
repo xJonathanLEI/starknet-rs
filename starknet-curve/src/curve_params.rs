@@ -1,6 +1,5 @@
-use starknet_ff::FieldElement;
-
 use crate::ec_point::AffinePoint;
+use starknet_ff::FieldElement;
 
 pub const EC_ORDER: FieldElement = FieldElement::from_mont([
     8939893405601011193,

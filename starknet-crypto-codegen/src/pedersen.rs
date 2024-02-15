@@ -1,13 +1,12 @@
 // Code ported from the build.rs script here:
 //   https://github.com/eqlabs/pathfinder/blob/7f9a6bb0264943f93a633f61fc4e0bc9237f68a0/crates/stark_hash/build.rs
 
-use std::fmt::Write;
-
 use proc_macro::TokenStream;
 use starknet_curve::{
     curve_params::{PEDERSEN_P0, PEDERSEN_P1, PEDERSEN_P2, PEDERSEN_P3},
     AffinePoint,
 };
+use std::fmt::Write;
 use syn::{parse_macro_input, LitInt};
 
 pub fn lookup_table(input: TokenStream) -> TokenStream {

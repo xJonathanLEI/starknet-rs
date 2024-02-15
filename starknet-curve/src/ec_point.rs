@@ -1,8 +1,6 @@
-use starknet_ff::FieldElement;
-
 use crate::curve_params::{ALPHA, BETA};
-
 use core::ops;
+use starknet_ff::FieldElement;
 
 /// A point on an elliptic curve over [FieldElement].
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -104,6 +102,18 @@ impl ops::AddAssign<&AffinePoint> for AffinePoint {
     }
 }
 
+impl ops::Neg for &AffinePoint {
+    type Output = AffinePoint;
+
+    fn neg(self) -> AffinePoint {
+        AffinePoint {
+            x: self.x,
+            y: -self.y,
+            infinity: self.infinity,
+        }
+    }
+}
+
 impl ops::Sub<&AffinePoint> for &AffinePoint {
     type Output = AffinePoint;
 
@@ -116,28 +126,23 @@ impl ops::Sub<&AffinePoint> for &AffinePoint {
 
 impl ops::SubAssign<&AffinePoint> for AffinePoint {
     fn sub_assign(&mut self, rhs: &AffinePoint) {
-        *self += &AffinePoint {
-            x: rhs.x,
-            y: -rhs.y,
-            infinity: rhs.infinity,
-        };
+        *self += &-rhs;
     }
 }
 
 impl ops::Mul<&[bool]> for &AffinePoint {
     type Output = AffinePoint;
 
-    #[allow(clippy::suspicious_arithmetic_impl)]
     fn mul(self, rhs: &[bool]) -> Self::Output {
-        let mut product = AffinePoint::identity();
-        for b in rhs.iter().rev() {
-            product.double_assign();
-            if *b {
-                product += self;
-            }
-        }
-
-        product
+        rhs.iter()
+            .rev()
+            .fold(AffinePoint::identity(), |mut acc, &bit| {
+                acc.double_assign();
+                if bit {
+                    acc += self;
+                }
+                acc
+            })
     }
 }
 
@@ -195,10 +200,7 @@ impl ops::AddAssign<&AffinePoint> for ProjectivePoint {
             return;
         }
         if self.infinity {
-            self.x = rhs.x;
-            self.y = rhs.y;
-            self.z = FieldElement::ONE;
-            self.infinity = rhs.infinity;
+            *self = Self::from_affine_point(rhs);
             return;
         }
         let u0 = self.x;
@@ -208,11 +210,10 @@ impl ops::AddAssign<&AffinePoint> for ProjectivePoint {
         if u0 == u1 {
             if t0 != t1 {
                 self.infinity = true;
-                return;
             } else {
                 self.double_assign();
-                return;
             }
+            return;
         }
 
         let t = t0 - t1;
@@ -277,16 +278,15 @@ impl ops::AddAssign<&ProjectivePoint> for ProjectivePoint {
 impl ops::Mul<&[bool]> for &ProjectivePoint {
     type Output = ProjectivePoint;
 
-    #[allow(clippy::suspicious_arithmetic_impl)]
     fn mul(self, rhs: &[bool]) -> Self::Output {
-        let mut product = ProjectivePoint::identity();
-        for b in rhs.iter().rev() {
-            product.double_assign();
-            if *b {
-                product += self;
-            }
-        }
-
-        product
+        rhs.iter()
+            .rev()
+            .fold(ProjectivePoint::identity(), |mut acc, &bit| {
+                acc.double_assign();
+                if bit {
+                    acc += self;
+                }
+                acc
+            })
     }
 }

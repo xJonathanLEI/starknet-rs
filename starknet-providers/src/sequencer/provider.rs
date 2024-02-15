@@ -1,7 +1,10 @@
 #![allow(deprecated)]
-
-use std::any::Any;
-
+use super::models::TransactionFinalityStatus;
+use crate::{
+    provider::ProviderImplError,
+    sequencer::{models::conversions::ConversionError, GatewayClientError},
+    Provider, ProviderError, SequencerGatewayProvider,
+};
 use async_trait::async_trait;
 use starknet_core::types::{
     BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
@@ -13,14 +16,7 @@ use starknet_core::types::{
     SimulationFlagForEstimateFee, StarknetError, SyncStatusType, Transaction, TransactionStatus,
     TransactionTrace, TransactionTraceWithHash,
 };
-
-use crate::{
-    provider::ProviderImplError,
-    sequencer::{models::conversions::ConversionError, GatewayClientError},
-    Provider, ProviderError, SequencerGatewayProvider,
-};
-
-use super::models::TransactionFinalityStatus;
+use std::any::Any;
 
 #[allow(unused)]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]

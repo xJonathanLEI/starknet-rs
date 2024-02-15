@@ -1,8 +1,6 @@
-use alloc::string::String;
-
-use serde::{Deserialize, Serialize};
-
 use super::TransactionExecutionStatus;
+use alloc::string::String;
+use serde::{Deserialize, Serialize};
 
 /// A more idiomatic way to access `execution_status` and `revert_reason`.
 #[derive(Debug, Clone, PartialEq, Eq)]

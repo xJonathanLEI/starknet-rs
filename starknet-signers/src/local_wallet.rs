@@ -1,5 +1,4 @@
 use crate::{Infallible, Signer, SigningKey, VerifyingKey};
-
 use async_trait::async_trait;
 use starknet_core::{
     crypto::{EcdsaSignError, Signature},
