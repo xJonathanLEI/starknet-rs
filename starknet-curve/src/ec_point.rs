@@ -245,7 +245,7 @@ impl ops::AddAssign<&ProjectivePoint> for ProjectivePoint {
         let u0 = self.x * rhs.z;
         let u1 = rhs.x * self.z;
         if u0 == u1 {
-            if (self.y == rhs.y) {
+            if self.y == rhs.y {
                 self.double_assign();
             } else {
                 *self = ProjectivePoint::identity();
