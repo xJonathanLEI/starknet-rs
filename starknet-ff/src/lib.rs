@@ -23,7 +23,7 @@ const U256_BYTE_COUNT: usize = 32;
 #[derive(Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Hash)]
 pub struct FieldElement(Fr);
 
-impl std::ops::Deref for FieldElement {
+impl ops::Deref for FieldElement {
     type Target = Fr;
 
     fn deref(&self) -> &Self::Target {
@@ -31,7 +31,7 @@ impl std::ops::Deref for FieldElement {
     }
 }
 
-impl std::ops::DerefMut for FieldElement {
+impl ops::DerefMut for FieldElement {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
