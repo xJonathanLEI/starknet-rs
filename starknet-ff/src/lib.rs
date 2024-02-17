@@ -178,7 +178,7 @@ impl FieldElement {
         }
 
         Fr::from_bigint(u256_to_biginteger256(&res))
-            .map(|inner| Self(inner))
+            .map(Self)
             .ok_or(FromStrError::OutOfRange)
     }
 
@@ -269,7 +269,7 @@ impl FieldElement {
     }
 
     pub fn invert(&self) -> Option<FieldElement> {
-        self.inverse().map(|inner| Self(inner))
+        self.inverse().map(Self)
     }
 
     pub fn sqrt(&self) -> Option<FieldElement> {
@@ -312,7 +312,7 @@ impl FieldElement {
 
         // No need to check range as `from_bigint` already does that
         let big_int = BigInteger256::from_bits_be(&bits);
-        Fr::from_bigint(big_int).map(|inner| Self(inner))
+        Fr::from_bigint(big_int).map(Self)
     }
 }
 
@@ -374,7 +374,7 @@ impl ops::Neg for FieldElement {
     type Output = FieldElement;
 
     fn neg(self) -> Self::Output {
-        FieldElement { 0: -self.0 }
+        FieldElement(-self.0)
     }
 }
 
