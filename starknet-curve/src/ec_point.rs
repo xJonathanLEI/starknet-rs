@@ -4,6 +4,11 @@ use crate::curve_params::{ALPHA, BETA};
 
 use core::ops;
 
+/// Trait to define identity for different point types.
+pub(crate) trait Identity {
+    fn identity() -> Self;
+}
+
 /// A point on an elliptic curve over [FieldElement].
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct AffinePoint {
@@ -20,6 +25,49 @@ pub struct ProjectivePoint {
     pub infinity: bool,
 }
 
+// Shared function for lambda calculation for both doubling and addition
+fn calculate_lambda(
+    x1: FieldElement,
+    y1: FieldElement,
+    x2: Option<FieldElement>,
+    y2: Option<FieldElement>,
+) -> FieldElement {
+    match (x2, y2) {
+        // Point doubling case
+        (None, None) => {
+            let dividend = FieldElement::THREE * (x1 * x1) + FieldElement::ONE;
+            let divisor_inv = y1.double().invert().expect("Inversion failed in doubling");
+            dividend * divisor_inv
+        }
+        // Point addition case
+        (Some(x2), Some(y2)) => {
+            let numerator = y2 - y1;
+            let denominator_inv = (x2 - x1).invert().expect("Inversion failed in addition");
+            numerator * denominator_inv
+        }
+        _ => panic!("Invalid input for lambda calculation"),
+    }
+}
+
+impl Identity for AffinePoint {
+    fn identity() -> Self {
+        Self {
+            x: FieldElement::ZERO,
+            y: FieldElement::ZERO,
+            infinity: true,
+        }
+    }
+}
+impl Identity for ProjectivePoint {
+    fn identity() -> Self {
+        Self {
+            x: FieldElement::ZERO,
+            y: FieldElement::ZERO,
+            z: FieldElement::ONE,
+            infinity: true,
+        }
+    }
+}
 impl AffinePoint {
     pub fn from_x(x: FieldElement) -> Option<Self> {
         let y_squared = x * x * x + ALPHA * x + BETA;
@@ -30,25 +78,14 @@ impl AffinePoint {
         })
     }
 
-    fn identity() -> AffinePoint {
-        Self {
-            x: FieldElement::ZERO,
-            y: FieldElement::ZERO,
-            infinity: true,
-        }
-    }
-
     pub fn double_assign(&mut self) {
         if self.infinity {
             return;
         }
 
         // l = (3x^2+a)/2y with a=1 from stark curve
-        let lambda = {
-            let dividend = FieldElement::THREE * (self.x * self.x) + FieldElement::ONE;
-            let divisor_inv = self.y.double().invert().unwrap();
-            dividend * divisor_inv
-        };
+
+        let lambda = calculate_lambda(self.x, self.y, None, None);
 
         let result_x = (lambda * lambda) - self.x - self.x;
         self.y = lambda * (self.x - result_x) - self.y;
@@ -95,7 +132,7 @@ impl ops::AddAssign<&AffinePoint> for AffinePoint {
             return;
         }
 
-        let lambda = (rhs.y - self.y) * (rhs.x - self.x).invert().unwrap();
+        let lambda = calculate_lambda(self.x, self.y, Some(rhs.x), Some(rhs.y));
 
         let result_x = lambda * lambda - self.x - rhs.x;
 
@@ -148,15 +185,6 @@ impl ProjectivePoint {
             y: p.y,
             z: FieldElement::ONE,
             infinity: p.infinity,
-        }
-    }
-
-    fn identity() -> ProjectivePoint {
-        Self {
-            x: FieldElement::ZERO,
-            y: FieldElement::ZERO,
-            z: FieldElement::ONE,
-            infinity: true,
         }
     }
 
