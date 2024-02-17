@@ -298,11 +298,7 @@ async fn can_execute_tst_mint_inner<P: Provider + Send + Sync>(provider: P, addr
             Call {
                 to: tst_token_address,
                 selector: get_selector_from_name("mint").unwrap(),
-                calldata: vec![
-                    address,
-                    random_amount * FieldElement::TWO,
-                    FieldElement::ZERO,
-                ],
+                calldata: vec![address, random_amount.double(), FieldElement::ZERO],
             },
         ])
         .send()

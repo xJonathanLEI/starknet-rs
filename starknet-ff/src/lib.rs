@@ -268,6 +268,10 @@ impl FieldElement {
         self.inner.sqrt().map(|inner| Self { inner })
     }
 
+    pub fn double(&self) -> FieldElement {
+        *self + *self
+    }
+
     /// Performs a floor division. It's not implemented as the `Div` trait on purpose to
     /// distinguish from the "felt division".
     pub fn floor_div(&self, rhs: FieldElement) -> FieldElement {

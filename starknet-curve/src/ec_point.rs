@@ -46,7 +46,7 @@ impl AffinePoint {
         // l = (3x^2+a)/2y with a=1 from stark curve
         let lambda = {
             let dividend = FieldElement::THREE * (self.x * self.x) + FieldElement::ONE;
-            let divisor_inv = (FieldElement::TWO * self.y).invert().unwrap();
+            let divisor_inv = self.y.double().invert().unwrap();
             dividend * divisor_inv
         };
 
@@ -167,14 +167,14 @@ impl ProjectivePoint {
 
         // t=3x^2+az^2 with a=1 from stark curve
         let t = FieldElement::THREE * self.x * self.x + self.z * self.z;
-        let u = FieldElement::TWO * self.y * self.z;
-        let v = FieldElement::TWO * u * self.x * self.y;
-        let w = t * t - FieldElement::TWO * v;
+        let u = self.y.double() * self.z;
+        let v = u.double() * self.x * self.y;
+        let w = t * t - v.double();
 
         let uy = u * self.y;
 
         let x = u * w;
-        let y = t * (v - w) - FieldElement::TWO * uy * uy;
+        let y = t * (v - w) - (uy * uy).double();
         let z = u * u * u;
 
         self.x = x;
