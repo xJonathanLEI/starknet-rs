@@ -208,11 +208,10 @@ impl ops::AddAssign<&AffinePoint> for ProjectivePoint {
         if u0 == u1 {
             if t0 != t1 {
                 self.infinity = true;
-                return;
             } else {
                 self.double_assign();
-                return;
             }
+            return;
         }
 
         let t = t0 - t1;
@@ -245,7 +244,7 @@ impl ops::AddAssign<&ProjectivePoint> for ProjectivePoint {
         let u0 = self.x * rhs.z;
         let u1 = rhs.x * self.z;
         if u0 == u1 {
-            if self.y == rhs.y {
+            if self.y * rhs.z == rhs.y * self.z {
                 self.double_assign();
             } else {
                 *self = ProjectivePoint::identity();
