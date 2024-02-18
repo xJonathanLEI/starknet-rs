@@ -167,12 +167,8 @@ impl PartialEq for ProjectivePoint {
             // An infinity point is not equal to a non-infinity point
             false
         } else {
-            // Calculate the inverse of z-coordinates
-            let z1inv = self.z.invert().unwrap();
-            let z2inv = other.z.invert().unwrap();
-
             // Compare the affine coordinates after applying the inverse of z-coordinates
-            self.x * z1inv == other.x * z2inv && self.y * z1inv == other.y * z2inv
+            self.x * other.z == other.x * self.z && self.y * other.z == other.y * self.z
         }
     }
 }
