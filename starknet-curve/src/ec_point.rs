@@ -104,6 +104,18 @@ impl ops::AddAssign<&AffinePoint> for AffinePoint {
     }
 }
 
+impl ops::Neg for &AffinePoint {
+    type Output = AffinePoint;
+
+    fn neg(self) -> AffinePoint {
+        AffinePoint {
+            x: self.x,
+            y: -self.y,
+            infinity: self.infinity,
+        }
+    }
+}
+
 impl ops::Sub<&AffinePoint> for &AffinePoint {
     type Output = AffinePoint;
 
@@ -116,11 +128,7 @@ impl ops::Sub<&AffinePoint> for &AffinePoint {
 
 impl ops::SubAssign<&AffinePoint> for AffinePoint {
     fn sub_assign(&mut self, rhs: &AffinePoint) {
-        *self += &AffinePoint {
-            x: rhs.x,
-            y: -rhs.y,
-            infinity: rhs.infinity,
-        };
+        *self += &-rhs;
     }
 }
 
@@ -195,10 +203,7 @@ impl ops::AddAssign<&AffinePoint> for ProjectivePoint {
             return;
         }
         if self.infinity {
-            self.x = rhs.x;
-            self.y = rhs.y;
-            self.z = FieldElement::ONE;
-            self.infinity = rhs.infinity;
+            *self = Self::from_affine_point(rhs);
             return;
         }
         let u0 = self.x;
@@ -208,11 +213,10 @@ impl ops::AddAssign<&AffinePoint> for ProjectivePoint {
         if u0 == u1 {
             if t0 != t1 {
                 self.infinity = true;
-                return;
             } else {
                 self.double_assign();
-                return;
             }
+            return;
         }
 
         let t = t0 - t1;
