@@ -2,6 +2,7 @@ use crate::{
     Account, Call, ConnectedAccount, ExecutionEncoder, RawDeclaration, RawExecution,
     RawLegacyDeclaration,
 };
+
 use async_trait::async_trait;
 use starknet_core::types::{contract::ComputeClassHashError, BlockId, BlockTag, FieldElement};
 use starknet_providers::Provider;

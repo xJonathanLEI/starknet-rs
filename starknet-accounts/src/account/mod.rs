@@ -1,4 +1,5 @@
 use crate::Call;
+
 use async_trait::async_trait;
 use auto_impl::auto_impl;
 use starknet_core::types::{

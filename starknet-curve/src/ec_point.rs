@@ -1,6 +1,8 @@
-use crate::curve_params::{ALPHA, BETA};
-use core::ops;
 use starknet_ff::FieldElement;
+
+use crate::curve_params::{ALPHA, BETA};
+
+use core::ops;
 
 /// A point on an elliptic curve over [FieldElement].
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -133,16 +135,17 @@ impl ops::SubAssign<&AffinePoint> for AffinePoint {
 impl ops::Mul<&[bool]> for &AffinePoint {
     type Output = AffinePoint;
 
+    #[allow(clippy::suspicious_arithmetic_impl)]
     fn mul(self, rhs: &[bool]) -> Self::Output {
-        rhs.iter()
-            .rev()
-            .fold(AffinePoint::identity(), |mut acc, &bit| {
-                acc.double_assign();
-                if bit {
-                    acc += self;
-                }
-                acc
-            })
+        let mut product = AffinePoint::identity();
+        for b in rhs.iter().rev() {
+            product.double_assign();
+            if *b {
+                product += self;
+            }
+        }
+
+        product
     }
 }
 
@@ -278,15 +281,16 @@ impl ops::AddAssign<&ProjectivePoint> for ProjectivePoint {
 impl ops::Mul<&[bool]> for &ProjectivePoint {
     type Output = ProjectivePoint;
 
+    #[allow(clippy::suspicious_arithmetic_impl)]
     fn mul(self, rhs: &[bool]) -> Self::Output {
-        rhs.iter()
-            .rev()
-            .fold(ProjectivePoint::identity(), |mut acc, &bit| {
-                acc.double_assign();
-                if bit {
-                    acc += self;
-                }
-                acc
-            })
+        let mut product = ProjectivePoint::identity();
+        for b in rhs.iter().rev() {
+            product.double_assign();
+            if *b {
+                product += self;
+            }
+        }
+
+        product
     }
 }

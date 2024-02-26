@@ -1,9 +1,10 @@
 // Code ported from the build.rs script here:
 //   https://github.com/eqlabs/pathfinder/blob/00a1a74a90a7b8a7f1d07ac3e616be1cb39cf8f1/crates/stark_poseidon/build.rs
 
+use std::fmt::Write;
+
 use proc_macro::TokenStream;
 use starknet_ff::FieldElement;
-use std::fmt::Write;
 
 mod params;
 

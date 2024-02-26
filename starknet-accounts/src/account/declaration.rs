@@ -3,6 +3,7 @@ use super::{
     LegacyDeclaration, PreparedDeclaration, PreparedLegacyDeclaration, RawDeclaration,
     RawLegacyDeclaration,
 };
+
 use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{

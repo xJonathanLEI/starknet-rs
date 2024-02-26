@@ -1,4 +1,5 @@
 use crate::VerifyingKey;
+
 use async_trait::async_trait;
 use auto_impl::auto_impl;
 use starknet_core::{crypto::Signature, types::FieldElement};

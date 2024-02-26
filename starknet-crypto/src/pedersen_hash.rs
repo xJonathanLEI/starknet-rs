@@ -1,6 +1,7 @@
-use crate::pedersen_points::*;
 use starknet_curve::{curve_params, AffinePoint, ProjectivePoint};
 use starknet_ff::FieldElement;
+
+use crate::pedersen_points::*;
 
 const SHIFT_POINT: ProjectivePoint = ProjectivePoint::from_affine_point(&curve_params::SHIFT_POINT);
 

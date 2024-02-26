@@ -1,4 +1,5 @@
 use crate::provider::ProviderError;
+
 use log::trace;
 use reqwest::{Client, Error as ReqwestError, StatusCode};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};

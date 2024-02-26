@@ -1,7 +1,9 @@
-use super::{SyncStatus, SyncStatusType};
 use alloc::{fmt::Formatter, format};
+
 use serde::{de::Visitor, Deserialize, Deserializer, Serialize};
 use serde_with::{DeserializeAs, SerializeAs};
+
+use super::{SyncStatus, SyncStatusType};
 
 pub(crate) struct NumAsHex;
 

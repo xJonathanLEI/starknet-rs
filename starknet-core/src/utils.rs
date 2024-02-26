@@ -1,5 +1,7 @@
-use crate::{crypto::compute_hash_on_elements, types::FieldElement};
 use alloc::string::String;
+
+use crate::{crypto::compute_hash_on_elements, types::FieldElement};
+
 use sha3::{Digest, Keccak256};
 use starknet_crypto::pedersen_hash;
 

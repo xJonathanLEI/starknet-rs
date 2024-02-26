@@ -1,8 +1,10 @@
-use crate::FieldElement;
 use core::ops::{Add, Mul};
+
 use num_bigint::BigInt;
 use num_integer::Integer;
 use num_traits::{One, Zero};
+
+use crate::FieldElement;
 
 // These are inefficient and crappy implementations of crypto math operations because I have
 // absolutely no idea how to do them without using `num-bigint`. But hey it works!!!

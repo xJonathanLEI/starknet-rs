@@ -5,14 +5,16 @@
 #[cfg_attr(test, macro_use)]
 extern crate alloc;
 
-use crate::fr::Fr;
-use ark_ff::{
-    fields::{Field, Fp256, PrimeField},
-    BigInteger, BigInteger256,
-};
 use core::{
     fmt, ops,
     str::{self, FromStr},
+};
+
+use crate::fr::Fr;
+
+use ark_ff::{
+    fields::{Field, Fp256, PrimeField},
+    BigInteger, BigInteger256,
 };
 use crypto_bigint::{CheckedAdd, CheckedMul, NonZero, Zero, U256};
 

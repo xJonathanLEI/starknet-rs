@@ -1,7 +1,9 @@
-use super::{EthAddress, Hash256, MsgToL1};
 use alloc::vec::Vec;
+
 use sha3::{Digest, Keccak256};
 use starknet_ff::FieldElement;
+
+use super::{EthAddress, Hash256, MsgToL1};
 
 #[derive(Debug, Clone)]
 pub struct MsgToL2 {
