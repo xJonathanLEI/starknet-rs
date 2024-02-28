@@ -83,6 +83,8 @@ pub enum ErrorCode {
     UndeclaredClass,
     #[serde(rename = "StarknetErrorCode.INVALID_TRANSACTION_NONCE")]
     InvalidTransactionNonce,
+    #[serde(rename = "StarknetErrorCode.VALIDATE_FAILURE")]
+    ValidateFailure,
     #[serde(rename = "StarknetErrorCode.CLASS_ALREADY_DECLARED")]
     ClassAlreadyDeclared,
     #[serde(rename = "StarknetErrorCode.COMPILATION_FAILED")]
@@ -474,6 +476,9 @@ impl From<SequencerError> for ProviderError {
             ErrorCode::MalformedRequest => None,
             ErrorCode::UndeclaredClass => Some(StarknetError::ClassHashNotFound),
             ErrorCode::InvalidTransactionNonce => Some(StarknetError::InvalidTransactionNonce),
+            ErrorCode::ValidateFailure => {
+                Some(StarknetError::ValidationFailure(value.message.clone()))
+            }
             ErrorCode::ClassAlreadyDeclared => Some(StarknetError::ClassAlreadyDeclared),
             ErrorCode::CompilationFailed => Some(StarknetError::CompilationFailed),
             ErrorCode::InvalidCompiledClassHash => Some(StarknetError::CompiledClassHashMismatch),
