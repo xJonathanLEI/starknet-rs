@@ -3,10 +3,11 @@ use starknet_accounts::{ExecutionEncoding, SingleOwnerAccount};
 use starknet_contract::ContractFactory;
 use starknet_core::{
     chain_id,
-    types::{contract::legacy::LegacyContractClass, BlockId, BlockTag, FieldElement},
+    types::{contract::legacy::LegacyContractClass, BlockId, BlockTag},
 };
 use starknet_providers::{jsonrpc::HttpTransport, JsonRpcClient};
 use starknet_signers::{LocalWallet, SigningKey};
+use starknet_types_core::felt::Felt;
 use url::Url;
 
 #[tokio::test]
@@ -15,15 +16,10 @@ async fn can_deploy_contract_to_alpha_goerli() {
         .unwrap_or("https://pathfinder.rpc.goerli.starknet.rs/rpc/v0_6".into());
     let provider = JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()));
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(
-        "04284d0741ee00d8e4d6a02d21c0be58665f0e6e187cf48c509b1ac39cdeca65",
-    )
-    .unwrap();
+    let address =
+        Felt::from_hex("04284d0741ee00d8e4d6a02d21c0be58665f0e6e187cf48c509b1ac39cdeca65").unwrap();
     let mut account = SingleOwnerAccount::new(
         provider,
         signer,
@@ -46,8 +42,8 @@ async fn can_deploy_contract_to_alpha_goerli() {
 
     let result = factory
         .deploy(
-            vec![FieldElement::ONE],
-            FieldElement::from_bytes_be(&salt_buffer).unwrap(),
+            vec![Felt::ONE],
+            Felt::from_bytes_be(&salt_buffer).unwrap(),
             true,
         )
         .send()

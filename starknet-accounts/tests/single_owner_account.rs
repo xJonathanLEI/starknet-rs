@@ -9,7 +9,7 @@ use starknet_core::{
             legacy::{LegacyContractClass, RawLegacyAbiEntry, RawLegacyFunction},
             SierraClass,
         },
-        BlockId, BlockTag, FieldElement, StarknetError,
+        BlockId, BlockTag, Felt, StarknetError,
     },
     utils::get_selector_from_name,
 };
@@ -139,12 +139,9 @@ async fn can_declare_cairo0_contract_with_jsonrpc() {
 
 async fn can_get_nonce_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(address).unwrap();
+    let address = Felt::from_hex(address).unwrap();
 
     let mut account = SingleOwnerAccount::new(
         provider,
@@ -155,21 +152,16 @@ async fn can_get_nonce_inner<P: Provider + Send + Sync>(provider: P, address: &s
     );
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
-    assert_ne!(account.get_nonce().await.unwrap(), FieldElement::ZERO);
+    assert_ne!(account.get_nonce().await.unwrap(), Felt::ZERO);
 }
 
 async fn can_estimate_fee_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(address).unwrap();
-    let tst_token_address = FieldElement::from_hex_be(
-        "07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
-    )
-    .unwrap();
+    let address = Felt::from_hex(address).unwrap();
+    let tst_token_address =
+        Felt::from_hex("07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10").unwrap();
 
     let mut account = SingleOwnerAccount::new(
         provider,
@@ -187,8 +179,8 @@ async fn can_estimate_fee_inner<P: Provider + Send + Sync>(provider: P, address:
                 selector: get_selector_from_name("mint").unwrap(),
                 calldata: vec![
                     address,
-                    FieldElement::from_dec_str("1000000000000000000000").unwrap(),
-                    FieldElement::ZERO,
+                    Felt::from_dec_str("1000000000000000000000").unwrap(),
+                    Felt::ZERO,
                 ],
             },
             Call {
@@ -196,8 +188,8 @@ async fn can_estimate_fee_inner<P: Provider + Send + Sync>(provider: P, address:
                 selector: get_selector_from_name("mint").unwrap(),
                 calldata: vec![
                     address,
-                    FieldElement::from_dec_str("2000000000000000000000").unwrap(),
-                    FieldElement::ZERO,
+                    Felt::from_dec_str("2000000000000000000000").unwrap(),
+                    Felt::ZERO,
                 ],
             },
         ])
@@ -205,7 +197,7 @@ async fn can_estimate_fee_inner<P: Provider + Send + Sync>(provider: P, address:
         .await
         .unwrap();
 
-    assert!(fee_estimate.overall_fee > FieldElement::ZERO);
+    assert!(fee_estimate.overall_fee > Felt::ZERO);
 }
 
 async fn can_parse_fee_estimation_error_inner<P: Provider + Send + Sync>(
@@ -213,16 +205,11 @@ async fn can_parse_fee_estimation_error_inner<P: Provider + Send + Sync>(
     address: &str,
 ) {
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(address).unwrap();
-    let eth_token_address = FieldElement::from_hex_be(
-        "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-    )
-    .unwrap();
+    let address = Felt::from_hex(address).unwrap();
+    let eth_token_address =
+        Felt::from_hex("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7").unwrap();
 
     let mut account = SingleOwnerAccount::new(
         provider,
@@ -239,8 +226,8 @@ async fn can_parse_fee_estimation_error_inner<P: Provider + Send + Sync>(
             selector: get_selector_from_name("transfer").unwrap(),
             calldata: vec![
                 address,
-                FieldElement::from_dec_str("1000000000000000000000").unwrap(),
-                FieldElement::ZERO,
+                Felt::from_dec_str("1000000000000000000000").unwrap(),
+                Felt::ZERO,
             ],
         }])
         .estimate_fee()
@@ -265,16 +252,11 @@ async fn can_execute_tst_mint_inner<P: Provider + Send + Sync>(provider: P, addr
     //   - poll the transaction hash until it's processed.
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(address).unwrap();
-    let tst_token_address = FieldElement::from_hex_be(
-        "07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
-    )
-    .unwrap();
+    let address = Felt::from_hex(address).unwrap();
+    let tst_token_address =
+        Felt::from_hex("07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10").unwrap();
 
     let mut account = SingleOwnerAccount::new(
         provider,
@@ -293,19 +275,19 @@ async fn can_execute_tst_mint_inner<P: Provider + Send + Sync>(provider: P, addr
             Call {
                 to: tst_token_address,
                 selector: get_selector_from_name("mint").unwrap(),
-                calldata: vec![address, random_amount, FieldElement::ZERO],
+                calldata: vec![address, random_amount, Felt::ZERO],
             },
             Call {
                 to: tst_token_address,
                 selector: get_selector_from_name("mint").unwrap(),
-                calldata: vec![address, random_amount.double(), FieldElement::ZERO],
+                calldata: vec![address, random_amount.double(), Felt::ZERO],
             },
         ])
         .send()
         .await
         .unwrap();
 
-    assert!(result.transaction_hash > FieldElement::ZERO);
+    assert!(result.transaction_hash > Felt::ZERO);
 }
 
 async fn can_declare_cairo1_contract_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
@@ -317,12 +299,9 @@ async fn can_declare_cairo1_contract_inner<P: Provider + Send + Sync>(provider: 
     }
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(address).unwrap();
+    let address = Felt::from_hex(address).unwrap();
     let mut account = SingleOwnerAccount::new(
         provider,
         signer,
@@ -355,7 +334,7 @@ async fn can_declare_cairo1_contract_inner<P: Provider + Send + Sync>(provider: 
     let result = account
         .declare(
             Arc::new(flattened_class),
-            FieldElement::from_hex_be(&hashes.compiled_class_hash).unwrap(),
+            Felt::from_hex(&hashes.compiled_class_hash).unwrap(),
         )
         .send()
         .await
@@ -363,19 +342,16 @@ async fn can_declare_cairo1_contract_inner<P: Provider + Send + Sync>(provider: 
 
     dbg!(&result);
 
-    assert!(result.transaction_hash > FieldElement::ZERO);
+    assert!(result.transaction_hash > Felt::ZERO);
 }
 
 async fn can_declare_cairo0_contract_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
     // This test case is not very useful, same as `can_execute_tst_mint` above.
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(address).unwrap();
+    let address = Felt::from_hex(address).unwrap();
     let mut account = SingleOwnerAccount::new(
         provider,
         signer,
@@ -414,5 +390,5 @@ async fn can_declare_cairo0_contract_inner<P: Provider + Send + Sync>(provider: 
         .await
         .unwrap();
 
-    assert!(result.transaction_hash > FieldElement::ZERO);
+    assert!(result.transaction_hash > Felt::ZERO);
 }

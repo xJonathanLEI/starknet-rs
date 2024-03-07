@@ -8,25 +8,26 @@ use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
         BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1, BroadcastedTransaction,
-        FeeEstimate, FieldElement, InvokeTransactionResult, SimulatedTransaction, SimulationFlag,
+        FeeEstimate, InvokeTransactionResult, SimulatedTransaction, SimulationFlag,
     },
 };
 use starknet_providers::Provider;
+use starknet_types_core::felt::Felt;
 
 /// Cairo string for "invoke"
-const PREFIX_INVOKE: FieldElement = FieldElement::from_mont([
-    18443034532770911073,
-    18446744073709551615,
-    18446744073709551615,
+const PREFIX_INVOKE: Felt = Felt::from_raw([
     513398556346534256,
+    18446744073709551615,
+    18446744073709551615,
+    18443034532770911073,
 ]);
 
 /// 2 ^ 128 + 1
-const QUERY_VERSION_ONE: FieldElement = FieldElement::from_mont([
-    18446744073700081633,
-    17407,
-    18446744073709551584,
+const QUERY_VERSION_ONE: Felt = Felt::from_raw([
     576460752142433776,
+    18446744073709551584,
+    17407,
+    18446744073700081633,
 ]);
 
 impl<'a, A> Execution<'a, A> {
@@ -40,14 +41,14 @@ impl<'a, A> Execution<'a, A> {
         }
     }
 
-    pub fn nonce(self, nonce: FieldElement) -> Self {
+    pub fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
             ..self
         }
     }
 
-    pub fn max_fee(self, max_fee: FieldElement) -> Self {
+    pub fn max_fee(self, max_fee: Felt) -> Self {
         Self {
             max_fee: Some(max_fee),
             ..self
@@ -134,11 +135,22 @@ where
         let max_fee = match self.max_fee {
             Some(value) => value,
             None => {
+                // Obtain the fee estimate
                 let fee_estimate = self.estimate_fee_with_nonce(nonce).await?;
-                ((((TryInto::<u64>::try_into(fee_estimate.overall_fee)
-                    .map_err(|_| AccountError::FeeOutOfRange)?) as f64)
-                    * self.fee_estimate_multiplier) as u64)
-                    .into()
+                // Convert the overall fee to little-endian bytes
+                let overall_fee_bytes = fee_estimate.overall_fee.to_bytes_le();
+
+                // Check if the remaining bytes after the first 8 are all zeros
+                if overall_fee_bytes.iter().skip(8).any(|&x| x != 0) {
+                    return Err(AccountError::FeeOutOfRange);
+                }
+
+                // Convert the first 8 bytes to u64
+                let overall_fee_u64 =
+                    u64::from_le_bytes(overall_fee_bytes[..8].try_into().unwrap());
+
+                // Perform necessary operations on overall_fee_u64 and convert to f64 then to u64
+                (((overall_fee_u64 as f64) * self.fee_estimate_multiplier) as u64).into()
             }
         };
 
@@ -154,14 +166,14 @@ where
 
     async fn estimate_fee_with_nonce(
         &self,
-        nonce: FieldElement,
+        nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
         let prepared = PreparedExecution {
             account: self.account,
             inner: RawExecution {
                 calls: self.calls.clone(),
                 nonce,
-                max_fee: FieldElement::ZERO,
+                max_fee: Felt::ZERO,
             },
         };
         let invoke = prepared
@@ -182,7 +194,7 @@ where
 
     async fn simulate_with_nonce(
         &self,
-        nonce: FieldElement,
+        nonce: Felt,
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
@@ -223,11 +235,11 @@ where
 impl RawExecution {
     pub fn transaction_hash<E>(
         &self,
-        chain_id: FieldElement,
-        address: FieldElement,
+        chain_id: Felt,
+        address: Felt,
         query_only: bool,
         encoder: E,
-    ) -> FieldElement
+    ) -> Felt
     where
         E: ExecutionEncoder,
     {
@@ -236,10 +248,10 @@ impl RawExecution {
             if query_only {
                 QUERY_VERSION_ONE
             } else {
-                FieldElement::ONE
+                Felt::ONE
             }, // version
             address,
-            FieldElement::ZERO, // entry_point_selector
+            Felt::ZERO, // entry_point_selector
             compute_hash_on_elements(&encoder.encode_calls(&self.calls)),
             self.max_fee,
             chain_id,
@@ -251,11 +263,11 @@ impl RawExecution {
         &self.calls
     }
 
-    pub fn nonce(&self) -> FieldElement {
+    pub fn nonce(&self) -> Felt {
         self.nonce
     }
 
-    pub fn max_fee(&self) -> FieldElement {
+    pub fn max_fee(&self) -> Felt {
         self.max_fee
     }
 }
@@ -266,7 +278,7 @@ where
 {
     /// Locally calculates the hash of the transaction to be sent from this execution given the
     /// parameters.
-    pub fn transaction_hash(&self, query_only: bool) -> FieldElement {
+    pub fn transaction_hash(&self, query_only: bool) -> Felt {
         self.inner.transaction_hash(
             self.account.chain_id(),
             self.account.address(),

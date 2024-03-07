@@ -1,19 +1,14 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use starknet_crypto::{recover, sign, FieldElement};
+use starknet_crypto::{recover, sign};
+use starknet_types_core::felt::Felt;
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    let private_key = FieldElement::from_hex_be(
-        "0000000000000000000000000000000000000000000000000000000000000001",
-    )
-    .unwrap();
-    let message = FieldElement::from_hex_be(
-        "0000000000000000000000000000000000000000000000000000000000000001",
-    )
-    .unwrap();
-    let k = FieldElement::from_hex_be(
-        "0000000000000000000000000000000000000000000000000000000000000001",
-    )
-    .unwrap();
+    let private_key =
+        Felt::from_hex("0000000000000000000000000000000000000000000000000000000000000001").unwrap();
+    let message =
+        Felt::from_hex("0000000000000000000000000000000000000000000000000000000000000001").unwrap();
+    let k =
+        Felt::from_hex("0000000000000000000000000000000000000000000000000000000000000001").unwrap();
 
     let signature = sign(&private_key, &message, &k).unwrap();
 

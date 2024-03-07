@@ -6,38 +6,40 @@ use starknet_core::{
     types::{
         BlockId, BlockTag, BroadcastedDeployAccountTransaction,
         BroadcastedDeployAccountTransactionV1, BroadcastedTransaction,
-        DeployAccountTransactionResult, FeeEstimate, FieldElement, SimulatedTransaction,
-        SimulationFlag, StarknetError,
+        DeployAccountTransactionResult, FeeEstimate, SimulatedTransaction, SimulationFlag,
+        StarknetError,
     },
 };
 use starknet_providers::{Provider, ProviderError};
+use starknet_types_core::felt::Felt;
+use starknet_types_core::felt::NonZeroFelt;
 use std::error::Error;
 
 pub mod argent;
 pub mod open_zeppelin;
 
 /// Cairo string for "deploy_account"
-const PREFIX_DEPLOY_ACCOUNT: FieldElement = FieldElement::from_mont([
-    3350261884043292318,
-    18443211694809419988,
-    18446744073709551615,
+const PREFIX_DEPLOY_ACCOUNT: Felt = Felt::from_raw([
     461298303000467581,
+    18446744073709551615,
+    18443211694809419988,
+    3350261884043292318,
 ]);
 
 /// Cairo string for "STARKNET_CONTRACT_ADDRESS"
-const PREFIX_CONTRACT_ADDRESS: FieldElement = FieldElement::from_mont([
-    3829237882463328880,
-    17289941567720117366,
-    8635008616843941496,
+const PREFIX_CONTRACT_ADDRESS: Felt = Felt::from_raw([
     533439743893157637,
+    8635008616843941496,
+    17289941567720117366,
+    3829237882463328880,
 ]);
 
 // 2 ** 251 - 256
-const ADDR_BOUND: FieldElement = FieldElement::from_mont([
-    18446743986131443745,
-    160989183,
-    18446744073709255680,
+const ADDR_BOUND: NonZeroFelt = NonZeroFelt::from_raw([
     576459263475590224,
+    18446744073709255680,
+    160989183,
+    18446743986131443745,
 ]);
 
 /// This trait enables deploying account contracts using the `DeployAccount` transaction type.
@@ -47,11 +49,11 @@ pub trait AccountFactory: Sized {
     type Provider: Provider + Sync;
     type SignError: Error + Send + Sync;
 
-    fn class_hash(&self) -> FieldElement;
+    fn class_hash(&self) -> Felt;
 
-    fn calldata(&self) -> Vec<FieldElement>;
+    fn calldata(&self) -> Vec<Felt>;
 
-    fn chain_id(&self) -> FieldElement;
+    fn chain_id(&self) -> Felt;
 
     fn provider(&self) -> &Self::Provider;
 
@@ -63,9 +65,9 @@ pub trait AccountFactory: Sized {
     async fn sign_deployment(
         &self,
         deployment: &RawAccountDeployment,
-    ) -> Result<Vec<FieldElement>, Self::SignError>;
+    ) -> Result<Vec<Felt>, Self::SignError>;
 
-    fn deploy(&self, salt: FieldElement) -> AccountDeployment<Self> {
+    fn deploy(&self, salt: Felt) -> AccountDeployment<Self> {
         AccountDeployment::new(salt, self)
     }
 }
@@ -75,20 +77,20 @@ pub trait AccountFactory: Sized {
 #[derive(Debug)]
 pub struct AccountDeployment<'f, F> {
     factory: &'f F,
-    salt: FieldElement,
+    salt: Felt,
     // We need to allow setting nonce here as `DeployAccount` transactions may have non-zero nonces
     /// after failed transactions can be included in blocks.
-    nonce: Option<FieldElement>,
-    max_fee: Option<FieldElement>,
+    nonce: Option<Felt>,
+    max_fee: Option<Felt>,
     fee_estimate_multiplier: f64,
 }
 
 /// [AccountDeployment] but with `nonce` and `max_fee` already determined.
 #[derive(Debug, Clone)]
 pub struct RawAccountDeployment {
-    salt: FieldElement,
-    nonce: FieldElement,
-    max_fee: FieldElement,
+    salt: Felt,
+    nonce: Felt,
+    max_fee: Felt,
 }
 
 /// [RawAccountDeployment] but with a factory associated.
@@ -109,7 +111,7 @@ pub enum AccountFactoryError<S> {
 }
 
 impl<'f, F> AccountDeployment<'f, F> {
-    pub fn new(salt: FieldElement, factory: &'f F) -> Self {
+    pub fn new(salt: Felt, factory: &'f F) -> Self {
         Self {
             factory,
             salt,
@@ -119,14 +121,14 @@ impl<'f, F> AccountDeployment<'f, F> {
         }
     }
 
-    pub fn nonce(self, nonce: FieldElement) -> Self {
+    pub fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
             ..self
         }
     }
 
-    pub fn max_fee(self, max_fee: FieldElement) -> Self {
+    pub fn max_fee(self, max_fee: Felt) -> Self {
         Self {
             max_fee: Some(max_fee),
             ..self
@@ -163,7 +165,7 @@ where
     F: AccountFactory + Sync,
 {
     /// Locally calculates the target deployment address.
-    pub fn address(&self) -> FieldElement {
+    pub fn address(&self) -> Felt {
         calculate_contract_address(
             self.salt,
             self.factory.class_hash(),
@@ -171,7 +173,7 @@ where
         )
     }
 
-    pub async fn fetch_nonce(&self) -> Result<FieldElement, ProviderError> {
+    pub async fn fetch_nonce(&self) -> Result<Felt, ProviderError> {
         match self
             .factory
             .provider()
@@ -179,9 +181,7 @@ where
             .await
         {
             Ok(nonce) => Ok(nonce),
-            Err(ProviderError::StarknetError(StarknetError::ContractNotFound)) => {
-                Ok(FieldElement::ZERO)
-            }
+            Err(ProviderError::StarknetError(StarknetError::ContractNotFound)) => Ok(Felt::ZERO),
             Err(err) => Err(err),
         }
     }
@@ -239,11 +239,23 @@ where
         let max_fee = match self.max_fee {
             Some(value) => value,
             None => {
+                // TODO: remove this when a proper u64 conversion is implemented for `Felt`
+                // Obtain the fee estimate
                 let fee_estimate = self.estimate_fee_with_nonce(nonce).await?;
-                ((((TryInto::<u64>::try_into(fee_estimate.overall_fee)
-                    .map_err(|_| AccountFactoryError::FeeOutOfRange)?) as f64)
-                    * self.fee_estimate_multiplier) as u64)
-                    .into()
+                // Convert the overall fee to little-endian bytes
+                let overall_fee_bytes = fee_estimate.overall_fee.to_bytes_le();
+
+                // Check if the remaining bytes after the first 8 are all zeros
+                if overall_fee_bytes.iter().skip(8).any(|&x| x != 0) {
+                    return Err(AccountFactoryError::FeeOutOfRange);
+                }
+
+                // Convert the first 8 bytes to u64
+                let overall_fee_u64 =
+                    u64::from_le_bytes(overall_fee_bytes[..8].try_into().unwrap());
+
+                // Perform necessary operations on overall_fee_u64 and convert to f64 then to u64
+                (((overall_fee_u64 as f64) * self.fee_estimate_multiplier) as u64).into()
             }
         };
 
@@ -259,14 +271,14 @@ where
 
     async fn estimate_fee_with_nonce(
         &self,
-        nonce: FieldElement,
+        nonce: Felt,
     ) -> Result<FeeEstimate, AccountFactoryError<F::SignError>> {
         let prepared = PreparedAccountDeployment {
             factory: self.factory,
             inner: RawAccountDeployment {
                 salt: self.salt,
                 nonce,
-                max_fee: FieldElement::ZERO,
+                max_fee: Felt::ZERO,
             },
         };
         let deploy = prepared
@@ -287,7 +299,7 @@ where
 
     async fn simulate_with_nonce(
         &self,
-        nonce: FieldElement,
+        nonce: Felt,
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountFactoryError<F::SignError>> {
@@ -326,15 +338,15 @@ where
 }
 
 impl RawAccountDeployment {
-    pub fn salt(&self) -> FieldElement {
+    pub fn salt(&self) -> Felt {
         self.salt
     }
 
-    pub fn nonce(&self) -> FieldElement {
+    pub fn nonce(&self) -> Felt {
         self.nonce
     }
 
-    pub fn max_fee(&self) -> FieldElement {
+    pub fn max_fee(&self) -> Felt {
         self.max_fee
     }
 }
@@ -353,7 +365,7 @@ where
     F: AccountFactory,
 {
     /// Locally calculates the target deployment address.
-    pub fn address(&self) -> FieldElement {
+    pub fn address(&self) -> Felt {
         calculate_contract_address(
             self.inner.salt,
             self.factory.class_hash(),
@@ -361,15 +373,15 @@ where
         )
     }
 
-    pub fn transaction_hash(&self) -> FieldElement {
+    pub fn transaction_hash(&self) -> Felt {
         let mut calldata_to_hash = vec![self.factory.class_hash(), self.inner.salt];
         calldata_to_hash.append(&mut self.factory.calldata());
 
         compute_hash_on_elements(&[
             PREFIX_DEPLOY_ACCOUNT,
-            FieldElement::ONE, // version
+            Felt::ONE, // version
             self.address(),
-            FieldElement::ZERO, // entry_point_selector
+            Felt::ZERO, // entry_point_selector
             compute_hash_on_elements(&calldata_to_hash),
             self.inner.max_fee,
             self.factory.chain_id(),
@@ -411,16 +423,13 @@ where
     }
 }
 
-fn calculate_contract_address(
-    salt: FieldElement,
-    class_hash: FieldElement,
-    constructor_calldata: &[FieldElement],
-) -> FieldElement {
+fn calculate_contract_address(salt: Felt, class_hash: Felt, constructor_calldata: &[Felt]) -> Felt {
     compute_hash_on_elements(&[
         PREFIX_CONTRACT_ADDRESS,
-        FieldElement::ZERO,
+        Felt::ZERO,
         salt,
         class_hash,
         compute_hash_on_elements(constructor_calldata),
-    ]) % ADDR_BOUND
+    ])
+    .mod_floor(&ADDR_BOUND)
 }

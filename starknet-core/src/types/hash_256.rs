@@ -5,7 +5,7 @@ use alloc::{
 };
 
 use serde::{de::Visitor, Deserialize, Serialize};
-use starknet_ff::FieldElement;
+use starknet_types_core::felt::Felt;
 
 const HASH_256_BYTE_COUNT: usize = 32;
 
@@ -49,7 +49,7 @@ mod errors {
 
     impl Display for ToFieldElementError {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-            write!(f, "hash value out of range for FieldElement")
+            write!(f, "hash value out of range for Felt")
         }
     }
 }
@@ -64,7 +64,7 @@ impl Hash256 {
         hex.parse()
     }
 
-    pub fn from_felt(felt: &FieldElement) -> Self {
+    pub fn from_felt(felt: &Felt) -> Self {
         felt.into()
     }
 
@@ -148,19 +148,19 @@ impl Display for Hash256 {
     }
 }
 
-impl From<FieldElement> for Hash256 {
-    fn from(value: FieldElement) -> Self {
+impl From<Felt> for Hash256 {
+    fn from(value: Felt) -> Self {
         (&value).into()
     }
 }
 
-impl From<&FieldElement> for Hash256 {
-    fn from(value: &FieldElement) -> Self {
+impl From<&Felt> for Hash256 {
+    fn from(value: &Felt) -> Self {
         Self::from_bytes(value.to_bytes_be())
     }
 }
 
-impl TryFrom<Hash256> for FieldElement {
+impl TryFrom<Hash256> for Felt {
     type Error = ToFieldElementError;
 
     fn try_from(value: Hash256) -> Result<Self, Self::Error> {
@@ -168,10 +168,10 @@ impl TryFrom<Hash256> for FieldElement {
     }
 }
 
-impl TryFrom<&Hash256> for FieldElement {
+impl TryFrom<&Hash256> for Felt {
     type Error = ToFieldElementError;
 
     fn try_from(value: &Hash256) -> Result<Self, Self::Error> {
-        FieldElement::from_bytes_be(&value.inner).map_err(|_| ToFieldElementError)
+        Ok(Felt::from_bytes_be(&value.inner))
     }
 }

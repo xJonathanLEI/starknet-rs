@@ -14,8 +14,6 @@ jobs:
     strategy:
       matrix:
         package:
-          - "starknet-ff"
-          - "starknet-curve"
           - "starknet-crypto-codegen"
           - "starknet-crypto"
           - "starknet-core"

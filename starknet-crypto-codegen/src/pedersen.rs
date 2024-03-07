@@ -68,16 +68,16 @@ fn push_points(
 }
 
 fn push_point(buf: &mut String, p: &AffinePoint) -> std::fmt::Result {
-    let x = p.x.into_mont();
-    let y = p.y.into_mont();
+    let x = p.x.to_raw();
+    let y = p.y.to_raw();
     writeln!(buf, "::starknet_curve::AffinePoint {{")?;
-    writeln!(buf, "x: ::starknet_ff::FieldElement::from_mont([")?;
+    writeln!(buf, "x: starknet_types_core::felt::Felt::from_raw([")?;
     writeln!(buf, "{},", x[0])?;
     writeln!(buf, "{},", x[1])?;
     writeln!(buf, "{},", x[2])?;
     writeln!(buf, "{},", x[3])?;
     writeln!(buf, "]),")?;
-    writeln!(buf, "y: ::starknet_ff::FieldElement::from_mont([")?;
+    writeln!(buf, "y: starknet_types_core::felt::Felt::from_raw([")?;
     writeln!(buf, "{},", y[0])?;
     writeln!(buf, "{},", y[1])?;
     writeln!(buf, "{},", y[2])?;

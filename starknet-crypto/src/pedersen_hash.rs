@@ -1,5 +1,6 @@
+use bitvec::slice::BitSlice;
 use starknet_curve::{curve_params, AffinePoint, ProjectivePoint};
-use starknet_ff::FieldElement;
+use starknet_types_core::felt::Felt;
 
 use crate::pedersen_points::*;
 
@@ -11,17 +12,17 @@ const SHIFT_POINT: ProjectivePoint = ProjectivePoint::from_affine_point(&curve_p
 ///
 /// * `x`: The x coordinate
 /// * `y`: The y coordinate
-pub fn pedersen_hash(x: &FieldElement, y: &FieldElement) -> FieldElement {
+pub fn pedersen_hash(x: &Felt, y: &Felt) -> Felt {
     let x = x.to_bits_le();
     let y = y.to_bits_le();
 
     // Preprocessed material is lookup-tables for each chunk of bits
     let table_size = (1 << CURVE_CONSTS_BITS) - 1;
-    let add_points = |acc: &mut ProjectivePoint, bits: &[bool], prep: &[AffinePoint]| {
-        bits.chunks(CURVE_CONSTS_BITS)
+    let add_points = |acc: &mut ProjectivePoint, bits: &BitSlice<u64>, prep: &[AffinePoint]| {
+        bits.chunks_exact(CURVE_CONSTS_BITS)
             .enumerate()
             .for_each(|(i, v)| {
-                let offset = bools_to_usize_le(v);
+                let offset = bools_to_usize_le(&v.iter().by_vals().collect::<Vec<bool>>());
                 if offset > 0 {
                     // Table lookup at 'offset-1' in table for chunk 'i'
                     *acc += &prep[i * table_size + offset - 1];
