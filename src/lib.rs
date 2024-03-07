@@ -66,3 +66,8 @@ pub mod signers {
 pub mod accounts {
     pub use starknet_accounts::*;
 }
+
+#[doc = include_str!("../assets/MACROS_README.md")]
+pub mod macros {
+    pub use starknet_macros::*;
+}
