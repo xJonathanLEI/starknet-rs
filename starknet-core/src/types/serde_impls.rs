@@ -412,6 +412,7 @@ mod enum_ser_impls {
 mod tests {
     use serde::Deserialize;
     use serde_with::serde_as;
+    use starknet_types_core::felt::Felt;
 
     use super::{
         super::{BlockId, BlockTag},
