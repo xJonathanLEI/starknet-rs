@@ -27,10 +27,8 @@ use alloc::{format, string::String, vec::Vec};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_with::serde_as;
 
-use crate::{
-    serde::{byte_array::base64, unsigned_field_element::UfeHex},
-    types::Felt,
-};
+use crate::serde::byte_array::base64;
+use starknet_types_core::felt::Felt;
 
 use super::{serde_impls::NumAsHex, *};
 

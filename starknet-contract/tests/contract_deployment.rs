@@ -41,11 +41,7 @@ async fn can_deploy_contract_to_alpha_goerli() {
     rng.fill_bytes(&mut salt_buffer[1..]);
 
     let result = factory
-        .deploy(
-            vec![Felt::ONE],
-            Felt::from_bytes_be(&salt_buffer).unwrap(),
-            true,
-        )
+        .deploy(vec![Felt::ONE], Felt::from_bytes_be(&salt_buffer), true)
         .send()
         .await;
 
