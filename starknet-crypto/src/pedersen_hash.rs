@@ -22,7 +22,7 @@ pub fn pedersen_hash(x: &Felt, y: &Felt) -> Felt {
         bits.chunks_exact(CURVE_CONSTS_BITS)
             .enumerate()
             .for_each(|(i, v)| {
-                let mut bools_array = [false; CURVE_CONSTS_BITS as usize];
+                let mut bools_array = [false; CURVE_CONSTS_BITS];
                 for (bool_ref, bit) in bools_array.iter_mut().zip(v.iter().by_vals()) {
                     *bool_ref = bit;
                 }
