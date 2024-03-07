@@ -206,9 +206,11 @@ pub fn recover(message: &Felt, r: &Felt, s: &Felt, v: &Felt) -> Result<Felt, Rec
 #[inline(always)]
 fn mul_by_bits(x: &AffinePoint, y: &Felt) -> AffinePoint {
     let x = ProjectivePoint::from(x);
-    // let y = y.to_bits_le();
-    let y = y.to_bits_le().iter().map(|bit| *bit).collect::<Vec<bool>>();
-    let z = &x * &y;
+    let mut y_bool = [false; 256 as usize];
+    for (bool_ref, bit) in y_bool.iter_mut().zip(y.to_bits_le().iter().by_vals()) {
+        *bool_ref = bit;
+    }
+    let z = &x * &y_bool;
     AffinePoint::from(&z)
 }
 

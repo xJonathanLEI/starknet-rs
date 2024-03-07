@@ -22,7 +22,11 @@ pub fn pedersen_hash(x: &Felt, y: &Felt) -> Felt {
         bits.chunks_exact(CURVE_CONSTS_BITS)
             .enumerate()
             .for_each(|(i, v)| {
-                let offset = bools_to_usize_le(&v.iter().by_vals().collect::<Vec<bool>>());
+                let mut bools_array = [false; CURVE_CONSTS_BITS as usize];
+                for (bool_ref, bit) in bools_array.iter_mut().zip(v.iter().by_vals()) {
+                    *bool_ref = bit;
+                }
+                let offset = bools_to_usize_le(&bools_array);
                 if offset > 0 {
                     // Table lookup at 'offset-1' in table for chunk 'i'
                     *acc += &prep[i * table_size + offset - 1];
