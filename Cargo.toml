@@ -22,6 +22,7 @@ members = [
     "starknet-crypto",
     "starknet-signers",
     "starknet-accounts",
+    "starknet-macros",
     "starknet-curve",
     "starknet-crypto-codegen",
     "examples/starknet-wasm",
@@ -38,6 +39,7 @@ starknet-providers = { version = "0.9.0", path = "./starknet-providers" }
 starknet-contract = { version = "0.8.0", path = "./starknet-contract" }
 starknet-signers = { version = "0.7.0", path = "./starknet-signers" }
 starknet-accounts = { version = "0.8.0", path = "./starknet-accounts" }
+starknet-macros = { version = "0.1.6", path = "./starknet-macros" }
 starknet-types-core = "0.0.9"
 
 [dev-dependencies]

@@ -1558,6 +1558,7 @@ dependencies = [
  "starknet-contract",
  "starknet-core",
  "starknet-crypto",
+ "starknet-macros",
  "starknet-providers",
  "starknet-signers",
  "starknet-types-core",
@@ -1670,6 +1671,15 @@ dependencies = [
  "starknet-core",
  "starknet-crypto",
  "starknet-types-core",
+]
+
+[[package]]
+name = "starknet-macros"
+version = "0.1.6"
+dependencies = [
+ "starknet-core",
+ "starknet-types-core",
+ "syn 2.0.15",
 ]
 
 [[package]]
