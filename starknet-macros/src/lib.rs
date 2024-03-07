@@ -102,7 +102,7 @@ pub fn felt_hex(input: TokenStream) -> TokenStream {
     let felt_raw = felt_value.to_raw();
 
     format!(
-        "{}::from_mont([{}, {}, {}, {}])",
+        "{}::from_raw([{}, {}, {}, {}])",
         field_element_path(),
         felt_raw[0],
         felt_raw[1],
