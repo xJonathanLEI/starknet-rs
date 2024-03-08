@@ -14,3 +14,5 @@ keywords = ["ethereum", "starknet", "web3", "no_std"]
 
 [dependencies]
 starknet-types-core = "0.0.9"
+bitvec = { version = "1.0.1", default-features = false }
+

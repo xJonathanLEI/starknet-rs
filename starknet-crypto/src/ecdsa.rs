@@ -109,9 +109,11 @@ pub fn sign(private_key: &Felt, message: &Felt, k: &Felt) -> Result<ExtendedSign
         return Err(SignError::InvalidK);
     }
 
-    let v = felt_bit_and(&full_r.y, &Felt::ONE);
-
-    Ok(ExtendedSignature { r, s, v })
+    Ok(ExtendedSignature {
+        r,
+        s,
+        v: (full_r.y.to_bigint() & Felt::ONE.to_bigint()).into(),
+    })
 }
 
 /// Verifies if a signature is valid over a message hash given a public key. Returns an error
@@ -153,18 +155,6 @@ pub fn verify(public_key: &Felt, message: &Felt, r: &Felt, s: &Felt) -> Result<b
     Ok((&zw_g + &rw_q).x == *r || (&zw_g - &rw_q).x == *r)
 }
 
-// Temporary function
-// TODO: remove it once `BitAnd` is implemented for `Felt`
-fn felt_bit_and(lhs: &Felt, rhs: &Felt) -> Felt {
-    let mut result = lhs.to_raw();
-
-    for (result_i, &b_i) in result.iter_mut().zip(rhs.to_raw().iter()) {
-        *result_i &= b_i;
-    }
-
-    Felt::from_raw(result)
-}
-
 /// Recovers the public key from a message and (r, s, v) signature parameters
 ///
 /// ### Arguments
@@ -188,7 +178,7 @@ pub fn recover(message: &Felt, r: &Felt, s: &Felt, v: &Felt) -> Result<Felt, Rec
     }
 
     let mut full_r = AffinePoint::from_x(*r).ok_or(RecoverError::InvalidR)?;
-    if felt_bit_and(&full_r.y, &Felt::ONE) != *v {
+    if Into::<Felt>::into(full_r.y.to_bigint() & Felt::ONE.to_bigint()) != *v {
         full_r.y = -full_r.y;
     }
     let full_rs = mul_by_bits(&full_r, s);
@@ -206,11 +196,8 @@ pub fn recover(message: &Felt, r: &Felt, s: &Felt, v: &Felt) -> Result<Felt, Rec
 #[inline(always)]
 fn mul_by_bits(x: &AffinePoint, y: &Felt) -> AffinePoint {
     let x = ProjectivePoint::from(x);
-    let mut y_bool = [false; 256_usize];
-    for (bool_ref, bit) in y_bool.iter_mut().zip(y.to_bits_le().iter().by_vals()) {
-        *bool_ref = bit;
-    }
-    let z = &x * &y_bool;
+    let y = y.to_bits_be();
+    let z = &x * &y;
     AffinePoint::from(&z)
 }
 

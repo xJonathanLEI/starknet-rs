@@ -13,8 +13,8 @@ const SHIFT_POINT: ProjectivePoint = ProjectivePoint::from_affine_point(&curve_p
 /// * `x`: The x coordinate
 /// * `y`: The y coordinate
 pub fn pedersen_hash(x: &Felt, y: &Felt) -> Felt {
-    let x = x.to_bits_le();
-    let y = y.to_bits_le();
+    let x = x.to_bits_be();
+    let y = y.to_bits_be();
 
     // Preprocessed material is lookup-tables for each chunk of bits
     let table_size = (1 << CURVE_CONSTS_BITS) - 1;
@@ -22,11 +22,7 @@ pub fn pedersen_hash(x: &Felt, y: &Felt) -> Felt {
         bits.chunks_exact(CURVE_CONSTS_BITS)
             .enumerate()
             .for_each(|(i, v)| {
-                let mut bools_array = [false; CURVE_CONSTS_BITS];
-                for (bool_ref, bit) in bools_array.iter_mut().zip(v.iter().by_vals()) {
-                    *bool_ref = bit;
-                }
-                let offset = bools_to_usize_le(&bools_array);
+                let offset = bitslice_to_usize_le(v);
                 if offset > 0 {
                     // Table lookup at 'offset-1' in table for chunk 'i'
                     *acc += &prep[i * table_size + offset - 1];
@@ -49,11 +45,11 @@ pub fn pedersen_hash(x: &Felt, y: &Felt) -> Felt {
 }
 
 #[inline]
-fn bools_to_usize_le(bools: &[bool]) -> usize {
+fn bitslice_to_usize_le(bits: &BitSlice<u64>) -> usize {
     let mut result: usize = 0;
-    for (ind, bit) in bools.iter().enumerate() {
+    for (ind, bit) in bits.iter().enumerate() {
         if *bit {
-            result += 1 << ind;
+            result |= 1 << ind;
         }
     }
     result

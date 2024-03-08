@@ -1,6 +1,7 @@
 use starknet_types_core::felt::Felt;
 
 use crate::curve_params::{ALPHA, BETA};
+use bitvec::array::BitArray;
 
 use core::ops;
 
@@ -279,11 +280,28 @@ impl ops::AddAssign<&ProjectivePoint> for ProjectivePoint {
     }
 }
 
-impl ops::Mul<&[bool]> for &ProjectivePoint {
+// impl ops::Mul<&[bool]> for &ProjectivePoint {
+//     type Output = ProjectivePoint;
+
+//     #[allow(clippy::suspicious_arithmetic_impl)]
+//     fn mul(self, rhs: &[bool]) -> Self::Output {
+//         let mut product = ProjectivePoint::identity();
+//         for b in rhs.iter().rev() {
+//             product.double_assign();
+//             if *b {
+//                 product += self;
+//             }
+//         }
+
+//         product
+//     }
+// }
+
+impl ops::Mul<&BitArray<[u64; 4]>> for &ProjectivePoint {
     type Output = ProjectivePoint;
 
     #[allow(clippy::suspicious_arithmetic_impl)]
-    fn mul(self, rhs: &[bool]) -> Self::Output {
+    fn mul(self, rhs: &BitArray<[u64; 4]>) -> Self::Output {
         let mut product = ProjectivePoint::identity();
         for b in rhs.iter().rev() {
             product.double_assign();
