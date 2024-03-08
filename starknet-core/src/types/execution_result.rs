@@ -1,3 +1,5 @@
+use alloc::string::*;
+
 use serde::{Deserialize, Serialize};
 
 use super::TransactionExecutionStatus;

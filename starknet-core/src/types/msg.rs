@@ -1,3 +1,5 @@
+use alloc::vec::*;
+
 use sha3::{Digest, Keccak256};
 use starknet_ff::FieldElement;
 

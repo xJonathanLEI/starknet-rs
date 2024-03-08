@@ -1,4 +1,4 @@
-use alloc::format;
+use alloc::{format, string::*, vec::*};
 
 use serde::{ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json_pythonic::to_string_pythonic;
@@ -242,6 +242,7 @@ pub enum EventFieldKind {
 }
 
 mod errors {
+    use alloc::string::*;
     use core::fmt::{Display, Formatter, Result};
 
     #[derive(Debug)]

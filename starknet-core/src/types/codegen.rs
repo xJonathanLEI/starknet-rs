@@ -22,7 +22,7 @@
 // - `TXN`
 // - `TXN_RECEIPT`
 
-use alloc::format;
+use alloc::{format, string::*, vec::*};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_with::serde_as;

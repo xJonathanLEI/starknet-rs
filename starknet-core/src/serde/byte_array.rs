@@ -1,5 +1,5 @@
 pub mod base64 {
-    use alloc::{fmt::Formatter, format};
+    use alloc::{fmt::Formatter, format, vec::*};
 
     use base64::{engine::general_purpose::STANDARD, Engine};
     use serde::{de::Visitor, Deserializer, Serializer};
