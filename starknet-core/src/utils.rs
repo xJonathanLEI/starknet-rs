@@ -1,5 +1,3 @@
-use alloc::string::String;
-
 use crate::{crypto::compute_hash_on_elements, types::FieldElement};
 
 use sha3::{Digest, Keccak256};
