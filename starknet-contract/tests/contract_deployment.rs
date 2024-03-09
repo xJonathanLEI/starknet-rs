@@ -1,18 +1,25 @@
 use rand::{rngs::StdRng, RngCore, SeedableRng};
 use starknet_accounts::{ExecutionEncoding, SingleOwnerAccount};
 use starknet_contract::ContractFactory;
-use starknet_core::{
-    chain_id,
-    types::{contract::legacy::LegacyContractClass, BlockId, BlockTag, FieldElement},
+use starknet_core::types::{
+    contract::legacy::LegacyContractClass, BlockId, BlockTag, FieldElement,
 };
 use starknet_providers::{jsonrpc::HttpTransport, JsonRpcClient};
 use starknet_signers::{LocalWallet, SigningKey};
 use url::Url;
 
+/// Cairo short string encoding for `SN_SEPOLIA`.
+const CHAIN_ID: FieldElement = FieldElement::from_mont([
+    1555806712078248243,
+    18446744073708869172,
+    18446744073709551615,
+    507980251676163170,
+]);
+
 #[tokio::test]
-async fn can_deploy_contract_to_alpha_goerli() {
+async fn can_deploy_contract_to_alpha_sepolia() {
     let rpc_url = std::env::var("STARKNET_RPC")
-        .unwrap_or("https://pathfinder.rpc.goerli.starknet.rs/rpc/v0_6".into());
+        .unwrap_or("https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_6".into());
     let provider = JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()));
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be(
@@ -21,16 +28,11 @@ async fn can_deploy_contract_to_alpha_goerli() {
         .unwrap(),
     ));
     let address = FieldElement::from_hex_be(
-        "04284d0741ee00d8e4d6a02d21c0be58665f0e6e187cf48c509b1ac39cdeca65",
+        "0x059e738b86f82e11cd5b4afaccfce1d5166700c92fb87be59ad4af908e9bf866",
     )
     .unwrap();
-    let mut account = SingleOwnerAccount::new(
-        provider,
-        signer,
-        address,
-        chain_id::TESTNET,
-        ExecutionEncoding::Legacy,
-    );
+    let mut account =
+        SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let artifact = serde_json::from_str::<LegacyContractClass>(include_str!(
