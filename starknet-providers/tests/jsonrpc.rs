@@ -18,7 +18,7 @@ use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     let rpc_url = std::env::var("STARKNET_RPC")
-        .unwrap_or("https://pathfinder.rpc.goerli.starknet.rs/rpc/v0_6".into());
+        .unwrap_or("https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_6".into());
     JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()))
 }
 
@@ -96,7 +96,7 @@ async fn jsonrpc_get_storage_at() {
             get_storage_var_address(
                 "ERC20_balances",
                 &[FieldElement::from_hex_be(
-                    "01352dd0ac2a462cb53e4f125169b28f13bd6199091a9815c444dcae83056bbc",
+                    "03f47d3911396b6d579fd7848cf576286ab6f96dda977915d6c7b10f3dd2315b",
                 )
                 .unwrap()],
             )
@@ -109,25 +109,8 @@ async fn jsonrpc_get_storage_at() {
     assert!(eth_balance > FieldElement::ZERO);
 }
 
-#[tokio::test]
-async fn jsonrpc_get_transaction_status_rejected() {
-    let rpc_client = create_jsonrpc_client();
-
-    let status = rpc_client
-        .get_transaction_status(
-            FieldElement::from_hex_be(
-                "0x07362a9daa42d9e4be657ed5a50f7fc04ac2017714cddb6c88dc08f48a782632",
-            )
-            .unwrap(),
-        )
-        .await
-        .unwrap();
-
-    match status {
-        TransactionStatus::Rejected => {}
-        _ => panic!("unexpected transaction status"),
-    }
-}
+// Test case `jsonrpc_get_transaction_status_rejected` was removed as there is no `REJECTED`
+// transaction on the Sepolia network.
 
 #[tokio::test]
 async fn jsonrpc_get_transaction_status_succeeded() {
@@ -136,7 +119,7 @@ async fn jsonrpc_get_transaction_status_succeeded() {
     let status = rpc_client
         .get_transaction_status(
             FieldElement::from_hex_be(
-                "0x042fe661cf973a9e62dbf587cfb6d1808e377f394e4fea2c62a4fd02b5ba3473",
+                "03f786ecc4955a2602c91a291328518ef866cb7f3d50e4b16fd42282952623aa",
             )
             .unwrap(),
         )
@@ -156,7 +139,7 @@ async fn jsonrpc_get_transaction_status_reverted() {
     let status = rpc_client
         .get_transaction_status(
             FieldElement::from_hex_be(
-                "0x03998d935e23ee0b4956c40e8a5f64f6767176e7e44981328295a2fc20e6892c",
+                "02f00c7f28df2197196440747f97baa63d0851e3b0cfc2efedb6a88a7ef78cb1",
             )
             .unwrap(),
         )
@@ -169,27 +152,8 @@ async fn jsonrpc_get_transaction_status_reverted() {
     }
 }
 
-#[tokio::test]
-async fn jsonrpc_get_transaction_by_hash_invoke_v0() {
-    let rpc_client = create_jsonrpc_client();
-
-    let tx = rpc_client
-        .get_transaction_by_hash(
-            FieldElement::from_hex_be(
-                "05b08d06a7f6422881d6461175f325844d179ca9018dbab5e92dc34e5c176ff1",
-            )
-            .unwrap(),
-        )
-        .await
-        .unwrap();
-
-    let tx = match tx {
-        Transaction::Invoke(InvokeTransaction::V0(tx)) => tx,
-        _ => panic!("unexpected tx response type"),
-    };
-
-    assert!(tx.entry_point_selector > FieldElement::ZERO);
-}
+// Test case `jsonrpc_get_transaction_by_hash_invoke_v0` was removed as there is no `INVOKE` v0
+// transaction on the Sepolia network.
 
 #[tokio::test]
 async fn jsonrpc_get_transaction_by_hash_invoke_v1() {
@@ -198,7 +162,7 @@ async fn jsonrpc_get_transaction_by_hash_invoke_v1() {
     let tx = rpc_client
         .get_transaction_by_hash(
             FieldElement::from_hex_be(
-                "028736cab16e67b4bed7ec5805ecd2636e7e800c2b0311b561e43fb4987cd70a",
+                "03f786ecc4955a2602c91a291328518ef866cb7f3d50e4b16fd42282952623aa",
             )
             .unwrap(),
         )
@@ -220,7 +184,7 @@ async fn jsonrpc_get_transaction_by_hash_l1_handler() {
     let tx = rpc_client
         .get_transaction_by_hash(
             FieldElement::from_hex_be(
-                "0374286ae28f201e61ffbc5b022cc9701208640b405ea34ea9799f97d5d2d23c",
+                "0785c2ada3f53fbc66078d47715c27718f92e6e48b96372b36e5197de69b82b5",
             )
             .unwrap(),
         )
@@ -242,7 +206,7 @@ async fn jsonrpc_get_transaction_by_hash_declare_v0() {
     let tx = rpc_client
         .get_transaction_by_hash(
             FieldElement::from_hex_be(
-                "021933cb48e59c74caa4575a78e89e6046d043505e5600fd88af7f051d3610ca",
+                "030a541df2547ed9f94602c35daf61ce3a8e179ec75d26cbe34e0ec61f823695",
             )
             .unwrap(),
         )
@@ -264,7 +228,7 @@ async fn jsonrpc_get_transaction_by_hash_declare_v1() {
     let tx = rpc_client
         .get_transaction_by_hash(
             FieldElement::from_hex_be(
-                "0618cc1e0ed68521ae8ee33595db8b0e33adaa9548837d4c824c83e99ad18f37",
+                "01936a09e5aaee208fc0f7cc826e126d421c3ac9aca2c789605e1e919e399185",
             )
             .unwrap(),
         )
@@ -286,7 +250,7 @@ async fn jsonrpc_get_transaction_by_hash_declare_v2() {
     let tx = rpc_client
         .get_transaction_by_hash(
             FieldElement::from_hex_be(
-                "06c3b4729c1a303cef6fa60754ab012cd0759f2e8cf55cf0c008e10b9d420ca2",
+                "004cacc2bbdd5ec77b20e908f311ab27d6495b69761e929bb24ba02632716944",
             )
             .unwrap(),
         )
@@ -301,27 +265,8 @@ async fn jsonrpc_get_transaction_by_hash_declare_v2() {
     assert!(tx.sender_address > FieldElement::ZERO);
 }
 
-#[tokio::test]
-async fn jsonrpc_get_transaction_by_hash_deploy() {
-    let rpc_client = create_jsonrpc_client();
-
-    let tx = rpc_client
-        .get_transaction_by_hash(
-            FieldElement::from_hex_be(
-                "018b1ef66488f0e48bcf0bcdb367148352fe9180bc5d6505e9af843e6a51ff5d",
-            )
-            .unwrap(),
-        )
-        .await
-        .unwrap();
-
-    let tx = match tx {
-        Transaction::Deploy(tx) => tx,
-        _ => panic!("unexpected tx response type"),
-    };
-
-    assert!(tx.class_hash > FieldElement::ZERO);
-}
+// Test case `jsonrpc_get_transaction_by_hash_deploy` was removed as there is no `DEPLOY`
+// transaction on the Sepolia network.
 
 #[tokio::test]
 async fn jsonrpc_get_transaction_by_hash_deploy_account_v1() {
@@ -330,7 +275,7 @@ async fn jsonrpc_get_transaction_by_hash_deploy_account_v1() {
     let tx = rpc_client
         .get_transaction_by_hash(
             FieldElement::from_hex_be(
-                "058ba7cdaf437d3a3b9680e6cbb4169811cddfa693875812bd98a8b1d61278de",
+                "024ed6b82e2f6d3a811ec180a25c1ccd0bdc7bdba8ebd709de2ed697a1e82193",
             )
             .unwrap(),
         )
@@ -355,11 +300,11 @@ async fn jsonrpc_get_transaction_by_block_id_and_index() {
         .unwrap();
 
     let tx = match tx {
-        Transaction::Invoke(InvokeTransaction::V0(tx)) => tx,
+        Transaction::Invoke(InvokeTransaction::V3(tx)) => tx,
         _ => panic!("unexpected tx response type"),
     };
 
-    assert!(tx.entry_point_selector > FieldElement::ZERO);
+    assert!(tx.sender_address > FieldElement::ZERO);
 }
 
 #[tokio::test]
@@ -386,7 +331,7 @@ async fn jsonrpc_get_transaction_receipt_invoke() {
     let receipt = rpc_client
         .get_transaction_receipt(
             FieldElement::from_hex_be(
-                "05b08d06a7f6422881d6461175f325844d179ca9018dbab5e92dc34e5c176ff1",
+                "03f786ecc4955a2602c91a291328518ef866cb7f3d50e4b16fd42282952623aa",
             )
             .unwrap(),
         )
@@ -411,7 +356,7 @@ async fn jsonrpc_get_transaction_receipt_invoke_reverted() {
     let receipt = rpc_client
         .get_transaction_receipt(
             FieldElement::from_hex_be(
-                "0x555c9392299727de9d3d6c85dd5db94f63a0994e698386d85c12b16f71fbfd0",
+                "02f00c7f28df2197196440747f97baa63d0851e3b0cfc2efedb6a88a7ef78cb1",
             )
             .unwrap(),
         )
@@ -434,7 +379,7 @@ async fn jsonrpc_get_transaction_receipt_l1_handler() {
     let rpc_client = create_jsonrpc_client();
 
     let tx_hash = FieldElement::from_hex_be(
-        "0374286ae28f201e61ffbc5b022cc9701208640b405ea34ea9799f97d5d2d23c",
+        "0785c2ada3f53fbc66078d47715c27718f92e6e48b96372b36e5197de69b82b5",
     )
     .unwrap();
 
@@ -466,7 +411,7 @@ async fn jsonrpc_get_transaction_receipt_declare() {
     let receipt = rpc_client
         .get_transaction_receipt(
             FieldElement::from_hex_be(
-                "021933cb48e59c74caa4575a78e89e6046d043505e5600fd88af7f051d3610ca",
+                "01936a09e5aaee208fc0f7cc826e126d421c3ac9aca2c789605e1e919e399185",
             )
             .unwrap(),
         )
@@ -484,30 +429,8 @@ async fn jsonrpc_get_transaction_receipt_declare() {
     }
 }
 
-#[tokio::test]
-async fn jsonrpc_get_transaction_receipt_deploy() {
-    let rpc_client = create_jsonrpc_client();
-
-    let receipt = rpc_client
-        .get_transaction_receipt(
-            FieldElement::from_hex_be(
-                "018b1ef66488f0e48bcf0bcdb367148352fe9180bc5d6505e9af843e6a51ff5d",
-            )
-            .unwrap(),
-        )
-        .await
-        .unwrap();
-
-    let receipt = match receipt {
-        MaybePendingTransactionReceipt::Receipt(TransactionReceipt::Deploy(receipt)) => receipt,
-        _ => panic!("unexpected receipt response type"),
-    };
-
-    match receipt.execution_result {
-        ExecutionResult::Succeeded => {}
-        _ => panic!("unexpected execution result"),
-    }
-}
+// Test case `jsonrpc_get_transaction_receipt_deploy` was removed as there is no `DEPLOY`
+// transaction on the Sepolia network.
 
 #[tokio::test]
 async fn jsonrpc_get_transaction_receipt_deploy_account() {
@@ -516,7 +439,7 @@ async fn jsonrpc_get_transaction_receipt_deploy_account() {
     let receipt = rpc_client
         .get_transaction_receipt(
             FieldElement::from_hex_be(
-                "058ba7cdaf437d3a3b9680e6cbb4169811cddfa693875812bd98a8b1d61278de",
+                "024ed6b82e2f6d3a811ec180a25c1ccd0bdc7bdba8ebd709de2ed697a1e82193",
             )
             .unwrap(),
         )
@@ -544,7 +467,7 @@ async fn jsonrpc_get_class_cairo_0() {
         .get_class(
             BlockId::Tag(BlockTag::Latest),
             FieldElement::from_hex_be(
-                "048dd59fabc729a5db3afdf649ecaf388e931647ab2f53ca3c6183fa480aa292",
+                "07b3e05f48f0c69e4a65ce5e076a66271a527aff2c34ce1083ec6e1526997a69",
             )
             .unwrap(),
         )
@@ -567,7 +490,7 @@ async fn jsonrpc_get_class_cairo_1() {
         .get_class(
             BlockId::Tag(BlockTag::Latest),
             FieldElement::from_hex_be(
-                "05dc48d64a0f3852a4ac2b06f9b2a801177f35952715f32d3a7ca60af235e762",
+                "01a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003",
             )
             .unwrap(),
         )
@@ -590,7 +513,7 @@ async fn jsonrpc_get_class_hash_at() {
         .get_class_hash_at(
             BlockId::Tag(BlockTag::Latest),
             FieldElement::from_hex_be(
-                "06b3dab9c563083e7e74d9a7ab7649f7af4564cfef397f8e44233a1feffc7049",
+                "041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf",
             )
             .unwrap(),
         )
@@ -600,7 +523,7 @@ async fn jsonrpc_get_class_hash_at() {
     assert_eq!(
         class_hash,
         FieldElement::from_hex_be(
-            "025ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918"
+            "07b3e05f48f0c69e4a65ce5e076a66271a527aff2c34ce1083ec6e1526997a69"
         )
         .unwrap()
     );
@@ -614,7 +537,7 @@ async fn jsonrpc_get_class_at() {
         .get_class_at(
             BlockId::Tag(BlockTag::Latest),
             FieldElement::from_hex_be(
-                "06b3dab9c563083e7e74d9a7ab7649f7af4564cfef397f8e44233a1feffc7049",
+                "041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf",
             )
             .unwrap(),
         )
@@ -638,7 +561,7 @@ async fn jsonrpc_get_block_transaction_count() {
         .await
         .unwrap();
 
-    assert_eq!(count, 4);
+    assert_eq!(count, 6);
 }
 
 #[tokio::test]
@@ -655,7 +578,7 @@ async fn jsonrpc_call() {
                 .unwrap(),
                 entry_point_selector: get_selector_from_name("balanceOf").unwrap(),
                 calldata: vec![FieldElement::from_hex_be(
-                    "01352dd0ac2a462cb53e4f125169b28f13bd6199091a9815c444dcae83056bbc",
+                    "03f47d3911396b6d579fd7848cf576286ab6f96dda977915d6c7b10f3dd2315b",
                 )
                 .unwrap()],
             },
@@ -678,41 +601,35 @@ async fn jsonrpc_estimate_fee() {
                     max_fee: FieldElement::ZERO,
                     signature: vec![
                         FieldElement::from_hex_be(
-                            "156a781f12e8743bd07e20a4484154fd0baccee95d9ea791c121c916ad44ee0",
+                            "0024bd9efc809227bbcdfbd5a38b9255562184f944336c662037865dddda7a98",
                         )
                         .unwrap(),
                         FieldElement::from_hex_be(
-                            "7228267473c670cbb86a644f8696973db978c51acde19431d3f1f8f100794c6",
+                            "0647f552129f367c1053caeb722c3e1d5719032e229c08dbfde988bd87c9cc3e",
                         )
                         .unwrap(),
                     ],
-                    nonce: FieldElement::ZERO,
+                    nonce: FieldElement::ONE,
                     sender_address: FieldElement::from_hex_be(
-                        "5b5e9f6f6fb7d2647d81a8b2c2b99cbc9cc9d03d705576d7061812324dca5c0",
+                        "047e5089068f45ed6f7e1396157cd2346dfecbf1c77f396c03d45db3b164f5a0",
                     )
                     .unwrap(),
                     calldata: vec![
                         FieldElement::from_hex_be("1").unwrap(),
                         FieldElement::from_hex_be(
-                            "7394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
+                            "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
                         )
                         .unwrap(),
                         FieldElement::from_hex_be(
-                            "2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+                            "0083afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
                         )
                         .unwrap(),
-                        FieldElement::from_hex_be("0").unwrap(),
                         FieldElement::from_hex_be("3").unwrap(),
-                        FieldElement::from_hex_be("3").unwrap(),
-                        FieldElement::from_hex_be(
-                            "5b5e9f6f6fb7d2647d81a8b2c2b99cbc9cc9d03d705576d7061812324dca5c0",
-                        )
-                        .unwrap(),
-                        FieldElement::from_hex_be("3635c9adc5dea00000").unwrap(),
+                        FieldElement::from_hex_be("1234").unwrap(),
+                        FieldElement::from_hex_be("64").unwrap(),
                         FieldElement::from_hex_be("0").unwrap(),
                     ],
-                    // TODO: make use of query version tx for estimating fees
-                    is_query: false,
+                    is_query: true,
                 },
             )),
             [],
@@ -733,17 +650,17 @@ async fn jsonrpc_estimate_message_fee() {
     let estimate = rpc_client
         .estimate_message_fee(
             MsgFromL1 {
-                from_address: EthAddress::from_hex("0x0000000000000000000000000000000000000001")
+                from_address: EthAddress::from_hex("0x8453FC6Cd1bCfE8D4dFC069C400B433054d47bDc")
                     .unwrap(),
                 to_address: FieldElement::from_hex_be(
-                    "07f7a88dc030eed907b634e2968693801ff56fdf71156a08f2c8e24aeb95371c",
+                    "04c5772d1914fe6ce891b64eb35bf3522aeae1315647314aac58b01137607f3f",
                 )
                 .unwrap(),
                 entry_point_selector: FieldElement::from_hex_be(
-                    "00654a5600553e6e9d7023c67f1f597cebe39b6ba6b2a6cd63d86ec96d49d909",
+                    "02d757788a8d8d6f21d1cd40bce38a8222d70654214e96ff95d8086e684fbee5",
                 )
                 .unwrap(),
-                payload: vec![FieldElement::ONE],
+                payload: vec![FieldElement::ONE, FieldElement::ONE, FieldElement::ONE],
             },
             BlockId::Tag(BlockTag::Latest),
         )
@@ -798,8 +715,8 @@ async fn jsonrpc_get_events() {
     let events = rpc_client
         .get_events(
             EventFilter {
-                from_block: Some(BlockId::Number(234500)),
-                to_block: Some(BlockId::Number(235000)),
+                from_block: Some(BlockId::Number(10000)),
+                to_block: Some(BlockId::Number(20000)),
                 address: None,
                 keys: None,
             },
@@ -820,14 +737,14 @@ async fn jsonrpc_get_nonce() {
         .get_nonce(
             BlockId::Tag(BlockTag::Latest),
             FieldElement::from_hex_be(
-                "0661d341c2ba6f3c2b277e54d507e4b49b0c4d8973ac7366a035d0d3e8bdec47",
+                "047e5089068f45ed6f7e1396157cd2346dfecbf1c77f396c03d45db3b164f5a0",
             )
             .unwrap(),
         )
         .await
         .unwrap();
 
-    assert_eq!(nonce, FieldElement::ZERO);
+    assert_eq!(nonce, FieldElement::ONE);
 }
 
 #[tokio::test]
@@ -837,7 +754,7 @@ async fn jsonrpc_trace_invoke() {
     let trace = rpc_client
         .trace_transaction(
             FieldElement::from_hex_be(
-                "06d2ea57520318e577328ee0da9c609344ed77c86375a6764acc0c5854ebf258",
+                "03f786ecc4955a2602c91a291328518ef866cb7f3d50e4b16fd42282952623aa",
             )
             .unwrap(),
         )
@@ -862,7 +779,7 @@ async fn jsonrpc_trace_invoke_reverted() {
     let trace = rpc_client
         .trace_transaction(
             FieldElement::from_hex_be(
-                "0555c9392299727de9d3d6c85dd5db94f63a0994e698386d85c12b16f71fbfd0",
+                "02f00c7f28df2197196440747f97baa63d0851e3b0cfc2efedb6a88a7ef78cb1",
             )
             .unwrap(),
         )
@@ -887,7 +804,7 @@ async fn jsonrpc_trace_l1_handler() {
     let trace = rpc_client
         .trace_transaction(
             FieldElement::from_hex_be(
-                "0374286ae28f201e61ffbc5b022cc9701208640b405ea34ea9799f97d5d2d23c",
+                "0785c2ada3f53fbc66078d47715c27718f92e6e48b96372b36e5197de69b82b5",
             )
             .unwrap(),
         )
@@ -907,7 +824,7 @@ async fn jsonrpc_trace_declare() {
     let trace = rpc_client
         .trace_transaction(
             FieldElement::from_hex_be(
-                "021933cb48e59c74caa4575a78e89e6046d043505e5600fd88af7f051d3610ca",
+                "01936a09e5aaee208fc0f7cc826e126d421c3ac9aca2c789605e1e919e399185",
             )
             .unwrap(),
         )
@@ -929,7 +846,7 @@ async fn jsonrpc_trace_deploy_account() {
     let trace = rpc_client
         .trace_transaction(
             FieldElement::from_hex_be(
-                "058ba7cdaf437d3a3b9680e6cbb4169811cddfa693875812bd98a8b1d61278de",
+                "024ed6b82e2f6d3a811ec180a25c1ccd0bdc7bdba8ebd709de2ed697a1e82193",
             )
             .unwrap(),
         )

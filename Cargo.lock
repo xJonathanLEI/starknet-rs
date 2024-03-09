@@ -1657,7 +1657,6 @@ version = "0.8.0"
 dependencies = [
  "async-trait",
  "auto_impl",
- "rand",
  "serde",
  "serde_json",
  "starknet-core",
