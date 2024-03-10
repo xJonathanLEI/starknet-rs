@@ -8,13 +8,6 @@ use crate::{
     FieldElement, RecoverError, SignError, VerifyError,
 };
 
-const ELEMENT_UPPER_BOUND: FieldElement = FieldElement::from_mont([
-    18446743986131435553,
-    160989183,
-    18446744073709255680,
-    576459263475450960,
-]);
-
 /// Stark ECDSA signature
 #[derive(Debug)]
 pub struct Signature {
@@ -90,7 +83,7 @@ pub fn sign(
     message: &FieldElement,
     k: &FieldElement,
 ) -> Result<ExtendedSignature, SignError> {
-    if message >= &ELEMENT_UPPER_BOUND {
+    if message >= &FieldElement::MAX {
         return Err(SignError::InvalidMessageHash);
     }
     if k == &FieldElement::ZERO {
@@ -99,7 +92,7 @@ pub fn sign(
 
     let full_r = mul_by_bits(&GENERATOR, k);
     let r = full_r.x;
-    if r == FieldElement::ZERO || r >= ELEMENT_UPPER_BOUND {
+    if r == FieldElement::ZERO || r >= FieldElement::MAX {
         return Err(SignError::InvalidK);
     }
 
@@ -108,7 +101,7 @@ pub fn sign(
     let s = mul_mod_floor(&r, private_key, &EC_ORDER);
     let s = add_unbounded(&s, message);
     let s = bigint_mul_mod_floor(s, &k_inv, &EC_ORDER);
-    if s == FieldElement::ZERO || s >= ELEMENT_UPPER_BOUND {
+    if s == FieldElement::ZERO || s >= FieldElement::MAX {
         return Err(SignError::InvalidK);
     }
 
@@ -132,13 +125,13 @@ pub fn verify(
     r: &FieldElement,
     s: &FieldElement,
 ) -> Result<bool, VerifyError> {
-    if message >= &ELEMENT_UPPER_BOUND {
+    if message >= &FieldElement::MAX {
         return Err(VerifyError::InvalidMessageHash);
     }
-    if r == &FieldElement::ZERO || r >= &ELEMENT_UPPER_BOUND {
+    if r == &FieldElement::ZERO || r >= &FieldElement::MAX {
         return Err(VerifyError::InvalidR);
     }
-    if s == &FieldElement::ZERO || s >= &ELEMENT_UPPER_BOUND {
+    if s == &FieldElement::ZERO || s >= &FieldElement::MAX {
         return Err(VerifyError::InvalidS);
     }
 
@@ -148,7 +141,7 @@ pub fn verify(
     };
 
     let w = mod_inverse(s, &EC_ORDER);
-    if w == FieldElement::ZERO || w >= ELEMENT_UPPER_BOUND {
+    if w == FieldElement::ZERO || w >= FieldElement::MAX {
         return Err(VerifyError::InvalidS);
     }
 
@@ -175,10 +168,10 @@ pub fn recover(
     s: &FieldElement,
     v: &FieldElement,
 ) -> Result<FieldElement, RecoverError> {
-    if message >= &ELEMENT_UPPER_BOUND {
+    if message >= &FieldElement::MAX {
         return Err(RecoverError::InvalidMessageHash);
     }
-    if r == &FieldElement::ZERO || r >= &ELEMENT_UPPER_BOUND {
+    if r == &FieldElement::ZERO || r >= &FieldElement::MAX {
         return Err(RecoverError::InvalidR);
     }
     if s == &FieldElement::ZERO || s >= &EC_ORDER {
