@@ -1,6 +1,6 @@
 use alloc::{format, string::String, vec::Vec};
 
-use serde::{ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{de::Visitor, ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json_pythonic::to_string_pythonic;
 use serde_with::serde_as;
 use starknet_crypto::{poseidon_hash_many, PoseidonHasher};
@@ -61,6 +61,11 @@ pub struct CompiledClass {
     pub compiler_version: String,
     #[serde_as(as = "Vec<UfeHex>")]
     pub bytecode: Vec<FieldElement>,
+    /// Represents the structure of the bytecode segments, using a nested list of segment lengths.
+    /// For example, [2, [3, 4]] represents a bytecode with 2 segments, the first is a leaf of
+    /// length 2 and the second is a node with 2 children of lengths 3 and 4.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub bytecode_segment_lengths: Vec<IntOrList>,
     pub hints: Vec<Hint>,
     pub pythonic_hints: Option<Vec<PythonicHint>>,
     pub entry_points_by_type: CompiledClassEntrypointList,
@@ -241,6 +246,46 @@ pub enum EventFieldKind {
     Flat,
 }
 
+#[derive(Debug, Clone)]
+pub enum IntOrList {
+    Int(u64),
+    List(Vec<IntOrList>),
+}
+
+struct IntOrListVisitor;
+
+/// Internal structure used for post-Sierra-1.5.0 CASM hash calculation.
+enum BytecodeSegmentStructure {
+    BytecodeLeaf(BytecodeLeaf),
+    BytecodeSegmentedNode(BytecodeSegmentedNode),
+}
+
+/// Internal structure used for post-Sierra-1.5.0 CASM hash calculation.
+///
+/// Represents a leaf in the bytecode segment tree.
+struct BytecodeLeaf {
+    // NOTE: change this to a slice?
+    data: Vec<FieldElement>,
+}
+
+/// Internal structure used for post-Sierra-1.5.0 CASM hash calculation.
+///
+/// Represents an internal node in the bytecode segment tree. Each child can be loaded into memory
+/// or skipped.
+struct BytecodeSegmentedNode {
+    segments: Vec<BytecodeSegment>,
+}
+
+/// Internal structure used for post-Sierra-1.5.0 CASM hash calculation.
+///
+/// Represents a child of [BytecodeSegmentedNode].
+struct BytecodeSegment {
+    segment_length: u64,
+    #[allow(unused)]
+    is_used: bool,
+    inner_structure: alloc::boxed::Box<BytecodeSegmentStructure>,
+}
+
 mod errors {
     use alloc::string::String;
     use core::fmt::{Display, Formatter, Result};
@@ -248,6 +293,9 @@ mod errors {
     #[derive(Debug)]
     pub enum ComputeClassHashError {
         InvalidBuiltinName,
+        BytecodeSegmentLengthMismatch(BytecodeSegmentLengthMismatchError),
+        InvalidBytecodeSegment(InvalidBytecodeSegmentError),
+        PcOutOfRange(PcOutOfRangeError),
         Json(JsonError),
     }
 
@@ -263,6 +311,23 @@ mod errors {
         pub(crate) message: String,
     }
 
+    #[derive(Debug)]
+    pub struct BytecodeSegmentLengthMismatchError {
+        pub segment_length: usize,
+        pub bytecode_length: usize,
+    }
+
+    #[derive(Debug)]
+    pub struct InvalidBytecodeSegmentError {
+        pub visited_pc: u64,
+        pub segment_start: u64,
+    }
+
+    #[derive(Debug)]
+    pub struct PcOutOfRangeError {
+        pub pc: u64,
+    }
+
     #[cfg(feature = "std")]
     impl std::error::Error for ComputeClassHashError {}
 
@@ -270,6 +335,9 @@ mod errors {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
             match self {
                 Self::InvalidBuiltinName => write!(f, "invalid builtin name"),
+                Self::BytecodeSegmentLengthMismatch(inner) => write!(f, "{}", inner),
+                Self::InvalidBytecodeSegment(inner) => write!(f, "{}", inner),
+                Self::PcOutOfRange(inner) => write!(f, "{}", inner),
                 Self::Json(inner) => write!(f, "json serialization error: {}", inner),
             }
         }
@@ -296,8 +364,47 @@ mod errors {
             write!(f, "{}", self.message)
         }
     }
+
+    #[cfg(feature = "std")]
+    impl std::error::Error for BytecodeSegmentLengthMismatchError {}
+
+    impl Display for BytecodeSegmentLengthMismatchError {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+            write!(
+                f,
+                "invalid bytecode segment structure length: {}, bytecode length: {}.",
+                self.segment_length, self.bytecode_length,
+            )
+        }
+    }
+
+    #[cfg(feature = "std")]
+    impl std::error::Error for InvalidBytecodeSegmentError {}
+
+    impl Display for InvalidBytecodeSegmentError {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+            write!(
+                f,
+                "invalid segment structure: PC {} was visited, \
+                but the beginning of the segment ({}) was not",
+                self.visited_pc, self.segment_start
+            )
+        }
+    }
+
+    #[cfg(feature = "std")]
+    impl std::error::Error for PcOutOfRangeError {}
+
+    impl Display for PcOutOfRangeError {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+            write!(f, "PC {} is out of range", self.pc)
+        }
+    }
 }
-pub use errors::{ComputeClassHashError, JsonError};
+pub use errors::{
+    BytecodeSegmentLengthMismatchError, ComputeClassHashError, InvalidBytecodeSegmentError,
+    JsonError, PcOutOfRangeError,
+};
 
 #[cfg(feature = "std")]
 pub use errors::CompressProgramError;
@@ -393,7 +500,42 @@ impl CompiledClass {
         );
 
         // Hashes bytecode
-        hasher.update(poseidon_hash_many(&self.bytecode));
+        hasher.update(if self.bytecode_segment_lengths.is_empty() {
+            // Pre-Sierra-1.5.0 compiled classes
+            poseidon_hash_many(&self.bytecode)
+        } else {
+            // `bytecode_segment_lengths` was added since Sierra 1.5.0 and changed hash calculation.
+            // This implementation here is basically a direct translation of the Python code from
+            // `cairo-lang` v0.13.1. The goal was simply to have a working implementation as quickly
+            // as possible. There should be some optimizations to be made here.
+            // TODO: review how this can be optimized
+
+            // NOTE: this looks extremely inefficient. Maybe just use a number for tracking instead?
+            let mut rev_visited_pcs: Vec<u64> = (0..(self.bytecode.len() as u64)).rev().collect();
+
+            let (res, total_len) = Self::create_bytecode_segment_structure_inner(
+                &self.bytecode,
+                &IntOrList::List(self.bytecode_segment_lengths.clone()),
+                &mut rev_visited_pcs,
+                &mut 0,
+            )?;
+
+            if total_len != self.bytecode.len() as u64 {
+                return Err(ComputeClassHashError::BytecodeSegmentLengthMismatch(
+                    BytecodeSegmentLengthMismatchError {
+                        segment_length: total_len as usize,
+                        bytecode_length: self.bytecode.len(),
+                    },
+                ));
+            }
+            if !rev_visited_pcs.is_empty() {
+                return Err(ComputeClassHashError::PcOutOfRange(PcOutOfRangeError {
+                    pc: rev_visited_pcs[rev_visited_pcs.len() - 1],
+                }));
+            }
+
+            res.hash()
+        });
 
         Ok(hasher.finalize())
     }
@@ -416,6 +558,119 @@ impl CompiledClass {
         }
 
         Ok(hasher.finalize())
+    }
+
+    // Direct translation of `_create_bytecode_segment_structure_inner` from `cairo-lang` v0.13.1.
+    //
+    // `visited_pcs` should be given in reverse order, and is consumed by the function. Returns the
+    // BytecodeSegmentStructure and the total length of the processed segment.
+    fn create_bytecode_segment_structure_inner(
+        bytecode: &[FieldElement],
+        bytecode_segment_lengths: &IntOrList,
+        visited_pcs: &mut Vec<u64>,
+        bytecode_offset: &mut u64,
+    ) -> Result<(BytecodeSegmentStructure, u64), ComputeClassHashError> {
+        match bytecode_segment_lengths {
+            IntOrList::Int(bytecode_segment_lengths) => {
+                let segment_end = *bytecode_offset + bytecode_segment_lengths;
+
+                // Remove all the visited PCs that are in the segment.
+                while !visited_pcs.is_empty()
+                    && *bytecode_offset <= visited_pcs[visited_pcs.len() - 1]
+                    && visited_pcs[visited_pcs.len() - 1] < segment_end
+                {
+                    visited_pcs.pop();
+                }
+
+                Ok((
+                    BytecodeSegmentStructure::BytecodeLeaf(BytecodeLeaf {
+                        data: bytecode[(*bytecode_offset as usize)..(segment_end as usize)]
+                            .to_vec(),
+                    }),
+                    *bytecode_segment_lengths,
+                ))
+            }
+            IntOrList::List(bytecode_segment_lengths) => {
+                let mut res = Vec::new();
+                let mut total_len = 0;
+
+                for item in bytecode_segment_lengths.iter() {
+                    let visited_pc_before = if !visited_pcs.is_empty() {
+                        Some(visited_pcs[visited_pcs.len() - 1])
+                    } else {
+                        None
+                    };
+
+                    let (current_structure, item_len) =
+                        Self::create_bytecode_segment_structure_inner(
+                            bytecode,
+                            item,
+                            visited_pcs,
+                            bytecode_offset,
+                        )?;
+
+                    let visited_pc_after = if !visited_pcs.is_empty() {
+                        Some(visited_pcs[visited_pcs.len() - 1])
+                    } else {
+                        None
+                    };
+                    let is_used = visited_pc_after != visited_pc_before;
+
+                    if let Some(visited_pc_before) = visited_pc_before {
+                        if is_used && visited_pc_before != *bytecode_offset {
+                            return Err(ComputeClassHashError::InvalidBytecodeSegment(
+                                InvalidBytecodeSegmentError {
+                                    visited_pc: visited_pc_before,
+                                    segment_start: *bytecode_offset,
+                                },
+                            ));
+                        }
+                    }
+
+                    res.push(BytecodeSegment {
+                        segment_length: item_len,
+                        is_used,
+                        inner_structure: alloc::boxed::Box::new(current_structure),
+                    });
+
+                    *bytecode_offset += item_len;
+                    total_len += item_len;
+                }
+
+                Ok((
+                    BytecodeSegmentStructure::BytecodeSegmentedNode(BytecodeSegmentedNode {
+                        segments: res,
+                    }),
+                    total_len,
+                ))
+            }
+        }
+    }
+}
+
+impl BytecodeSegmentStructure {
+    fn hash(&self) -> FieldElement {
+        match self {
+            Self::BytecodeLeaf(inner) => inner.hash(),
+            Self::BytecodeSegmentedNode(inner) => inner.hash(),
+        }
+    }
+}
+
+impl BytecodeLeaf {
+    fn hash(&self) -> FieldElement {
+        poseidon_hash_many(&self.data)
+    }
+}
+
+impl BytecodeSegmentedNode {
+    fn hash(&self) -> FieldElement {
+        let mut hasher = PoseidonHasher::new();
+        for node in self.segments.iter() {
+            hasher.update(node.segment_length.into());
+            hasher.update(node.inner_structure.hash());
+        }
+        hasher.finalize() + FieldElement::ONE
     }
 }
 
@@ -526,6 +781,59 @@ impl Serialize for TypedAbiEvent {
     }
 }
 
+impl Serialize for IntOrList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            Self::Int(int) => serializer.serialize_u64(*int),
+            Self::List(list) => {
+                let mut seq = serializer.serialize_seq(Some(list.len()))?;
+                for item in list.iter() {
+                    seq.serialize_element(item)?;
+                }
+                seq.end()
+            }
+        }
+    }
+}
+
+impl<'de> Visitor<'de> for IntOrListVisitor {
+    type Value = IntOrList;
+
+    fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
+        write!(formatter, "number or list")
+    }
+
+    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        Ok(IntOrList::Int(v))
+    }
+
+    fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::SeqAccess<'de>,
+    {
+        let mut items = Vec::new();
+        while let Some(element) = seq.next_element::<IntOrList>()? {
+            items.push(element);
+        }
+        Ok(IntOrList::List(items))
+    }
+}
+
+impl<'de> Deserialize<'de> for IntOrList {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_any(IntOrListVisitor)
+    }
+}
+
 fn hash_sierra_entrypoints(entrypoints: &[SierraEntryPoint]) -> FieldElement {
     let mut hasher = PoseidonHasher::new();
 
@@ -555,6 +863,7 @@ mod tests {
             include_str!("../../../test-data/contracts/cairo1/artifacts/erc20_sierra.txt"),
             include_str!("../../../test-data/contracts/cairo2/artifacts/abi_types_sierra.txt"),
             include_str!("../../../test-data/contracts/cairo2/artifacts/erc20_sierra.txt"),
+            include_str!("../../../test-data/contracts/cairo2.6/artifacts/erc20_sierra.txt"),
         ]
         .into_iter()
         {
@@ -573,6 +882,7 @@ mod tests {
             include_str!("../../../test-data/contracts/cairo1/artifacts/erc20_compiled.txt"),
             include_str!("../../../test-data/contracts/cairo2/artifacts/abi_types_compiled.txt"),
             include_str!("../../../test-data/contracts/cairo2/artifacts/erc20_compiled.txt"),
+            include_str!("../../../test-data/contracts/cairo2.6/artifacts/erc20_compiled.txt"),
         ]
         .into_iter()
         {
@@ -650,6 +960,10 @@ mod tests {
                     "../../../test-data/contracts/cairo2/artifacts/abi_types_compiled.txt"
                 ),
                 include_str!("../../../test-data/contracts/cairo2/artifacts/abi_types.hashes.json"),
+            ),
+            (
+                include_str!("../../../test-data/contracts/cairo2.6/artifacts/erc20_compiled.txt"),
+                include_str!("../../../test-data/contracts/cairo2.6/artifacts/erc20.hashes.json"),
             ),
         ]
         .into_iter()
