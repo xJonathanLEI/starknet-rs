@@ -253,8 +253,7 @@ mod tests {
         // https://github.com/starkware-libs/starkex-for-spot-trading/blob/master/src/starkware/crypto/starkware/crypto/signature/src/config/keys_precomputed.json
 
         // Reading the JSON file
-        let json_data = std::fs::read_to_string("./test-data/keys_precomputed.json")
-            .expect("Unable to read the JSON file");
+        let json_data = include_str!("../test-data/keys_precomputed.json");
 
         // Parsing the JSON
         let key_map: serde_json::Map<String, serde_json::Value> =
