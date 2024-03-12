@@ -257,7 +257,7 @@ mod tests {
 
         // Parsing the JSON
         let key_map: serde_json::Map<String, serde_json::Value> =
-            serde_json::from_str(&json_data).expect("Unable to parse the JSON");
+            serde_json::from_str(json_data).expect("Unable to parse the JSON");
 
         // Iterating over each element in the JSON
         for (private_key, expected_public_key) in key_map.iter() {
