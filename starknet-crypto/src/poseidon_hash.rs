@@ -119,7 +119,7 @@ pub fn poseidon_permute_comp(state: &mut [FieldElement; 3]) {
 #[inline(always)]
 fn mix(state: &mut [FieldElement; 3]) {
     let t = state[0] + state[1] + state[2];
-    state[0] = t + state[0].double();
+    state[0] += state[0] + t;
     state[1] = t - state[1].double();
     state[2] = t - FieldElement::THREE * state[2];
 }
@@ -130,12 +130,13 @@ fn round_comp(state: &mut [FieldElement; 3], idx: usize, full: bool) {
         state[0] += POSEIDON_COMP_CONSTS[idx];
         state[1] += POSEIDON_COMP_CONSTS[idx + 1];
         state[2] += POSEIDON_COMP_CONSTS[idx + 2];
-        state[0] = state[0] * state[0] * state[0];
-        state[1] = state[1] * state[1] * state[1];
-        state[2] = state[2] * state[2] * state[2];
+
+        state[0] *= state[0] * state[0];
+        state[1] *= state[1] * state[1];
+        state[2] *= state[2] * state[2];
     } else {
         state[2] += POSEIDON_COMP_CONSTS[idx];
-        state[2] = state[2] * state[2] * state[2];
+        state[2] *= state[2] * state[2];
     }
     mix(state);
 }
