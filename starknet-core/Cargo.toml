@@ -19,7 +19,7 @@ all-features = true
 [dependencies]
 starknet-crypto = { version = "0.7.2", path = "../starknet-crypto", default-features = false, features = ["alloc"] }
 base64 = { version = "0.21.0", default-features = false, features = ["alloc"] }
-crypto-bigint = { version = "0.5.1", default-features = false }
+crypto-bigint = { version = "0.5.1", default-features = false, features = ["generic-array"] }
 flate2 = { version = "1.0.25", optional = true }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 serde = { version = "1.0.160", default-features = false, features = ["derive"] }
