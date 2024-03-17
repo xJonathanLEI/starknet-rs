@@ -219,7 +219,7 @@ mod tests {
             let eth_address: EthAddress = address_bytes.into();
 
             // Asserting the conversion from hex string to EthAddress
-            assert_eq!(EthAddress::from_hex(&address).unwrap(), eth_address);
+            assert_eq!(EthAddress::from_hex(address).unwrap(), eth_address);
         }
     }
 
@@ -250,7 +250,7 @@ mod tests {
                 .expect("failed to get EthAddress from slice");
 
             // Assert that the conversion from hex string to Ethereum address is correct
-            assert_eq!(EthAddress::from_hex(&address).unwrap(), eth_address);
+            assert_eq!(EthAddress::from_hex(address).unwrap(), eth_address);
         }
     }
 
@@ -269,7 +269,7 @@ mod tests {
         for address in key_map.iter() {
             // Asserting the conversion from hex string to EthAddress is equal to Felt conversion
             assert_eq!(
-                EthAddress::from_hex(&address).unwrap(),
+                EthAddress::from_hex(address).unwrap(),
                 EthAddress::from_felt(&FieldElement::from_hex_be(&address).unwrap()).unwrap()
             );
         }
