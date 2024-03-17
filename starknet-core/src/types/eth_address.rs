@@ -192,35 +192,86 @@ impl From<[u8; 20]> for EthAddress {
 
 #[cfg(test)]
 mod tests {
-    use hex_literal::hex;
-
     use super::EthAddress;
+    use alloc::vec::*;
+    use starknet_ff::FieldElement;
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_eth_address_from_bytes_array() {
-        let address_bytes: [u8; 20] = hex!("e7f1725e7734ce288f8367e1bb143e90bb3f0512");
+        // Reading the JSON file
+        let json_data = include_str!("./test-data/address.json");
 
-        let eth_address: EthAddress = address_bytes.into();
-        assert_eq!(
-            EthAddress::from_hex("0xe7f1725e7734ce288f8367e1bb143e90bb3f0512").unwrap(),
-            eth_address
-        );
+        // Parsing the JSON
+        let key_map: Vec<String> =
+            serde_json::from_str(json_data).expect("Unable to parse the JSON");
+
+        // Iterating over each element in the JSON
+        for address in key_map.iter() {
+            // Convert hex string to bytes
+            let bytes = hex::decode(&address[2..]).expect("Invalid address hex");
+
+            // Convert bytes to a fixed-size array
+            let mut address_bytes: [u8; 20] = [0; 20];
+            address_bytes.copy_from_slice(&bytes[..20]);
+
+            let eth_address: EthAddress = address_bytes.into();
+
+            // Asserting the conversion from hex string to EthAddress
+            assert_eq!(EthAddress::from_hex(&address).unwrap(), eth_address);
+        }
     }
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_eth_address_from_slice() {
-        // address: e7f1725e7734ce288f8367e1bb143e90bb3f0512, inside a buffer with more data.
-        let buffer = hex!("010203e7f1725e7734ce288f8367e1bb143e90bb3f0512");
+        // Reading the JSON file containing Ethereum addresses
+        let json_data = include_str!("./test-data/address.json");
 
-        let eth_address: EthAddress = (&buffer[3..23])
-            .try_into()
-            .expect("failed to get EthAddress from slice");
-        assert_eq!(
-            EthAddress::from_hex("0xe7f1725e7734ce288f8367e1bb143e90bb3f0512").unwrap(),
-            eth_address
-        );
+        // Parsing the JSON into a vector of strings representing Ethereum addresses
+        let addresses: Vec<String> =
+            serde_json::from_str(json_data).expect("Unable to parse the JSON");
+
+        // Iterating over each address in the JSON
+        for address in addresses.iter() {
+            // Generate random characters to prepend or append to the address
+            let chars = "0123456789abcdef";
+
+            // Combine random characters with the address, removing the "0x" prefix
+            let address_with_random = format!("{}{}{}", chars, &address[2..], chars);
+
+            // Convert the modified hex string to bytes
+            let bytes = hex::decode(&address_with_random[2..]).expect("Invalid address hex");
+
+            // Convert the byte slice to an Ethereum address
+            let eth_address: EthAddress = (&bytes[7..27])
+                .try_into()
+                .expect("failed to get EthAddress from slice");
+
+            // Assert that the conversion from hex string to Ethereum address is correct
+            assert_eq!(EthAddress::from_hex(&address).unwrap(), eth_address);
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    // Define the unit test function
+    fn test_eth_address_from_felt() {
+        // Reading the JSON file containing addresses
+        let json_data = include_str!("./test-data/address.json");
+
+        // Parsing the JSON into a vector of strings
+        let key_map: Vec<String> =
+            serde_json::from_str(json_data).expect("Unable to parse the JSON");
+
+        // Iterating over each address in the JSON
+        for address in key_map.iter() {
+            // Asserting the conversion from hex string to EthAddress is equal to Felt conversion
+            assert_eq!(
+                EthAddress::from_hex(&address).unwrap(),
+                EthAddress::from_felt(&FieldElement::from_hex_be(&address).unwrap()).unwrap()
+            );
+        }
     }
 
     #[test]
