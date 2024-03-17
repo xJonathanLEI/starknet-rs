@@ -28,7 +28,7 @@ mod errors {
         InvalidHexString,
     }
 
-    #[derive(Debug)]
+    #[derive(PartialEq, Debug)]
     pub struct FromFieldElementError;
 
     #[derive(Debug)]
@@ -193,6 +193,7 @@ impl From<[u8; 20]> for EthAddress {
 #[cfg(test)]
 mod tests {
     use super::EthAddress;
+    use crate::types::eth_address::FromFieldElementError;
     use alloc::vec::*;
     use starknet_ff::FieldElement;
 
@@ -271,6 +272,17 @@ mod tests {
                 EthAddress::from_hex(&address).unwrap(),
                 EthAddress::from_felt(&FieldElement::from_hex_be(&address).unwrap()).unwrap()
             );
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_eth_address_from_felt_error() {
+        match EthAddress::from_felt(
+            &FieldElement::from_hex_be("0x10000000000000000000000000000000000000000").unwrap(),
+        ) {
+            Ok(_) => panic!("Expected error, but got Ok"),
+            Err(err) => assert_eq!(err, FromFieldElementError),
         }
     }
 
