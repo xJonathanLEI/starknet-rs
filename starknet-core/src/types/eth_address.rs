@@ -270,7 +270,7 @@ mod tests {
             // Asserting the conversion from hex string to EthAddress is equal to Felt conversion
             assert_eq!(
                 EthAddress::from_hex(address).unwrap(),
-                EthAddress::from_felt(&FieldElement::from_hex_be(&address).unwrap()).unwrap()
+                EthAddress::from_felt(&FieldElement::from_hex_be(address).unwrap()).unwrap()
             );
         }
     }
