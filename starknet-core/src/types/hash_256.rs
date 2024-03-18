@@ -195,8 +195,8 @@ mod tests {
         for hash in &hashes {
             // Convert hexadecimal string to bytes, padding with leading zeros if necessary
             let bytes = {
-                let mut decoded = if hash.starts_with("0x") {
-                    hex::decode(&hash[2..]).expect("Invalid address hex")
+                let mut decoded = if let Some(stripped) = hash.strip_prefix("0x") {
+                    hex::decode(stripped).expect("Invalid address hex")
                 } else {
                     hex::decode(hash).expect("Invalid address hex")
                 };
@@ -263,7 +263,7 @@ mod tests {
         .unwrap();
 
         // Convert the `FieldElement` to bytes and then to a vector
-        let bytes = (&felt.to_bytes_be()).to_vec();
+        let bytes = (felt.to_bytes_be()).to_vec();
 
         // Convert bytes to a fixed-size array representing `Hash256`
         let mut hash_bytes: [u8; HASH_256_BYTE_COUNT] = [0; HASH_256_BYTE_COUNT];
