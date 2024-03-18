@@ -210,8 +210,8 @@ mod tests {
         // Iterating over each element in the JSON
         for address in addresses.iter() {
             // Convert hex string to bytes
-            let bytes = if address.starts_with("0x") {
-                hex::decode(&address[2..]).expect("Invalid address hex")
+            let bytes = if let Some(stripped) = address.strip_prefix("0x") {
+                hex::decode(stripped).expect("Invalid address hex")
             } else {
                 hex::decode(address).expect("Invalid address hex")
             };
