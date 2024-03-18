@@ -196,9 +196,9 @@ mod tests {
             // Convert hexadecimal string to bytes, padding with leading zeros if necessary
             let bytes = {
                 let mut decoded = if let Some(stripped) = hash.strip_prefix("0x") {
-                    hex::decode(stripped).expect("Invalid address hex")
+                    hex::decode(stripped).expect("Invalid hash hex")
                 } else {
-                    hex::decode(hash).expect("Invalid address hex")
+                    hex::decode(hash).expect("Invalid hash hex")
                 };
                 decoded.resize_with(HASH_256_BYTE_COUNT, Default::default);
                 decoded
