@@ -204,13 +204,17 @@ mod tests {
         let json_data = include_str!("./test-data/address.json");
 
         // Parsing the JSON
-        let key_map: Vec<String> =
+        let addresses: Vec<String> =
             serde_json::from_str(json_data).expect("Unable to parse the JSON");
 
         // Iterating over each element in the JSON
-        for address in key_map.iter() {
+        for address in addresses.iter() {
             // Convert hex string to bytes
-            let bytes = hex::decode(&address[2..]).expect("Invalid address hex");
+            let bytes = if address.starts_with("0x") {
+                hex::decode(&address[2..]).expect("Invalid address hex")
+            } else {
+                hex::decode(address).expect("Invalid address hex")
+            };
 
             // Convert bytes to a fixed-size array
             let mut address_bytes: [u8; 20] = [0; 20];
@@ -239,7 +243,16 @@ mod tests {
             let chars = "0123456789abcdef";
 
             // Combine random characters with the address, removing the "0x" prefix
-            let address_with_random = format!("{}{}{}", chars, &address[2..], chars);
+            let address_with_random = format!(
+                "{}{}{}",
+                chars,
+                if address.starts_with("0x") {
+                    &address[2..]
+                } else {
+                    address
+                },
+                chars
+            );
 
             // Convert the modified hex string to bytes
             let bytes = hex::decode(&address_with_random[2..]).expect("Invalid address hex");
@@ -262,11 +275,11 @@ mod tests {
         let json_data = include_str!("./test-data/address.json");
 
         // Parsing the JSON into a vector of strings
-        let key_map: Vec<String> =
+        let addresses: Vec<String> =
             serde_json::from_str(json_data).expect("Unable to parse the JSON");
 
         // Iterating over each address in the JSON
-        for address in key_map.iter() {
+        for address in addresses.iter() {
             // Asserting the conversion from hex string to EthAddress is equal to Felt conversion
             assert_eq!(
                 EthAddress::from_hex(address).unwrap(),
