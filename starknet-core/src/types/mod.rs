@@ -504,7 +504,7 @@ impl L1HandlerTransaction {
                         .map_err(|_| ParseMsgToL2Error::FromAddressOutOfRange)?,
                     to_address: self.contract_address,
                     selector: self.entry_point_selector,
-                    payload: payload.to_vec(),
+                    payload: payload.into(),
                     nonce: self.nonce,
                 })
             },
