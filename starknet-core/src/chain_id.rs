@@ -21,6 +21,13 @@ pub const TESTNET2: FieldElement = FieldElement::from_mont([
     33650220878420990,
 ]);
 
+pub const SEPOLIA: FieldElement = FieldElement::from_mont([
+    1555806712078248243,
+    18446744073708869172,
+    18446744073709551615,
+    507980251676163170,
+]);
+
 #[cfg(test)]
 mod test {
     use crate::utils::cairo_short_string_to_felt;
@@ -34,6 +41,7 @@ mod test {
             ("SN_MAIN", MAINNET),
             ("SN_GOERLI", TESTNET),
             ("SN_GOERLI2", TESTNET2),
+            ("SN_SEPOLIA", SEPOLIA),
         ]
         .into_iter()
         {
