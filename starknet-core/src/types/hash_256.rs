@@ -132,7 +132,7 @@ impl FromStr for Hash256 {
             return Err(FromHexError::UnexpectedLength);
         };
 
-        Ok(Self::from_bytes(parsed_bytes))
+        Ok(parsed_bytes.into())
     }
 }
 
@@ -156,7 +156,7 @@ impl From<FieldElement> for Hash256 {
 
 impl From<&FieldElement> for Hash256 {
     fn from(value: &FieldElement) -> Self {
-        Self::from_bytes(value.to_bytes_be())
+        value.to_bytes_be().into()
     }
 }
 
@@ -173,5 +173,77 @@ impl TryFrom<&Hash256> for FieldElement {
 
     fn try_from(value: &Hash256) -> Result<Self, Self::Error> {
         FieldElement::from_bytes_be(&value.inner).map_err(|_| ToFieldElementError)
+    }
+}
+
+impl From<[u8; HASH_256_BYTE_COUNT]> for Hash256 {
+    fn from(value: [u8; HASH_256_BYTE_COUNT]) -> Self {
+        Self { inner: value }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{FromHexError, Hash256, HASH_256_BYTE_COUNT};
+
+    use starknet_ff::FieldElement;
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_hash_256_from_hex_error_unexpected_length() {
+        let test_data = [
+            // Hexadecimal string with correct prefix but incorrect length
+            "0x25c5b1592b1743b62d7fabd4373d98219c2ff3750f49ec0608a8355fa3bb060f5",
+            // Hexadecimal string without correct prefix and incorrect length
+            "25c5b1592b1743b62d7fabd4373d98219c2ff3750f49ec0608a8355fa3bb060f5",
+        ];
+
+        for item in test_data.into_iter() {
+            match Hash256::from_hex(item) {
+                Err(FromHexError::UnexpectedLength) => {}
+                _ => panic!("Unexpected test result"),
+            }
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_hash_256_from_hex_error_invalid_string() {
+        let test_data = [
+            // Hexadecimal string with incorrect characters
+            "25c5b1592b1743b62d7fabd4373d98219c2f63750f49ec0608a8355fa3bb060.",
+            // Hexadecimal string with non-hex characters
+            "0x?5c5b1592b1743b62d7fabd4373d98219c2f63750f49ec0608a8355fa3bb060",
+        ];
+
+        for item in test_data.into_iter() {
+            match Hash256::from_hex(item) {
+                Err(FromHexError::InvalidHexString) => {}
+                _ => panic!("Unexpected test result"),
+            }
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_hash_256_from_felt() {
+        // Create a `FieldElement` from a hexadecimal string representation
+        let felt = FieldElement::from_hex_be(
+            "0x01a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003",
+        )
+        .unwrap();
+
+        // Convert the `FieldElement` to bytes and then to a vector
+        let bytes = (felt.to_bytes_be()).to_vec();
+
+        // Convert bytes to a fixed-size array representing `Hash256`
+        let mut hash_bytes: [u8; HASH_256_BYTE_COUNT] = [0; HASH_256_BYTE_COUNT];
+        hash_bytes.copy_from_slice(&bytes[..HASH_256_BYTE_COUNT]);
+
+        // Convert `Hash256` bytes to `Hash256` struct
+        let hash_256: Hash256 = hash_bytes.into();
+
+        // Assert that the conversion from the `FieldElement` to `Hash256` is successful
+        assert_eq!(Hash256::from_felt(&felt), hash_256);
     }
 }
