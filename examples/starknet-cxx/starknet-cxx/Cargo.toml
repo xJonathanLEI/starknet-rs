@@ -6,7 +6,7 @@ edition = "2021"
 
 [dependencies]
 cxx = "1.0"
-starknet-types-core = "0.0.9"
+starknet-types-core = "0.0.10"
 
 # Using path dependency here to make development easier. However, you probably want to fetch the
 # crate from GitHub instead (because the `starknet-core` crate isn't being published to crates.io
