@@ -176,15 +176,14 @@ impl ProjectivePoint {
 
         // t=3x^2+az^2 with a=1 from stark curve
         let t = Felt::THREE * self.x * self.x + self.z * self.z;
-        let u = (self.y + self.y) * self.z;
-        let v = (u + u) * self.x * self.y;
-        let w = t * t - (v + v);
+        let u = self.y.double() * self.z;
+        let v = u.double() * self.x * self.y;
+        let w = t * t - v.double();
 
         let uy = u * self.y;
 
         let x = u * w;
-        let uy_uy = uy * uy;
-        let y = t * (v - w) - (uy_uy + uy_uy);
+        let y = t * (v - w) - (uy * uy).double();
         let z = u * u * u;
 
         self.x = x;
