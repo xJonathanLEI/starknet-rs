@@ -1636,7 +1636,7 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 
 [[package]]
 name = "starknet"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "serde_json",
  "starknet-accounts",
@@ -1653,7 +1653,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-accounts"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -1669,7 +1669,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-contract"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "rand",
  "serde",
@@ -1686,7 +1686,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-core"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "base64 0.21.0",
  "criterion",
@@ -1706,7 +1706,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-crypto"
-version = "0.6.1"
+version = "0.6.2"
 dependencies = [
  "criterion",
  "crypto-bigint",
@@ -1729,7 +1729,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-crypto-codegen"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "starknet-curve",
  "starknet-ff",
@@ -1738,7 +1738,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-curve"
-version = "0.4.1"
+version = "0.4.2"
 dependencies = [
  "starknet-ff",
 ]
@@ -1755,7 +1755,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-ff"
-version = "0.3.6"
+version = "0.3.7"
 dependencies = [
  "ark-ff",
  "bigdecimal",
@@ -1769,7 +1769,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-macros"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "starknet-core",
  "syn 2.0.15",
@@ -1777,7 +1777,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-providers"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -1797,7 +1797,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-signers"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "async-trait",
  "auto_impl",
