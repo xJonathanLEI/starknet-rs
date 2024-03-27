@@ -1,6 +1,6 @@
 [package]
 name = "starknet-crypto-codegen"
-version = "0.3.2"
+version = "0.3.3"
 authors = ["Jonathan LEI <me@xjonathan.dev>"]
 license = "MIT OR Apache-2.0"
 edition = "2021"
@@ -16,6 +16,5 @@ keywords = ["ethereum", "starknet", "web3", "no_std"]
 proc-macro = true
 
 [dependencies]
-starknet-curve = { version = "0.4.1", path = "../starknet-curve" }
-syn = { version = "2.0.15", default-features = true }
-starknet-types-core = "0.0.10"
+starknet-curve = { version = "0.4.2", path = "../starknet-curve" }
+syn = { version = "2.0.15", default-features = false }

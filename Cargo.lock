@@ -1671,7 +1671,7 @@ checksum = "6980e8d7511241f8acf4aebddbb1ff938df5eebe98691418c4468d0b72a96a67"
 
 [[package]]
 name = "starknet"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "serde_json",
  "starknet-accounts",
@@ -1681,14 +1681,13 @@ dependencies = [
  "starknet-macros",
  "starknet-providers",
  "starknet-signers",
- "starknet-types-core",
  "tokio",
  "url",
 ]
 
 [[package]]
 name = "starknet-accounts"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -1705,7 +1704,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-contract"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "rand",
  "serde",
@@ -1723,7 +1722,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-core"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "base64 0.21.7",
  "criterion",
@@ -1743,7 +1742,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-crypto"
-version = "0.6.1"
+version = "0.6.2"
 dependencies = [
  "bitvec",
  "criterion",
@@ -1767,16 +1766,15 @@ dependencies = [
 
 [[package]]
 name = "starknet-crypto-codegen"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "starknet-curve",
- "starknet-types-core",
  "syn 2.0.55",
 ]
 
 [[package]]
 name = "starknet-curve"
-version = "0.4.1"
+version = "0.4.2"
 dependencies = [
  "bitvec",
  "starknet-types-core",
@@ -1795,7 +1793,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-macros"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "starknet-core",
  "starknet-types-core",
@@ -1804,7 +1802,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-providers"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -1825,7 +1823,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-signers"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "async-trait",
  "auto_impl",
