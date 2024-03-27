@@ -1,17 +1,14 @@
 use rand::{rngs::StdRng, RngCore, SeedableRng};
 use starknet_accounts::{ExecutionEncoding, SingleOwnerAccount};
 use starknet_contract::ContractFactory;
-use starknet_core::{
-    chain_id,
-    types::{contract::legacy::LegacyContractClass, BlockId, BlockTag, FieldElement},
-};
+use starknet_core::types::{contract::legacy::LegacyContractClass, BlockId, BlockTag};
 use starknet_providers::{jsonrpc::HttpTransport, JsonRpcClient};
 use starknet_signers::{LocalWallet, SigningKey};
 use starknet_types_core::felt::Felt;
 use url::Url;
 
 /// Cairo short string encoding for `SN_SEPOLIA`.
-const CHAIN_ID: FieldElement = FieldElement::from_mont([
+const CHAIN_ID: Felt = Felt::from_raw([
     1555806712078248243,
     18446744073708869172,
     18446744073709551615,
@@ -27,8 +24,7 @@ async fn can_deploy_contract_to_alpha_sepolia() {
         Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
     let address =
-        FieldElement::from_hex("04284d0741ee00d8e4d6a02d21c0be58665f0e6e187cf48c509b1ac39cdeca65")
-            .unwrap();
+        Felt::from_hex("04284d0741ee00d8e4d6a02d21c0be58665f0e6e187cf48c509b1ac39cdeca65").unwrap();
     let mut account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
@@ -46,11 +42,11 @@ async fn can_deploy_contract_to_alpha_sepolia() {
 
     let result = factory
         .deploy(
-            vec![FieldElement::ONE],
-            FieldElement::from_bytes_be(&salt_buffer).unwrap(),
+            vec![Felt::ONE],
+            Felt::from_bytes_be(&salt_buffer).unwrap(),
             true,
         )
-        .max_fee(FieldElement::from_dec_str("1000000000000000000").unwrap())
+        .max_fee(Felt::from_dec_str("1000000000000000000").unwrap())
         .send()
         .await;
 

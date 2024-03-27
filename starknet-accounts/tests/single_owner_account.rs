@@ -20,7 +20,7 @@ use starknet_types_core::felt::Felt;
 use std::sync::Arc;
 
 /// Cairo short string encoding for `SN_SEPOLIA`.
-const CHAIN_ID: FieldElement = FieldElement::from_mont([
+const CHAIN_ID: Felt = Felt::from_raw([
     1555806712078248243,
     18446744073708869172,
     18446744073709551615,
@@ -253,7 +253,7 @@ async fn can_execute_eth_transfer_inner<P: Provider + Send + Sync>(provider: P, 
                 FieldElement::ZERO,
             ],
         }])
-        .max_fee(FieldElement::from_dec_str("1000000000000000000").unwrap())
+        .max_fee(Felt::from_dec_str("1000000000000000000").unwrap())
         .send()
         .await
         .unwrap();
@@ -302,7 +302,7 @@ async fn can_declare_cairo1_contract_inner<P: Provider + Send + Sync>(provider: 
             Arc::new(flattened_class),
             Felt::from_hex(&hashes.compiled_class_hash).unwrap(),
         )
-        .max_fee(FieldElement::from_dec_str("1000000000000000000").unwrap())
+        .max_fee(Felt::from_dec_str("1000000000000000000").unwrap())
         .send()
         .await
         .unwrap();
@@ -345,7 +345,7 @@ async fn can_declare_cairo0_contract_inner<P: Provider + Send + Sync>(provider: 
 
     let result = account
         .declare_legacy(Arc::new(contract_artifact))
-        .max_fee(FieldElement::from_dec_str("1000000000000000000").unwrap())
+        .max_fee(Felt::from_dec_str("1000000000000000000").unwrap())
         .send()
         .await
         .unwrap();

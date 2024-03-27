@@ -192,12 +192,11 @@ impl From<[u8; 20]> for EthAddress {
 
 #[cfg(test)]
 mod tests {
-    use super::{EthAddress, FromBytesSliceError, FromFieldElementError};
+    use super::{EthAddress, Felt, FromBytesSliceError, FromFieldElementError};
 
     use alloc::vec::*;
 
     use hex_literal::hex;
-    use starknet_ff::FieldElement;
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
@@ -268,7 +267,7 @@ mod tests {
         assert_eq!(
             EthAddress::from_hex("0xb9fa6e54025b4f0829d8e1b42e8b846914659632").unwrap(),
             EthAddress::from_felt(
-                &FieldElement::from_hex_be("0xb9fa6e54025b4f0829d8e1b42e8b846914659632").unwrap()
+                &Felt::from_hex("0xb9fa6e54025b4f0829d8e1b42e8b846914659632").unwrap()
             )
             .unwrap()
         );
@@ -278,7 +277,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_eth_address_from_felt_error() {
         match EthAddress::from_felt(
-            &FieldElement::from_hex_be("0x10000000000000000000000000000000000000000").unwrap(),
+            &Felt::from_hex("0x10000000000000000000000000000000000000000").unwrap(),
         ) {
             Ok(_) => panic!("Expected error, but got Ok"),
             Err(FromFieldElementError) => {}

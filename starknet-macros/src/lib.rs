@@ -52,9 +52,9 @@ pub fn felt(input: TokenStream) -> TokenStream {
     let str_value = input.value();
 
     let felt_value = if str_value.starts_with("0x") {
-        Felt::from_hex(&str_value).expect("invalid FieldElement value")
+        Felt::from_hex(&str_value).expect("invalid Felt value")
     } else {
-        Felt::from_dec_str(&str_value).expect("invalid FieldElement value")
+        Felt::from_dec_str(&str_value).expect("invalid Felt value")
     };
 
     let felt_raw = felt_value.to_raw();
@@ -77,7 +77,7 @@ pub fn felt_dec(input: TokenStream) -> TokenStream {
 
     let str_value = input.value();
 
-    let felt_value = Felt::from_dec_str(&str_value).expect("invalid FieldElement value");
+    let felt_value = Felt::from_dec_str(&str_value).expect("invalid Felt value");
     let felt_raw = felt_value.to_raw();
 
     format!(
@@ -98,7 +98,7 @@ pub fn felt_hex(input: TokenStream) -> TokenStream {
 
     let str_value = input.value();
 
-    let felt_value = Felt::from_hex(&str_value).expect("invalid FieldElement value");
+    let felt_value = Felt::from_hex(&str_value).expect("invalid Felt value");
     let felt_raw = felt_value.to_raw();
 
     format!(
@@ -115,7 +115,7 @@ pub fn felt_hex(input: TokenStream) -> TokenStream {
 
 #[cfg(feature = "use_imported_type")]
 fn field_element_path() -> &'static str {
-    "FieldElement"
+    "Felt"
 }
 
 #[cfg(not(feature = "use_imported_type"))]

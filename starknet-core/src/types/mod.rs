@@ -624,17 +624,17 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_parse_msg_to_l2_empty_calldata_error() {
         let l1_handler_tx = L1HandlerTransaction {
-            transaction_hash: FieldElement::from_hex_be(
+            transaction_hash: Felt::from_hex(
                 "0x374286ae28f201e61ffbc5b022cc9701208640b405ea34ea9799f97d5d2d23c",
             )
             .unwrap(),
-            version: FieldElement::ZERO,
+            version: Felt::ZERO,
             nonce: 775628,
-            contract_address: FieldElement::from_hex_be(
+            contract_address: Felt::from_hex(
                 "0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82",
             )
             .unwrap(),
-            entry_point_selector: FieldElement::from_hex_be(
+            entry_point_selector: Felt::from_hex(
                 "0x2d757788a8d8d6f21d1cd40bce38a8222d70654214e96ff95d8086e684fbee5",
             )
             .unwrap(),
@@ -650,30 +650,28 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_parse_msg_to_l2_from_address_out_of_range_error() {
         let l1_handler_tx = L1HandlerTransaction {
-            transaction_hash: FieldElement::from_hex_be(
+            transaction_hash: Felt::from_hex(
                 "0x374286ae28f201e61ffbc5b022cc9701208640b405ea34ea9799f97d5d2d23c",
             )
             .unwrap(),
-            version: FieldElement::ZERO,
+            version: Felt::ZERO,
             nonce: 775628,
-            contract_address: FieldElement::from_hex_be(
+            contract_address: Felt::from_hex(
                 "0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82",
             )
             .unwrap(),
-            entry_point_selector: FieldElement::from_hex_be(
+            entry_point_selector: Felt::from_hex(
                 "0x2d757788a8d8d6f21d1cd40bce38a8222d70654214e96ff95d8086e684fbee5",
             )
             .unwrap(),
             calldata: vec![
                 // Incorrect from address format, causing the conversion error
                 // Max address + 1
-                FieldElement::from_hex_be("0x10000000000000000000000000000000000000000").unwrap(),
-                FieldElement::from_hex_be(
-                    "0x689ead7d814e51ed93644bc145f0754839b8dcb340027ce0c30953f38f55d7",
-                )
-                .unwrap(),
-                FieldElement::from_hex_be("0x2c68af0bb140000").unwrap(),
-                FieldElement::from_hex_be("0x0").unwrap(),
+                Felt::from_hex("0x10000000000000000000000000000000000000000").unwrap(),
+                Felt::from_hex("0x689ead7d814e51ed93644bc145f0754839b8dcb340027ce0c30953f38f55d7")
+                    .unwrap(),
+                Felt::from_hex("0x2c68af0bb140000").unwrap(),
+                Felt::from_hex("0x0").unwrap(),
             ],
         };
 
