@@ -214,6 +214,11 @@ fn mul_by_bits(x: &AffinePoint, y: &FieldElement) -> AffinePoint {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(not(feature = "std"))]
+    use alloc::collections::BTreeMap;
+    #[cfg(feature = "std")]
+    use std::collections::BTreeMap;
+
     use super::*;
     use crate::test_utils::field_element_from_be_hex;
 
@@ -226,11 +231,11 @@ mod tests {
         let private_key = field_element_from_be_hex(
             "03c1e9550e66958296d11b60f8e8e7a7ad990d07fa65d5f7652c4a6c87d4e3cc",
         );
-        let expected_key = field_element_from_be_hex(
+        let expected_public_key = field_element_from_be_hex(
             "077a3b314db07c45076d11f62b6f9e748a39790441823307743cf00d6597ea43",
         );
 
-        assert_eq!(get_public_key(&private_key), expected_key);
+        assert_eq!(get_public_key(&private_key), expected_public_key);
     }
 
     #[test]
@@ -239,11 +244,48 @@ mod tests {
         let private_key = field_element_from_be_hex(
             "0000000000000000000000000000000000000000000000000000000000000012",
         );
-        let expected_key = field_element_from_be_hex(
+        let expected_public_key = field_element_from_be_hex(
             "019661066e96a8b9f06a1d136881ee924dfb6a885239caa5fd3f87a54c6b25c4",
         );
 
-        assert_eq!(get_public_key(&private_key), expected_key);
+        assert_eq!(get_public_key(&private_key), expected_public_key);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_get_public_keys_from_json() {
+        // Precomputed keys can be found here:
+        // https://github.com/starkware-libs/starkex-for-spot-trading/blob/607f0b4ce507e1d95cd018d206a2797f6ba4aab4/src/starkware/crypto/starkware/crypto/signature/src/config/keys_precomputed.json
+
+        // Reading the JSON file
+        let json_data = include_str!("../test-data/keys_precomputed.json");
+
+        // Parsing the JSON
+        let key_map: BTreeMap<String, String> =
+            serde_json::from_str(json_data).expect("Unable to parse the JSON");
+
+        // Iterating over each element in the JSON
+        for (private_key, expected_public_key) in key_map.into_iter() {
+            let private_key = if private_key.len() % 2 != 0 {
+                format!("0{}", private_key.trim_start_matches("0x"))
+            } else {
+                private_key.trim_start_matches("0x").to_owned()
+            };
+
+            let expected_public_key = if expected_public_key.len() % 2 != 0 {
+                format!("0{}", expected_public_key.trim_start_matches("0x"))
+            } else {
+                expected_public_key.trim_start_matches("0x").to_owned()
+            };
+
+            // Assertion
+            assert_eq!(
+                get_public_key(&field_element_from_be_hex(
+                    private_key.trim_start_matches("0x")
+                )),
+                field_element_from_be_hex(expected_public_key.trim_start_matches("0x"))
+            );
+        }
     }
 
     #[test]
