@@ -272,6 +272,19 @@ impl FieldElement {
         *self + *self
     }
 
+    /// Doubles the field element in place.
+    #[inline]
+    pub fn double_assign(&mut self) {
+        *self += *self;
+    }
+
+    /// Raises the field element to the power of 3 in place.
+    #[inline]
+    pub fn pow3_assign(&mut self) {
+        let result = *self * *self;
+        *self *= result;
+    }
+
     /// Performs a floor division. It's not implemented as the `Div` trait on purpose to
     /// distinguish from the "felt division".
     pub fn floor_div(&self, rhs: FieldElement) -> FieldElement {
