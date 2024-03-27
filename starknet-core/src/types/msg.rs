@@ -1,4 +1,4 @@
-use alloc::vec::Vec;
+use alloc::vec::*;
 
 use sha3::{Digest, Keccak256};
 use starknet_types_core::felt::Felt;
@@ -47,7 +47,7 @@ impl MsgToL2 {
         let hash = hasher.finalize();
 
         // Because we know hash is always 32 bytes
-        Hash256::from_bytes(unsafe { *(hash[..].as_ptr() as *const [u8; 32]) })
+        (unsafe { *(hash[..].as_ptr() as *const [u8; 32]) }).into()
     }
 }
 
@@ -76,7 +76,7 @@ impl MsgToL1 {
         let hash = hasher.finalize();
 
         // Because we know hash is always 32 bytes
-        Hash256::from_bytes(unsafe { *(hash[..].as_ptr() as *const [u8; 32]) })
+        (unsafe { *(hash[..].as_ptr() as *const [u8; 32]) }).into()
     }
 }
 

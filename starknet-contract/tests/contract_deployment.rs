@@ -3,30 +3,35 @@ use starknet_accounts::{ExecutionEncoding, SingleOwnerAccount};
 use starknet_contract::ContractFactory;
 use starknet_core::{
     chain_id,
-    types::{contract::legacy::LegacyContractClass, BlockId, BlockTag},
+    types::{contract::legacy::LegacyContractClass, BlockId, BlockTag, FieldElement},
 };
 use starknet_providers::{jsonrpc::HttpTransport, JsonRpcClient};
 use starknet_signers::{LocalWallet, SigningKey};
 use starknet_types_core::felt::Felt;
 use url::Url;
 
+/// Cairo short string encoding for `SN_SEPOLIA`.
+const CHAIN_ID: FieldElement = FieldElement::from_mont([
+    1555806712078248243,
+    18446744073708869172,
+    18446744073709551615,
+    507980251676163170,
+]);
+
 #[tokio::test]
-async fn can_deploy_contract_to_alpha_goerli() {
+async fn can_deploy_contract_to_alpha_sepolia() {
     let rpc_url = std::env::var("STARKNET_RPC")
-        .unwrap_or("https://pathfinder.rpc.goerli.starknet.rs/rpc/v0_6".into());
+        .unwrap_or("https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_6".into());
     let provider = JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()));
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address =
-        Felt::from_hex("04284d0741ee00d8e4d6a02d21c0be58665f0e6e187cf48c509b1ac39cdeca65").unwrap();
-    let mut account = SingleOwnerAccount::new(
-        provider,
-        signer,
-        address,
-        chain_id::TESTNET,
-        ExecutionEncoding::Legacy,
-    );
+    let address = FieldElement::from_hex(
+        "04284d0741ee00d8e4d6a02d21c0be58665f0e6e187cf48c509b1ac39cdeca65",
+    )
+    .unwrap();
+    let mut account =
+        SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let artifact = serde_json::from_str::<LegacyContractClass>(include_str!(
@@ -41,7 +46,12 @@ async fn can_deploy_contract_to_alpha_goerli() {
     rng.fill_bytes(&mut salt_buffer[1..]);
 
     let result = factory
-        .deploy(vec![Felt::ONE], Felt::from_bytes_be(&salt_buffer), true)
+        .deploy(
+            vec![FieldElement::ONE],
+            FieldElement::from_bytes_be(&salt_buffer).unwrap(),
+            true,
+        )
+        .max_fee(FieldElement::from_dec_str("1000000000000000000").unwrap())
         .send()
         .await;
 

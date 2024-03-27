@@ -1,35 +1,41 @@
 on:
   push:
     branches:
-      - master
+      - "master"
   pull_request:
 
-name: Linting
+name: "Linting"
 
 jobs:
-  lint:
-    name: Lints
-    runs-on: ubuntu-latest
+  format:
+    name: "Check code format"
+    runs-on: "ubuntu-latest"
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v2
-      - name: Use Rust cache
-        uses: Swatinem/rust-cache@v1
+      - name: "Checkout source code"
+        uses: "actions/checkout@v3"
+
+      - name: "Use Rust cache"
+        uses: "Swatinem/rust-cache@v2"
         with:
           cache-on-failure: true
-      - name: Install prettier
+
+      - name: "Install prettier"
         run: |
           yarn global add prettier
-      - name: Install black
+
+      - name: "Install black"
         run: |
           pip install git+https://github.com/psf/black
-      - name: Check Markdown format
+
+      - name: "Check Markdown format"
         run: |
           prettier --check "**/*.md"
-      - name: Check Yaml format
+
+      - name: "Check Yaml format"
         run: |
           prettier --check "**/*.{yaml,yml}"
-      - name: Check JSON format
+
+      - name: "Check JSON format"
         run: |
           EXIT_CODE="0";
           readarray -d '' FILES < <(find -type f -name "*.json" -not -path "./target/*");
@@ -43,16 +49,40 @@ jobs:
               fi
           done
           exit $EXIT_CODE;
-      - name: Check Python format
+
+      - name: "Check Python format"
         run: |
           black --check .
-      - name: Check Rust format
+
+      - name: "Check Rust format"
         run: |
           cargo fmt --all -- --check
-      - name: Run Clippy lints
+
+  clippy:
+    name: "Run Clippy"
+    runs-on: "ubuntu-latest"
+
+    strategy:
+      matrix:
+        toolchain:
+          - "stable"
+          - "nightly"
+    steps:
+      - name: "Checkout source code"
+        uses: "actions/checkout@v3"
+
+      - name: "Setup toolchain"
+        uses: "actions-rs/toolchain@v1"
+        with:
+          toolchain: "${{ matrix.toolchain }}"
+          components: "clippy"
+          override: true
+
+      - name: "Run Clippy (default)"
         run: |
           cargo clippy --all --all-targets -- -D warnings
-      - name: Run Clippy lints (no_std)
+
+      - name: "Run Clippy (no_std)"
         run: |
           cargo clippy --package starknet-crypto --no-default-features -- -D warnings
           cargo clippy --package starknet-crypto --no-default-features --features alloc -- -D warnings
