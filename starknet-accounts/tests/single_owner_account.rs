@@ -21,10 +21,10 @@ use std::sync::Arc;
 
 /// Cairo short string encoding for `SN_SEPOLIA`.
 const CHAIN_ID: Felt = Felt::from_raw([
-    1555806712078248243,
-    18446744073708869172,
-    18446744073709551615,
     507980251676163170,
+    18446744073709551615,
+    18446744073708869172,
+    1555806712078248243,
 ]);
 
 fn create_sequencer_client() -> SequencerGatewayProvider {
@@ -241,7 +241,7 @@ async fn can_execute_eth_transfer_inner<P: Provider + Send + Sync>(provider: P, 
 
     let result = account
         .execute(vec![Call {
-            to: eth_token_address,
+            to: tst_token_address,
             selector: get_selector_from_name("transfer").unwrap(),
             calldata: vec![Felt::from_hex("0x1234").unwrap(), Felt::ONE, Felt::ZERO],
         }])
