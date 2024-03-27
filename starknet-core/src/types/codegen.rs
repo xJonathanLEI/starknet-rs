@@ -1578,6 +1578,8 @@ pub enum StarknetError {
     ClassAlreadyDeclared,
     /// Invalid transaction nonce
     InvalidTransactionNonce,
+    /// Invalid transaction validation
+    InvalidTransactionValidation,
     /// Max fee is smaller than the minimal transaction cost (validation plus fee transfer)
     InsufficientMaxFee,
     /// Account balance is smaller than the transaction's max_fee
@@ -1624,6 +1626,7 @@ impl core::fmt::Display for StarknetError {
             Self::TransactionExecutionError(_) => write!(f, "TransactionExecutionError"),
             Self::ClassAlreadyDeclared => write!(f, "ClassAlreadyDeclared"),
             Self::InvalidTransactionNonce => write!(f, "InvalidTransactionNonce"),
+            Self::InvalidTransactionValidation => write!(f, "InvalidTransactionValidation"),
             Self::InsufficientMaxFee => write!(f, "InsufficientMaxFee"),
             Self::InsufficientAccountBalance => write!(f, "InsufficientAccountBalance"),
             Self::ValidationFailure(_) => write!(f, "ValidationFailure"),
@@ -1657,6 +1660,7 @@ impl StarknetError {
             Self::TransactionExecutionError(_) => "Transaction execution error",
             Self::ClassAlreadyDeclared => "Class already declared",
             Self::InvalidTransactionNonce => "Invalid transaction nonce",
+            Self::InvalidTransactionValidation => "Invalid transaction validation",
             Self::InsufficientMaxFee => "Max fee is smaller than the minimal transaction cost (validation plus fee transfer)",
             Self::InsufficientAccountBalance => "Account balance is smaller than the transaction's max_fee",
             Self::ValidationFailure(_) => "Account validation failed",
