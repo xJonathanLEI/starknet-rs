@@ -969,26 +969,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "lambdaworks-crypto"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "458fee521f12d0aa97a2e06eaf134398a5d2ae7b2074af77eb402b0d93138c47"
-dependencies = [
- "lambdaworks-math",
- "serde",
- "sha2",
- "sha3",
-]
-
-[[package]]
 name = "lambdaworks-math"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c74ce6f0d9cb672330b6ca59e85a6c3607a3329e0372ab0d3fe38c2d38e50f9"
-dependencies = [
- "serde",
- "serde_json",
-]
 
 [[package]]
 name = "lazy_static"
@@ -1846,7 +1830,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e1e16522c1c9aa7fc149a46816cd18aa12a5fc2b2b75a018089022db473a9237"
 dependencies = [
  "bitvec",
- "lambdaworks-crypto",
  "lambdaworks-math",
  "lazy_static",
  "num-bigint",
