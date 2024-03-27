@@ -28,7 +28,7 @@ mod errors {
         InvalidHexString,
     }
 
-    #[derive(PartialEq, Debug)]
+    #[derive(Debug)]
     pub struct FromFieldElementError;
 
     #[derive(Debug)]
@@ -192,9 +192,10 @@ impl From<[u8; 20]> for EthAddress {
 
 #[cfg(test)]
 mod tests {
-    use super::EthAddress;
-    use crate::types::eth_address::FromFieldElementError;
+    use super::{EthAddress, FromBytesSliceError, FromFieldElementError};
+
     use alloc::vec::*;
+
     use hex_literal::hex;
     use starknet_ff::FieldElement;
 
@@ -280,15 +281,18 @@ mod tests {
             &FieldElement::from_hex_be("0x10000000000000000000000000000000000000000").unwrap(),
         ) {
             Ok(_) => panic!("Expected error, but got Ok"),
-            Err(err) => assert_eq!(err, FromFieldElementError),
+            Err(FromFieldElementError) => {}
         }
     }
 
     #[test]
-    #[should_panic(expected = "FromBytesSliceError")]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_eth_address_from_slice_invalid_slice() {
         let buffer: Vec<u8> = vec![0, 1, 2, 3, 4, 5, 6, 7];
 
-        EthAddress::try_from(&buffer[0..4]).unwrap();
+        match EthAddress::try_from(&buffer[0..4]) {
+            Ok(_) => panic!("Expected error, but got Ok"),
+            Err(FromBytesSliceError) => {}
+        }
     }
 }
