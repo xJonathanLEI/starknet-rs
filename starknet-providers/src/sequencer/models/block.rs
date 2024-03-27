@@ -1,15 +1,13 @@
 use serde::Deserialize;
 use serde_with::serde_as;
-use starknet_core::{
-    serde::unsigned_field_element::{UfeHex, UfeHexOption},
-    types::FieldElement,
-};
+use starknet_core::serde::unsigned_field_element::{UfeHex, UfeHexOption};
+use starknet_types_core::felt::Felt;
 
 use super::{ConfirmedTransactionReceipt, TransactionType};
 
 #[derive(Debug, Clone, Copy)]
 pub enum BlockId {
-    Hash(FieldElement),
+    Hash(Felt),
     Number(u64),
     Pending,
     Latest,
@@ -37,23 +35,23 @@ pub enum BlockStatus {
 pub struct Block {
     #[serde(default)]
     #[serde_as(as = "UfeHexOption")]
-    pub block_hash: Option<FieldElement>,
+    pub block_hash: Option<Felt>,
     pub block_number: Option<u64>,
     #[serde_as(as = "UfeHex")]
-    pub parent_block_hash: FieldElement,
+    pub parent_block_hash: Felt,
     pub timestamp: u64,
     // Field marked optional as old blocks don't include it yet. Drop optional once resolved.
     #[serde(default)]
     #[serde_as(as = "UfeHexOption")]
-    pub sequencer_address: Option<FieldElement>,
+    pub sequencer_address: Option<Felt>,
     #[serde(default)]
     #[serde_as(as = "UfeHexOption")]
-    pub state_root: Option<FieldElement>,
+    pub state_root: Option<Felt>,
     pub status: BlockStatus,
     #[serde_as(as = "UfeHex")]
-    pub eth_l1_gas_price: FieldElement,
+    pub eth_l1_gas_price: Felt,
     #[serde_as(as = "UfeHex")]
-    pub strk_l1_gas_price: FieldElement,
+    pub strk_l1_gas_price: Felt,
     pub transactions: Vec<TransactionType>,
     pub transaction_receipts: Vec<ConfirmedTransactionReceipt>,
     // Field marked optional as old blocks don't include it yet. Drop optional once resolved.
@@ -77,10 +75,8 @@ mod tests {
         assert_eq!(block.status, BlockStatus::AcceptedOnL1);
         assert_eq!(
             block.state_root.unwrap(),
-            FieldElement::from_hex_be(
-                "04be6496e74b3877db0b958a197b32ad797b3d2b1045e0697c01c1481501ea39"
-            )
-            .unwrap()
+            Felt::from_hex("04be6496e74b3877db0b958a197b32ad797b3d2b1045e0697c01c1481501ea39")
+                .unwrap()
         );
         assert_eq!(block.transactions.len(), 5);
         assert_eq!(block.transaction_receipts.len(), 5);
@@ -215,7 +211,7 @@ mod tests {
             _ => panic!("Unexpected tx type"),
         };
 
-        assert_eq!(tx.sender_address, FieldElement::ONE);
+        assert_eq!(tx.sender_address, Felt::ONE);
     }
 
     #[test]
@@ -234,10 +230,8 @@ mod tests {
 
         assert_eq!(
             tx.contract_address,
-            FieldElement::from_hex_be(
-                "0x7e829edae4832b140c73ba615e02f2d593122d43724352e21716daff98bd1da"
-            )
-            .unwrap()
+            Felt::from_hex("0x7e829edae4832b140c73ba615e02f2d593122d43724352e21716daff98bd1da")
+                .unwrap()
         );
     }
 

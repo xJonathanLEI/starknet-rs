@@ -1,6 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use hex_literal::hex;
-use starknet_crypto::{verify, FieldElement};
+use starknet_crypto::verify;
+use starknet_types_core::felt::Felt;
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     let stark_key = hex!("0565ee8f4203a04fbd5de77c678bc3738538f35c0871e377cdc45fcfa79e6bd9");
@@ -8,10 +9,10 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let r_bytes = hex!("03879bf25e6919880960131bb3b614c40d942791f83dac999d28028824c2d712");
     let s_bytes = hex!("01f2a4527241c802e0885cf3aeac5bdfdbb559c09a45e1b745addae358f6c03b");
 
-    let stark_key = FieldElement::from_bytes_be(&stark_key).unwrap();
-    let msg_hash = FieldElement::from_bytes_be(&msg_hash).unwrap();
-    let r_bytes = FieldElement::from_bytes_be(&r_bytes).unwrap();
-    let s_bytes = FieldElement::from_bytes_be(&s_bytes).unwrap();
+    let stark_key = Felt::from_bytes_be(&stark_key);
+    let msg_hash = Felt::from_bytes_be(&msg_hash);
+    let r_bytes = Felt::from_bytes_be(&r_bytes);
+    let s_bytes = Felt::from_bytes_be(&s_bytes);
 
     c.bench_function("ecdsa_verify", |b| {
         b.iter(|| {

@@ -3,12 +3,12 @@ use starknet_core::types::{
     BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
     BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
-    EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
-    MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-    MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag,
-    SimulationFlagForEstimateFee, SyncStatusType, Transaction, TransactionStatus, TransactionTrace,
-    TransactionTraceWithHash,
+    EventsPage, FeeEstimate, FunctionCall, InvokeTransactionResult, MaybePendingBlockWithTxHashes,
+    MaybePendingBlockWithTxs, MaybePendingStateUpdate, MaybePendingTransactionReceipt, MsgFromL1,
+    SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, SyncStatusType,
+    Transaction, TransactionStatus, TransactionTrace, TransactionTraceWithHash,
 };
+use starknet_types_core::felt::Felt;
 
 use crate::{
     jsonrpc::{HttpTransport, JsonRpcClient},
@@ -105,10 +105,10 @@ impl Provider for AnyProvider {
         contract_address: A,
         key: K,
         block_id: B,
-    ) -> Result<FieldElement, ProviderError>
+    ) -> Result<Felt, ProviderError>
     where
-        A: AsRef<FieldElement> + Send + Sync,
-        K: AsRef<FieldElement> + Send + Sync,
+        A: AsRef<Felt> + Send + Sync,
+        K: AsRef<Felt> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
         match self {
@@ -138,7 +138,7 @@ impl Provider for AnyProvider {
         transaction_hash: H,
     ) -> Result<TransactionStatus, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync,
+        H: AsRef<Felt> + Send + Sync,
     {
         match self {
             Self::JsonRpcHttp(inner) => {
@@ -163,7 +163,7 @@ impl Provider for AnyProvider {
         transaction_hash: H,
     ) -> Result<Transaction, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync,
+        H: AsRef<Felt> + Send + Sync,
     {
         match self {
             Self::JsonRpcHttp(inner) => {
@@ -212,7 +212,7 @@ impl Provider for AnyProvider {
         transaction_hash: H,
     ) -> Result<MaybePendingTransactionReceipt, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync,
+        H: AsRef<Felt> + Send + Sync,
     {
         match self {
             Self::JsonRpcHttp(inner) => {
@@ -239,7 +239,7 @@ impl Provider for AnyProvider {
     ) -> Result<ContractClass, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
-        H: AsRef<FieldElement> + Send + Sync,
+        H: AsRef<Felt> + Send + Sync,
     {
         match self {
             Self::JsonRpcHttp(inner) => {
@@ -256,10 +256,10 @@ impl Provider for AnyProvider {
         &self,
         block_id: B,
         contract_address: A,
-    ) -> Result<FieldElement, ProviderError>
+    ) -> Result<Felt, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
-        A: AsRef<FieldElement> + Send + Sync,
+        A: AsRef<Felt> + Send + Sync,
     {
         match self {
             Self::JsonRpcHttp(inner) => {
@@ -288,7 +288,7 @@ impl Provider for AnyProvider {
     ) -> Result<ContractClass, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
-        A: AsRef<FieldElement> + Send + Sync,
+        A: AsRef<Felt> + Send + Sync,
     {
         match self {
             Self::JsonRpcHttp(inner) => {
@@ -328,7 +328,7 @@ impl Provider for AnyProvider {
         }
     }
 
-    async fn call<R, B>(&self, request: R, block_id: B) -> Result<Vec<FieldElement>, ProviderError>
+    async fn call<R, B>(&self, request: R, block_id: B) -> Result<Vec<Felt>, ProviderError>
     where
         R: AsRef<FunctionCall> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
@@ -423,7 +423,7 @@ impl Provider for AnyProvider {
         }
     }
 
-    async fn chain_id(&self) -> Result<FieldElement, ProviderError> {
+    async fn chain_id(&self) -> Result<Felt, ProviderError> {
         match self {
             Self::JsonRpcHttp(inner) => {
                 <JsonRpcClient<HttpTransport> as Provider>::chain_id(inner).await
@@ -473,14 +473,10 @@ impl Provider for AnyProvider {
         }
     }
 
-    async fn get_nonce<B, A>(
-        &self,
-        block_id: B,
-        contract_address: A,
-    ) -> Result<FieldElement, ProviderError>
+    async fn get_nonce<B, A>(&self, block_id: B, contract_address: A) -> Result<Felt, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
-        A: AsRef<FieldElement> + Send + Sync,
+        A: AsRef<Felt> + Send + Sync,
     {
         match self {
             Self::JsonRpcHttp(inner) => {
@@ -578,7 +574,7 @@ impl Provider for AnyProvider {
         transaction_hash: H,
     ) -> Result<TransactionTrace, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync,
+        H: AsRef<Felt> + Send + Sync,
     {
         match self {
             Self::JsonRpcHttp(inner) => {

@@ -10,40 +10,41 @@ use starknet_core::{
         contract::{legacy::LegacyContractClass, ComputeClassHashError},
         BroadcastedDeclareTransaction, BroadcastedDeclareTransactionV1,
         BroadcastedDeclareTransactionV2, BroadcastedTransaction, DeclareTransactionResult,
-        FeeEstimate, FieldElement, FlattenedSierraClass, SimulatedTransaction, SimulationFlag,
+        FeeEstimate, FlattenedSierraClass, SimulatedTransaction, SimulationFlag,
     },
 };
 use starknet_providers::Provider;
+use starknet_types_core::felt::Felt;
 use std::sync::Arc;
 
 /// Cairo string for "declare"
-const PREFIX_DECLARE: FieldElement = FieldElement::from_mont([
-    17542456862011667323,
-    18446744073709551615,
-    18446744073709551615,
+const PREFIX_DECLARE: Felt = Felt::from_raw([
     191557713328401194,
+    18446744073709551615,
+    18446744073709551615,
+    17542456862011667323,
 ]);
 
 /// 2 ^ 128 + 1
-const QUERY_VERSION_ONE: FieldElement = FieldElement::from_mont([
-    18446744073700081633,
-    17407,
-    18446744073709551584,
+const QUERY_VERSION_ONE: Felt = Felt::from_raw([
     576460752142433776,
+    18446744073709551584,
+    17407,
+    18446744073700081633,
 ]);
 
 /// 2 ^ 128 + 2
-const QUERY_VERSION_TWO: FieldElement = FieldElement::from_mont([
-    18446744073700081601,
-    17407,
-    18446744073709551584,
+const QUERY_VERSION_TWO: Felt = Felt::from_raw([
     576460752142433232,
+    18446744073709551584,
+    17407,
+    18446744073700081601,
 ]);
 
 impl<'a, A> Declaration<'a, A> {
     pub fn new(
         contract_class: Arc<FlattenedSierraClass>,
-        compiled_class_hash: FieldElement,
+        compiled_class_hash: Felt,
         account: &'a A,
     ) -> Self {
         Self {
@@ -56,14 +57,14 @@ impl<'a, A> Declaration<'a, A> {
         }
     }
 
-    pub fn nonce(self, nonce: FieldElement) -> Self {
+    pub fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
             ..self
         }
     }
 
-    pub fn max_fee(self, max_fee: FieldElement) -> Self {
+    pub fn max_fee(self, max_fee: Felt) -> Self {
         Self {
             max_fee: Some(max_fee),
             ..self
@@ -151,11 +152,22 @@ where
         let max_fee = match self.max_fee {
             Some(value) => value,
             None => {
+                // Obtain the fee estimate
                 let fee_estimate = self.estimate_fee_with_nonce(nonce).await?;
-                ((((TryInto::<u64>::try_into(fee_estimate.overall_fee)
-                    .map_err(|_| AccountError::FeeOutOfRange)?) as f64)
-                    * self.fee_estimate_multiplier) as u64)
-                    .into()
+                // Convert the overall fee to little-endian bytes
+                let overall_fee_bytes = fee_estimate.overall_fee.to_bytes_le();
+
+                // Check if the remaining bytes after the first 8 are all zeros
+                if overall_fee_bytes.iter().skip(8).any(|&x| x != 0) {
+                    return Err(AccountError::FeeOutOfRange);
+                }
+
+                // Convert the first 8 bytes to u64
+                let overall_fee_u64 =
+                    u64::from_le_bytes(overall_fee_bytes[..8].try_into().unwrap());
+
+                // Perform necessary operations on overall_fee_u64 and convert to f64 then to u64
+                (((overall_fee_u64 as f64) * self.fee_estimate_multiplier) as u64).into()
             }
         };
 
@@ -172,7 +184,7 @@ where
 
     async fn estimate_fee_with_nonce(
         &self,
-        nonce: FieldElement,
+        nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
         let prepared = PreparedDeclaration {
             account: self.account,
@@ -180,7 +192,7 @@ where
                 contract_class: self.contract_class.clone(),
                 compiled_class_hash: self.compiled_class_hash,
                 nonce,
-                max_fee: FieldElement::ZERO,
+                max_fee: Felt::ZERO,
             },
         };
         let declare = prepared.get_declare_request(true).await?;
@@ -198,7 +210,7 @@ where
 
     async fn simulate_with_nonce(
         &self,
-        nonce: FieldElement,
+        nonce: Felt,
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
@@ -245,14 +257,14 @@ impl<'a, A> LegacyDeclaration<'a, A> {
         }
     }
 
-    pub fn nonce(self, nonce: FieldElement) -> Self {
+    pub fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
             ..self
         }
     }
 
-    pub fn max_fee(self, max_fee: FieldElement) -> Self {
+    pub fn max_fee(self, max_fee: Felt) -> Self {
         Self {
             max_fee: Some(max_fee),
             ..self
@@ -342,11 +354,22 @@ where
         let max_fee = match self.max_fee {
             Some(value) => value,
             None => {
+                // Obtain the fee estimate
                 let fee_estimate = self.estimate_fee_with_nonce(nonce).await?;
-                ((((TryInto::<u64>::try_into(fee_estimate.overall_fee)
-                    .map_err(|_| AccountError::FeeOutOfRange)?) as f64)
-                    * self.fee_estimate_multiplier) as u64)
-                    .into()
+                // Convert the overall fee to little-endian bytes
+                let overall_fee_bytes = fee_estimate.overall_fee.to_bytes_le();
+
+                // Check if the remaining bytes after the first 8 are all zeros
+                if overall_fee_bytes.iter().skip(8).any(|&x| x != 0) {
+                    return Err(AccountError::FeeOutOfRange);
+                }
+
+                // Convert the first 8 bytes to u64
+                let overall_fee_u64 =
+                    u64::from_le_bytes(overall_fee_bytes[..8].try_into().unwrap());
+
+                // Perform necessary operations on overall_fee_u64 and convert to f64 then to u64
+                (((overall_fee_u64 as f64) * self.fee_estimate_multiplier) as u64).into()
             }
         };
 
@@ -362,14 +385,14 @@ where
 
     async fn estimate_fee_with_nonce(
         &self,
-        nonce: FieldElement,
+        nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
         let prepared = PreparedLegacyDeclaration {
             account: self.account,
             inner: RawLegacyDeclaration {
                 contract_class: self.contract_class.clone(),
                 nonce,
-                max_fee: FieldElement::ZERO,
+                max_fee: Felt::ZERO,
             },
         };
         let declare = prepared.get_declare_request(true).await?;
@@ -387,7 +410,7 @@ where
 
     async fn simulate_with_nonce(
         &self,
-        nonce: FieldElement,
+        nonce: Felt,
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
@@ -423,21 +446,16 @@ where
 }
 
 impl RawDeclaration {
-    pub fn transaction_hash(
-        &self,
-        chain_id: FieldElement,
-        address: FieldElement,
-        query_only: bool,
-    ) -> FieldElement {
+    pub fn transaction_hash(&self, chain_id: Felt, address: Felt, query_only: bool) -> Felt {
         compute_hash_on_elements(&[
             PREFIX_DECLARE,
             if query_only {
                 QUERY_VERSION_TWO
             } else {
-                FieldElement::TWO
+                Felt::TWO
             }, // version
             address,
-            FieldElement::ZERO, // entry_point_selector
+            Felt::ZERO, // entry_point_selector
             compute_hash_on_elements(&[self.contract_class.class_hash()]),
             self.max_fee,
             chain_id,
@@ -450,15 +468,15 @@ impl RawDeclaration {
         &self.contract_class
     }
 
-    pub fn compiled_class_hash(&self) -> FieldElement {
+    pub fn compiled_class_hash(&self) -> Felt {
         self.compiled_class_hash
     }
 
-    pub fn nonce(&self) -> FieldElement {
+    pub fn nonce(&self) -> Felt {
         self.nonce
     }
 
-    pub fn max_fee(&self) -> FieldElement {
+    pub fn max_fee(&self) -> Felt {
         self.max_fee
     }
 }
@@ -466,19 +484,19 @@ impl RawDeclaration {
 impl RawLegacyDeclaration {
     pub fn transaction_hash(
         &self,
-        chain_id: FieldElement,
-        address: FieldElement,
+        chain_id: Felt,
+        address: Felt,
         query_only: bool,
-    ) -> Result<FieldElement, ComputeClassHashError> {
+    ) -> Result<Felt, ComputeClassHashError> {
         Ok(compute_hash_on_elements(&[
             PREFIX_DECLARE,
             if query_only {
                 QUERY_VERSION_ONE
             } else {
-                FieldElement::ONE
+                Felt::ONE
             }, // version
             address,
-            FieldElement::ZERO, // entry_point_selector
+            Felt::ZERO, // entry_point_selector
             compute_hash_on_elements(&[self.contract_class.class_hash()?]),
             self.max_fee,
             chain_id,
@@ -490,11 +508,11 @@ impl RawLegacyDeclaration {
         &self.contract_class
     }
 
-    pub fn nonce(&self) -> FieldElement {
+    pub fn nonce(&self) -> Felt {
         self.nonce
     }
 
-    pub fn max_fee(&self) -> FieldElement {
+    pub fn max_fee(&self) -> Felt {
         self.max_fee
     }
 }
@@ -505,7 +523,7 @@ where
 {
     /// Locally calculates the hash of the transaction to be sent from this declaration given the
     /// parameters.
-    pub fn transaction_hash(&self, query_only: bool) -> FieldElement {
+    pub fn transaction_hash(&self, query_only: bool) -> Felt {
         self.inner
             .transaction_hash(self.account.chain_id(), self.account.address(), query_only)
     }
@@ -552,10 +570,7 @@ where
 {
     /// Locally calculates the hash of the transaction to be sent from this declaration given the
     /// parameters.
-    pub fn transaction_hash(
-        &self,
-        query_only: bool,
-    ) -> Result<FieldElement, ComputeClassHashError> {
+    pub fn transaction_hash(&self, query_only: bool) -> Result<Felt, ComputeClassHashError> {
         self.inner
             .transaction_hash(self.account.chain_id(), self.account.address(), query_only)
     }

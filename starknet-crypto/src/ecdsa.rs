@@ -5,34 +5,35 @@ use starknet_curve::{
 
 use crate::{
     fe_utils::{add_unbounded, bigint_mul_mod_floor, mod_inverse, mul_mod_floor},
-    FieldElement, RecoverError, SignError, VerifyError,
+    RecoverError, SignError, VerifyError,
 };
+use starknet_types_core::felt::Felt;
 
-const ELEMENT_UPPER_BOUND: FieldElement = FieldElement::from_mont([
-    18446743986131435553,
-    160989183,
-    18446744073709255680,
+const ELEMENT_UPPER_BOUND: Felt = Felt::from_raw([
     576459263475450960,
+    18446744073709255680,
+    160989183,
+    18446743986131435553,
 ]);
 
 /// Stark ECDSA signature
 #[derive(Debug)]
 pub struct Signature {
     /// The `r` value of a signature
-    pub r: FieldElement,
+    pub r: Felt,
     /// The `s` value of a signature
-    pub s: FieldElement,
+    pub s: Felt,
 }
 
 /// Stark ECDSA signature with `v`
 #[derive(Debug)]
 pub struct ExtendedSignature {
     /// The `r` value of a signature
-    pub r: FieldElement,
+    pub r: Felt,
     /// The `s` value of a signature
-    pub s: FieldElement,
+    pub s: Felt,
     /// The `v` value of a signature
-    pub v: FieldElement,
+    pub v: Felt,
 }
 
 impl From<ExtendedSignature> for Signature {
@@ -74,7 +75,7 @@ impl core::fmt::Display for ExtendedSignature {
 /// ### Arguments
 ///
 /// * `private_key`: The private key
-pub fn get_public_key(private_key: &FieldElement) -> FieldElement {
+pub fn get_public_key(private_key: &Felt) -> Felt {
     mul_by_bits(&GENERATOR, private_key).x
 }
 
@@ -85,21 +86,17 @@ pub fn get_public_key(private_key: &FieldElement) -> FieldElement {
 /// * `private_key`: The private key
 /// * `message`: The message hash
 /// * `k`: A random `k` value. You **MUST NOT** use the same `k` on different signatures
-pub fn sign(
-    private_key: &FieldElement,
-    message: &FieldElement,
-    k: &FieldElement,
-) -> Result<ExtendedSignature, SignError> {
+pub fn sign(private_key: &Felt, message: &Felt, k: &Felt) -> Result<ExtendedSignature, SignError> {
     if message >= &ELEMENT_UPPER_BOUND {
         return Err(SignError::InvalidMessageHash);
     }
-    if k == &FieldElement::ZERO {
+    if k == &Felt::ZERO {
         return Err(SignError::InvalidK);
     }
 
     let full_r = mul_by_bits(&GENERATOR, k);
     let r = full_r.x;
-    if r == FieldElement::ZERO || r >= ELEMENT_UPPER_BOUND {
+    if r == Felt::ZERO || r >= ELEMENT_UPPER_BOUND {
         return Err(SignError::InvalidK);
     }
 
@@ -108,13 +105,15 @@ pub fn sign(
     let s = mul_mod_floor(&r, private_key, &EC_ORDER);
     let s = add_unbounded(&s, message);
     let s = bigint_mul_mod_floor(s, &k_inv, &EC_ORDER);
-    if s == FieldElement::ZERO || s >= ELEMENT_UPPER_BOUND {
+    if s == Felt::ZERO || s >= ELEMENT_UPPER_BOUND {
         return Err(SignError::InvalidK);
     }
 
-    let v = full_r.y & FieldElement::ONE;
-
-    Ok(ExtendedSignature { r, s, v })
+    Ok(ExtendedSignature {
+        r,
+        s,
+        v: (full_r.y.to_bigint() & Felt::ONE.to_bigint()).into(),
+    })
 }
 
 /// Verifies if a signature is valid over a message hash given a public key. Returns an error
@@ -126,19 +125,14 @@ pub fn sign(
 /// * `message`: The message hash
 /// * `r`: The `r` value of the signature
 /// * `s`: The `s` value of the signature
-pub fn verify(
-    public_key: &FieldElement,
-    message: &FieldElement,
-    r: &FieldElement,
-    s: &FieldElement,
-) -> Result<bool, VerifyError> {
+pub fn verify(public_key: &Felt, message: &Felt, r: &Felt, s: &Felt) -> Result<bool, VerifyError> {
     if message >= &ELEMENT_UPPER_BOUND {
         return Err(VerifyError::InvalidMessageHash);
     }
-    if r == &FieldElement::ZERO || r >= &ELEMENT_UPPER_BOUND {
+    if r == &Felt::ZERO || r >= &ELEMENT_UPPER_BOUND {
         return Err(VerifyError::InvalidR);
     }
-    if s == &FieldElement::ZERO || s >= &ELEMENT_UPPER_BOUND {
+    if s == &Felt::ZERO || s >= &ELEMENT_UPPER_BOUND {
         return Err(VerifyError::InvalidS);
     }
 
@@ -148,7 +142,7 @@ pub fn verify(
     };
 
     let w = mod_inverse(s, &EC_ORDER);
-    if w == FieldElement::ZERO || w >= ELEMENT_UPPER_BOUND {
+    if w == Felt::ZERO || w >= ELEMENT_UPPER_BOUND {
         return Err(VerifyError::InvalidS);
     }
 
@@ -169,27 +163,22 @@ pub fn verify(
 /// * `r_bytes`: The `r` value of the signature
 /// * `s_bytes`: The `s` value of the signature
 /// * `v_bytes`: The `v` value of the signature
-pub fn recover(
-    message: &FieldElement,
-    r: &FieldElement,
-    s: &FieldElement,
-    v: &FieldElement,
-) -> Result<FieldElement, RecoverError> {
+pub fn recover(message: &Felt, r: &Felt, s: &Felt, v: &Felt) -> Result<Felt, RecoverError> {
     if message >= &ELEMENT_UPPER_BOUND {
         return Err(RecoverError::InvalidMessageHash);
     }
-    if r == &FieldElement::ZERO || r >= &ELEMENT_UPPER_BOUND {
+    if r == &Felt::ZERO || r >= &ELEMENT_UPPER_BOUND {
         return Err(RecoverError::InvalidR);
     }
-    if s == &FieldElement::ZERO || s >= &EC_ORDER {
+    if s == &Felt::ZERO || s >= &EC_ORDER {
         return Err(RecoverError::InvalidS);
     }
-    if v > &FieldElement::ONE {
+    if v > &Felt::ONE {
         return Err(RecoverError::InvalidV);
     }
 
     let mut full_r = AffinePoint::from_x(*r).ok_or(RecoverError::InvalidR)?;
-    if (full_r.y & FieldElement::ONE) != *v {
+    if Into::<Felt>::into(full_r.y.to_bigint() & Felt::ONE.to_bigint()) != *v {
         full_r.y = -full_r.y;
     }
     let full_rs = mul_by_bits(&full_r, s);
@@ -205,9 +194,9 @@ pub fn recover(
 }
 
 #[inline(always)]
-fn mul_by_bits(x: &AffinePoint, y: &FieldElement) -> AffinePoint {
-    let x = ProjectivePoint::from_affine_point(x);
-    let y = y.to_bits_le();
+fn mul_by_bits(x: &AffinePoint, y: &Felt) -> AffinePoint {
+    let x = ProjectivePoint::from(x);
+    let y = y.to_bits_be();
     let z = &x * &y;
     AffinePoint::from(&z)
 }

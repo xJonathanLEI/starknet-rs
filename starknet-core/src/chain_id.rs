@@ -1,27 +1,27 @@
-use crate::types::FieldElement;
+use starknet_types_core::felt::Felt;
 
-pub const MAINNET: FieldElement = FieldElement::from_mont([
-    17696389056366564951,
-    18446744073709551615,
-    18446744073709551615,
+pub const MAINNET: Felt = Felt::from_raw([
     502562008147966918,
+    18446744073709551615,
+    18446744073709551615,
+    17696389056366564951,
 ]);
 
-pub const TESTNET: FieldElement = FieldElement::from_mont([
-    3753493103916128178,
-    18446744073709548950,
-    18446744073709551615,
+pub const TESTNET: Felt = Felt::from_raw([
     398700013197595345,
-]);
-
-pub const TESTNET2: FieldElement = FieldElement::from_mont([
-    1663542769632127759,
-    18446744073708869172,
     18446744073709551615,
-    33650220878420990,
+    18446744073709548950,
+    3753493103916128178,
 ]);
 
-pub const SEPOLIA: FieldElement = FieldElement::from_mont([
+pub const TESTNET2: Felt = Felt::from_raw([
+    33650220878420990,
+    18446744073709551615,
+    18446744073708869172,
+    1663542769632127759,
+]);
+
+pub const SEPOLIA: Felt = Felt::from_raw([
     1555806712078248243,
     18446744073708869172,
     18446744073709551615,

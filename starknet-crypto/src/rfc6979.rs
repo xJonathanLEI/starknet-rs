@@ -1,9 +1,8 @@
 use crypto_bigint::{ArrayEncoding, ByteArray, Integer, U256};
 use hmac::digest::Digest;
 use sha2::digest::{crypto_common::BlockSizeUser, FixedOutputReset, HashMarker};
+use starknet_types_core::felt::Felt;
 use zeroize::{Zeroize, Zeroizing};
-
-use crate::FieldElement;
 
 const EC_ORDER: U256 =
     U256::from_be_hex("0800000000000010ffffffffffffffffb781126dcae7b2321e66a241adc64d2f");
@@ -15,11 +14,7 @@ const EC_ORDER: U256 =
 /// * `message_hash`: message hash
 /// * `private_key`: private key
 /// * `seed`: extra seed for additional entropy
-pub fn generate_k(
-    message_hash: &FieldElement,
-    private_key: &FieldElement,
-    seed: Option<&FieldElement>,
-) -> FieldElement {
+pub fn generate_k(message_hash: &Felt, private_key: &Felt, seed: Option<&Felt>) -> Felt {
     // The message hash padding as implemented in `cairo-lang` is not needed here. The hash is
     // padded in `cairo-lang` only to make sure the lowest 4 bits won't get truncated, but here it's
     // never getting truncated anyways.
@@ -49,7 +44,7 @@ pub fn generate_k(
     let mut buffer = [0u8; 32];
     buffer[..].copy_from_slice(&k.to_be_byte_array()[..]);
 
-    FieldElement::from_bytes_be(&buffer).unwrap()
+    Felt::from_bytes_be(&buffer)
 }
 
 // Modified from upstream `rfc6979::generate_k` with a hard-coded right bit shift. The more

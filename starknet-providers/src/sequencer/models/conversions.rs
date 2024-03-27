@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
-use starknet_core::types::{self as core, contract::legacy as contract_legacy, FieldElement};
+use starknet_core::types::{self as core, contract::legacy as contract_legacy};
+use starknet_types_core::felt::Felt;
 
 use super::{
     state_update::{DeclaredContract, DeployedContract, StateDiff, StorageDiff},
@@ -18,7 +19,7 @@ pub struct ConversionError;
 
 pub(crate) struct OrderedL2ToL1MessageResponseWithFromAddress {
     pub message: OrderedL2ToL1MessageResponse,
-    pub from: FieldElement,
+    pub from: Felt,
 }
 
 impl From<core::BlockId> for BlockId {
@@ -162,7 +163,7 @@ impl TryFrom<DeclareTransaction> for core::DeclareTransaction {
     type Error = ConversionError;
 
     fn try_from(value: DeclareTransaction) -> Result<Self, Self::Error> {
-        if value.version == FieldElement::ZERO {
+        if value.version == Felt::ZERO {
             Ok(Self::V0(core::DeclareTransactionV0 {
                 transaction_hash: value.transaction_hash,
                 max_fee: value.max_fee.ok_or(ConversionError)?,
@@ -170,7 +171,7 @@ impl TryFrom<DeclareTransaction> for core::DeclareTransaction {
                 class_hash: value.class_hash,
                 sender_address: value.sender_address,
             }))
-        } else if value.version == FieldElement::ONE {
+        } else if value.version == Felt::ONE {
             Ok(Self::V1(core::DeclareTransactionV1 {
                 transaction_hash: value.transaction_hash,
                 max_fee: value.max_fee.ok_or(ConversionError)?,
@@ -179,7 +180,7 @@ impl TryFrom<DeclareTransaction> for core::DeclareTransaction {
                 class_hash: value.class_hash,
                 sender_address: value.sender_address,
             }))
-        } else if value.version == FieldElement::TWO {
+        } else if value.version == Felt::TWO {
             Ok(Self::V2(core::DeclareTransactionV2 {
                 transaction_hash: value.transaction_hash,
                 max_fee: value.max_fee.ok_or(ConversionError)?,
@@ -189,7 +190,7 @@ impl TryFrom<DeclareTransaction> for core::DeclareTransaction {
                 compiled_class_hash: value.compiled_class_hash.ok_or(ConversionError)?,
                 sender_address: value.sender_address,
             }))
-        } else if value.version == FieldElement::THREE {
+        } else if value.version == Felt::THREE {
             Ok(Self::V3(core::DeclareTransactionV3 {
                 transaction_hash: value.transaction_hash,
                 sender_address: value.sender_address,
@@ -234,7 +235,7 @@ impl TryFrom<DeployAccountTransaction> for core::DeployAccountTransaction {
     type Error = ConversionError;
 
     fn try_from(value: DeployAccountTransaction) -> Result<Self, Self::Error> {
-        if value.version == FieldElement::ONE {
+        if value.version == Felt::ONE {
             Ok(Self::V1(core::DeployAccountTransactionV1 {
                 transaction_hash: value.transaction_hash,
                 max_fee: value.max_fee.ok_or(ConversionError)?,
@@ -244,7 +245,7 @@ impl TryFrom<DeployAccountTransaction> for core::DeployAccountTransaction {
                 constructor_calldata: value.constructor_calldata,
                 class_hash: value.class_hash,
             }))
-        } else if value.version == FieldElement::THREE {
+        } else if value.version == Felt::THREE {
             Ok(Self::V3(core::DeployAccountTransactionV3 {
                 transaction_hash: value.transaction_hash,
                 signature: value.signature,
@@ -274,7 +275,7 @@ impl TryFrom<InvokeFunctionTransaction> for core::InvokeTransaction {
     type Error = ConversionError;
 
     fn try_from(value: InvokeFunctionTransaction) -> Result<Self, Self::Error> {
-        if value.version == FieldElement::ZERO {
+        if value.version == Felt::ZERO {
             Ok(Self::V0(core::InvokeTransactionV0 {
                 transaction_hash: value.transaction_hash,
                 max_fee: value.max_fee.ok_or(ConversionError)?,
@@ -283,7 +284,7 @@ impl TryFrom<InvokeFunctionTransaction> for core::InvokeTransaction {
                 entry_point_selector: value.entry_point_selector.ok_or(ConversionError)?,
                 calldata: value.calldata,
             }))
-        } else if value.version == FieldElement::ONE {
+        } else if value.version == Felt::ONE {
             Ok(Self::V1(core::InvokeTransactionV1 {
                 transaction_hash: value.transaction_hash,
                 max_fee: value.max_fee.ok_or(ConversionError)?,
@@ -292,7 +293,7 @@ impl TryFrom<InvokeFunctionTransaction> for core::InvokeTransaction {
                 sender_address: value.sender_address,
                 calldata: value.calldata,
             }))
-        } else if value.version == FieldElement::THREE {
+        } else if value.version == Felt::THREE {
             Ok(Self::V3(core::InvokeTransactionV3 {
                 transaction_hash: value.transaction_hash,
                 sender_address: value.sender_address,
@@ -325,11 +326,14 @@ impl TryFrom<L1HandlerTransaction> for core::L1HandlerTransaction {
         Ok(Self {
             transaction_hash: value.transaction_hash,
             version: value.version,
-            nonce: value
-                .nonce
-                .unwrap_or_default()
-                .try_into()
-                .map_err(|_| ConversionError)?,
+            nonce: {
+                // TODO: remove this when a proper u64 conversion is implemented for `Felt`
+                let nonce_bytes = value.nonce.unwrap_or_default().to_bytes_le();
+                if nonce_bytes.iter().skip(8).any(|&x| x != 0) {
+                    return Err(ConversionError);
+                }
+                u64::from_le_bytes(nonce_bytes[..8].try_into().unwrap())
+            },
             contract_address: value.contract_address,
             entry_point_selector: value.entry_point_selector,
             calldata: value.calldata,
@@ -502,7 +506,7 @@ impl From<L2ToL1Message> for core::MsgToL1 {
         Self {
             from_address: value.from_address,
             // Unwrapping here is safe
-            to_address: FieldElement::from_byte_slice_be(&value.to_address.0).unwrap(),
+            to_address: Felt::from_bytes_be_slice(&value.to_address.0),
             payload: value.payload,
         }
     }
@@ -805,10 +809,7 @@ impl From<OrderedL2ToL1MessageResponseWithFromAddress> for core::OrderedMessage 
         Self {
             from_address: value.from,
             // Unwrapping is safe here as H160 is only 20 bytes
-            to_address: FieldElement::from_byte_slice_be(
-                &value.message.to_address.to_fixed_bytes(),
-            )
-            .unwrap(),
+            to_address: Felt::from_bytes_be_slice(&value.message.to_address.to_fixed_bytes()),
             payload: value.message.payload,
             order: value.message.order,
         }

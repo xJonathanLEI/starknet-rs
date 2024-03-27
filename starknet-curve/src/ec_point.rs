@@ -1,27 +1,28 @@
-use starknet_ff::FieldElement;
+use starknet_types_core::felt::Felt;
 
 use crate::curve_params::{ALPHA, BETA};
+use bitvec::array::BitArray;
 
 use core::ops;
 
-/// A point on an elliptic curve over [FieldElement].
+/// A point on an elliptic curve over [Felt].
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct AffinePoint {
-    pub x: FieldElement,
-    pub y: FieldElement,
+    pub x: Felt,
+    pub y: Felt,
     pub infinity: bool,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct ProjectivePoint {
-    pub x: FieldElement,
-    pub y: FieldElement,
-    pub z: FieldElement,
+    pub x: Felt,
+    pub y: Felt,
+    pub z: Felt,
     pub infinity: bool,
 }
 
 impl AffinePoint {
-    pub fn from_x(x: FieldElement) -> Option<Self> {
+    pub fn from_x(x: Felt) -> Option<Self> {
         let y_squared = x * x * x + ALPHA * x + BETA;
         y_squared.sqrt().map(|y| Self {
             x,
@@ -32,8 +33,8 @@ impl AffinePoint {
 
     fn identity() -> AffinePoint {
         Self {
-            x: FieldElement::ZERO,
-            y: FieldElement::ZERO,
+            x: Felt::ZERO,
+            y: Felt::ZERO,
             infinity: true,
         }
     }
@@ -45,8 +46,8 @@ impl AffinePoint {
 
         // l = (3x^2+a)/2y with a=1 from stark curve
         let lambda = {
-            let dividend = FieldElement::THREE * (self.x * self.x) + FieldElement::ONE;
-            let divisor_inv = self.y.double().invert().unwrap();
+            let dividend = Felt::THREE * (self.x * self.x) + Felt::ONE;
+            let divisor_inv = (self.y + self.y).inverse().unwrap();
             dividend * divisor_inv
         };
 
@@ -58,7 +59,7 @@ impl AffinePoint {
 
 impl From<&ProjectivePoint> for AffinePoint {
     fn from(p: &ProjectivePoint) -> Self {
-        let zinv = p.z.invert().unwrap();
+        let zinv = p.z.inverse().unwrap();
         Self {
             x: p.x * zinv,
             y: p.y * zinv,
@@ -95,7 +96,7 @@ impl ops::AddAssign<&AffinePoint> for AffinePoint {
             return;
         }
 
-        let lambda = (rhs.y - self.y) * (rhs.x - self.x).invert().unwrap();
+        let lambda = (rhs.y - self.y) * (rhs.x - self.x).inverse().unwrap();
 
         let result_x = lambda * lambda - self.x - rhs.x;
 
@@ -154,16 +155,16 @@ impl ProjectivePoint {
         Self {
             x: p.x,
             y: p.y,
-            z: FieldElement::ONE,
+            z: Felt::ONE,
             infinity: p.infinity,
         }
     }
 
     fn identity() -> ProjectivePoint {
         Self {
-            x: FieldElement::ZERO,
-            y: FieldElement::ZERO,
-            z: FieldElement::ONE,
+            x: Felt::ZERO,
+            y: Felt::ZERO,
+            z: Felt::ONE,
             infinity: true,
         }
     }
@@ -174,7 +175,7 @@ impl ProjectivePoint {
         }
 
         // t=3x^2+az^2 with a=1 from stark curve
-        let t = FieldElement::THREE * self.x * self.x + self.z * self.z;
+        let t = Felt::THREE * self.x * self.x + self.z * self.z;
         let u = self.y.double() * self.z;
         let v = u.double() * self.x * self.y;
         let w = t * t - v.double();
@@ -278,13 +279,13 @@ impl ops::AddAssign<&ProjectivePoint> for ProjectivePoint {
     }
 }
 
-impl ops::Mul<&[bool]> for &ProjectivePoint {
+impl ops::Mul<&BitArray<[u64; 4]>> for &ProjectivePoint {
     type Output = ProjectivePoint;
 
     #[allow(clippy::suspicious_arithmetic_impl)]
-    fn mul(self, rhs: &[bool]) -> Self::Output {
+    fn mul(self, rhs: &BitArray<[u64; 4]>) -> Self::Output {
         let mut product = ProjectivePoint::identity();
-        for b in rhs.iter().rev().skip_while(|b| !*b) {
+        for b in rhs.iter().rev() {
             product.double_assign();
             if *b {
                 product += self;

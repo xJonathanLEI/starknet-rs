@@ -8,7 +8,7 @@ As noted in the [`starknet-crypto` page](../../starknet-crypto/), you're advised
 
 ## Note
 
-This wrapper crate expose functions that operate on strings, which is bad and probably hurts performance. It's possible to make the C++ side create `FieldElement` instances and operate on those instead, which is much more idiomatic. That said, this demo wrapper crate seems to already offer decent performance.
+This wrapper crate expose functions that operate on strings, which is bad and probably hurts performance. It's possible to make the C++ side create `Felt` instances and operate on those instead, which is much more idiomatic. That said, this demo wrapper crate seems to already offer decent performance.
 
 Moreover, this crate does not implement error handling and always just panics on error, which is likely not what you want in production.
 
