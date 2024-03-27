@@ -192,18 +192,55 @@ impl From<[u8; 20]> for EthAddress {
 
 #[cfg(test)]
 mod tests {
-    use hex_literal::hex;
+    use super::{EthAddress, FromBytesSliceError, FromFieldElementError};
 
-    use super::EthAddress;
+    use alloc::vec::*;
+
+    use hex_literal::hex;
+    use starknet_ff::FieldElement;
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_eth_address_from_bytes_array() {
-        let address_bytes: [u8; 20] = hex!("e7f1725e7734ce288f8367e1bb143e90bb3f0512");
+    fn test_eth_address_from_bytes_array_with_zeros() {
+        let address =
+            hex::decode("00000000219ab540356cbb839cbe05303d7705fa").expect("Invalid address hex");
+
+        // Convert bytes to a fixed-size array
+        let mut address_bytes: [u8; 20] = [0; 20];
+        address_bytes.copy_from_slice(&address[..20]);
 
         let eth_address: EthAddress = address_bytes.into();
+
+        // Asserting the conversion from hex string to EthAddress
         assert_eq!(
-            EthAddress::from_hex("0xe7f1725e7734ce288f8367e1bb143e90bb3f0512").unwrap(),
+            EthAddress::from_hex("0x00000000219ab540356cbb839cbe05303d7705fa").unwrap(),
+            eth_address
+        );
+        assert_eq!(
+            EthAddress::from_hex("00000000219ab540356cbb839cbe05303d7705fa").unwrap(),
+            eth_address
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_eth_address_from_bytes_array_zero_address() {
+        let address =
+            hex::decode("0000000000000000000000000000000000000000").expect("Invalid address hex");
+
+        // Convert bytes to a fixed-size array
+        let mut address_bytes: [u8; 20] = [0; 20];
+        address_bytes.copy_from_slice(&address[..20]);
+
+        let eth_address: EthAddress = address_bytes.into();
+
+        // Asserting the conversion from hex string to EthAddress
+        assert_eq!(
+            EthAddress::from_hex("0x0000000000000000000000000000000000000000").unwrap(),
+            eth_address
+        );
+        assert_eq!(
+            EthAddress::from_hex("0000000000000000000000000000000000000000").unwrap(),
             eth_address
         );
     }
@@ -224,10 +261,38 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "FromBytesSliceError")]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    // Define the unit test function
+    fn test_eth_address_from_felt() {
+        // Asserting the conversion from hex string to EthAddress is equal to Felt conversion
+        assert_eq!(
+            EthAddress::from_hex("0xb9fa6e54025b4f0829d8e1b42e8b846914659632").unwrap(),
+            EthAddress::from_felt(
+                &FieldElement::from_hex_be("0xb9fa6e54025b4f0829d8e1b42e8b846914659632").unwrap()
+            )
+            .unwrap()
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_eth_address_from_felt_error() {
+        match EthAddress::from_felt(
+            &FieldElement::from_hex_be("0x10000000000000000000000000000000000000000").unwrap(),
+        ) {
+            Ok(_) => panic!("Expected error, but got Ok"),
+            Err(FromFieldElementError) => {}
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_eth_address_from_slice_invalid_slice() {
         let buffer: Vec<u8> = vec![0, 1, 2, 3, 4, 5, 6, 7];
 
-        EthAddress::try_from(&buffer[0..4]).unwrap();
+        match EthAddress::try_from(&buffer[0..4]) {
+            Ok(_) => panic!("Expected error, but got Ok"),
+            Err(FromBytesSliceError) => {}
+        }
     }
 }
