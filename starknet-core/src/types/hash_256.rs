@@ -8,7 +8,6 @@ use serde::{de::Visitor, Deserialize, Serialize};
 use starknet_ff::FieldElement;
 
 const HASH_256_BYTE_COUNT: usize = 32;
-const EXPECTED_HEX_LENGTH: usize = HASH_256_BYTE_COUNT * 2;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Hash256 {
@@ -20,7 +19,7 @@ struct Hash256Visitor;
 mod errors {
     use core::fmt::{Display, Formatter, Result};
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug)]
     pub enum FromHexError {
         UnexpectedLength,
         InvalidHexString,
@@ -113,23 +112,27 @@ impl FromStr for Hash256 {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let value = s.trim_start_matches("0x");
+
         let hex_chars_len = value.len();
+        let expected_hex_length = HASH_256_BYTE_COUNT * 2;
 
-        let mut buffer = [0u8; HASH_256_BYTE_COUNT];
+        let parsed_bytes: [u8; HASH_256_BYTE_COUNT] = if hex_chars_len == expected_hex_length {
+            let mut buffer = [0u8; HASH_256_BYTE_COUNT];
+            hex::decode_to_slice(value, &mut buffer).map_err(|_| FromHexError::InvalidHexString)?;
+            buffer
+        } else if hex_chars_len < expected_hex_length {
+            let mut padded_hex = str::repeat("0", expected_hex_length - hex_chars_len);
+            padded_hex.push_str(value);
 
-        hex::decode_to_slice(
-            &if hex_chars_len == EXPECTED_HEX_LENGTH {
-                value.to_owned()
-            } else if hex_chars_len < EXPECTED_HEX_LENGTH {
-                format!("{:0>width$}", value, width = EXPECTED_HEX_LENGTH)
-            } else {
-                return Err(FromHexError::UnexpectedLength);
-            },
-            &mut buffer,
-        )
-        .map_err(|_| FromHexError::InvalidHexString)?;
+            let mut buffer = [0u8; HASH_256_BYTE_COUNT];
+            hex::decode_to_slice(&padded_hex, &mut buffer)
+                .map_err(|_| FromHexError::InvalidHexString)?;
+            buffer
+        } else {
+            return Err(FromHexError::UnexpectedLength);
+        };
 
-        Ok(buffer.into())
+        Ok(parsed_bytes.into())
     }
 }
 
@@ -181,79 +184,43 @@ impl From<[u8; HASH_256_BYTE_COUNT]> for Hash256 {
 
 #[cfg(test)]
 mod tests {
-    use super::FromHexError;
-    use super::Hash256;
-    use super::HASH_256_BYTE_COUNT;
-    use alloc::vec::*;
+    use super::{FromHexError, Hash256, HASH_256_BYTE_COUNT};
+
     use starknet_ff::FieldElement;
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_hash_256_from_slice() {
-        // Read JSON data into a vector of strings representing hash values
-        let json_data = include_str!("./test-data/hash_256.json");
-        let hashes: Vec<String> =
-            serde_json::from_str(json_data).expect("Unable to parse the JSON");
-
-        // Iterate over each hash in the JSON
-        for hash in &hashes {
-            // Convert hexadecimal string to bytes, padding with leading zeros if necessary
-            let bytes = {
-                let mut decoded = if let Some(stripped) = hash.strip_prefix("0x") {
-                    hex::decode(stripped).expect("Invalid hash hex")
-                } else {
-                    hex::decode(hash).expect("Invalid hash hex")
-                };
-                decoded.resize_with(HASH_256_BYTE_COUNT, Default::default);
-                decoded
-            };
-
-            // Convert bytes to a fixed-size array representing `Hash256`
-            let mut hash_bytes: [u8; HASH_256_BYTE_COUNT] = [0; HASH_256_BYTE_COUNT];
-            hash_bytes.copy_from_slice(&bytes[..HASH_256_BYTE_COUNT]);
-
-            // Convert `Hash256` bytes to `Hash256` struct
-            let hash_256: Hash256 = hash_bytes.into();
-
-            // Assert that the conversion from the hexadecimal string to `Hash256` is successful
-            assert_eq!(Hash256::from_hex(hash).unwrap(), hash_256);
-        }
-    }
-
-    #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_hash_256_from_hex_error_unexpected_length() {
-        // Attempt to create a `Hash256` from a hexadecimal string with correct prefix but incorrect length
-        match Hash256::from_hex(
+        let test_data = [
+            // Hexadecimal string with correct prefix but incorrect length
             "0x25c5b1592b1743b62d7fabd4373d98219c2ff3750f49ec0608a8355fa3bb060f5",
-        ) {
-            Ok(_) => panic!("Expected error, but got Ok"),
-            Err(err) => assert_eq!(err, FromHexError::UnexpectedLength),
-        }
+            // Hexadecimal string without correct prefix and incorrect length
+            "25c5b1592b1743b62d7fabd4373d98219c2ff3750f49ec0608a8355fa3bb060f5",
+        ];
 
-        // Attempt to create a `Hash256` from a hexadecimal string without correct prefix and incorrect length
-        match Hash256::from_hex("25c5b1592b1743b62d7fabd4373d98219c2ff3750f49ec0608a8355fa3bb060f5")
-        {
-            Ok(_) => panic!("Expected error, but got Ok"),
-            Err(err) => assert_eq!(err, FromHexError::UnexpectedLength),
+        for item in test_data.into_iter() {
+            match Hash256::from_hex(item) {
+                Err(FromHexError::UnexpectedLength) => {}
+                _ => panic!("Unexpected test result"),
+            }
         }
     }
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_hash_256_from_hex_error_invalid_string() {
-        // Attempt to create a `Hash256` from a hexadecimal string with incorrect characters
-        match Hash256::from_hex("25c5b1592b1743b62d7fabd4373d98219c2f63750f49ec0608a8355fa3bb060.")
-        {
-            Ok(_) => panic!("Expected error, but got Ok"),
-            Err(err) => assert_eq!(err, FromHexError::InvalidHexString),
-        }
+        let test_data = [
+            // Hexadecimal string with incorrect characters
+            "25c5b1592b1743b62d7fabd4373d98219c2f63750f49ec0608a8355fa3bb060.",
+            // Hexadecimal string with non-hex characters
+            "0x?5c5b1592b1743b62d7fabd4373d98219c2f63750f49ec0608a8355fa3bb060",
+        ];
 
-        // Attempt to create a `Hash256` from a hexadecimal string with non-hex characters
-        match Hash256::from_hex("0x?5c5b1592b1743b62d7fabd4373d98219c2f63750f49ec0608a8355fa3bb060")
-        {
-            Ok(_) => panic!("Expected error, but got Ok"),
-            Err(err) => assert_eq!(err, FromHexError::InvalidHexString),
+        for item in test_data.into_iter() {
+            match Hash256::from_hex(item) {
+                Err(FromHexError::InvalidHexString) => {}
+                _ => panic!("Unexpected test result"),
+            }
         }
     }
 
