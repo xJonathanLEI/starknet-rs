@@ -21,7 +21,7 @@ pub const TESTNET2: Felt = Felt::from_raw([
     1663542769632127759,
 ]);
 
-pub const SEPOLIA: FieldElement = FieldElement::from_mont([
+pub const SEPOLIA: Felt = Felt::from_raw([
     1555806712078248243,
     18446744073708869172,
     18446744073709551615,

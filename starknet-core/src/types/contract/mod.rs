@@ -265,7 +265,7 @@ enum BytecodeSegmentStructure {
 /// Represents a leaf in the bytecode segment tree.
 struct BytecodeLeaf {
     // NOTE: change this to a slice?
-    data: Vec<FieldElement>,
+    data: Vec<Felt>,
 }
 
 /// Internal structure used for post-Sierra-1.5.0 CASM hash calculation.
@@ -565,7 +565,7 @@ impl CompiledClass {
     // `visited_pcs` should be given in reverse order, and is consumed by the function. Returns the
     // BytecodeSegmentStructure and the total length of the processed segment.
     fn create_bytecode_segment_structure_inner(
-        bytecode: &[FieldElement],
+        bytecode: &[Felt],
         bytecode_segment_lengths: &IntOrList,
         visited_pcs: &mut Vec<u64>,
         bytecode_offset: &mut u64,
@@ -649,7 +649,7 @@ impl CompiledClass {
 }
 
 impl BytecodeSegmentStructure {
-    fn hash(&self) -> FieldElement {
+    fn hash(&self) -> Felt {
         match self {
             Self::BytecodeLeaf(inner) => inner.hash(),
             Self::BytecodeSegmentedNode(inner) => inner.hash(),
@@ -658,19 +658,19 @@ impl BytecodeSegmentStructure {
 }
 
 impl BytecodeLeaf {
-    fn hash(&self) -> FieldElement {
+    fn hash(&self) -> Felt {
         poseidon_hash_many(&self.data)
     }
 }
 
 impl BytecodeSegmentedNode {
-    fn hash(&self) -> FieldElement {
+    fn hash(&self) -> Felt {
         let mut hasher = PoseidonHasher::new();
         for node in self.segments.iter() {
             hasher.update(node.segment_length.into());
             hasher.update(node.inner_structure.hash());
         }
-        hasher.finalize() + FieldElement::ONE
+        hasher.finalize() + Felt::ONE
     }
 }
 
