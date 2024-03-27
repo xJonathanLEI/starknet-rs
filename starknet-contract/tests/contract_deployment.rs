@@ -24,7 +24,8 @@ async fn can_deploy_contract_to_alpha_sepolia() {
         Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
     let address =
-        Felt::from_hex("04284d0741ee00d8e4d6a02d21c0be58665f0e6e187cf48c509b1ac39cdeca65").unwrap();
+        Felt::from_hex("0x059e738b86f82e11cd5b4afaccfce1d5166700c92fb87be59ad4af908e9bf866")
+            .unwrap();
     let mut account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
