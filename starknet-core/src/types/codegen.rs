@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#1c8e5c6b5b12771ff714ddfd5978f80d96e067c1
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#5bbd4a4b24e18cbc12bfef96c9bbd8de81082031
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -22,15 +22,12 @@
 // - `TXN`
 // - `TXN_RECEIPT`
 
-use alloc::{format, string::String, vec::Vec};
+use alloc::{format, string::*, vec::*};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_with::serde_as;
 
-use crate::{
-    serde::{byte_array::base64, unsigned_field_element::UfeHex},
-    types::FieldElement,
-};
+use crate::serde::byte_array::base64;
 
 use super::{serde_impls::NumAsHex, *};
 

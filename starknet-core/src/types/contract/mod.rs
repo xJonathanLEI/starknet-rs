@@ -1,4 +1,4 @@
-use alloc::{format, string::String, vec::Vec};
+use alloc::{format, string::*, vec::*};
 
 use serde::{de::Visitor, ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json_pythonic::to_string_pythonic;
@@ -287,7 +287,7 @@ struct BytecodeSegment {
 }
 
 mod errors {
-    use alloc::string::String;
+    use alloc::string::*;
     use core::fmt::{Display, Formatter, Result};
 
     #[derive(Debug)]

@@ -1,4 +1,4 @@
-use alloc::string::String;
+use alloc::string::*;
 
 use crate::{crypto::compute_hash_on_elements, types::FieldElement};
 
