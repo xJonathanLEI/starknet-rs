@@ -214,6 +214,11 @@ fn mul_by_bits(x: &AffinePoint, y: &FieldElement) -> AffinePoint {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(not(feature = "std"))]
+    use alloc::collections::BTreeMap;
+    #[cfg(feature = "std")]
+    use std::collections::BTreeMap;
+
     use super::*;
     use crate::test_utils::field_element_from_be_hex;
 
@@ -250,34 +255,35 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_public_keys_from_json() {
         // Precomputed keys can be found here:
-        // https://github.com/starkware-libs/starkex-for-spot-trading/blob/master/src/starkware/crypto/starkware/crypto/signature/src/config/keys_precomputed.json
+        // https://github.com/starkware-libs/starkex-for-spot-trading/blob/607f0b4ce507e1d95cd018d206a2797f6ba4aab4/src/starkware/crypto/starkware/crypto/signature/src/config/keys_precomputed.json
 
         // Reading the JSON file
         let json_data = include_str!("../test-data/keys_precomputed.json");
 
         // Parsing the JSON
-        let key_map: serde_json::Map<String, serde_json::Value> =
+        let key_map: BTreeMap<String, String> =
             serde_json::from_str(json_data).expect("Unable to parse the JSON");
 
         // Iterating over each element in the JSON
-        for (private_key, expected_public_key) in key_map.iter() {
-            // Checking key and value lengths
-            let mut formatted_private_key = private_key.clone();
-            let mut formatted_expected_public_key =
-                expected_public_key.as_str().unwrap().to_string();
+        for (private_key, expected_public_key) in key_map.into_iter() {
+            let private_key = if private_key.len() % 2 != 0 {
+                format!("0{}", private_key.trim_start_matches("0x"))
+            } else {
+                private_key.trim_start_matches("0x").to_owned()
+            };
 
-            if private_key.len() % 2 != 0 {
-                formatted_private_key = format!("0{}", private_key);
-            }
-            if expected_public_key.as_str().unwrap().len() % 2 != 0 {
-                formatted_expected_public_key =
-                    format!("0{}", expected_public_key.as_str().unwrap());
-            }
+            let expected_public_key = if expected_public_key.len() % 2 != 0 {
+                format!("0{}", expected_public_key.trim_start_matches("0x"))
+            } else {
+                expected_public_key.trim_start_matches("0x").to_owned()
+            };
 
             // Assertion
             assert_eq!(
-                get_public_key(&field_element_from_be_hex(&formatted_private_key)),
-                field_element_from_be_hex(&formatted_expected_public_key)
+                get_public_key(&field_element_from_be_hex(
+                    private_key.trim_start_matches("0x")
+                )),
+                field_element_from_be_hex(expected_public_key.trim_start_matches("0x"))
             );
         }
     }
