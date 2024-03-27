@@ -5,20 +5,37 @@ use crate::curve_params::{ALPHA, BETA};
 use core::ops;
 
 /// A point on an elliptic curve over [FieldElement].
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug)]
 pub struct AffinePoint {
     pub x: FieldElement,
     pub y: FieldElement,
     pub infinity: bool,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug)]
 pub struct ProjectivePoint {
     pub x: FieldElement,
     pub y: FieldElement,
     pub z: FieldElement,
     pub infinity: bool,
 }
+
+impl PartialEq for AffinePoint {
+    fn eq(&self, other: &Self) -> bool {
+        if self.infinity && other.infinity {
+            // Two infinity points are considered equal
+            true
+        } else if self.infinity || other.infinity {
+            // An infinity point is not equal to a non-infinity point
+            false
+        } else {
+            // Compare the x and y coordinates
+            self.x == other.x && self.y == other.y
+        }
+    }
+}
+
+impl Eq for AffinePoint {}
 
 impl AffinePoint {
     pub fn from_x(x: FieldElement) -> Option<Self> {
@@ -148,6 +165,23 @@ impl ops::Mul<&[bool]> for &AffinePoint {
         product
     }
 }
+
+impl PartialEq for ProjectivePoint {
+    fn eq(&self, other: &Self) -> bool {
+        if self.infinity && other.infinity {
+            // Two infinity points are considered equal
+            true
+        } else if self.infinity || other.infinity {
+            // An infinity point is not equal to a non-infinity point
+            false
+        } else {
+            // Compare the affine coordinates after applying the inverse of z-coordinates
+            self.x * other.z == other.x * self.z && self.y * other.z == other.y * self.z
+        }
+    }
+}
+
+impl Eq for ProjectivePoint {}
 
 impl ProjectivePoint {
     pub const fn from_affine_point(p: &AffinePoint) -> Self {
