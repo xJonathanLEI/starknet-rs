@@ -286,7 +286,7 @@ impl ops::Mul<&BitArray<[u64; 4]>> for &ProjectivePoint {
     #[allow(clippy::suspicious_arithmetic_impl)]
     fn mul(self, rhs: &BitArray<[u64; 4]>) -> Self::Output {
         let mut product = ProjectivePoint::identity();
-        for b in rhs.iter().rev().skip_while(|b| !*b) {
+        for b in rhs.iter().rev() {
             product.double_assign();
             if *b {
                 product += self;
