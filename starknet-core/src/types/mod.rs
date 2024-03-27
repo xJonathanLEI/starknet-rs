@@ -59,6 +59,9 @@ pub mod requests;
 pub mod contract;
 pub use contract::ContractArtifact;
 
+pub mod byte_array;
+pub use byte_array::ByteArray;
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePendingBlockWithTxHashes {
