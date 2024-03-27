@@ -23,7 +23,11 @@ impl SerializeAs<FieldElement> for UfeHex {
     where
         S: Serializer,
     {
-        serializer.serialize_str(&format!("{value:#x}"))
+        if serializer.is_human_readable() {
+            serializer.serialize_str(&format!("{value:#x}"))
+        } else {
+            serializer.serialize_bytes(&value.to_bytes_be())
+        }
     }
 }
 
@@ -32,7 +36,11 @@ impl<'de> DeserializeAs<'de, FieldElement> for UfeHex {
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_any(UfeHexVisitor)
+        if deserializer.is_human_readable() {
+            deserializer.deserialize_any(UfeHexVisitor)
+        } else {
+            deserializer.deserialize_bytes(UfeHexVisitor)
+        }
     }
 }
 
@@ -40,7 +48,7 @@ impl<'de> Visitor<'de> for UfeHexVisitor {
     type Value = FieldElement;
 
     fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
-        write!(formatter, "string")
+        write!(formatter, "a hex string, or an array of u8")
     }
 
     fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
@@ -49,6 +57,11 @@ impl<'de> Visitor<'de> for UfeHexVisitor {
     {
         FieldElement::from_hex_be(v)
             .map_err(|err| DeError::custom(format!("invalid hex string: {err}")))
+    }
+
+    fn visit_bytes<E: serde::de::Error>(self, v: &[u8]) -> Result<Self::Value, E> {
+        let buf = <[u8; 32]>::try_from(v).map_err(serde::de::Error::custom)?;
+        FieldElement::from_bytes_be(&buf).map_err(serde::de::Error::custom)
     }
 }
 
