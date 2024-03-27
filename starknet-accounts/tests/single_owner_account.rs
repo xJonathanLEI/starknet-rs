@@ -270,6 +270,7 @@ async fn can_execute_eth_transfer_inner<P: Provider + Send + Sync>(provider: P, 
                 FieldElement::ZERO,
             ],
         }])
+        .max_fee(FieldElement::from_dec_str("1000000000000000000").unwrap())
         .send()
         .await
         .unwrap();
@@ -321,6 +322,7 @@ async fn can_declare_cairo1_contract_inner<P: Provider + Send + Sync>(provider: 
             Arc::new(flattened_class),
             FieldElement::from_hex_be(&hashes.compiled_class_hash).unwrap(),
         )
+        .max_fee(FieldElement::from_dec_str("1000000000000000000").unwrap())
         .send()
         .await
         .unwrap();
@@ -366,9 +368,7 @@ async fn can_declare_cairo0_contract_inner<P: Provider + Send + Sync>(provider: 
 
     let result = account
         .declare_legacy(Arc::new(contract_artifact))
-        // There seems to be a fee estimation issue with `pathfinder`
-        //   https://github.com/eqlabs/pathfinder/issues/1372
-        .fee_estimate_multiplier(2.0)
+        .max_fee(FieldElement::from_dec_str("1000000000000000000").unwrap())
         .send()
         .await
         .unwrap();

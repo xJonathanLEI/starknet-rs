@@ -52,6 +52,7 @@ async fn can_deploy_contract_to_alpha_sepolia() {
             FieldElement::from_bytes_be(&salt_buffer).unwrap(),
             true,
         )
+        .max_fee(FieldElement::from_dec_str("1000000000000000000").unwrap())
         .send()
         .await;
 
