@@ -37,6 +37,9 @@ pub fn pedersen_hash(x: &Felt, y: &Felt) -> Felt {
     add_points(&mut acc, &y[..248], &CURVE_CONSTS_P2); // Add b_low * P3
     add_points(&mut acc, &y[248..252], &CURVE_CONSTS_P3); // Add b_high * P4
 
+    // Convert to affine
+    let result = AffinePoint::from(&acc);
+
     // Return x-coordinate
     result.x
 }
