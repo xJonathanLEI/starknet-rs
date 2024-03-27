@@ -1681,6 +1681,7 @@ dependencies = [
  "starknet-macros",
  "starknet-providers",
  "starknet-signers",
+ "starknet-types-core",
  "tokio",
  "url",
 ]
