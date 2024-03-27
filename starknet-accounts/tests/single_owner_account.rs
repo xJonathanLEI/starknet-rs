@@ -173,11 +173,7 @@ async fn can_estimate_fee_inner<P: Provider + Send + Sync>(provider: P, address:
         .execute(vec![Call {
             to: eth_token_address,
             selector: get_selector_from_name("transfer").unwrap(),
-            calldata: vec![
-                FieldElement::from_hex("0x1234").unwrap(),
-                FieldElement::ONE,
-                FieldElement::ZERO,
-            ],
+            calldata: vec![Felt::from_hex("0x1234").unwrap(), Felt::ONE, Felt::ZERO],
         }])
         .estimate_fee()
         .await
@@ -247,11 +243,7 @@ async fn can_execute_eth_transfer_inner<P: Provider + Send + Sync>(provider: P, 
         .execute(vec![Call {
             to: eth_token_address,
             selector: get_selector_from_name("transfer").unwrap(),
-            calldata: vec![
-                FieldElement::from_hex("0x1234").unwrap(),
-                FieldElement::ONE,
-                FieldElement::ZERO,
-            ],
+            calldata: vec![Felt::from_hex("0x1234").unwrap(), Felt::ONE, Felt::ZERO],
         }])
         .max_fee(Felt::from_dec_str("1000000000000000000").unwrap())
         .send()
@@ -272,7 +264,7 @@ async fn can_declare_cairo1_contract_inner<P: Provider + Send + Sync>(provider: 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex(address).unwrap();
+    let address = Felt::from_hex(address).unwrap();
     let mut account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
@@ -318,7 +310,7 @@ async fn can_declare_cairo0_contract_inner<P: Provider + Send + Sync>(provider: 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex(address).unwrap();
+    let address = Felt::from_hex(address).unwrap();
     let mut account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
