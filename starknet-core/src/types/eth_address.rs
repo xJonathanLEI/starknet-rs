@@ -246,8 +246,8 @@ mod tests {
             let address_with_random = format!(
                 "{}{}{}",
                 chars,
-                if address.starts_with("0x") {
-                    &address[2..]
+                if let Some(stripped) = address.strip_prefix("0x") {
+                    stripped
                 } else {
                     address
                 },
