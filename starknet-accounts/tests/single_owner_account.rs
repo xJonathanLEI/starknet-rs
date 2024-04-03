@@ -27,12 +27,12 @@ const CHAIN_ID: FieldElement = FieldElement::from_mont([
 ]);
 
 fn create_sequencer_client() -> SequencerGatewayProvider {
-    SequencerGatewayProvider::starknet_alpha_goerli()
+    SequencerGatewayProvider::starknet_alpha_sepolia()
 }
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     let rpc_url = std::env::var("STARKNET_RPC")
-        .unwrap_or("https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_6".into());
+        .unwrap_or("https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_7".into());
     JsonRpcClient::new(HttpTransport::new(url::Url::parse(&rpc_url).unwrap()))
 }
 

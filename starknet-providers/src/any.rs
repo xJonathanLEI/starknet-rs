@@ -4,10 +4,10 @@ use starknet_core::types::{
     BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
-    MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-    MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag,
-    SimulationFlagForEstimateFee, SyncStatusType, Transaction, TransactionStatus, TransactionTrace,
-    TransactionTraceWithHash,
+    MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
+    MaybePendingStateUpdate, MsgFromL1, SimulatedTransaction, SimulationFlag,
+    SimulationFlagForEstimateFee, SyncStatusType, Transaction, TransactionReceiptWithBlockInfo,
+    TransactionStatus, TransactionTrace, TransactionTraceWithHash,
 };
 
 use crate::{
@@ -79,6 +79,25 @@ impl Provider for AnyProvider {
             }
             Self::SequencerGateway(inner) => {
                 <SequencerGatewayProvider as Provider>::get_block_with_txs(inner, block_id).await
+            }
+        }
+    }
+
+    async fn get_block_with_receipts<B>(
+        &self,
+        block_id: B,
+    ) -> Result<MaybePendingBlockWithReceipts, ProviderError>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => {
+                <JsonRpcClient<HttpTransport> as Provider>::get_block_with_receipts(inner, block_id)
+                    .await
+            }
+            Self::SequencerGateway(inner) => {
+                <SequencerGatewayProvider as Provider>::get_block_with_receipts(inner, block_id)
+                    .await
             }
         }
     }
@@ -210,7 +229,7 @@ impl Provider for AnyProvider {
     async fn get_transaction_receipt<H>(
         &self,
         transaction_hash: H,
-    ) -> Result<MaybePendingTransactionReceipt, ProviderError>
+    ) -> Result<TransactionReceiptWithBlockInfo, ProviderError>
     where
         H: AsRef<FieldElement> + Send + Sync,
     {

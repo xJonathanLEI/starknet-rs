@@ -127,19 +127,11 @@ impl SequencerGatewayProvider {
         )
     }
 
-    pub fn starknet_alpha_goerli() -> Self {
+    pub fn starknet_alpha_sepolia() -> Self {
         Self::new(
-            Url::parse("https://alpha4.starknet.io/gateway").unwrap(),
-            Url::parse("https://alpha4.starknet.io/feeder_gateway").unwrap(),
-            chain_id::TESTNET,
-        )
-    }
-
-    pub fn starknet_alpha_goerli_2() -> Self {
-        Self::new(
-            Url::parse("https://alpha4-2.starknet.io/gateway").unwrap(),
-            Url::parse("https://alpha4-2.starknet.io/feeder_gateway").unwrap(),
-            chain_id::TESTNET2,
+            Url::parse("https://alpha-sepolia.starknet.io/gateway").unwrap(),
+            Url::parse("https://alpha-sepolia.starknet.io/feeder_gateway").unwrap(),
+            chain_id::SEPOLIA,
         )
     }
 }

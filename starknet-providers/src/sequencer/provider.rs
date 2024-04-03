@@ -8,10 +8,10 @@ use starknet_core::types::{
     BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
-    MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-    MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag,
-    SimulationFlagForEstimateFee, StarknetError, SyncStatusType, Transaction, TransactionStatus,
-    TransactionTrace, TransactionTraceWithHash,
+    MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
+    MaybePendingStateUpdate, MsgFromL1, SimulatedTransaction, SimulationFlag,
+    SimulationFlagForEstimateFee, StarknetError, SyncStatusType, Transaction,
+    TransactionReceiptWithBlockInfo, TransactionStatus, TransactionTrace, TransactionTraceWithHash,
 };
 
 use crate::{
@@ -27,7 +27,7 @@ use super::models::TransactionFinalityStatus;
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl Provider for SequencerGatewayProvider {
     async fn spec_version(&self) -> Result<String, ProviderError> {
-        Ok(String::from("0.6.0"))
+        Ok(String::from("0.7.1"))
     }
 
     async fn get_block_with_tx_hashes<B>(
@@ -47,6 +47,19 @@ impl Provider for SequencerGatewayProvider {
         &self,
         block_id: B,
     ) -> Result<MaybePendingBlockWithTxs, ProviderError>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+    {
+        Ok(self
+            .get_block(block_id.as_ref().to_owned().into())
+            .await?
+            .try_into()?)
+    }
+
+    async fn get_block_with_receipts<B>(
+        &self,
+        block_id: B,
+    ) -> Result<MaybePendingBlockWithReceipts, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
@@ -145,7 +158,7 @@ impl Provider for SequencerGatewayProvider {
     async fn get_transaction_receipt<H>(
         &self,
         transaction_hash: H,
-    ) -> Result<MaybePendingTransactionReceipt, ProviderError>
+    ) -> Result<TransactionReceiptWithBlockInfo, ProviderError>
     where
         H: AsRef<FieldElement> + Send + Sync,
     {

@@ -19,7 +19,7 @@ async fn main() {
         serde_json::from_reader(std::fs::File::open("/path/to/contract/artifact.json").unwrap())
             .unwrap();
     let provider = JsonRpcClient::new(HttpTransport::new(
-        Url::parse("https://starknet-testnet.public.blastapi.io/rpc/v0_6").unwrap(),
+        Url::parse("https://starknet-sepolia.public.blastapi.io/rpc/v0_7").unwrap(),
     ));
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
@@ -31,7 +31,7 @@ async fn main() {
         provider,
         signer,
         address,
-        chain_id::TESTNET,
+        chain_id::SEPOLIA,
         ExecutionEncoding::New,
     );
 

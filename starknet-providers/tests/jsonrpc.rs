@@ -3,8 +3,8 @@ use starknet_core::{
         BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1,
         BroadcastedTransaction, ContractClass, DeclareTransaction, DeployAccountTransaction,
         EthAddress, EventFilter, ExecuteInvocation, ExecutionResult, FieldElement, FunctionCall,
-        InvokeTransaction, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
-        MaybePendingStateUpdate, MaybePendingTransactionReceipt, MsgFromL1, StarknetError,
+        InvokeTransaction, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
+        MaybePendingBlockWithTxs, MaybePendingStateUpdate, MsgFromL1, StarknetError,
         SyncStatusType, Transaction, TransactionExecutionStatus, TransactionReceipt,
         TransactionStatus, TransactionTrace,
     },
@@ -18,7 +18,7 @@ use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     let rpc_url = std::env::var("STARKNET_RPC")
-        .unwrap_or("https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_6".into());
+        .unwrap_or("https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_7".into());
     JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()))
 }
 
@@ -28,7 +28,7 @@ async fn jsonrpc_spec_version() {
 
     let version = rpc_client.spec_version().await.unwrap();
 
-    assert_eq!(version, "0.6.0");
+    assert_eq!(version, "0.7.1");
 }
 
 #[tokio::test]
@@ -59,6 +59,23 @@ async fn jsonrpc_get_block_with_txs() {
 
     let block = match block {
         MaybePendingBlockWithTxs::Block(block) => block,
+        _ => panic!("unexpected block response type"),
+    };
+
+    assert!(block.block_number > 0);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_block_with_receipts() {
+    let rpc_client = create_jsonrpc_client();
+
+    let block = rpc_client
+        .get_block_with_receipts(BlockId::Tag(BlockTag::Latest))
+        .await
+        .unwrap();
+
+    let block = match block {
+        MaybePendingBlockWithReceipts::Block(block) => block,
         _ => panic!("unexpected block response type"),
     };
 
@@ -265,6 +282,28 @@ async fn jsonrpc_get_transaction_by_hash_declare_v2() {
     assert!(tx.sender_address > FieldElement::ZERO);
 }
 
+#[tokio::test]
+async fn jsonrpc_get_transaction_by_hash_declare_v3() {
+    let rpc_client = create_jsonrpc_client();
+
+    let tx = rpc_client
+        .get_transaction_by_hash(
+            FieldElement::from_hex_be(
+                "054270d103c875a613e013d1fd555edcff2085feca9d7b4532243a8257fd5cf3",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let tx = match tx {
+        Transaction::Declare(DeclareTransaction::V3(tx)) => tx,
+        _ => panic!("unexpected tx response type"),
+    };
+
+    assert!(tx.sender_address > FieldElement::ZERO);
+}
+
 // Test case `jsonrpc_get_transaction_by_hash_deploy` was removed as there is no `DEPLOY`
 // transaction on the Sepolia network.
 
@@ -284,6 +323,28 @@ async fn jsonrpc_get_transaction_by_hash_deploy_account_v1() {
 
     let tx = match tx {
         Transaction::DeployAccount(DeployAccountTransaction::V1(tx)) => tx,
+        _ => panic!("unexpected tx response type"),
+    };
+
+    assert!(tx.class_hash > FieldElement::ZERO);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_transaction_by_hash_deploy_account_v3() {
+    let rpc_client = create_jsonrpc_client();
+
+    let tx = rpc_client
+        .get_transaction_by_hash(
+            FieldElement::from_hex_be(
+                "011c67fb3a9a623b3190c9ac41ebf7f5dd421f2583344c498a30a7280c660f01",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let tx = match tx {
+        Transaction::DeployAccount(DeployAccountTransaction::V3(tx)) => tx,
         _ => panic!("unexpected tx response type"),
     };
 
@@ -338,8 +399,10 @@ async fn jsonrpc_get_transaction_receipt_invoke() {
         .await
         .unwrap();
 
-    let receipt = match receipt {
-        MaybePendingTransactionReceipt::Receipt(TransactionReceipt::Invoke(receipt)) => receipt,
+    assert!(receipt.block.is_block());
+
+    let receipt = match receipt.receipt {
+        TransactionReceipt::Invoke(receipt) => receipt,
         _ => panic!("unexpected receipt response type"),
     };
 
@@ -363,8 +426,10 @@ async fn jsonrpc_get_transaction_receipt_invoke_reverted() {
         .await
         .unwrap();
 
-    let receipt = match receipt {
-        MaybePendingTransactionReceipt::Receipt(TransactionReceipt::Invoke(receipt)) => receipt,
+    assert!(receipt.block.is_block());
+
+    let receipt = match receipt.receipt {
+        TransactionReceipt::Invoke(receipt) => receipt,
         _ => panic!("unexpected receipt response type"),
     };
 
@@ -391,8 +456,10 @@ async fn jsonrpc_get_transaction_receipt_l1_handler() {
         _ => panic!("unexpected tx type"),
     };
 
-    let receipt = match receipt {
-        MaybePendingTransactionReceipt::Receipt(TransactionReceipt::L1Handler(receipt)) => receipt,
+    assert!(receipt.block.is_block());
+
+    let receipt = match receipt.receipt {
+        TransactionReceipt::L1Handler(receipt) => receipt,
         _ => panic!("unexpected receipt response type"),
     };
 
@@ -418,8 +485,10 @@ async fn jsonrpc_get_transaction_receipt_declare() {
         .await
         .unwrap();
 
-    let receipt = match receipt {
-        MaybePendingTransactionReceipt::Receipt(TransactionReceipt::Declare(receipt)) => receipt,
+    assert!(receipt.block.is_block());
+
+    let receipt = match receipt.receipt {
+        TransactionReceipt::Declare(receipt) => receipt,
         _ => panic!("unexpected receipt response type"),
     };
 
@@ -446,10 +515,10 @@ async fn jsonrpc_get_transaction_receipt_deploy_account() {
         .await
         .unwrap();
 
-    let receipt = match receipt {
-        MaybePendingTransactionReceipt::Receipt(TransactionReceipt::DeployAccount(receipt)) => {
-            receipt
-        }
+    assert!(receipt.block.is_block());
+
+    let receipt = match receipt.receipt {
+        TransactionReceipt::DeployAccount(receipt) => receipt,
         _ => panic!("unexpected receipt response type"),
     };
 

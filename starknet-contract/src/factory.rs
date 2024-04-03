@@ -199,13 +199,13 @@ mod tests {
             )
             .unwrap(),
             SingleOwnerAccount::new(
-                SequencerGatewayProvider::starknet_alpha_goerli(),
+                SequencerGatewayProvider::starknet_alpha_sepolia(),
                 LocalWallet::from_signing_key(SigningKey::from_random()),
                 FieldElement::from_hex_be(
                     "0xb1461de04c6a1aa3375bdf9b7723a8779c082ffe21311d683a0b15c078b5dc",
                 )
                 .unwrap(),
-                chain_id::TESTNET,
+                chain_id::SEPOLIA,
                 ExecutionEncoding::Legacy,
             ),
         );

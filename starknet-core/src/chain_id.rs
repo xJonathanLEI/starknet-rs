@@ -7,6 +7,7 @@ pub const MAINNET: FieldElement = FieldElement::from_mont([
     502562008147966918,
 ]);
 
+#[deprecated = "The Goerli testnet has been shutdown"]
 pub const TESTNET: FieldElement = FieldElement::from_mont([
     3753493103916128178,
     18446744073709548950,
@@ -14,6 +15,7 @@ pub const TESTNET: FieldElement = FieldElement::from_mont([
     398700013197595345,
 ]);
 
+#[deprecated = "The Goerli testnet has been shutdown"]
 pub const TESTNET2: FieldElement = FieldElement::from_mont([
     1663542769632127759,
     18446744073708869172,
@@ -35,6 +37,7 @@ mod test {
     use super::*;
 
     #[test]
+    #[allow(deprecated)]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_chain_ids() {
         for (text, felt) in [

@@ -18,7 +18,7 @@ async fn main() {
     let salt = felt!("12345678");
 
     let provider = JsonRpcClient::new(HttpTransport::new(
-        Url::parse("https://starknet-testnet.public.blastapi.io/rpc/v0_6").unwrap(),
+        Url::parse("https://starknet-sepolia.public.blastapi.io/rpc/v0_7").unwrap(),
     ));
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
@@ -27,7 +27,7 @@ async fn main() {
 
     let factory = ArgentAccountFactory::new(
         class_hash,
-        chain_id::TESTNET,
+        chain_id::SEPOLIA,
         FieldElement::ZERO,
         signer,
         provider,

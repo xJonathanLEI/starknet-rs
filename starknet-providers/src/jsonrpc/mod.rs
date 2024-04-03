@@ -10,11 +10,11 @@ use starknet_core::{
         BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
         ContractClass, ContractErrorData, DeclareTransactionResult, DeployAccountTransactionResult,
         EventFilter, EventFilterWithPage, EventsPage, FeeEstimate, FieldElement, FunctionCall,
-        InvokeTransactionResult, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
-        MaybePendingStateUpdate, MaybePendingTransactionReceipt, MsgFromL1,
-        NoTraceAvailableErrorData, ResultPageRequest, SimulatedTransaction, SimulationFlag,
-        SimulationFlagForEstimateFee, StarknetError, SyncStatusType, Transaction,
-        TransactionExecutionErrorData, TransactionStatus, TransactionTrace,
+        InvokeTransactionResult, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
+        MaybePendingBlockWithTxs, MaybePendingStateUpdate, MsgFromL1, NoTraceAvailableErrorData,
+        ResultPageRequest, SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee,
+        StarknetError, SyncStatusType, Transaction, TransactionExecutionErrorData,
+        TransactionReceiptWithBlockInfo, TransactionStatus, TransactionTrace,
         TransactionTraceWithHash,
     },
 };
@@ -37,6 +37,8 @@ pub enum JsonRpcMethod {
     GetBlockWithTxHashes,
     #[serde(rename = "starknet_getBlockWithTxs")]
     GetBlockWithTxs,
+    #[serde(rename = "starknet_getBlockWithReceipts")]
+    GetBlockWithReceipts,
     #[serde(rename = "starknet_getStateUpdate")]
     GetStateUpdate,
     #[serde(rename = "starknet_getStorageAt")]
@@ -100,6 +102,7 @@ pub enum JsonRpcRequestData {
     SpecVersion(SpecVersionRequest),
     GetBlockWithTxHashes(GetBlockWithTxHashesRequest),
     GetBlockWithTxs(GetBlockWithTxsRequest),
+    GetBlockWithReceipts(GetBlockWithReceiptsRequest),
     GetStateUpdate(GetStateUpdateRequest),
     GetStorageAt(GetStorageAtRequest),
     GetTransactionStatus(GetTransactionStatusRequest),
@@ -249,6 +252,23 @@ where
         .await
     }
 
+    /// Get block information with full transactions and receipts given the block id
+    async fn get_block_with_receipts<B>(
+        &self,
+        block_id: B,
+    ) -> Result<MaybePendingBlockWithReceipts, ProviderError>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+    {
+        self.send_request(
+            JsonRpcMethod::GetBlockWithReceipts,
+            GetBlockWithReceiptsRequestRef {
+                block_id: block_id.as_ref(),
+            },
+        )
+        .await
+    }
+
     /// Get the information about the result of executing the requested block
     async fn get_state_update<B>(
         &self,
@@ -349,7 +369,7 @@ where
     async fn get_transaction_receipt<H>(
         &self,
         transaction_hash: H,
-    ) -> Result<MaybePendingTransactionReceipt, ProviderError>
+    ) -> Result<TransactionReceiptWithBlockInfo, ProviderError>
     where
         H: AsRef<FieldElement> + Send + Sync,
     {
@@ -711,6 +731,10 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
             ),
             JsonRpcMethod::GetBlockWithTxs => JsonRpcRequestData::GetBlockWithTxs(
                 serde_json::from_value::<GetBlockWithTxsRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::GetBlockWithReceipts => JsonRpcRequestData::GetBlockWithReceipts(
+                serde_json::from_value::<GetBlockWithReceiptsRequest>(raw_request.params)
                     .map_err(error_mapper)?,
             ),
             JsonRpcMethod::GetStateUpdate => JsonRpcRequestData::GetStateUpdate(
