@@ -5,10 +5,10 @@ use starknet_core::types::{
     BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
     EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
-    MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-    MaybePendingTransactionReceipt, MsgFromL1, SimulatedTransaction, SimulationFlag,
-    SimulationFlagForEstimateFee, StarknetError, SyncStatusType, Transaction, TransactionStatus,
-    TransactionTrace, TransactionTraceWithHash,
+    MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
+    MaybePendingStateUpdate, MsgFromL1, SimulatedTransaction, SimulationFlag,
+    SimulationFlagForEstimateFee, StarknetError, SyncStatusType, Transaction,
+    TransactionReceiptWithBlockInfo, TransactionStatus, TransactionTrace, TransactionTraceWithHash,
 };
 use std::{any::Any, error::Error, fmt::Debug};
 
@@ -32,6 +32,14 @@ pub trait Provider {
         &self,
         block_id: B,
     ) -> Result<MaybePendingBlockWithTxs, ProviderError>
+    where
+        B: AsRef<BlockId> + Send + Sync;
+
+    /// Get block information with full transactions and receipts given the block id
+    async fn get_block_with_receipts<B>(
+        &self,
+        block_id: B,
+    ) -> Result<MaybePendingBlockWithReceipts, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync;
 
@@ -85,7 +93,7 @@ pub trait Provider {
     async fn get_transaction_receipt<H>(
         &self,
         transaction_hash: H,
-    ) -> Result<MaybePendingTransactionReceipt, ProviderError>
+    ) -> Result<TransactionReceiptWithBlockInfo, ProviderError>
     where
         H: AsRef<FieldElement> + Send + Sync;
 

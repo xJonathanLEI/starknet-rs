@@ -131,7 +131,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "transaction with the same criteria not found in goerli-integration yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_trace_deser_with_validation() {
         let trace = serde_json::from_str::<TransactionTrace>(include_str!(
@@ -155,17 +154,5 @@ mod tests {
             None => panic!("Empty call_type"),
         }
         assert!(&new_tx.function_invocation.unwrap().class_hash.is_some());
-
-        let old_tx: TransactionTrace = serde_json::from_str(include_str!(
-            "../../../test-data/raw_gateway_responses/get_transaction_trace/1_with_messages.txt"
-        ))
-        .unwrap();
-        assert!(&old_tx
-            .function_invocation
-            .as_ref()
-            .unwrap()
-            .call_type
-            .is_none());
-        assert!(&old_tx.function_invocation.unwrap().class_hash.is_none());
     }
 }

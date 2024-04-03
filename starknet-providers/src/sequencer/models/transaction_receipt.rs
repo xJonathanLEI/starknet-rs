@@ -2,7 +2,7 @@ use serde::Deserialize;
 use serde_with::serde_as;
 use starknet_core::{
     serde::unsigned_field_element::{UfeHex, UfePendingBlockHash},
-    types::FieldElement,
+    types::{DataAvailabilityResources, FieldElement},
 };
 
 use super::{L1Address, TransactionFailureReason};
@@ -74,6 +74,7 @@ pub struct ExecutionResources {
     pub n_steps: u64,
     pub n_memory_holes: u64,
     pub builtin_instance_counter: BuiltinInstanceCounter,
+    pub data_availability: Option<DataAvailabilityResources>,
 }
 
 #[derive(Debug, Deserialize)]

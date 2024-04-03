@@ -9,7 +9,7 @@ use starknet::{
 #[tokio::main]
 async fn main() {
     let provider = JsonRpcClient::new(HttpTransport::new(
-        Url::parse("https://starknet-testnet.public.blastapi.io/rpc/v0_6").unwrap(),
+        Url::parse("https://starknet-sepolia.public.blastapi.io/rpc/v0_7").unwrap(),
     ));
 
     let latest_block = provider

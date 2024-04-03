@@ -79,7 +79,7 @@ mod tests {
             .storage_diffs
             .get(
                 &FieldElement::from_hex_be(
-                    "0xdc2e5d3d73589a12037d1cdf1ba3f69bde2e8983faa0a5c6b3b051b2c46e14",
+                    "0x197b9913e67947b0605934ec72db497d341a0199282c1da6d4aae46b17e0e76",
                 )
                 .unwrap(),
             )
@@ -88,28 +88,14 @@ mod tests {
         assert_eq!(
             storage_diff.key,
             FieldElement::from_hex_be(
-                "0x23444ef42446d7a7ebaaceea3dedfa11c3306fa839f98611e5efcd38ea59350"
+                "0x34c0d833897dbc937dd35e9f49a5184aecd6ab47829de999f9587549f82d0e"
             )
             .unwrap()
         );
         assert_eq!(
             storage_diff.value,
-            FieldElement::from_hex_be("0x7c7").unwrap()
-        );
-
-        let deployed_contract = &state_update.state_diff.deployed_contracts[0];
-
-        assert_eq!(
-            deployed_contract.address,
             FieldElement::from_hex_be(
-                "0xa251264114855c3d59281ad5a912730fbba38dddbcce7abce115440db7868f"
-            )
-            .unwrap()
-        );
-        assert_eq!(
-            deployed_contract.class_hash,
-            FieldElement::from_hex_be(
-                "048498ebae1afc22157322db4bb7814b668c7ee20237cc8be64d934649679da1"
+                "0x74fd8ca6e84097ad9ae00febfb690ad032fc4477155ec2193382c1b30b5e12b"
             )
             .unwrap()
         );
@@ -133,7 +119,7 @@ mod tests {
         );
 
         let state_update: StateUpdate = serde_json::from_str(raw).unwrap();
-        assert_eq!(state_update.state_diff.nonces.len(), 1);
+        assert_eq!(state_update.state_diff.nonces.len(), 2);
     }
 
     #[test]
@@ -146,7 +132,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "block with the same criteria not found in goerli-integration yet"]
+    #[ignore = "block with the same criteria not found in alpha-sepolia yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_state_update_deser_with_replaced_classes() {
         let raw = include_str!(
@@ -155,5 +141,16 @@ mod tests {
 
         let state_update: StateUpdate = serde_json::from_str(raw).unwrap();
         assert_eq!(state_update.state_diff.replaced_classes.len(), 1);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_state_update_deser_with_deployed_contracts() {
+        let raw = include_str!(
+            "../../../test-data/raw_gateway_responses/get_state_update/7_with_deployed_contracts.txt"
+        );
+
+        let state_update: StateUpdate = serde_json::from_str(raw).unwrap();
+        assert_eq!(state_update.state_diff.deployed_contracts.len(), 5);
     }
 }

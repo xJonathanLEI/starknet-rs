@@ -25,7 +25,7 @@ async fn main() {
         FieldElement::from_hex_be("COMPILED_CASM_CLASS_HASH_IN_HEX_HERE").unwrap();
 
     let provider = JsonRpcClient::new(HttpTransport::new(
-        Url::parse("https://starknet-testnet.public.blastapi.io/rpc/v0_6").unwrap(),
+        Url::parse("https://starknet-sepolia.public.blastapi.io/rpc/v0_7").unwrap(),
     ));
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
@@ -37,7 +37,7 @@ async fn main() {
         provider,
         signer,
         address,
-        chain_id::TESTNET,
+        chain_id::SEPOLIA,
         ExecutionEncoding::New,
     );
 

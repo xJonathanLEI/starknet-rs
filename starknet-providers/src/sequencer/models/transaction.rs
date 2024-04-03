@@ -11,7 +11,7 @@ use super::{
     TransactionStatus,
 };
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type", rename_all = "SCREAMING_SNAKE_CASE")]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub enum TransactionType {
@@ -83,7 +83,7 @@ pub enum EntryPointType {
 }
 
 #[serde_as]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct DeclareTransaction {
     #[serde_as(as = "UfeHex")]
@@ -115,7 +115,7 @@ pub struct DeclareTransaction {
 }
 
 #[serde_as]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct DeployTransaction {
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
@@ -133,7 +133,7 @@ pub struct DeployTransaction {
 }
 
 #[serde_as]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct DeployAccountTransaction {
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
@@ -169,7 +169,7 @@ pub struct DeployAccountTransaction {
 }
 
 #[serde_as]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct InvokeFunctionTransaction {
     #[serde_as(as = "UfeHex")]
@@ -203,7 +203,7 @@ pub struct InvokeFunctionTransaction {
 }
 
 #[serde_as]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct L1HandlerTransaction {
     #[serde_as(as = "UfeHex")]
@@ -220,7 +220,7 @@ pub struct L1HandlerTransaction {
     pub version: FieldElement,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub struct ResourceBoundsMapping {
@@ -228,7 +228,7 @@ pub struct ResourceBoundsMapping {
     pub l2_gas: ResourceBounds,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ResourceBounds {
     #[serde(with = "u64_hex")]
@@ -237,7 +237,7 @@ pub struct ResourceBounds {
     pub max_price_per_unit: u128,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum DataAvailabilityMode {
     L1,
     L2,
@@ -311,15 +311,16 @@ mod tests {
             include_str!("../../../test-data/raw_gateway_responses/get_transaction/1_invoke.txt");
         let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
 
-        assert_eq!(tx.block_number, Some(100));
+        assert_eq!(tx.block_number, Some(5));
         if let TransactionType::InvokeFunction(invoke) = tx.r#type.unwrap() {
-            assert_eq!(invoke.signature.len(), 0);
+            assert_eq!(invoke.signature.len(), 2);
         } else {
             panic!("Did not deserialize TransactionType::InvokeFunction properly")
         }
     }
 
     #[test]
+    #[ignore = "transaction with the same criteria not found in alpha-sepolia yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_full_deploy_transaction() {
         let raw =
@@ -347,7 +348,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "transaction with the same criteria not found in goerli-integration yet"]
+    #[ignore = "transaction with the same criteria not found in alpha-sepolia yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_failure() {
         let raw =
@@ -388,7 +389,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "transaction with the same criteria not found in goerli-integration yet"]
+    #[ignore = "transaction with the same criteria not found in alpha-sepolia yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_reverted() {
         let raw =
@@ -463,7 +464,7 @@ mod tests {
             tx.block_hash,
             Some(
                 FieldElement::from_hex_be(
-                    "0x42553deb16a14de4153f28312971f825e83d924e0f2883c1178de86a64a398f"
+                    "0x13b390a0b2c48f907cda28c73a12aa31b96d51bc1be004ba5f71174d8d70e4f"
                 )
                 .unwrap()
             )
@@ -484,7 +485,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "transaction with the same criteria not found in goerli-integration yet"]
+    #[ignore = "transaction with the same criteria not found in alpha-sepolia yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_brief_failure() {
         let raw = include_str!(
@@ -499,7 +500,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "transaction with the same criteria not found in goerli-integration yet"]
+    #[ignore = "transaction with the same criteria not found in alpha-sepolia yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deser_brief_reverted() {
         let raw = include_str!(

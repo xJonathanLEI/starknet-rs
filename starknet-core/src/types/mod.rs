@@ -14,31 +14,31 @@ mod serde_impls;
 // TODO: better namespacing of exports?
 mod codegen;
 pub use codegen::{
-    BlockStatus, BlockTag, BlockWithTxHashes, BlockWithTxs, BroadcastedDeclareTransactionV1,
-    BroadcastedDeclareTransactionV2, BroadcastedDeclareTransactionV3,
-    BroadcastedDeployAccountTransactionV1, BroadcastedDeployAccountTransactionV3,
-    BroadcastedInvokeTransactionV1, BroadcastedInvokeTransactionV3, CallType,
-    CompressedLegacyContractClass, ContractErrorData, ContractStorageDiffItem,
-    DataAvailabilityMode, DeclareTransactionReceipt, DeclareTransactionTrace, DeclareTransactionV0,
+    BlockStatus, BlockTag, BlockWithReceipts, BlockWithTxHashes, BlockWithTxs,
+    BroadcastedDeclareTransactionV1, BroadcastedDeclareTransactionV2,
+    BroadcastedDeclareTransactionV3, BroadcastedDeployAccountTransactionV1,
+    BroadcastedDeployAccountTransactionV3, BroadcastedInvokeTransactionV1,
+    BroadcastedInvokeTransactionV3, CallType, CompressedLegacyContractClass, ComputationResources,
+    ContractErrorData, ContractStorageDiffItem, DataAvailabilityMode, DataAvailabilityResources,
+    DataResources, DeclareTransactionReceipt, DeclareTransactionTrace, DeclareTransactionV0,
     DeclareTransactionV1, DeclareTransactionV2, DeclareTransactionV3, DeclaredClassItem,
     DeployAccountTransactionReceipt, DeployAccountTransactionTrace, DeployAccountTransactionV1,
     DeployAccountTransactionV3, DeployTransaction, DeployTransactionReceipt, DeployedContractItem,
     EmittedEvent, EntryPointType, EntryPointsByType, Event, EventFilter, EventFilterWithPage,
     EventsChunk, ExecutionResources, FeeEstimate, FeePayment, FlattenedSierraClass, FunctionCall,
     FunctionInvocation, FunctionStateMutability, InvokeTransactionReceipt, InvokeTransactionTrace,
-    InvokeTransactionV0, InvokeTransactionV1, InvokeTransactionV3, L1HandlerTransaction,
-    L1HandlerTransactionReceipt, L1HandlerTransactionTrace, LegacyContractEntryPoint,
-    LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType, LegacyFunctionAbiEntry,
-    LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType, LegacyStructMember,
-    LegacyTypedParameter, MsgFromL1, MsgToL1, NoTraceAvailableErrorData, NonceUpdate, OrderedEvent,
-    OrderedMessage, PendingBlockWithTxHashes, PendingBlockWithTxs,
-    PendingDeclareTransactionReceipt, PendingDeployAccountTransactionReceipt,
-    PendingInvokeTransactionReceipt, PendingL1HandlerTransactionReceipt, PendingStateUpdate,
-    PriceUnit, ReplacedClassItem, ResourceBounds, ResourceBoundsMapping, ResourcePrice,
-    ResultPageRequest, RevertedInvocation, SequencerTransactionStatus, SierraEntryPoint,
-    SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, StarknetError, StateDiff,
-    StateUpdate, StorageEntry, SyncStatus, TransactionExecutionErrorData,
-    TransactionExecutionStatus, TransactionFinalityStatus, TransactionTraceWithHash,
+    InvokeTransactionV0, InvokeTransactionV1, InvokeTransactionV3, L1DataAvailabilityMode,
+    L1HandlerTransaction, L1HandlerTransactionReceipt, L1HandlerTransactionTrace,
+    LegacyContractEntryPoint, LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType,
+    LegacyFunctionAbiEntry, LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType,
+    LegacyStructMember, LegacyTypedParameter, MsgFromL1, MsgToL1, NoTraceAvailableErrorData,
+    NonceUpdate, OrderedEvent, OrderedMessage, PendingBlockWithReceipts, PendingBlockWithTxHashes,
+    PendingBlockWithTxs, PendingStateUpdate, PriceUnit, ReplacedClassItem, ResourceBounds,
+    ResourceBoundsMapping, ResourcePrice, ResultPageRequest, RevertedInvocation,
+    SequencerTransactionStatus, SierraEntryPoint, SimulatedTransaction, SimulationFlag,
+    SimulationFlagForEstimateFee, StarknetError, StateDiff, StateUpdate, StorageEntry, SyncStatus,
+    TransactionExecutionErrorData, TransactionExecutionStatus, TransactionFinalityStatus,
+    TransactionReceiptWithBlockInfo, TransactionTraceWithHash, TransactionWithReceipt,
 };
 
 pub mod eth_address;
@@ -49,6 +49,9 @@ pub use hash_256::Hash256;
 
 mod execution_result;
 pub use execution_result::ExecutionResult;
+
+mod receipt_block;
+pub use receipt_block::ReceiptBlock;
 
 mod msg;
 pub use msg::MsgToL2;
@@ -75,9 +78,9 @@ pub enum MaybePendingBlockWithTxs {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum MaybePendingTransactionReceipt {
-    Receipt(TransactionReceipt),
-    PendingReceipt(PendingTransactionReceipt),
+pub enum MaybePendingBlockWithReceipts {
+    Block(BlockWithReceipts),
+    PendingBlock(PendingBlockWithReceipts),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -272,19 +275,6 @@ pub enum TransactionReceipt {
     DeployAccount(DeployAccountTransactionReceipt),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
-#[serde(tag = "type")]
-pub enum PendingTransactionReceipt {
-    #[serde(rename = "INVOKE")]
-    Invoke(PendingInvokeTransactionReceipt),
-    #[serde(rename = "L1_HANDLER")]
-    L1Handler(PendingL1HandlerTransactionReceipt),
-    #[serde(rename = "DECLARE")]
-    Declare(PendingDeclareTransactionReceipt),
-    #[serde(rename = "DEPLOY_ACCOUNT")]
-    DeployAccount(PendingDeployAccountTransactionReceipt),
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum LegacyContractAbiEntry {
@@ -361,6 +351,15 @@ impl MaybePendingBlockWithTxs {
     }
 }
 
+impl MaybePendingBlockWithReceipts {
+    pub fn transactions(&self) -> &[TransactionWithReceipt] {
+        match self {
+            MaybePendingBlockWithReceipts::Block(block) => &block.transactions,
+            MaybePendingBlockWithReceipts::PendingBlock(block) => &block.transactions,
+        }
+    }
+}
+
 impl TransactionStatus {
     pub fn finality_status(&self) -> SequencerTransactionStatus {
         match self {
@@ -414,29 +413,6 @@ impl DeployAccountTransaction {
     }
 }
 
-impl MaybePendingTransactionReceipt {
-    pub fn transaction_hash(&self) -> &FieldElement {
-        match self {
-            MaybePendingTransactionReceipt::Receipt(receipt) => receipt.transaction_hash(),
-            MaybePendingTransactionReceipt::PendingReceipt(receipt) => receipt.transaction_hash(),
-        }
-    }
-
-    pub fn finality_status(&self) -> &TransactionFinalityStatus {
-        match self {
-            MaybePendingTransactionReceipt::Receipt(receipt) => receipt.finality_status(),
-            MaybePendingTransactionReceipt::PendingReceipt(receipt) => receipt.finality_status(),
-        }
-    }
-
-    pub fn execution_result(&self) -> &ExecutionResult {
-        match self {
-            MaybePendingTransactionReceipt::Receipt(receipt) => receipt.execution_result(),
-            MaybePendingTransactionReceipt::PendingReceipt(receipt) => receipt.execution_result(),
-        }
-    }
-}
-
 impl TransactionReceipt {
     pub fn transaction_hash(&self) -> &FieldElement {
         match self {
@@ -465,30 +441,6 @@ impl TransactionReceipt {
             TransactionReceipt::Declare(receipt) => &receipt.execution_result,
             TransactionReceipt::Deploy(receipt) => &receipt.execution_result,
             TransactionReceipt::DeployAccount(receipt) => &receipt.execution_result,
-        }
-    }
-}
-
-impl PendingTransactionReceipt {
-    pub fn transaction_hash(&self) -> &FieldElement {
-        match self {
-            PendingTransactionReceipt::Invoke(receipt) => &receipt.transaction_hash,
-            PendingTransactionReceipt::L1Handler(receipt) => &receipt.transaction_hash,
-            PendingTransactionReceipt::Declare(receipt) => &receipt.transaction_hash,
-            PendingTransactionReceipt::DeployAccount(receipt) => &receipt.transaction_hash,
-        }
-    }
-
-    pub fn finality_status(&self) -> &TransactionFinalityStatus {
-        &TransactionFinalityStatus::AcceptedOnL2
-    }
-
-    pub fn execution_result(&self) -> &ExecutionResult {
-        match self {
-            PendingTransactionReceipt::Invoke(receipt) => &receipt.execution_result,
-            PendingTransactionReceipt::L1Handler(receipt) => &receipt.execution_result,
-            PendingTransactionReceipt::Declare(receipt) => &receipt.execution_result,
-            PendingTransactionReceipt::DeployAccount(receipt) => &receipt.execution_result,
         }
     }
 }

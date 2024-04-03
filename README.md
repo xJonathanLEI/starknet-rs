@@ -6,7 +6,7 @@
 **Complete Starknet library in Rust[™](https://www.reddit.com/r/rust/comments/12e7tdb/rust_trademark_policy_feedback_form/)**
 
 ![starknet-version-v0.13.0](https://img.shields.io/badge/Starknet_Version-v0.13.0-2ea44f?logo=ethereum)
-[![jsonrpc-spec-v0.6.0](https://img.shields.io/badge/JSON--RPC-v0.6.0-2ea44f?logo=ethereum)](https://github.com/starkware-libs/starknet-specs/tree/v0.6.0)
+[![jsonrpc-spec-v0.7.1](https://img.shields.io/badge/JSON--RPC-v0.7.1-2ea44f?logo=ethereum)](https://github.com/starkware-libs/starknet-specs/tree/v0.7.1)
 [![linting-badge](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml/badge.svg?branch=master)](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml)
 [![crates-badge](https://img.shields.io/crates/v/starknet.svg)](https://crates.io/crates/starknet)
 
@@ -74,21 +74,21 @@ For instructions on running the benchmark yourself, check [here](./BENCHMARK.md)
 
 Examples can be found in the [examples folder](./examples):
 
-1. [Get the latest block from `alpha-goerli` testnet](./examples/get_block.rs)
+1. [Get the latest block from `alpha-sepolia` testnet](./examples/get_block.rs)
 
-2. [Deploy contract to `alpha-goerli` testnet via UDC](./examples/deploy_contract.rs)
+2. [Deploy contract to `alpha-sepolia` testnet via UDC](./examples/deploy_contract.rs)
 
-3. [Mint yourself 1,000 TST tokens on `alpha-goerli`](./examples/mint_tokens.rs)
+3. [Mint yourself 1,000 TST tokens on `alpha-sepolia`](./examples/mint_tokens.rs)
 
-   Make sure your account has some L2 Goerli ETH to pay for the transaction fee. You can use [this faucet](https://faucet.goerli.starknet.io/) to fund your account.
+   Make sure your account has some L2 Sepolia ETH to pay for the transaction fee.
 
-4. [Declare Cairo 1 contract on `alpha-goerli` testnet](./examples/declare_cairo1_contract.rs)
+4. [Declare Cairo 1 contract on `alpha-sepolia` testnet](./examples/declare_cairo1_contract.rs)
 
-   Make sure your account has some L2 Goerli ETH to pay for the transaction fee. You can use [this faucet](https://faucet.goerli.starknet.io/) to fund your account.
+   Make sure your account has some L2 Sepolia ETH to pay for the transaction fee.
 
-5. [Declare legacy Cairo 0 contract on `alpha-goerli` testnet](./examples/declare_cairo0_contract.rs)
+5. [Declare legacy Cairo 0 contract on `alpha-sepolia` testnet](./examples/declare_cairo0_contract.rs)
 
-   Make sure your account has some L2 Goerli ETH to pay for the transaction fee. You can use [this faucet](https://faucet.goerli.starknet.io/) to fund your account.
+   Make sure your account has some L2 Sepolia ETH to pay for the transaction fee.
 
 6. [Query the latest block number with JSON-RPC](./examples/jsonrpc.rs)
 

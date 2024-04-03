@@ -2,7 +2,7 @@ use serde::Deserialize;
 use serde_with::serde_as;
 use starknet_core::{
     serde::unsigned_field_element::{UfeHex, UfeHexOption},
-    types::FieldElement,
+    types::{FieldElement, L1DataAvailabilityMode, ResourcePrice},
 };
 
 use super::{ConfirmedTransactionReceipt, TransactionType};
@@ -15,7 +15,7 @@ pub enum BlockId {
     Latest,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub enum BlockStatus {
@@ -49,11 +49,16 @@ pub struct Block {
     #[serde(default)]
     #[serde_as(as = "UfeHexOption")]
     pub state_root: Option<FieldElement>,
+    #[serde(default)]
+    #[serde_as(as = "UfeHexOption")]
+    pub transaction_commitment: Option<FieldElement>,
+    #[serde(default)]
+    #[serde_as(as = "UfeHexOption")]
+    pub event_commitment: Option<FieldElement>,
     pub status: BlockStatus,
-    #[serde_as(as = "UfeHex")]
-    pub eth_l1_gas_price: FieldElement,
-    #[serde_as(as = "UfeHex")]
-    pub strk_l1_gas_price: FieldElement,
+    pub l1_da_mode: L1DataAvailabilityMode,
+    pub l1_gas_price: ResourcePrice,
+    pub l1_data_gas_price: ResourcePrice,
     pub transactions: Vec<TransactionType>,
     pub transaction_receipts: Vec<ConfirmedTransactionReceipt>,
     // Field marked optional as old blocks don't include it yet. Drop optional once resolved.
@@ -78,25 +83,34 @@ mod tests {
         assert_eq!(
             block.state_root.unwrap(),
             FieldElement::from_hex_be(
-                "04be6496e74b3877db0b958a197b32ad797b3d2b1045e0697c01c1481501ea39"
+                "051098918fd96edda4e251f695181c063e21fb0666352e3469db507c7fd62b89"
             )
             .unwrap()
         );
-        assert_eq!(block.transactions.len(), 5);
-        assert_eq!(block.transaction_receipts.len(), 5);
+        assert_eq!(
+            block.transaction_commitment.unwrap(),
+            FieldElement::from_hex_be(
+                "0576db32d35cf011694a73c6ce400d5d77f768cbd77ee7cf87d12902e0f9b4ec"
+            )
+            .unwrap()
+        );
+        assert_eq!(
+            block.event_commitment.unwrap(),
+            FieldElement::from_hex_be(
+                "01c972780140fd16dde94639226ca25818e4f24ecd5b5c3065cc1f5f5fc410f9"
+            )
+            .unwrap()
+        );
+        assert_eq!(block.transactions.len(), 4);
+        assert_eq!(block.transaction_receipts.len(), 4);
 
-        if let TransactionType::Deploy(tx) = &block.transactions[0] {
-            assert_eq!(tx.constructor_calldata.len(), 2);
-        } else {
-            panic!("Did not deserialize Transaction::Deploy properly");
-        }
-        if let TransactionType::InvokeFunction(tx) = &block.transactions[2] {
-            assert_eq!(tx.calldata.len(), 4);
+        if let TransactionType::InvokeFunction(tx) = &block.transactions[0] {
+            assert_eq!(tx.calldata.len(), 16);
         } else {
             panic!("Did not deserialize Transaction::InvokeFunction properly");
         }
         let receipt = &block.transaction_receipts[0];
-        assert_eq!(receipt.execution_resources.as_ref().unwrap().n_steps, 29);
+        assert_eq!(receipt.execution_resources.as_ref().unwrap().n_steps, 10552);
     }
 
     #[test]
@@ -108,15 +122,15 @@ mod tests {
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
-        assert_eq!(block.block_number.unwrap(), 102);
-        assert_eq!(block.transaction_receipts.len(), 6);
-        let receipt = &block.transaction_receipts[0];
+        assert_eq!(block.block_number.unwrap(), 25);
+        assert_eq!(block.transaction_receipts.len(), 11);
+        let receipt = &block.transaction_receipts[10];
         assert_eq!(receipt.l2_to_l1_messages.len(), 1);
         assert_eq!(receipt.l2_to_l1_messages[0].payload.len(), 2);
     }
 
     #[test]
-    #[ignore = "block with the same criteria not found in goerli-integration yet"]
+    #[ignore = "block with the same criteria not found in alpha-sepolia yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_with_messages_without_nonce() {
         // has an L2 to L1 message
@@ -145,12 +159,12 @@ mod tests {
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
-        assert_eq!(block.block_number.unwrap(), 70000);
-        assert_eq!(block.transaction_receipts.len(), 35);
+        assert_eq!(block.block_number.unwrap(), 4);
+        assert_eq!(block.transaction_receipts.len(), 4);
         let receipt = &block.transaction_receipts[3];
         assert_eq!(receipt.events.len(), 1);
-        assert_eq!(receipt.events[0].keys.len(), 8);
-        assert_eq!(receipt.events[0].data.len(), 0);
+        assert_eq!(receipt.events[0].keys.len(), 1);
+        assert_eq!(receipt.events[0].data.len(), 4);
     }
 
     #[test]
@@ -176,12 +190,6 @@ mod tests {
         ))
         .unwrap();
         assert!(new_block.sequencer_address.is_some());
-
-        let old_block: Block = serde_json::from_str(include_str!(
-            "../../../test-data/raw_gateway_responses/get_block/2_with_messages.txt"
-        ))
-        .unwrap();
-        assert!(old_block.sequencer_address.is_none());
     }
 
     #[test]
@@ -193,12 +201,6 @@ mod tests {
         ))
         .unwrap();
         assert!(new_block.starknet_version.is_some());
-
-        let old_block: Block = serde_json::from_str(include_str!(
-            "../../../test-data/raw_gateway_responses/get_block/2_with_messages.txt"
-        ))
-        .unwrap();
-        assert!(old_block.starknet_version.is_none());
     }
 
     #[test]
@@ -210,12 +212,18 @@ mod tests {
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
-        let tx = match &block.transactions[1] {
+        let tx = match &block.transactions[2] {
             TransactionType::Declare(tx) => tx,
             _ => panic!("Unexpected tx type"),
         };
 
-        assert_eq!(tx.sender_address, FieldElement::ONE);
+        assert_eq!(
+            tx.sender_address,
+            FieldElement::from_hex_be(
+                "0x68922eb87daed71fc3099031e178b6534fc39a570022342e8c166024da893f5"
+            )
+            .unwrap()
+        );
     }
 
     #[test]
@@ -227,7 +235,7 @@ mod tests {
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
-        let tx = match &block.transactions[26] {
+        let tx = match &block.transactions[0] {
             TransactionType::L1Handler(tx) => tx,
             _ => panic!("Unexpected tx type"),
         };
@@ -235,14 +243,14 @@ mod tests {
         assert_eq!(
             tx.contract_address,
             FieldElement::from_hex_be(
-                "0x7e829edae4832b140c73ba615e02f2d593122d43724352e21716daff98bd1da"
+                "0x4c5772d1914fe6ce891b64eb35bf3522aeae1315647314aac58b01137607f3f"
             )
             .unwrap()
         );
     }
 
     #[test]
-    #[ignore = "block with the same criteria not found in goerli-integration yet"]
+    #[ignore = "block with the same criteria not found in alpha-sepolia yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_without_execution_resources() {
         let raw = include_str!(
@@ -257,7 +265,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "block with the same criteria not found in goerli-integration yet"]
+    #[ignore = "block with the same criteria not found in alpha-sepolia yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_l1_handler_without_nonce() {
         let raw = include_str!(
@@ -275,7 +283,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "block with the same criteria not found in goerli-integration yet"]
+    #[ignore = "block with the same criteria not found in alpha-sepolia yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_without_entry_point() {
         let raw = include_str!(
@@ -301,7 +309,7 @@ mod tests {
 
         let block: Block = serde_json::from_str(raw).unwrap();
 
-        let tx = match &block.transactions[0] {
+        let tx = match &block.transactions[1] {
             TransactionType::DeployAccount(tx) => tx,
             _ => panic!("Unexpected tx type"),
         };
@@ -324,7 +332,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "block with the same criteria not found in goerli-integration yet"]
+    #[ignore = "block with the same criteria not found in alpha-sepolia yet"]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_block_deser_with_reverted_tx() {
         let raw = include_str!(

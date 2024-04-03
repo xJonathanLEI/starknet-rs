@@ -375,17 +375,6 @@ mod enum_ser_impls {
         }
     }
 
-    impl Serialize for PendingTransactionReceipt {
-        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-            match self {
-                Self::Invoke(variant) => variant.serialize(serializer),
-                Self::L1Handler(variant) => variant.serialize(serializer),
-                Self::Declare(variant) => variant.serialize(serializer),
-                Self::DeployAccount(variant) => variant.serialize(serializer),
-            }
-        }
-    }
-
     impl Serialize for TransactionTrace {
         fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
             match self {
