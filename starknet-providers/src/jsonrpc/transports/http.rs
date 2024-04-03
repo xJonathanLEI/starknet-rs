@@ -9,6 +9,7 @@ use crate::jsonrpc::{transports::JsonRpcTransport, JsonRpcMethod, JsonRpcRespons
 pub struct HttpTransport {
     client: Client,
     url: Url,
+    headers: Vec<(String, String)>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -35,7 +36,26 @@ impl HttpTransport {
         Self {
             client,
             url: url.into(),
+            headers: vec![],
         }
+    }
+
+    /// Consumes the current [HttpTransport] instance and returns a new one with the header
+    /// appended. Same as calling [add_header].
+    pub fn with_header(self, name: String, value: String) -> Self {
+        let mut headers = self.headers;
+        headers.push((name, value));
+
+        Self {
+            client: self.client,
+            url: self.url,
+            headers,
+        }
+    }
+
+    /// Adds a custom HTTP header to be sent for requests.
+    pub fn add_header(&mut self, name: String, value: String) {
+        self.headers.push((name, value))
     }
 }
 
@@ -63,14 +83,16 @@ impl JsonRpcTransport for HttpTransport {
         let request_body = serde_json::to_string(&request_body).map_err(Self::Error::Json)?;
         trace!("Sending request via JSON-RPC: {}", request_body);
 
-        let response = self
+        let mut request = self
             .client
             .post(self.url.clone())
             .body(request_body)
-            .header("Content-Type", "application/json")
-            .send()
-            .await
-            .map_err(Self::Error::Reqwest)?;
+            .header("Content-Type", "application/json");
+        for (name, value) in self.headers.iter() {
+            request = request.header(name, value);
+        }
+
+        let response = request.send().await.map_err(Self::Error::Reqwest)?;
 
         let response_body = response.text().await.map_err(Self::Error::Reqwest)?;
         trace!("Response from JSON-RPC: {}", response_body);
