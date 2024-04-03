@@ -37,6 +37,24 @@ impl HttpTransport {
             url: url.into(),
         }
     }
+
+    pub async fn send_request_raw(
+        &self,
+        request_body: String,
+    ) -> Result<String, HttpTransportError> {
+        trace!("Sending request via JSON-RPC: {}", request_body);
+
+        let response = self
+            .client
+            .post(self.url.clone())
+            .body(request_body)
+            .header("Content-Type", "application/json")
+            .send()
+            .await
+            .map_err(HttpTransportError::Reqwest)?;
+
+        response.text().await.map_err(HttpTransportError::Reqwest)
+    }
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
@@ -60,19 +78,10 @@ impl JsonRpcTransport for HttpTransport {
             params,
         };
 
-        let request_body = serde_json::to_string(&request_body).map_err(Self::Error::Json)?;
-        trace!("Sending request via JSON-RPC: {}", request_body);
+        let request_body =
+            serde_json::to_string(&request_body).map_err(HttpTransportError::Json)?;
+        let response_body = self.send_request_raw(request_body).await?;
 
-        let response = self
-            .client
-            .post(self.url.clone())
-            .body(request_body)
-            .header("Content-Type", "application/json")
-            .send()
-            .await
-            .map_err(Self::Error::Reqwest)?;
-
-        let response_body = response.text().await.map_err(Self::Error::Reqwest)?;
         trace!("Response from JSON-RPC: {}", response_body);
 
         let parsed_response = serde_json::from_str(&response_body).map_err(Self::Error::Json)?;

@@ -22,7 +22,7 @@ use starknet_core::{
 use crate::{provider::ProviderImplError, Provider, ProviderError};
 
 mod transports;
-pub use transports::{HttpTransport, HttpTransportError, JsonRpcTransport};
+pub use transports::{HttpTransport, HttpTransportError, JsonRpcTransport, MockTransport};
 
 #[derive(Debug)]
 pub struct JsonRpcClient<T> {

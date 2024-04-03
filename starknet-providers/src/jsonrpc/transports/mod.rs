@@ -6,7 +6,10 @@ use std::error::Error;
 use crate::jsonrpc::{JsonRpcMethod, JsonRpcResponse};
 
 mod http;
+mod mock;
+
 pub use http::{HttpTransport, HttpTransportError};
+pub use mock::{MockTransport, MockTransportError};
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
