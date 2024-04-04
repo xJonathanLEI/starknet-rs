@@ -26,6 +26,7 @@ pub struct SequencerGatewayProvider {
     gateway_url: Url,
     feeder_gateway_url: Url,
     chain_id: FieldElement,
+    headers: Vec<(String, String)>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -116,6 +117,7 @@ impl SequencerGatewayProvider {
             gateway_url: gateway_url.into(),
             feeder_gateway_url: feeder_gateway_url.into(),
             chain_id,
+            headers: vec![],
         }
     }
 
@@ -133,6 +135,26 @@ impl SequencerGatewayProvider {
             Url::parse("https://alpha-sepolia.starknet.io/feeder_gateway").unwrap(),
             chain_id::SEPOLIA,
         )
+    }
+
+    /// Consumes the current [SequencerGatewayProvider] instance and returns a new one with the
+    /// header appended. Same as calling [add_header].
+    pub fn with_header(self, name: String, value: String) -> Self {
+        let mut headers = self.headers;
+        headers.push((name, value));
+
+        Self {
+            client: self.client,
+            gateway_url: self.gateway_url,
+            feeder_gateway_url: self.feeder_gateway_url,
+            chain_id: self.chain_id,
+            headers,
+        }
+    }
+
+    /// Adds a custom HTTP header to be sent for requests to the sequencer.
+    pub fn add_header(&mut self, name: String, value: String) {
+        self.headers.push((name, value))
     }
 }
 
@@ -172,12 +194,12 @@ impl SequencerGatewayProvider {
     {
         trace!("Sending GET request to sequencer API ({})", url);
 
-        let res = self
-            .client
-            .get(url)
-            .send()
-            .await
-            .map_err(GatewayClientError::Network)?;
+        let mut request = self.client.get(url);
+        for (name, value) in self.headers.iter() {
+            request = request.header(name, value);
+        }
+
+        let res = request.send().await.map_err(GatewayClientError::Network)?;
         if res.status() == StatusCode::TOO_MANY_REQUESTS {
             Err(ProviderError::RateLimited)
         } else {
@@ -202,14 +224,16 @@ impl SequencerGatewayProvider {
             request_body
         );
 
-        let res = self
+        let mut request = self
             .client
             .post(url)
             .header("Content-Type", "application/json")
-            .body(request_body)
-            .send()
-            .await
-            .map_err(GatewayClientError::Network)?;
+            .body(request_body);
+        for (name, value) in self.headers.iter() {
+            request = request.header(name, value);
+        }
+
+        let res = request.send().await.map_err(GatewayClientError::Network)?;
         if res.status() == StatusCode::TOO_MANY_REQUESTS {
             Err(ProviderError::RateLimited)
         } else {
