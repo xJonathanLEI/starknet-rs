@@ -14,6 +14,7 @@ use starknet_providers::{Provider, ProviderError};
 use std::error::Error;
 
 pub mod argent;
+pub mod braavos;
 pub mod open_zeppelin;
 
 /// Cairo string for "deploy_account"

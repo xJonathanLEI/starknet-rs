@@ -10,8 +10,9 @@ pub use call::Call;
 
 mod factory;
 pub use factory::{
-    argent::ArgentAccountFactory, open_zeppelin::OpenZeppelinAccountFactory, AccountDeployment,
-    AccountFactory, AccountFactoryError, PreparedAccountDeployment, RawAccountDeployment,
+    argent::ArgentAccountFactory, braavos::BraavosAccountFactory,
+    open_zeppelin::OpenZeppelinAccountFactory, AccountDeployment, AccountFactory,
+    AccountFactoryError, PreparedAccountDeployment, RawAccountDeployment,
 };
 
 pub mod single_owner;
