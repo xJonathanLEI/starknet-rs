@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 use crate::FieldElement;
 
 pub fn field_element_from_be_hex(hex: &str) -> FieldElement {
