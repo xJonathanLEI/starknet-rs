@@ -17,9 +17,9 @@ const CHAIN_ID: FieldElement = FieldElement::from_mont([
 ]);
 
 #[tokio::test]
-async fn can_deploy_contract_to_alpha_sepolia() {
+async fn can_deploy_contract_to_alpha_sepolia_with_invoke_v1() {
     let rpc_url = std::env::var("STARKNET_RPC")
-        .unwrap_or("https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_7".into());
+        .unwrap_or("https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_6".into());
     let provider = JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()));
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be(
@@ -47,12 +47,59 @@ async fn can_deploy_contract_to_alpha_sepolia() {
     rng.fill_bytes(&mut salt_buffer[1..]);
 
     let result = factory
-        .deploy(
+        .deploy_v1(
             vec![FieldElement::ONE],
             FieldElement::from_bytes_be(&salt_buffer).unwrap(),
             true,
         )
         .max_fee(FieldElement::from_dec_str("100000000000000000").unwrap())
+        .send()
+        .await;
+
+    match result {
+        Ok(_) => {}
+        Err(err) => panic!("Contract deployment failed: {err}"),
+    }
+}
+
+#[tokio::test]
+async fn can_deploy_contract_to_alpha_sepolia_with_invoke_v3() {
+    let rpc_url = std::env::var("STARKNET_RPC")
+        .unwrap_or("https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_6".into());
+    let provider = JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()));
+    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
+        FieldElement::from_hex_be(
+            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        )
+        .unwrap(),
+    ));
+    let address = FieldElement::from_hex_be(
+        "0x034dd51aa591d174b60d1cb45e46dfcae47946fae1c5e62933bbf48effedde4d",
+    )
+    .unwrap();
+    let mut account =
+        SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
+    account.set_block_id(BlockId::Tag(BlockTag::Pending));
+
+    let artifact = serde_json::from_str::<LegacyContractClass>(include_str!(
+        "../test-data/cairo0/artifacts/oz_account.txt"
+    ))
+    .unwrap();
+
+    let factory = ContractFactory::new(artifact.class_hash().unwrap(), account);
+
+    let mut salt_buffer = [0u8; 32];
+    let mut rng = StdRng::from_entropy();
+    rng.fill_bytes(&mut salt_buffer[1..]);
+
+    let result = factory
+        .deploy_v3(
+            vec![FieldElement::ONE],
+            FieldElement::from_bytes_be(&salt_buffer).unwrap(),
+            true,
+        )
+        .gas(8000)
+        .gas_price(100000000000000)
         .send()
         .await;
 

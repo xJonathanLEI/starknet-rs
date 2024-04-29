@@ -57,8 +57,8 @@ async fn can_get_nonce_with_jsonrpc() {
 
 #[tokio::test]
 #[ignore = "endpoint deprecated since Starknet v0.12.3"]
-async fn can_estimate_fee_with_sequencer() {
-    can_estimate_fee_inner(
+async fn can_estimate_invoke_v1_fee_with_sequencer() {
+    can_estimate_invoke_v1_fee_inner(
         create_sequencer_client(),
         "0x054c9746cfae36f616222e450ae5c8eadf93e5705d4e5d077b9bce5a06f87ee2",
     )
@@ -66,10 +66,19 @@ async fn can_estimate_fee_with_sequencer() {
 }
 
 #[tokio::test]
-async fn can_estimate_fee_with_jsonrpc() {
-    can_estimate_fee_inner(
+async fn can_estimate_invoke_v1_fee_with_jsonrpc() {
+    can_estimate_invoke_v1_fee_inner(
         create_jsonrpc_client(),
         "0x06d3f2113fca3c4eb6da508c5da3616bf219d84cd47692df3f1f78183a9f5f59",
+    )
+    .await
+}
+
+#[tokio::test]
+async fn can_estimate_invoke_v3_fee_with_jsonrpc() {
+    can_estimate_invoke_v3_fee_inner(
+        create_jsonrpc_client(),
+        "0x030bf8c9cf629c85160aca40bf2e203cccebf74f2440a346627e7df3f9ab65fd",
     )
     .await
 }
@@ -88,8 +97,8 @@ async fn can_parse_fee_estimation_error_with_jsonrpc() {
 
 #[tokio::test]
 #[ignore = "endpoint deprecated since Starknet v0.12.3"]
-async fn can_execute_eth_transfer_with_sequencer() {
-    can_execute_eth_transfer_inner(
+async fn can_execute_eth_transfer_invoke_v1_with_sequencer() {
+    can_execute_eth_transfer_invoke_v1_inner(
         create_sequencer_client(),
         "0x05ea1832b1e399cdcf8ae8184ff881f121d2ecc98aaebe6070ec17518bc2f668",
     )
@@ -97,8 +106,8 @@ async fn can_execute_eth_transfer_with_sequencer() {
 }
 
 #[tokio::test]
-async fn can_execute_eth_transfer_with_jsonrpc() {
-    can_execute_eth_transfer_inner(
+async fn can_execute_eth_transfer_invoke_v1_with_jsonrpc() {
+    can_execute_eth_transfer_invoke_v1_inner(
         create_jsonrpc_client(),
         "0x056a817d8cbc2834f7b00aa3a0bf6a16ae0d060445d65f31b4a2bf0140b14afd",
     )
@@ -106,9 +115,18 @@ async fn can_execute_eth_transfer_with_jsonrpc() {
 }
 
 #[tokio::test]
+async fn can_execute_eth_transfer_invoke_v3_with_jsonrpc() {
+    can_execute_eth_transfer_invoke_v3_inner(
+        create_jsonrpc_client(),
+        "0x03a08ecef30eaef46780a5167eac194d7cf0407356dccdc7393f851dfc164fd6",
+    )
+    .await
+}
+
+#[tokio::test]
 #[ignore = "endpoint deprecated since Starknet v0.12.3"]
-async fn can_declare_cairo1_contract_with_sequencer() {
-    can_declare_cairo1_contract_inner(
+async fn can_declare_cairo1_contract_v2_with_sequencer() {
+    can_declare_cairo1_contract_v2_inner(
         create_sequencer_client(),
         "0x04225fdb21c93800832e047d29e5a929bf65f95ab7c1ba101d66d0419661b7df",
     )
@@ -116,10 +134,28 @@ async fn can_declare_cairo1_contract_with_sequencer() {
 }
 
 #[tokio::test]
-async fn can_declare_cairo1_contract_with_jsonrpc() {
-    can_declare_cairo1_contract_inner(
+async fn can_declare_cairo1_contract_v2_with_jsonrpc() {
+    can_declare_cairo1_contract_v2_inner(
         create_jsonrpc_client(),
         "0x00af46a3d75c1abc204cbe7e08f220680958bd8aca2c3cfc2ef34c686148ecf7",
+    )
+    .await
+}
+
+#[tokio::test]
+async fn can_estimate_declare_v3_fee_with_jsonrpc() {
+    can_estimate_declare_v3_fee_inner(
+        create_jsonrpc_client(),
+        "0x0678f1879560e7e7e260989ba4911ee170a71c3f25b2467dd2046099aeba92aa",
+    )
+    .await
+}
+
+#[tokio::test]
+async fn can_declare_cairo1_contract_v3_with_jsonrpc() {
+    can_declare_cairo1_contract_v3_inner(
+        create_jsonrpc_client(),
+        "0x06aac79bb6c90e1e41c33cd20c67c0281c4a95f01b4e15ad0c3b53fcc6010cf8",
     )
     .await
 }
@@ -159,7 +195,7 @@ async fn can_get_nonce_inner<P: Provider + Send + Sync>(provider: P, address: &s
     assert_ne!(account.get_nonce().await.unwrap(), FieldElement::ZERO);
 }
 
-async fn can_estimate_fee_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
+async fn can_estimate_invoke_v1_fee_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         FieldElement::from_hex_be(
             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
@@ -177,7 +213,41 @@ async fn can_estimate_fee_inner<P: Provider + Send + Sync>(provider: P, address:
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let fee_estimate = account
-        .execute(vec![Call {
+        .execute_v1(vec![Call {
+            to: eth_token_address,
+            selector: get_selector_from_name("transfer").unwrap(),
+            calldata: vec![
+                FieldElement::from_hex_be("0x1234").unwrap(),
+                FieldElement::ONE,
+                FieldElement::ZERO,
+            ],
+        }])
+        .estimate_fee()
+        .await
+        .unwrap();
+
+    assert!(fee_estimate.overall_fee > FieldElement::ZERO);
+}
+
+async fn can_estimate_invoke_v3_fee_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
+    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
+        FieldElement::from_hex_be(
+            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        )
+        .unwrap(),
+    ));
+    let address = FieldElement::from_hex_be(address).unwrap();
+    let eth_token_address = FieldElement::from_hex_be(
+        "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+    )
+    .unwrap();
+
+    let mut account =
+        SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
+    account.set_block_id(BlockId::Tag(BlockTag::Pending));
+
+    let fee_estimate = account
+        .execute_v3(vec![Call {
             to: eth_token_address,
             selector: get_selector_from_name("transfer").unwrap(),
             calldata: vec![
@@ -214,7 +284,7 @@ async fn can_parse_fee_estimation_error_inner<P: Provider + Send + Sync>(
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     match account
-        .execute(vec![Call {
+        .execute_v1(vec![Call {
             to: eth_token_address,
             selector: get_selector_from_name("transfer").unwrap(),
             calldata: vec![
@@ -236,7 +306,10 @@ async fn can_parse_fee_estimation_error_inner<P: Provider + Send + Sync>(
     }
 }
 
-async fn can_execute_eth_transfer_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
+async fn can_execute_eth_transfer_invoke_v1_inner<P: Provider + Send + Sync>(
+    provider: P,
+    address: &str,
+) {
     // This test case is not very useful as the sequencer will always respond with
     // `TransactionReceived` even if the transaction will eventually fail, just like how
     // `eth_sendRawTransaction` always responds with success except for insufficient balance. So it
@@ -261,7 +334,7 @@ async fn can_execute_eth_transfer_inner<P: Provider + Send + Sync>(provider: P, 
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let result = account
-        .execute(vec![Call {
+        .execute_v1(vec![Call {
             to: eth_token_address,
             selector: get_selector_from_name("transfer").unwrap(),
             calldata: vec![
@@ -278,7 +351,56 @@ async fn can_execute_eth_transfer_inner<P: Provider + Send + Sync>(provider: P, 
     assert!(result.transaction_hash > FieldElement::ZERO);
 }
 
-async fn can_declare_cairo1_contract_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
+async fn can_execute_eth_transfer_invoke_v3_inner<P: Provider + Send + Sync>(
+    provider: P,
+    address: &str,
+) {
+    // This test case is not very useful as the sequencer will always respond with
+    // `TransactionReceived` even if the transaction will eventually fail, just like how
+    // `eth_sendRawTransaction` always responds with success except for insufficient balance. So it
+    // can't really test the execution is successful unless we:
+    //   - change to use a local testing network similar to Ganacha for Ethereum; or
+    //   - poll the transaction hash until it's processed.
+
+    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
+        FieldElement::from_hex_be(
+            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        )
+        .unwrap(),
+    ));
+    let address = FieldElement::from_hex_be(address).unwrap();
+    let eth_token_address = FieldElement::from_hex_be(
+        "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+    )
+    .unwrap();
+
+    let mut account =
+        SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
+    account.set_block_id(BlockId::Tag(BlockTag::Pending));
+
+    let result = account
+        .execute_v3(vec![Call {
+            to: eth_token_address,
+            selector: get_selector_from_name("transfer").unwrap(),
+            calldata: vec![
+                FieldElement::from_hex_be("0x1234").unwrap(),
+                FieldElement::ONE,
+                FieldElement::ZERO,
+            ],
+        }])
+        .gas(8000)
+        .gas_price(100000000000000)
+        .send()
+        .await
+        .unwrap();
+
+    assert!(result.transaction_hash > FieldElement::ZERO);
+}
+
+async fn can_declare_cairo1_contract_v2_inner<P: Provider + Send + Sync>(
+    provider: P,
+    address: &str,
+) {
     // This test case is not very useful, same as `can_execute_eth_transfer` above.
 
     #[derive(serde::Deserialize)]
@@ -318,7 +440,7 @@ async fn can_declare_cairo1_contract_inner<P: Provider + Send + Sync>(provider: 
     );
 
     let result = account
-        .declare(
+        .declare_v2(
             Arc::new(flattened_class),
             FieldElement::from_hex_be(&hashes.compiled_class_hash).unwrap(),
         )
@@ -328,6 +450,111 @@ async fn can_declare_cairo1_contract_inner<P: Provider + Send + Sync>(provider: 
         .unwrap();
 
     dbg!(&result);
+
+    assert!(result.transaction_hash > FieldElement::ZERO);
+}
+
+async fn can_estimate_declare_v3_fee_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
+    #[derive(serde::Deserialize)]
+    struct ContractHashes {
+        compiled_class_hash: String,
+    }
+
+    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
+        FieldElement::from_hex_be(
+            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        )
+        .unwrap(),
+    ));
+    let address = FieldElement::from_hex_be(address).unwrap();
+    let mut account =
+        SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
+    account.set_block_id(BlockId::Tag(BlockTag::Pending));
+
+    let contract_artifact = serde_json::from_str::<SierraClass>(include_str!(
+        "../test-data/cairo1/artifacts/abi_types_sierra.txt"
+    ))
+    .unwrap();
+    let hashes = serde_json::from_str::<ContractHashes>(include_str!(
+        "../test-data/cairo1/artifacts/abi_types.hashes.json"
+    ))
+    .unwrap();
+
+    // Cairo 1 contract classes are not allowed to be declared multiple times. We spam the network
+    // by exploiting the fact that ABI is part of the class hash.
+    let mut flattened_class = contract_artifact.flatten().unwrap();
+    flattened_class.abi = format!(
+        "Declared from starknet-rs test case. Timestamp (ms): {}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_millis()
+    );
+
+    let result = account
+        .declare_v3(
+            Arc::new(flattened_class),
+            FieldElement::from_hex_be(&hashes.compiled_class_hash).unwrap(),
+        )
+        .estimate_fee()
+        .await
+        .unwrap();
+
+    assert!(result.overall_fee > FieldElement::ZERO);
+}
+
+async fn can_declare_cairo1_contract_v3_inner<P: Provider + Send + Sync>(
+    provider: P,
+    address: &str,
+) {
+    // This test case is not very useful, same as `can_execute_eth_transfer` above.
+
+    #[derive(serde::Deserialize)]
+    struct ContractHashes {
+        compiled_class_hash: String,
+    }
+
+    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
+        FieldElement::from_hex_be(
+            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        )
+        .unwrap(),
+    ));
+    let address = FieldElement::from_hex_be(address).unwrap();
+    let mut account =
+        SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
+    account.set_block_id(BlockId::Tag(BlockTag::Pending));
+
+    let contract_artifact = serde_json::from_str::<SierraClass>(include_str!(
+        "../test-data/cairo1/artifacts/abi_types_sierra.txt"
+    ))
+    .unwrap();
+    let hashes = serde_json::from_str::<ContractHashes>(include_str!(
+        "../test-data/cairo1/artifacts/abi_types.hashes.json"
+    ))
+    .unwrap();
+
+    // Cairo 1 contract classes are not allowed to be declared multiple times. We spam the network
+    // by exploiting the fact that ABI is part of the class hash.
+    let mut flattened_class = contract_artifact.flatten().unwrap();
+    flattened_class.abi = format!(
+        "Declared from starknet-rs test case. Timestamp (ms): {}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_millis()
+    );
+
+    let result = account
+        .declare_v3(
+            Arc::new(flattened_class),
+            FieldElement::from_hex_be(&hashes.compiled_class_hash).unwrap(),
+        )
+        .gas(8000)
+        .gas_price(100000000000000)
+        .send()
+        .await
+        .unwrap();
 
     assert!(result.transaction_hash > FieldElement::ZERO);
 }

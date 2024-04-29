@@ -25,15 +25,27 @@ pub trait Account: ExecutionEncoder + Sized {
 
     fn chain_id(&self) -> FieldElement;
 
-    async fn sign_execution(
+    async fn sign_execution_v1(
         &self,
-        execution: &RawExecution,
+        execution: &RawExecutionV1,
         query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError>;
 
-    async fn sign_declaration(
+    async fn sign_execution_v3(
         &self,
-        declaration: &RawDeclaration,
+        execution: &RawExecutionV3,
+        query_only: bool,
+    ) -> Result<Vec<FieldElement>, Self::SignError>;
+
+    async fn sign_declaration_v2(
+        &self,
+        declaration: &RawDeclarationV2,
+        query_only: bool,
+    ) -> Result<Vec<FieldElement>, Self::SignError>;
+
+    async fn sign_declaration_v3(
+        &self,
+        declaration: &RawDeclarationV3,
         query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError>;
 
@@ -43,16 +55,42 @@ pub trait Account: ExecutionEncoder + Sized {
         query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError>;
 
-    fn execute(&self, calls: Vec<Call>) -> Execution<Self> {
-        Execution::new(calls, self)
+    fn execute_v1(&self, calls: Vec<Call>) -> ExecutionV1<Self> {
+        ExecutionV1::new(calls, self)
     }
 
+    fn execute_v3(&self, calls: Vec<Call>) -> ExecutionV3<Self> {
+        ExecutionV3::new(calls, self)
+    }
+
+    #[deprecated = "use version specific variants (`execute_v1` & `execute_v3`) instead"]
+    fn execute(&self, calls: Vec<Call>) -> ExecutionV1<Self> {
+        self.execute_v1(calls)
+    }
+
+    fn declare_v2(
+        &self,
+        contract_class: Arc<FlattenedSierraClass>,
+        compiled_class_hash: FieldElement,
+    ) -> DeclarationV2<Self> {
+        DeclarationV2::new(contract_class, compiled_class_hash, self)
+    }
+
+    fn declare_v3(
+        &self,
+        contract_class: Arc<FlattenedSierraClass>,
+        compiled_class_hash: FieldElement,
+    ) -> DeclarationV3<Self> {
+        DeclarationV3::new(contract_class, compiled_class_hash, self)
+    }
+
+    #[deprecated = "use version specific variants (`declare_v1` & `declare_v3`) instead"]
     fn declare(
         &self,
         contract_class: Arc<FlattenedSierraClass>,
         compiled_class_hash: FieldElement,
-    ) -> Declaration<Self> {
-        Declaration::new(contract_class, compiled_class_hash, self)
+    ) -> DeclarationV2<Self> {
+        self.declare_v2(contract_class, compiled_class_hash)
     }
 
     fn declare_legacy(&self, contract_class: Arc<LegacyContractClass>) -> LegacyDeclaration<Self> {
@@ -87,10 +125,14 @@ pub trait ConnectedAccount: Account {
     }
 }
 
-/// An intermediate type allowing users to optionally specify `nonce` and/or `max_fee`.
+/// Abstraction over `INVOKE` transactions from accounts for invoking contracts. This struct uses
+/// v1 `INVOKE` transactions under the hood, and hence pays transaction fees in ETH. To use v3
+/// transactions for STRK fee payment, use [ExecutionV3] instead.
+///
+/// This is an intermediate type allowing users to optionally specify `nonce` and/or `max_fee`.
 #[must_use]
 #[derive(Debug)]
-pub struct Execution<'a, A> {
+pub struct ExecutionV1<'a, A> {
     account: &'a A,
     calls: Vec<Call>,
     nonce: Option<FieldElement>,
@@ -98,16 +140,57 @@ pub struct Execution<'a, A> {
     fee_estimate_multiplier: f64,
 }
 
+/// Abstraction over `INVOKE` transactions from accounts for invoking contracts. This struct uses
+/// v3 `INVOKE` transactions under the hood, and hence pays transaction fees in STRK. To use v1
+/// transactions for ETH fee payment, use [ExecutionV1] instead.
+///
+/// This is an intermediate type allowing users to optionally specify `nonce`, `gas`, and/or
+/// `gas_price`.
+#[must_use]
+#[derive(Debug)]
+pub struct ExecutionV3<'a, A> {
+    account: &'a A,
+    calls: Vec<Call>,
+    nonce: Option<FieldElement>,
+    gas: Option<u64>,
+    gas_price: Option<u128>,
+    gas_estimate_multiplier: f64,
+    gas_price_estimate_multiplier: f64,
+}
+
+/// Abstraction over `DECLARE` transactions from accounts for invoking contracts. This struct uses
+/// v2 `DECLARE` transactions under the hood, and hence pays transaction fees in ETH. To use v3
+/// transactions for STRK fee payment, use [DeclarationV3] instead.
+///
 /// An intermediate type allowing users to optionally specify `nonce` and/or `max_fee`.
 #[must_use]
 #[derive(Debug)]
-pub struct Declaration<'a, A> {
+pub struct DeclarationV2<'a, A> {
     account: &'a A,
     contract_class: Arc<FlattenedSierraClass>,
     compiled_class_hash: FieldElement,
     nonce: Option<FieldElement>,
     max_fee: Option<FieldElement>,
     fee_estimate_multiplier: f64,
+}
+
+/// Abstraction over `DECLARE` transactions from accounts for invoking contracts. This struct uses
+/// v3 `DECLARE` transactions under the hood, and hence pays transaction fees in STRK. To use v2
+/// transactions for ETH fee payment, use [DeclarationV2] instead.
+///
+/// This is an intermediate type allowing users to optionally specify `nonce`, `gas`, and/or
+/// `gas_price`.
+#[must_use]
+#[derive(Debug)]
+pub struct DeclarationV3<'a, A> {
+    account: &'a A,
+    contract_class: Arc<FlattenedSierraClass>,
+    compiled_class_hash: FieldElement,
+    nonce: Option<FieldElement>,
+    gas: Option<u64>,
+    gas_price: Option<u128>,
+    gas_estimate_multiplier: f64,
+    gas_price_estimate_multiplier: f64,
 }
 
 /// An intermediate type allowing users to optionally specify `nonce` and/or `max_fee`.
@@ -121,21 +204,40 @@ pub struct LegacyDeclaration<'a, A> {
     fee_estimate_multiplier: f64,
 }
 
-/// [Execution] but with `nonce` and `max_fee` already determined.
+/// [ExecutionV1] but with `nonce` and `max_fee` already determined.
 #[derive(Debug)]
-pub struct RawExecution {
+pub struct RawExecutionV1 {
     calls: Vec<Call>,
     nonce: FieldElement,
     max_fee: FieldElement,
 }
 
-/// [Declaration] but with `nonce` and `max_fee` already determined.
+/// [ExecutionV3] but with `nonce`, `gas` and `gas_price` already determined.
 #[derive(Debug)]
-pub struct RawDeclaration {
+pub struct RawExecutionV3 {
+    calls: Vec<Call>,
+    nonce: FieldElement,
+    gas: u64,
+    gas_price: u128,
+}
+
+/// [DeclarationV2] but with `nonce` and `max_fee` already determined.
+#[derive(Debug)]
+pub struct RawDeclarationV2 {
     contract_class: Arc<FlattenedSierraClass>,
     compiled_class_hash: FieldElement,
     nonce: FieldElement,
     max_fee: FieldElement,
+}
+
+/// [DeclarationV3] but with `nonce`, `gas` and `gas_price` already determined.
+#[derive(Debug)]
+pub struct RawDeclarationV3 {
+    contract_class: Arc<FlattenedSierraClass>,
+    compiled_class_hash: FieldElement,
+    nonce: FieldElement,
+    gas: u64,
+    gas_price: u128,
 }
 
 /// [LegacyDeclaration] but with `nonce` and `max_fee` already determined.
@@ -146,18 +248,32 @@ pub struct RawLegacyDeclaration {
     max_fee: FieldElement,
 }
 
-/// [RawExecution] but with an account associated.
+/// [RawExecutionV1] but with an account associated.
 #[derive(Debug)]
-pub struct PreparedExecution<'a, A> {
+pub struct PreparedExecutionV1<'a, A> {
     account: &'a A,
-    inner: RawExecution,
+    inner: RawExecutionV1,
 }
 
-/// [RawDeclaration] but with an account associated.
+/// [RawExecutionV3] but with an account associated.
 #[derive(Debug)]
-pub struct PreparedDeclaration<'a, A> {
+pub struct PreparedExecutionV3<'a, A> {
     account: &'a A,
-    inner: RawDeclaration,
+    inner: RawExecutionV3,
+}
+
+/// [RawDeclarationV2] but with an account associated.
+#[derive(Debug)]
+pub struct PreparedDeclarationV2<'a, A> {
+    account: &'a A,
+    inner: RawDeclarationV2,
+}
+
+/// [RawDeclarationV3] but with an account associated.
+#[derive(Debug)]
+pub struct PreparedDeclarationV3<'a, A> {
+    account: &'a A,
+    inner: RawDeclarationV3,
 }
 
 /// [RawLegacyDeclaration] but with an account associated.
@@ -197,20 +313,36 @@ where
         (*self).chain_id()
     }
 
-    async fn sign_execution(
+    async fn sign_execution_v1(
         &self,
-        execution: &RawExecution,
+        execution: &RawExecutionV1,
         query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
-        (*self).sign_execution(execution, query_only).await
+        (*self).sign_execution_v1(execution, query_only).await
     }
 
-    async fn sign_declaration(
+    async fn sign_execution_v3(
         &self,
-        declaration: &RawDeclaration,
+        execution: &RawExecutionV3,
         query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
-        (*self).sign_declaration(declaration, query_only).await
+        (*self).sign_execution_v3(execution, query_only).await
+    }
+
+    async fn sign_declaration_v2(
+        &self,
+        declaration: &RawDeclarationV2,
+        query_only: bool,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        (*self).sign_declaration_v2(declaration, query_only).await
+    }
+
+    async fn sign_declaration_v3(
+        &self,
+        declaration: &RawDeclarationV3,
+        query_only: bool,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        (*self).sign_declaration_v3(declaration, query_only).await
     }
 
     async fn sign_legacy_declaration(
@@ -240,21 +372,39 @@ where
         self.as_ref().chain_id()
     }
 
-    async fn sign_execution(
+    async fn sign_execution_v1(
         &self,
-        execution: &RawExecution,
+        execution: &RawExecutionV1,
         query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
-        self.as_ref().sign_execution(execution, query_only).await
+        self.as_ref().sign_execution_v1(execution, query_only).await
     }
 
-    async fn sign_declaration(
+    async fn sign_execution_v3(
         &self,
-        declaration: &RawDeclaration,
+        execution: &RawExecutionV3,
+        query_only: bool,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        self.as_ref().sign_execution_v3(execution, query_only).await
+    }
+
+    async fn sign_declaration_v2(
+        &self,
+        declaration: &RawDeclarationV2,
         query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
         self.as_ref()
-            .sign_declaration(declaration, query_only)
+            .sign_declaration_v2(declaration, query_only)
+            .await
+    }
+
+    async fn sign_declaration_v3(
+        &self,
+        declaration: &RawDeclarationV3,
+        query_only: bool,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        self.as_ref()
+            .sign_declaration_v3(declaration, query_only)
             .await
     }
 
@@ -285,21 +435,39 @@ where
         self.as_ref().chain_id()
     }
 
-    async fn sign_execution(
+    async fn sign_execution_v1(
         &self,
-        execution: &RawExecution,
+        execution: &RawExecutionV1,
         query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
-        self.as_ref().sign_execution(execution, query_only).await
+        self.as_ref().sign_execution_v1(execution, query_only).await
     }
 
-    async fn sign_declaration(
+    async fn sign_execution_v3(
         &self,
-        declaration: &RawDeclaration,
+        execution: &RawExecutionV3,
+        query_only: bool,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        self.as_ref().sign_execution_v3(execution, query_only).await
+    }
+
+    async fn sign_declaration_v2(
+        &self,
+        declaration: &RawDeclarationV2,
         query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
         self.as_ref()
-            .sign_declaration(declaration, query_only)
+            .sign_declaration_v2(declaration, query_only)
+            .await
+    }
+
+    async fn sign_declaration_v3(
+        &self,
+        declaration: &RawDeclarationV3,
+        query_only: bool,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        self.as_ref()
+            .sign_declaration_v3(declaration, query_only)
             .await
     }
 
