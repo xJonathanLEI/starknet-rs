@@ -40,7 +40,7 @@ async fn main() {
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let result = account
-        .execute(vec![Call {
+        .execute_v1(vec![Call {
             to: tst_token_address,
             selector: get_selector_from_name("mint").unwrap(),
             calldata: vec![

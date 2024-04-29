@@ -49,7 +49,7 @@ async fn main() {
     let flattened_class = contract_artifact.flatten().unwrap();
 
     let result = account
-        .declare(Arc::new(flattened_class), compiled_class_hash)
+        .declare_v2(Arc::new(flattened_class), compiled_class_hash)
         .send()
         .await
         .unwrap();

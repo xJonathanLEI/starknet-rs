@@ -1,4 +1,4 @@
-use starknet_accounts::{Account, AccountError, Call, ConnectedAccount, Execution};
+use starknet_accounts::{Account, AccountError, Call, ConnectedAccount, ExecutionV1, ExecutionV3};
 use starknet_core::{
     types::{FeeEstimate, FieldElement, InvokeTransactionResult, SimulatedTransaction},
     utils::{get_udc_deployed_address, UdcUniqueSettings, UdcUniqueness},
@@ -26,7 +26,11 @@ pub struct ContractFactory<A> {
     account: A,
 }
 
-pub struct Deployment<'f, A> {
+/// Abstraction over contract deployment via the UDC. This type uses `INVOKE` v1 transactions under
+/// the hood, and hence pays transaction fees in ETH. To use v3 transactions for STRK fee payment,
+/// use [DeploymentV3] instead.
+#[must_use]
+pub struct DeploymentV1<'f, A> {
     factory: &'f ContractFactory<A>,
     constructor_calldata: Vec<FieldElement>,
     salt: FieldElement,
@@ -35,6 +39,23 @@ pub struct Deployment<'f, A> {
     nonce: Option<FieldElement>,
     max_fee: Option<FieldElement>,
     fee_estimate_multiplier: f64,
+}
+
+/// Abstraction over contract deployment via the UDC. This type uses `INVOKE` v3 transactions under
+/// the hood, and hence pays transaction fees in STRK. To use v1 transactions for ETH fee payment,
+/// use [DeploymentV1] instead.
+#[must_use]
+pub struct DeploymentV3<'f, A> {
+    factory: &'f ContractFactory<A>,
+    constructor_calldata: Vec<FieldElement>,
+    salt: FieldElement,
+    unique: bool,
+    // The following fields allow us to mimic an `Execution` API.
+    nonce: Option<FieldElement>,
+    gas: Option<u64>,
+    gas_price: Option<u128>,
+    gas_estimate_multiplier: f64,
+    gas_price_estimate_multiplier: f64,
 }
 
 impl<A> ContractFactory<A> {
@@ -55,13 +76,13 @@ impl<A> ContractFactory<A>
 where
     A: Account,
 {
-    pub fn deploy(
+    pub fn deploy_v1(
         &self,
         constructor_calldata: Vec<FieldElement>,
         salt: FieldElement,
         unique: bool,
-    ) -> Deployment<A> {
-        Deployment {
+    ) -> DeploymentV1<A> {
+        DeploymentV1 {
             factory: self,
             constructor_calldata,
             salt,
@@ -71,9 +92,38 @@ where
             fee_estimate_multiplier: 1.1,
         }
     }
+
+    pub fn deploy_v3(
+        &self,
+        constructor_calldata: Vec<FieldElement>,
+        salt: FieldElement,
+        unique: bool,
+    ) -> DeploymentV3<A> {
+        DeploymentV3 {
+            factory: self,
+            constructor_calldata,
+            salt,
+            unique,
+            nonce: None,
+            gas: None,
+            gas_price: None,
+            gas_estimate_multiplier: 1.5,
+            gas_price_estimate_multiplier: 1.5,
+        }
+    }
+
+    #[deprecated = "use version specific variants (`deploy_v1` & `deploy_v3`) instead"]
+    pub fn deploy(
+        &self,
+        constructor_calldata: Vec<FieldElement>,
+        salt: FieldElement,
+        unique: bool,
+    ) -> DeploymentV1<A> {
+        self.deploy_v1(constructor_calldata, salt, unique)
+    }
 }
 
-impl<'f, A> Deployment<'f, A> {
+impl<'f, A> DeploymentV1<'f, A> {
     pub fn nonce(self, nonce: FieldElement) -> Self {
         Self {
             nonce: Some(nonce),
@@ -96,7 +146,44 @@ impl<'f, A> Deployment<'f, A> {
     }
 }
 
-impl<'f, A> Deployment<'f, A>
+impl<'f, A> DeploymentV3<'f, A> {
+    pub fn nonce(self, nonce: FieldElement) -> Self {
+        Self {
+            nonce: Some(nonce),
+            ..self
+        }
+    }
+
+    pub fn gas(self, gas: u64) -> Self {
+        Self {
+            gas: Some(gas),
+            ..self
+        }
+    }
+
+    pub fn gas_price(self, gas_price: u128) -> Self {
+        Self {
+            gas_price: Some(gas_price),
+            ..self
+        }
+    }
+
+    pub fn gas_estimate_multiplier(self, gas_estimate_multiplier: f64) -> Self {
+        Self {
+            gas_estimate_multiplier,
+            ..self
+        }
+    }
+
+    pub fn gas_price_estimate_multiplier(self, gas_price_estimate_multiplier: f64) -> Self {
+        Self {
+            gas_price_estimate_multiplier,
+            ..self
+        }
+    }
+}
+
+impl<'f, A> DeploymentV1<'f, A>
 where
     A: Account,
 {
@@ -118,12 +205,34 @@ where
     }
 }
 
-impl<'f, A> Deployment<'f, A>
+impl<'f, A> DeploymentV3<'f, A>
+where
+    A: Account,
+{
+    /// Calculate the resulting contract address without sending a transaction.
+    pub fn deployed_address(&self) -> FieldElement {
+        get_udc_deployed_address(
+            self.salt,
+            self.factory.class_hash,
+            &if self.unique {
+                UdcUniqueness::Unique(UdcUniqueSettings {
+                    deployer_address: self.factory.account.address(),
+                    udc_contract_address: self.factory.udc_address,
+                })
+            } else {
+                UdcUniqueness::NotUnique
+            },
+            &self.constructor_calldata,
+        )
+    }
+}
+
+impl<'f, A> DeploymentV1<'f, A>
 where
     A: ConnectedAccount + Sync,
 {
     pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
-        let execution: Execution<A> = self.into();
+        let execution: ExecutionV1<A> = self.into();
         execution.estimate_fee().await
     }
 
@@ -132,18 +241,42 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
-        let execution: Execution<A> = self.into();
+        let execution: ExecutionV1<A> = self.into();
         execution.simulate(skip_validate, skip_fee_charge).await
     }
 
     pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
-        let execution: Execution<A> = self.into();
+        let execution: ExecutionV1<A> = self.into();
         execution.send().await
     }
 }
 
-impl<'f, A> From<&Deployment<'f, A>> for Execution<'f, A> {
-    fn from(value: &Deployment<'f, A>) -> Self {
+impl<'f, A> DeploymentV3<'f, A>
+where
+    A: ConnectedAccount + Sync,
+{
+    pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
+        let execution: ExecutionV3<A> = self.into();
+        execution.estimate_fee().await
+    }
+
+    pub async fn simulate(
+        &self,
+        skip_validate: bool,
+        skip_fee_charge: bool,
+    ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
+        let execution: ExecutionV3<A> = self.into();
+        execution.simulate(skip_validate, skip_fee_charge).await
+    }
+
+    pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
+        let execution: ExecutionV3<A> = self.into();
+        execution.send().await
+    }
+}
+
+impl<'f, A> From<&DeploymentV1<'f, A>> for ExecutionV1<'f, A> {
+    fn from(value: &DeploymentV1<'f, A>) -> Self {
         let mut calldata = vec![
             value.factory.class_hash,
             value.salt,
@@ -181,6 +314,52 @@ impl<'f, A> From<&Deployment<'f, A>> for Execution<'f, A> {
     }
 }
 
+impl<'f, A> From<&DeploymentV3<'f, A>> for ExecutionV3<'f, A> {
+    fn from(value: &DeploymentV3<'f, A>) -> Self {
+        let mut calldata = vec![
+            value.factory.class_hash,
+            value.salt,
+            if value.unique {
+                FieldElement::ONE
+            } else {
+                FieldElement::ZERO
+            },
+            value.constructor_calldata.len().into(),
+        ];
+        calldata.extend_from_slice(&value.constructor_calldata);
+
+        let execution = Self::new(
+            vec![Call {
+                to: value.factory.udc_address,
+                selector: SELECTOR_DEPLOYCONTRACT,
+                calldata,
+            }],
+            &value.factory.account,
+        );
+
+        let execution = if let Some(nonce) = value.nonce {
+            execution.nonce(nonce)
+        } else {
+            execution
+        };
+
+        let execution = if let Some(gas) = value.gas {
+            execution.gas(gas)
+        } else {
+            execution
+        };
+
+        let execution = if let Some(gas_price) = value.gas_price {
+            execution.gas_price(gas_price)
+        } else {
+            execution
+        };
+
+        let execution = execution.gas_estimate_multiplier(value.gas_estimate_multiplier);
+
+        execution.gas_price_estimate_multiplier(value.gas_price_estimate_multiplier)
+    }
+}
 #[cfg(test)]
 mod tests {
     use starknet_accounts::{ExecutionEncoding, SingleOwnerAccount};
@@ -210,16 +389,30 @@ mod tests {
             ),
         );
 
-        let unique_address = factory
-            .deploy(
+        let unique_address_v1 = factory
+            .deploy_v1(
+                vec![FieldElement::from_hex_be("0x1234").unwrap()],
+                FieldElement::from_hex_be("0x3456").unwrap(),
+                true,
+            )
+            .deployed_address();
+        let unique_address_v3 = factory
+            .deploy_v3(
                 vec![FieldElement::from_hex_be("0x1234").unwrap()],
                 FieldElement::from_hex_be("0x3456").unwrap(),
                 true,
             )
             .deployed_address();
 
-        let not_unique_address = factory
-            .deploy(
+        let not_unique_address_v1 = factory
+            .deploy_v1(
+                vec![FieldElement::from_hex_be("0x1234").unwrap()],
+                FieldElement::from_hex_be("0x3456").unwrap(),
+                false,
+            )
+            .deployed_address();
+        let not_unique_address_v3 = factory
+            .deploy_v3(
                 vec![FieldElement::from_hex_be("0x1234").unwrap()],
                 FieldElement::from_hex_be("0x3456").unwrap(),
                 false,
@@ -227,7 +420,14 @@ mod tests {
             .deployed_address();
 
         assert_eq!(
-            unique_address,
+            unique_address_v1,
+            FieldElement::from_hex_be(
+                "0x36e05bcd41191387bc2f04ed9cad4776a75df3b748b0246a5d217a988474181"
+            )
+            .unwrap()
+        );
+        assert_eq!(
+            unique_address_v3,
             FieldElement::from_hex_be(
                 "0x36e05bcd41191387bc2f04ed9cad4776a75df3b748b0246a5d217a988474181"
             )
@@ -235,7 +435,14 @@ mod tests {
         );
 
         assert_eq!(
-            not_unique_address,
+            not_unique_address_v1,
+            FieldElement::from_hex_be(
+                "0x3a320b6aa0b451b22fba90b5d75b943932649137c09a86a5cf4853031be70c1"
+            )
+            .unwrap()
+        );
+        assert_eq!(
+            not_unique_address_v3,
             FieldElement::from_hex_be(
                 "0x3a320b6aa0b451b22fba90b5d75b943932649137c09a86a5cf4853031be70c1"
             )

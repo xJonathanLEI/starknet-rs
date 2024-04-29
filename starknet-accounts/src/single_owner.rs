@@ -1,6 +1,6 @@
 use crate::{
-    Account, Call, ConnectedAccount, ExecutionEncoder, RawDeclaration, RawExecution,
-    RawLegacyDeclaration,
+    Account, Call, ConnectedAccount, ExecutionEncoder, RawDeclarationV2, RawDeclarationV3,
+    RawExecutionV1, RawExecutionV3, RawLegacyDeclaration,
 };
 
 use async_trait::async_trait;
@@ -94,9 +94,9 @@ where
         self.chain_id
     }
 
-    async fn sign_execution(
+    async fn sign_execution_v1(
         &self,
-        execution: &RawExecution,
+        execution: &RawExecutionV1,
         query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
         let tx_hash = execution.transaction_hash(self.chain_id, self.address, query_only, self);
@@ -109,9 +109,39 @@ where
         Ok(vec![signature.r, signature.s])
     }
 
-    async fn sign_declaration(
+    async fn sign_execution_v3(
         &self,
-        declaration: &RawDeclaration,
+        execution: &RawExecutionV3,
+        query_only: bool,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        let tx_hash = execution.transaction_hash(self.chain_id, self.address, query_only, self);
+        let signature = self
+            .signer
+            .sign_hash(&tx_hash)
+            .await
+            .map_err(SignError::Signer)?;
+
+        Ok(vec![signature.r, signature.s])
+    }
+
+    async fn sign_declaration_v2(
+        &self,
+        declaration: &RawDeclarationV2,
+        query_only: bool,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        let tx_hash = declaration.transaction_hash(self.chain_id, self.address, query_only);
+        let signature = self
+            .signer
+            .sign_hash(&tx_hash)
+            .await
+            .map_err(SignError::Signer)?;
+
+        Ok(vec![signature.r, signature.s])
+    }
+
+    async fn sign_declaration_v3(
+        &self,
+        declaration: &RawDeclarationV3,
         query_only: bool,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
         let tx_hash = declaration.transaction_hash(self.chain_id, self.address, query_only);

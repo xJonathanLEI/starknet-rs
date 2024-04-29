@@ -1,4 +1,7 @@
-use crate::{AccountFactory, PreparedAccountDeployment, RawAccountDeployment};
+use crate::{
+    AccountFactory, PreparedAccountDeploymentV1, PreparedAccountDeploymentV3,
+    RawAccountDeploymentV1, RawAccountDeploymentV3,
+};
 
 use async_trait::async_trait;
 use starknet_core::types::{BlockId, BlockTag, FieldElement};
@@ -71,12 +74,23 @@ where
         self.block_id
     }
 
-    async fn sign_deployment(
+    async fn sign_deployment_v1(
         &self,
-        deployment: &RawAccountDeployment,
+        deployment: &RawAccountDeploymentV1,
     ) -> Result<Vec<FieldElement>, Self::SignError> {
         let tx_hash =
-            PreparedAccountDeployment::from_raw(deployment.clone(), self).transaction_hash();
+            PreparedAccountDeploymentV1::from_raw(deployment.clone(), self).transaction_hash();
+        let signature = self.signer.sign_hash(&tx_hash).await?;
+
+        Ok(vec![signature.r, signature.s])
+    }
+
+    async fn sign_deployment_v3(
+        &self,
+        deployment: &RawAccountDeploymentV3,
+    ) -> Result<Vec<FieldElement>, Self::SignError> {
+        let tx_hash =
+            PreparedAccountDeploymentV3::from_raw(deployment.clone(), self).transaction_hash();
         let signature = self.signer.sign_hash(&tx_hash).await?;
 
         Ok(vec![signature.r, signature.s])

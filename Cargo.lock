@@ -1660,6 +1660,7 @@ dependencies = [
  "serde",
  "serde_json",
  "starknet-core",
+ "starknet-crypto",
  "starknet-providers",
  "starknet-signers",
  "thiserror",
