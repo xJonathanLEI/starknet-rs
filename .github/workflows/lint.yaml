@@ -78,11 +78,19 @@ jobs:
           components: "clippy"
           override: true
 
+      - name: "Set allowed lints"
+        run: |
+          if [ "${{ matrix.toolchain }}" == "nightly" ]; then
+            echo "ALLOWED=-A non_local_definitions" >> $GITHUB_ENV
+          else
+            echo "ALLOWED=" >> $GITHUB_ENV
+          fi
+
       - name: "Run Clippy (default)"
         run: |
-          cargo clippy --all --all-targets -- -D warnings
+          cargo clippy --all --all-targets -- -D warnings $ALLOWED
 
       - name: "Run Clippy (no_std)"
         run: |
-          cargo clippy --package starknet-crypto --no-default-features -- -D warnings
-          cargo clippy --package starknet-crypto --no-default-features --features alloc -- -D warnings
+          cargo clippy --package starknet-crypto --no-default-features -- -D warnings $ALLOWED
+          cargo clippy --package starknet-crypto --no-default-features --features alloc -- -D warnings $ALLOWED
