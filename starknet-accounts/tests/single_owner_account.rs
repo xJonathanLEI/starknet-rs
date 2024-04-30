@@ -32,7 +32,7 @@ fn create_sequencer_client() -> SequencerGatewayProvider {
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     let rpc_url = std::env::var("STARKNET_RPC")
-        .unwrap_or("https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_7".into());
+        .unwrap_or("https://juno.rpc.sepolia.starknet.rs/rpc/v0_7".into());
     JsonRpcClient::new(HttpTransport::new(url::Url::parse(&rpc_url).unwrap()))
 }
 
@@ -119,6 +119,15 @@ async fn can_execute_eth_transfer_invoke_v3_with_jsonrpc() {
     can_execute_eth_transfer_invoke_v3_inner(
         create_jsonrpc_client(),
         "0x03a08ecef30eaef46780a5167eac194d7cf0407356dccdc7393f851dfc164fd6",
+    )
+    .await
+}
+
+#[tokio::test]
+async fn can_execute_eth_transfer_invoke_v3_with_manual_gas_with_jsonrpc() {
+    can_execute_eth_transfer_invoke_v3_with_manual_gas_inner(
+        create_jsonrpc_client(),
+        "0x04a3189bdbc8716f416f7d54d9bf0d0f55ffb454bb89c547118d023a652277dd",
     )
     .await
 }
@@ -388,8 +397,50 @@ async fn can_execute_eth_transfer_invoke_v3_inner<P: Provider + Send + Sync>(
                 FieldElement::ZERO,
             ],
         }])
-        .gas(8000)
+        .gas(20000)
         .gas_price(100000000000000)
+        .send()
+        .await
+        .unwrap();
+
+    assert!(result.transaction_hash > FieldElement::ZERO);
+}
+
+async fn can_execute_eth_transfer_invoke_v3_with_manual_gas_inner<P: Provider + Send + Sync>(
+    provider: P,
+    address: &str,
+) {
+    // This test tx reverts, as the account does not have sufficient ETH balance. However, the point
+    // is to test that a fee estimation is _not_ performed when `gas` is specified. A fee estimation
+    // performed on this call would have thrown.
+
+    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
+        FieldElement::from_hex_be(
+            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        )
+        .unwrap(),
+    ));
+    let address = FieldElement::from_hex_be(address).unwrap();
+    let eth_token_address = FieldElement::from_hex_be(
+        "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+    )
+    .unwrap();
+
+    let mut account =
+        SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
+    account.set_block_id(BlockId::Tag(BlockTag::Pending));
+
+    let result = account
+        .execute_v3(vec![Call {
+            to: eth_token_address,
+            selector: get_selector_from_name("transfer").unwrap(),
+            calldata: vec![
+                FieldElement::from_hex_be("0x1234").unwrap(),
+                FieldElement::from_dec_str("10000000000000000000").unwrap(),
+                FieldElement::ZERO,
+            ],
+        }])
+        .gas(20000)
         .send()
         .await
         .unwrap();
@@ -550,7 +601,7 @@ async fn can_declare_cairo1_contract_v3_inner<P: Provider + Send + Sync>(
             Arc::new(flattened_class),
             FieldElement::from_hex_be(&hashes.compiled_class_hash).unwrap(),
         )
-        .gas(8000)
+        .gas(20000)
         .gas_price(100000000000000)
         .send()
         .await
