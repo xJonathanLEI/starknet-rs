@@ -227,6 +227,13 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
         }
     }
 
+    pub fn nonce(self, nonce: FieldElement) -> Self {
+        Self {
+            nonce: Some(nonce),
+            ..self
+        }
+    }
+
     pub fn gas(self, gas: u64) -> Self {
         Self {
             gas: Some(gas),
