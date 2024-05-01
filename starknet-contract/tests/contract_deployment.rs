@@ -98,7 +98,7 @@ async fn can_deploy_contract_to_alpha_sepolia_with_invoke_v3() {
             FieldElement::from_bytes_be(&salt_buffer).unwrap(),
             true,
         )
-        .gas(20000)
+        .gas(200000)
         .gas_price(100000000000000)
         .send()
         .await;

@@ -397,7 +397,7 @@ async fn can_execute_eth_transfer_invoke_v3_inner<P: Provider + Send + Sync>(
                 FieldElement::ZERO,
             ],
         }])
-        .gas(20000)
+        .gas(200000)
         .gas_price(100000000000000)
         .send()
         .await
@@ -440,7 +440,7 @@ async fn can_execute_eth_transfer_invoke_v3_with_manual_gas_inner<P: Provider + 
                 FieldElement::ZERO,
             ],
         }])
-        .gas(20000)
+        .gas(200000)
         .send()
         .await
         .unwrap();
@@ -601,7 +601,7 @@ async fn can_declare_cairo1_contract_v3_inner<P: Provider + Send + Sync>(
             Arc::new(flattened_class),
             FieldElement::from_hex_be(&hashes.compiled_class_hash).unwrap(),
         )
-        .gas(20000)
+        .gas(200000)
         .gas_price(100000000000000)
         .send()
         .await

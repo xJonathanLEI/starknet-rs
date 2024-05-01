@@ -562,8 +562,11 @@ where
                 let gas = match self.gas {
                     Some(gas) => gas,
                     None => {
-                        (((TryInto::<u64>::try_into(fee_estimate.gas_consumed)
-                            .map_err(|_| AccountFactoryError::FeeOutOfRange)?)
+                        (((TryInto::<u64>::try_into(
+                            (fee_estimate.overall_fee + fee_estimate.gas_price - FieldElement::ONE)
+                                .floor_div(fee_estimate.gas_price),
+                        )
+                        .map_err(|_| AccountFactoryError::FeeOutOfRange)?)
                             as f64)
                             * self.gas_estimate_multiplier) as u64
                     }
