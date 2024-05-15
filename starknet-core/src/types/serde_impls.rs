@@ -151,9 +151,10 @@ impl<'de> Deserialize<'de> for SyncStatusType {
 }
 
 mod block_id {
-    use crate::{serde::unsigned_field_element::UfeHex, types::FieldElement};
+    use crate::serde::unsigned_field_element::UfeHex;
     use serde::{Deserialize, Deserializer, Serialize};
     use serde_with::serde_as;
+    use starknet_types_core::felt::Felt;
 
     use crate::types::{BlockId, BlockTag};
 
@@ -170,7 +171,7 @@ mod block_id {
     #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
     struct BlockHash {
         #[serde_as(as = "UfeHex")]
-        block_hash: FieldElement,
+        block_hash: Felt,
     }
 
     #[derive(Serialize, Deserialize)]
@@ -400,9 +401,10 @@ mod enum_ser_impls {
 mod tests {
     use serde::Deserialize;
     use serde_with::serde_as;
+    use starknet_types_core::felt::Felt;
 
     use super::{
-        super::{BlockId, BlockTag, FieldElement},
+        super::{BlockId, BlockTag},
         NumAsHex,
     };
 
@@ -411,7 +413,7 @@ mod tests {
     fn test_blockid_serde() {
         for (block_id, json) in [
             (
-                BlockId::Hash(FieldElement::from_hex_be("0x1234").unwrap()),
+                BlockId::Hash(Felt::from_hex("0x1234").unwrap()),
                 "{\"block_hash\":\"0x1234\"}",
             ),
             (BlockId::Number(1234), "{\"block_number\":1234}"),

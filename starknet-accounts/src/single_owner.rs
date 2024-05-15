@@ -4,9 +4,10 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use starknet_core::types::{contract::ComputeClassHashError, BlockId, BlockTag, FieldElement};
+use starknet_core::types::{contract::ComputeClassHashError, BlockId, BlockTag};
 use starknet_providers::Provider;
 use starknet_signers::Signer;
+use starknet_types_core::felt::Felt;
 
 #[derive(Debug, Clone)]
 pub struct SingleOwnerAccount<P, S>
@@ -16,8 +17,8 @@ where
 {
     provider: P,
     signer: S,
-    address: FieldElement,
-    chain_id: FieldElement,
+    address: Felt,
+    chain_id: Felt,
     block_id: BlockId,
     encoding: ExecutionEncoding,
 }
@@ -57,8 +58,8 @@ where
     pub fn new(
         provider: P,
         signer: S,
-        address: FieldElement,
-        chain_id: FieldElement,
+        address: Felt,
+        chain_id: Felt,
         encoding: ExecutionEncoding,
     ) -> Self {
         Self {
@@ -86,11 +87,11 @@ where
 {
     type SignError = SignError<S::SignError>;
 
-    fn address(&self) -> FieldElement {
+    fn address(&self) -> Felt {
         self.address
     }
 
-    fn chain_id(&self) -> FieldElement {
+    fn chain_id(&self) -> Felt {
         self.chain_id
     }
 
@@ -98,7 +99,7 @@ where
         &self,
         execution: &RawExecutionV1,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         let tx_hash = execution.transaction_hash(self.chain_id, self.address, query_only, self);
         let signature = self
             .signer
@@ -113,7 +114,7 @@ where
         &self,
         execution: &RawExecutionV3,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         let tx_hash = execution.transaction_hash(self.chain_id, self.address, query_only, self);
         let signature = self
             .signer
@@ -128,7 +129,7 @@ where
         &self,
         declaration: &RawDeclarationV2,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         let tx_hash = declaration.transaction_hash(self.chain_id, self.address, query_only);
         let signature = self
             .signer
@@ -143,7 +144,7 @@ where
         &self,
         declaration: &RawDeclarationV3,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         let tx_hash = declaration.transaction_hash(self.chain_id, self.address, query_only);
         let signature = self
             .signer
@@ -158,7 +159,7 @@ where
         &self,
         legacy_declaration: &RawLegacyDeclaration,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         let tx_hash = legacy_declaration
             .transaction_hash(self.chain_id, self.address, query_only)
             .map_err(SignError::ClassHash)?;
@@ -177,12 +178,12 @@ where
     P: Provider + Send,
     S: Signer + Send,
 {
-    fn encode_calls(&self, calls: &[Call]) -> Vec<FieldElement> {
-        let mut execute_calldata: Vec<FieldElement> = vec![calls.len().into()];
+    fn encode_calls(&self, calls: &[Call]) -> Vec<Felt> {
+        let mut execute_calldata: Vec<Felt> = vec![calls.len().into()];
 
         match self.encoding {
             ExecutionEncoding::Legacy => {
-                let mut concated_calldata: Vec<FieldElement> = vec![];
+                let mut concated_calldata: Vec<Felt> = vec![];
                 for call in calls.iter() {
                     execute_calldata.push(call.to); // to
                     execute_calldata.push(call.selector); // selector

@@ -22,7 +22,6 @@ members = [
     "starknet-crypto",
     "starknet-signers",
     "starknet-accounts",
-    "starknet-ff",
     "starknet-macros",
     "starknet-curve",
     "starknet-crypto-codegen",
@@ -34,7 +33,6 @@ members = [
 all-features = true
 
 [dependencies]
-starknet-ff = { version = "0.3.7", path = "./starknet-ff", default-features = false }
 starknet-crypto = { version = "0.6.2", path = "./starknet-crypto" }
 starknet-core = { version = "0.10.0", path = "./starknet-core", default-features = false }
 starknet-providers = { version = "0.10.0", path = "./starknet-providers" }
@@ -42,6 +40,7 @@ starknet-contract = { version = "0.9.0", path = "./starknet-contract" }
 starknet-signers = { version = "0.8.0", path = "./starknet-signers" }
 starknet-accounts = { version = "0.9.0", path = "./starknet-accounts" }
 starknet-macros = { version = "0.1.7", path = "./starknet-macros" }
+starknet-types-core = { version = "0.1.1", default-features = false, features = ["curve"] }
 
 [dev-dependencies]
 serde_json = "1.0.74"
@@ -49,8 +48,6 @@ tokio = { version = "1.15.0", features = ["full"] }
 url = "2.2.2"
 
 [features]
-default = ["bigdecimal"]
-bigdecimal = ["starknet-ff/bigdecimal"]
 no_unknown_fields = [
     "starknet-core/no_unknown_fields",
     "starknet-providers/no_unknown_fields",

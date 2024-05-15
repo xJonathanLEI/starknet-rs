@@ -5,7 +5,7 @@ use starknet::{
     contract::ContractFactory,
     core::{
         chain_id,
-        types::{contract::legacy::LegacyContractClass, BlockId, BlockTag, FieldElement},
+        types::{contract::legacy::LegacyContractClass, BlockId, BlockTag},
     },
     macros::felt,
     providers::{
@@ -14,6 +14,7 @@ use starknet::{
     },
     signers::{LocalWallet, SigningKey},
 };
+use starknet_types_core::felt::Felt;
 
 #[tokio::main]
 async fn main() {
@@ -28,9 +29,9 @@ async fn main() {
     ));
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
+        Felt::from_hex("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
     ));
-    let address = FieldElement::from_hex_be("YOUR_ACCOUNT_CONTRACT_ADDRESS_IN_HEX_HERE").unwrap();
+    let address = Felt::from_hex("YOUR_ACCOUNT_CONTRACT_ADDRESS_IN_HEX_HERE").unwrap();
     let mut account = SingleOwnerAccount::new(
         provider,
         signer,

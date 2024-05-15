@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use serde_with::serde_as;
-use starknet_core::{serde::unsigned_field_element::UfeHex, types::FieldElement};
+use starknet_core::serde::unsigned_field_element::UfeHex;
+use starknet_types_core::felt::Felt;
 
 use super::{EntryPointType, ExecutionResources, L1Address};
 
@@ -28,7 +29,7 @@ pub struct TransactionTrace {
     #[serde(default)]
     pub validate_invocation: Option<FunctionInvocation>,
     #[serde_as(as = "Vec<UfeHex>")]
-    pub signature: Vec<FieldElement>,
+    pub signature: Vec<Felt>,
 }
 
 #[serde_as]
@@ -38,7 +39,7 @@ pub struct TransactionTraceWithHash {
     #[serde(flatten)]
     pub trace: TransactionTrace,
     #[serde_as(as = "UfeHex")]
-    pub transaction_hash: FieldElement,
+    pub transaction_hash: Felt,
 }
 
 #[derive(Debug, Deserialize, PartialEq, Eq)]
@@ -55,23 +56,23 @@ pub enum CallType {
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct FunctionInvocation {
     #[serde_as(as = "UfeHex")]
-    pub caller_address: FieldElement,
+    pub caller_address: Felt,
     #[serde_as(as = "UfeHex")]
-    pub contract_address: FieldElement,
+    pub contract_address: Felt,
     #[serde_as(as = "Vec<UfeHex>")]
-    pub calldata: Vec<FieldElement>,
+    pub calldata: Vec<Felt>,
     pub call_type: Option<CallType>,
     // This field is marked optional because it's missing from old transactions. Drop `Option` once
     // it's resolved.
     #[serde_as(as = "Option<UfeHex>")]
-    pub class_hash: Option<FieldElement>,
+    pub class_hash: Option<Felt>,
     // This field is marked optional because it's missing from old transactions. Drop `Option` once
     // it's resolved.
     #[serde_as(as = "Option<UfeHex>")]
-    pub selector: Option<FieldElement>,
+    pub selector: Option<Felt>,
     pub entry_point_type: Option<EntryPointType>,
     #[serde_as(as = "Vec<UfeHex>")]
-    pub result: Vec<FieldElement>,
+    pub result: Vec<Felt>,
     pub execution_resources: ExecutionResources,
     pub internal_calls: Vec<FunctionInvocation>,
     pub events: Vec<OrderedEventResponse>,
@@ -84,9 +85,9 @@ pub struct FunctionInvocation {
 pub struct OrderedEventResponse {
     pub order: u64,
     #[serde_as(as = "Vec<UfeHex>")]
-    pub keys: Vec<FieldElement>,
+    pub keys: Vec<Felt>,
     #[serde_as(as = "Vec<UfeHex>")]
-    pub data: Vec<FieldElement>,
+    pub data: Vec<Felt>,
 }
 
 #[serde_as]
@@ -96,7 +97,7 @@ pub struct OrderedL2ToL1MessageResponse {
     pub order: u64,
     pub to_address: L1Address,
     #[serde_as(as = "Vec<UfeHex>")]
-    pub payload: Vec<FieldElement>,
+    pub payload: Vec<Felt>,
 }
 
 #[cfg(test)]

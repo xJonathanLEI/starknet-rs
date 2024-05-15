@@ -4,9 +4,10 @@ use async_trait::async_trait;
 use auto_impl::auto_impl;
 use starknet_core::types::{
     contract::{legacy::LegacyContractClass, CompressProgramError, ComputeClassHashError},
-    BlockId, BlockTag, FieldElement, FlattenedSierraClass,
+    BlockId, BlockTag, FlattenedSierraClass,
 };
 use starknet_providers::{Provider, ProviderError};
+use starknet_types_core::felt::Felt;
 use std::{error::Error, sync::Arc};
 
 mod declaration;
@@ -21,39 +22,39 @@ mod execution;
 pub trait Account: ExecutionEncoder + Sized {
     type SignError: Error + Send + Sync;
 
-    fn address(&self) -> FieldElement;
+    fn address(&self) -> Felt;
 
-    fn chain_id(&self) -> FieldElement;
+    fn chain_id(&self) -> Felt;
 
     async fn sign_execution_v1(
         &self,
         execution: &RawExecutionV1,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError>;
+    ) -> Result<Vec<Felt>, Self::SignError>;
 
     async fn sign_execution_v3(
         &self,
         execution: &RawExecutionV3,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError>;
+    ) -> Result<Vec<Felt>, Self::SignError>;
 
     async fn sign_declaration_v2(
         &self,
         declaration: &RawDeclarationV2,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError>;
+    ) -> Result<Vec<Felt>, Self::SignError>;
 
     async fn sign_declaration_v3(
         &self,
         declaration: &RawDeclarationV3,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError>;
+    ) -> Result<Vec<Felt>, Self::SignError>;
 
     async fn sign_legacy_declaration(
         &self,
         legacy_declaration: &RawLegacyDeclaration,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError>;
+    ) -> Result<Vec<Felt>, Self::SignError>;
 
     fn execute_v1(&self, calls: Vec<Call>) -> ExecutionV1<Self> {
         ExecutionV1::new(calls, self)
@@ -71,7 +72,7 @@ pub trait Account: ExecutionEncoder + Sized {
     fn declare_v2(
         &self,
         contract_class: Arc<FlattenedSierraClass>,
-        compiled_class_hash: FieldElement,
+        compiled_class_hash: Felt,
     ) -> DeclarationV2<Self> {
         DeclarationV2::new(contract_class, compiled_class_hash, self)
     }
@@ -79,7 +80,7 @@ pub trait Account: ExecutionEncoder + Sized {
     fn declare_v3(
         &self,
         contract_class: Arc<FlattenedSierraClass>,
-        compiled_class_hash: FieldElement,
+        compiled_class_hash: Felt,
     ) -> DeclarationV3<Self> {
         DeclarationV3::new(contract_class, compiled_class_hash, self)
     }
@@ -88,7 +89,7 @@ pub trait Account: ExecutionEncoder + Sized {
     fn declare(
         &self,
         contract_class: Arc<FlattenedSierraClass>,
-        compiled_class_hash: FieldElement,
+        compiled_class_hash: Felt,
     ) -> DeclarationV2<Self> {
         self.declare_v2(contract_class, compiled_class_hash)
     }
@@ -100,7 +101,7 @@ pub trait Account: ExecutionEncoder + Sized {
 
 #[auto_impl(&, Box, Arc)]
 pub trait ExecutionEncoder {
-    fn encode_calls(&self, calls: &[Call]) -> Vec<FieldElement>;
+    fn encode_calls(&self, calls: &[Call]) -> Vec<Felt>;
 }
 
 /// An [Account] implementation that also comes with a [Provider]. Functionalities that require a
@@ -118,7 +119,7 @@ pub trait ConnectedAccount: Account {
         BlockId::Tag(BlockTag::Latest)
     }
 
-    async fn get_nonce(&self) -> Result<FieldElement, ProviderError> {
+    async fn get_nonce(&self) -> Result<Felt, ProviderError> {
         self.provider()
             .get_nonce(self.block_id(), self.address())
             .await
@@ -135,8 +136,8 @@ pub trait ConnectedAccount: Account {
 pub struct ExecutionV1<'a, A> {
     account: &'a A,
     calls: Vec<Call>,
-    nonce: Option<FieldElement>,
-    max_fee: Option<FieldElement>,
+    nonce: Option<Felt>,
+    max_fee: Option<Felt>,
     fee_estimate_multiplier: f64,
 }
 
@@ -151,7 +152,7 @@ pub struct ExecutionV1<'a, A> {
 pub struct ExecutionV3<'a, A> {
     account: &'a A,
     calls: Vec<Call>,
-    nonce: Option<FieldElement>,
+    nonce: Option<Felt>,
     gas: Option<u64>,
     gas_price: Option<u128>,
     gas_estimate_multiplier: f64,
@@ -168,9 +169,9 @@ pub struct ExecutionV3<'a, A> {
 pub struct DeclarationV2<'a, A> {
     account: &'a A,
     contract_class: Arc<FlattenedSierraClass>,
-    compiled_class_hash: FieldElement,
-    nonce: Option<FieldElement>,
-    max_fee: Option<FieldElement>,
+    compiled_class_hash: Felt,
+    nonce: Option<Felt>,
+    max_fee: Option<Felt>,
     fee_estimate_multiplier: f64,
 }
 
@@ -185,8 +186,8 @@ pub struct DeclarationV2<'a, A> {
 pub struct DeclarationV3<'a, A> {
     account: &'a A,
     contract_class: Arc<FlattenedSierraClass>,
-    compiled_class_hash: FieldElement,
-    nonce: Option<FieldElement>,
+    compiled_class_hash: Felt,
+    nonce: Option<Felt>,
     gas: Option<u64>,
     gas_price: Option<u128>,
     gas_estimate_multiplier: f64,
@@ -199,8 +200,8 @@ pub struct DeclarationV3<'a, A> {
 pub struct LegacyDeclaration<'a, A> {
     account: &'a A,
     contract_class: Arc<LegacyContractClass>,
-    nonce: Option<FieldElement>,
-    max_fee: Option<FieldElement>,
+    nonce: Option<Felt>,
+    max_fee: Option<Felt>,
     fee_estimate_multiplier: f64,
 }
 
@@ -208,15 +209,15 @@ pub struct LegacyDeclaration<'a, A> {
 #[derive(Debug)]
 pub struct RawExecutionV1 {
     calls: Vec<Call>,
-    nonce: FieldElement,
-    max_fee: FieldElement,
+    nonce: Felt,
+    max_fee: Felt,
 }
 
 /// [ExecutionV3] but with `nonce`, `gas` and `gas_price` already determined.
 #[derive(Debug)]
 pub struct RawExecutionV3 {
     calls: Vec<Call>,
-    nonce: FieldElement,
+    nonce: Felt,
     gas: u64,
     gas_price: u128,
 }
@@ -225,17 +226,17 @@ pub struct RawExecutionV3 {
 #[derive(Debug)]
 pub struct RawDeclarationV2 {
     contract_class: Arc<FlattenedSierraClass>,
-    compiled_class_hash: FieldElement,
-    nonce: FieldElement,
-    max_fee: FieldElement,
+    compiled_class_hash: Felt,
+    nonce: Felt,
+    max_fee: Felt,
 }
 
 /// [DeclarationV3] but with `nonce`, `gas` and `gas_price` already determined.
 #[derive(Debug)]
 pub struct RawDeclarationV3 {
     contract_class: Arc<FlattenedSierraClass>,
-    compiled_class_hash: FieldElement,
-    nonce: FieldElement,
+    compiled_class_hash: Felt,
+    nonce: Felt,
     gas: u64,
     gas_price: u128,
 }
@@ -244,8 +245,8 @@ pub struct RawDeclarationV3 {
 #[derive(Debug)]
 pub struct RawLegacyDeclaration {
     contract_class: Arc<LegacyContractClass>,
-    nonce: FieldElement,
-    max_fee: FieldElement,
+    nonce: Felt,
+    max_fee: Felt,
 }
 
 /// [RawExecutionV1] but with an account associated.
@@ -305,11 +306,11 @@ where
 {
     type SignError = A::SignError;
 
-    fn address(&self) -> FieldElement {
+    fn address(&self) -> Felt {
         (*self).address()
     }
 
-    fn chain_id(&self) -> FieldElement {
+    fn chain_id(&self) -> Felt {
         (*self).chain_id()
     }
 
@@ -317,7 +318,7 @@ where
         &self,
         execution: &RawExecutionV1,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         (*self).sign_execution_v1(execution, query_only).await
     }
 
@@ -325,7 +326,7 @@ where
         &self,
         execution: &RawExecutionV3,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         (*self).sign_execution_v3(execution, query_only).await
     }
 
@@ -333,7 +334,7 @@ where
         &self,
         declaration: &RawDeclarationV2,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         (*self).sign_declaration_v2(declaration, query_only).await
     }
 
@@ -341,7 +342,7 @@ where
         &self,
         declaration: &RawDeclarationV3,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         (*self).sign_declaration_v3(declaration, query_only).await
     }
 
@@ -349,7 +350,7 @@ where
         &self,
         legacy_declaration: &RawLegacyDeclaration,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         (*self)
             .sign_legacy_declaration(legacy_declaration, query_only)
             .await
@@ -364,11 +365,11 @@ where
 {
     type SignError = A::SignError;
 
-    fn address(&self) -> FieldElement {
+    fn address(&self) -> Felt {
         self.as_ref().address()
     }
 
-    fn chain_id(&self) -> FieldElement {
+    fn chain_id(&self) -> Felt {
         self.as_ref().chain_id()
     }
 
@@ -376,7 +377,7 @@ where
         &self,
         execution: &RawExecutionV1,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         self.as_ref().sign_execution_v1(execution, query_only).await
     }
 
@@ -384,7 +385,7 @@ where
         &self,
         execution: &RawExecutionV3,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         self.as_ref().sign_execution_v3(execution, query_only).await
     }
 
@@ -392,7 +393,7 @@ where
         &self,
         declaration: &RawDeclarationV2,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         self.as_ref()
             .sign_declaration_v2(declaration, query_only)
             .await
@@ -402,7 +403,7 @@ where
         &self,
         declaration: &RawDeclarationV3,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         self.as_ref()
             .sign_declaration_v3(declaration, query_only)
             .await
@@ -412,7 +413,7 @@ where
         &self,
         legacy_declaration: &RawLegacyDeclaration,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         self.as_ref()
             .sign_legacy_declaration(legacy_declaration, query_only)
             .await
@@ -427,11 +428,11 @@ where
 {
     type SignError = A::SignError;
 
-    fn address(&self) -> FieldElement {
+    fn address(&self) -> Felt {
         self.as_ref().address()
     }
 
-    fn chain_id(&self) -> FieldElement {
+    fn chain_id(&self) -> Felt {
         self.as_ref().chain_id()
     }
 
@@ -439,7 +440,7 @@ where
         &self,
         execution: &RawExecutionV1,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         self.as_ref().sign_execution_v1(execution, query_only).await
     }
 
@@ -447,7 +448,7 @@ where
         &self,
         execution: &RawExecutionV3,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         self.as_ref().sign_execution_v3(execution, query_only).await
     }
 
@@ -455,7 +456,7 @@ where
         &self,
         declaration: &RawDeclarationV2,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         self.as_ref()
             .sign_declaration_v2(declaration, query_only)
             .await
@@ -465,7 +466,7 @@ where
         &self,
         declaration: &RawDeclarationV3,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         self.as_ref()
             .sign_declaration_v3(declaration, query_only)
             .await
@@ -475,7 +476,7 @@ where
         &self,
         legacy_declaration: &RawLegacyDeclaration,
         query_only: bool,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         self.as_ref()
             .sign_legacy_declaration(legacy_declaration, query_only)
             .await
@@ -498,7 +499,7 @@ where
         (*self).block_id()
     }
 
-    async fn get_nonce(&self) -> Result<FieldElement, ProviderError> {
+    async fn get_nonce(&self) -> Result<Felt, ProviderError> {
         (*self).get_nonce().await
     }
 }
@@ -519,7 +520,7 @@ where
         self.as_ref().block_id()
     }
 
-    async fn get_nonce(&self) -> Result<FieldElement, ProviderError> {
+    async fn get_nonce(&self) -> Result<Felt, ProviderError> {
         self.as_ref().get_nonce().await
     }
 }
@@ -540,7 +541,7 @@ where
         self.as_ref().block_id()
     }
 
-    async fn get_nonce(&self) -> Result<FieldElement, ProviderError> {
+    async fn get_nonce(&self) -> Result<Felt, ProviderError> {
         self.as_ref().get_nonce().await
     }
 }

@@ -21,6 +21,7 @@ starknet-signers = { version = "0.8.0", path = "../starknet-signers" }
 async-trait = "0.1.68"
 auto_impl = "1.0.1"
 thiserror = "1.0.40"
+starknet-types-core = { version = "0.1.1", default-features = false, features = ["curve"] }
 
 [dev-dependencies]
 serde = { version = "1.0.160", features = ["derive"] }

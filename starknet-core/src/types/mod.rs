@@ -5,7 +5,7 @@ use serde_with::serde_as;
 
 use crate::serde::unsigned_field_element::UfeHex;
 
-pub use starknet_ff::*;
+use starknet_types_core::felt::Felt;
 
 mod conversions;
 
@@ -97,7 +97,7 @@ pub enum MaybePendingStateUpdate {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BlockHashAndNumber {
     #[serde_as(as = "UfeHex")]
-    pub block_hash: FieldElement,
+    pub block_hash: Felt,
     pub block_number: u64,
 }
 
@@ -123,7 +123,7 @@ pub struct EventsPage {
 pub struct InvokeTransactionResult {
     /// The hash of the invoke transaction
     #[serde_as(as = "UfeHex")]
-    pub transaction_hash: FieldElement,
+    pub transaction_hash: Felt,
 }
 
 #[serde_as]
@@ -131,10 +131,10 @@ pub struct InvokeTransactionResult {
 pub struct DeclareTransactionResult {
     /// The hash of the declare transaction
     #[serde_as(as = "UfeHex")]
-    pub transaction_hash: FieldElement,
+    pub transaction_hash: Felt,
     /// The hash of the declared class
     #[serde_as(as = "UfeHex")]
-    pub class_hash: FieldElement,
+    pub class_hash: Felt,
 }
 
 #[serde_as]
@@ -142,10 +142,10 @@ pub struct DeclareTransactionResult {
 pub struct DeployTransactionResult {
     /// The hash of the deploy transaction
     #[serde_as(as = "UfeHex")]
-    pub transaction_hash: FieldElement,
+    pub transaction_hash: Felt,
     /// The address of the new contract
     #[serde_as(as = "UfeHex")]
-    pub contract_address: FieldElement,
+    pub contract_address: Felt,
 }
 
 #[serde_as]
@@ -153,16 +153,16 @@ pub struct DeployTransactionResult {
 pub struct DeployAccountTransactionResult {
     /// The hash of the deploy transaction
     #[serde_as(as = "UfeHex")]
-    pub transaction_hash: FieldElement,
+    pub transaction_hash: Felt,
     /// The address of the new contract
     #[serde_as(as = "UfeHex")]
-    pub contract_address: FieldElement,
+    pub contract_address: Felt,
 }
 
 /// Block hash, number or tag
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BlockId {
-    Hash(FieldElement),
+    Hash(Felt),
     Number(u64),
     Tag(BlockTag),
 }
@@ -337,7 +337,7 @@ mod errors {
 pub use errors::ParseMsgToL2Error;
 
 impl MaybePendingBlockWithTxHashes {
-    pub fn transactions(&self) -> &[FieldElement] {
+    pub fn transactions(&self) -> &[Felt] {
         match self {
             MaybePendingBlockWithTxHashes::Block(block) => &block.transactions,
             MaybePendingBlockWithTxHashes::PendingBlock(block) => &block.transactions,
@@ -396,7 +396,7 @@ impl TransactionStatus {
 }
 
 impl Transaction {
-    pub fn transaction_hash(&self) -> &FieldElement {
+    pub fn transaction_hash(&self) -> &Felt {
         match self {
             Transaction::Invoke(tx) => tx.transaction_hash(),
             Transaction::L1Handler(tx) => &tx.transaction_hash,
@@ -408,7 +408,7 @@ impl Transaction {
 }
 
 impl InvokeTransaction {
-    pub fn transaction_hash(&self) -> &FieldElement {
+    pub fn transaction_hash(&self) -> &Felt {
         match self {
             InvokeTransaction::V0(tx) => &tx.transaction_hash,
             InvokeTransaction::V1(tx) => &tx.transaction_hash,
@@ -418,7 +418,7 @@ impl InvokeTransaction {
 }
 
 impl DeclareTransaction {
-    pub fn transaction_hash(&self) -> &FieldElement {
+    pub fn transaction_hash(&self) -> &Felt {
         match self {
             DeclareTransaction::V0(tx) => &tx.transaction_hash,
             DeclareTransaction::V1(tx) => &tx.transaction_hash,
@@ -429,7 +429,7 @@ impl DeclareTransaction {
 }
 
 impl DeployAccountTransaction {
-    pub fn transaction_hash(&self) -> &FieldElement {
+    pub fn transaction_hash(&self) -> &Felt {
         match self {
             DeployAccountTransaction::V1(tx) => &tx.transaction_hash,
             DeployAccountTransaction::V3(tx) => &tx.transaction_hash,
@@ -438,7 +438,7 @@ impl DeployAccountTransaction {
 }
 
 impl TransactionReceipt {
-    pub fn transaction_hash(&self) -> &FieldElement {
+    pub fn transaction_hash(&self) -> &Felt {
         match self {
             TransactionReceipt::Invoke(receipt) => &receipt.transaction_hash,
             TransactionReceipt::L1Handler(receipt) => &receipt.transaction_hash,
@@ -545,7 +545,7 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_felt_to_string() {
-        let felt = FieldElement::from_dec_str("123456").unwrap();
+        let felt = Felt::from_dec_str("123456").unwrap();
 
         assert_eq!(format!("{}", felt), "123456");
         assert_eq!(format!("{:x}", felt), "1e240");
@@ -580,28 +580,26 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_parse_msg_to_l2() {
         let l1_handler_tx = L1HandlerTransaction {
-            transaction_hash: FieldElement::from_hex_be(
+            transaction_hash: Felt::from_hex(
                 "0x374286ae28f201e61ffbc5b022cc9701208640b405ea34ea9799f97d5d2d23c",
             )
             .unwrap(),
-            version: FieldElement::ZERO,
+            version: Felt::ZERO,
             nonce: 775628,
-            contract_address: FieldElement::from_hex_be(
+            contract_address: Felt::from_hex(
                 "0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82",
             )
             .unwrap(),
-            entry_point_selector: FieldElement::from_hex_be(
+            entry_point_selector: Felt::from_hex(
                 "0x2d757788a8d8d6f21d1cd40bce38a8222d70654214e96ff95d8086e684fbee5",
             )
             .unwrap(),
             calldata: vec![
-                FieldElement::from_hex_be("0xc3511006c04ef1d78af4c8e0e74ec18a6e64ff9e").unwrap(),
-                FieldElement::from_hex_be(
-                    "0x689ead7d814e51ed93644bc145f0754839b8dcb340027ce0c30953f38f55d7",
-                )
-                .unwrap(),
-                FieldElement::from_hex_be("0x2c68af0bb140000").unwrap(),
-                FieldElement::from_hex_be("0x0").unwrap(),
+                Felt::from_hex("0xc3511006c04ef1d78af4c8e0e74ec18a6e64ff9e").unwrap(),
+                Felt::from_hex("0x689ead7d814e51ed93644bc145f0754839b8dcb340027ce0c30953f38f55d7")
+                    .unwrap(),
+                Felt::from_hex("0x2c68af0bb140000").unwrap(),
+                Felt::from_hex("0x0").unwrap(),
             ],
         };
 
@@ -618,17 +616,17 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_parse_msg_to_l2_empty_calldata_error() {
         let l1_handler_tx = L1HandlerTransaction {
-            transaction_hash: FieldElement::from_hex_be(
+            transaction_hash: Felt::from_hex(
                 "0x374286ae28f201e61ffbc5b022cc9701208640b405ea34ea9799f97d5d2d23c",
             )
             .unwrap(),
-            version: FieldElement::ZERO,
+            version: Felt::ZERO,
             nonce: 775628,
-            contract_address: FieldElement::from_hex_be(
+            contract_address: Felt::from_hex(
                 "0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82",
             )
             .unwrap(),
-            entry_point_selector: FieldElement::from_hex_be(
+            entry_point_selector: Felt::from_hex(
                 "0x2d757788a8d8d6f21d1cd40bce38a8222d70654214e96ff95d8086e684fbee5",
             )
             .unwrap(),
@@ -644,30 +642,28 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_parse_msg_to_l2_from_address_out_of_range_error() {
         let l1_handler_tx = L1HandlerTransaction {
-            transaction_hash: FieldElement::from_hex_be(
+            transaction_hash: Felt::from_hex(
                 "0x374286ae28f201e61ffbc5b022cc9701208640b405ea34ea9799f97d5d2d23c",
             )
             .unwrap(),
-            version: FieldElement::ZERO,
+            version: Felt::ZERO,
             nonce: 775628,
-            contract_address: FieldElement::from_hex_be(
+            contract_address: Felt::from_hex(
                 "0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82",
             )
             .unwrap(),
-            entry_point_selector: FieldElement::from_hex_be(
+            entry_point_selector: Felt::from_hex(
                 "0x2d757788a8d8d6f21d1cd40bce38a8222d70654214e96ff95d8086e684fbee5",
             )
             .unwrap(),
             calldata: vec![
                 // Incorrect from address format, causing the conversion error
                 // Max address + 1
-                FieldElement::from_hex_be("0x10000000000000000000000000000000000000000").unwrap(),
-                FieldElement::from_hex_be(
-                    "0x689ead7d814e51ed93644bc145f0754839b8dcb340027ce0c30953f38f55d7",
-                )
-                .unwrap(),
-                FieldElement::from_hex_be("0x2c68af0bb140000").unwrap(),
-                FieldElement::from_hex_be("0x0").unwrap(),
+                Felt::from_hex("0x10000000000000000000000000000000000000000").unwrap(),
+                Felt::from_hex("0x689ead7d814e51ed93644bc145f0754839b8dcb340027ce0c30953f38f55d7")
+                    .unwrap(),
+                Felt::from_hex("0x2c68af0bb140000").unwrap(),
+                Felt::from_hex("0x0").unwrap(),
             ],
         };
 

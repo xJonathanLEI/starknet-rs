@@ -1,6 +1,6 @@
 use starknet::{
     accounts::{AccountFactory, ArgentAccountFactory},
-    core::{chain_id, types::FieldElement},
+    core::chain_id,
     macros::felt,
     providers::{
         jsonrpc::{HttpTransport, JsonRpcClient},
@@ -8,6 +8,7 @@ use starknet::{
     },
     signers::{LocalWallet, SigningKey},
 };
+use starknet_types_core::felt::Felt;
 
 #[tokio::main]
 async fn main() {
@@ -22,18 +23,13 @@ async fn main() {
     ));
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
+        Felt::from_hex("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
     ));
 
-    let factory = ArgentAccountFactory::new(
-        class_hash,
-        chain_id::SEPOLIA,
-        FieldElement::ZERO,
-        signer,
-        provider,
-    )
-    .await
-    .unwrap();
+    let factory =
+        ArgentAccountFactory::new(class_hash, chain_id::SEPOLIA, Felt::ZERO, signer, provider)
+            .await
+            .unwrap();
 
     let deployment = factory.deploy_v1(salt);
 

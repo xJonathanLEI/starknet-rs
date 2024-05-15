@@ -1,16 +1,13 @@
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
-use crate::types::FieldElement;
+use starknet_types_core::felt::Felt;
 
 /// A more idiomatic way to access `execution_status` and `revert_reason`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReceiptBlock {
     Pending,
-    Block {
-        block_hash: FieldElement,
-        block_number: u64,
-    },
+    Block { block_hash: Felt, block_number: u64 },
 }
 
 impl ReceiptBlock {
@@ -33,7 +30,7 @@ impl ReceiptBlock {
     /// Returns `None` if block is not `Block`.
     ///
     /// A more idiomatic way of accessing the block hash is to match the `Block` enum variant.
-    pub fn block_hash(&self) -> Option<FieldElement> {
+    pub fn block_hash(&self) -> Option<Felt> {
         match self {
             ReceiptBlock::Pending => None,
             ReceiptBlock::Block { block_hash, .. } => Some(*block_hash),
@@ -61,7 +58,7 @@ impl Serialize for ReceiptBlock {
         struct Raw<'a> {
             #[serde_as(as = "Option<UfeHex>")]
             #[serde(skip_serializing_if = "Option::is_none")]
-            block_hash: Option<&'a FieldElement>,
+            block_hash: Option<&'a Felt>,
             #[serde(skip_serializing_if = "Option::is_none")]
             block_number: Option<&'a u64>,
         }
@@ -95,7 +92,7 @@ impl<'de> Deserialize<'de> for ReceiptBlock {
         struct Raw {
             #[serde_as(as = "Option<UfeHex>")]
             #[serde(skip_serializing_if = "Option::is_none")]
-            block_hash: Option<FieldElement>,
+            block_hash: Option<Felt>,
             #[serde(skip_serializing_if = "Option::is_none")]
             block_number: Option<u64>,
         }

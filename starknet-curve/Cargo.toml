@@ -13,4 +13,5 @@ Stark curve
 keywords = ["ethereum", "starknet", "web3", "no_std"]
 
 [dependencies]
-starknet-ff = { version = "0.3.7", path = "../starknet-ff", default-features = false }
+starknet-types-core = { version = "0.1.1", default-features = false, features = ["curve"] }
+

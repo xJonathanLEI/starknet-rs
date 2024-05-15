@@ -5,7 +5,7 @@ use alloc::{
 };
 
 use serde::{de::Visitor, Deserialize, Serialize};
-use starknet_ff::FieldElement;
+use starknet_types_core::felt::Felt;
 
 const HASH_256_BYTE_COUNT: usize = 32;
 
@@ -49,7 +49,7 @@ mod errors {
 
     impl Display for ToFieldElementError {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-            write!(f, "hash value out of range for FieldElement")
+            write!(f, "hash value out of range for Felt")
         }
     }
 }
@@ -64,7 +64,7 @@ impl Hash256 {
         hex.parse()
     }
 
-    pub fn from_felt(felt: &FieldElement) -> Self {
+    pub fn from_felt(felt: &Felt) -> Self {
         felt.into()
     }
 
@@ -148,19 +148,19 @@ impl Display for Hash256 {
     }
 }
 
-impl From<FieldElement> for Hash256 {
-    fn from(value: FieldElement) -> Self {
+impl From<Felt> for Hash256 {
+    fn from(value: Felt) -> Self {
         (&value).into()
     }
 }
 
-impl From<&FieldElement> for Hash256 {
-    fn from(value: &FieldElement) -> Self {
-        value.to_bytes_be().into()
+impl From<&Felt> for Hash256 {
+    fn from(value: &Felt) -> Self {
+        Self::from_bytes(value.to_bytes_be())
     }
 }
 
-impl TryFrom<Hash256> for FieldElement {
+impl TryFrom<Hash256> for Felt {
     type Error = ToFieldElementError;
 
     fn try_from(value: Hash256) -> Result<Self, Self::Error> {
@@ -168,11 +168,11 @@ impl TryFrom<Hash256> for FieldElement {
     }
 }
 
-impl TryFrom<&Hash256> for FieldElement {
+impl TryFrom<&Hash256> for Felt {
     type Error = ToFieldElementError;
 
     fn try_from(value: &Hash256) -> Result<Self, Self::Error> {
-        FieldElement::from_bytes_be(&value.inner).map_err(|_| ToFieldElementError)
+        Ok(Felt::from_bytes_be(&value.inner))
     }
 }
 
@@ -184,9 +184,7 @@ impl From<[u8; HASH_256_BYTE_COUNT]> for Hash256 {
 
 #[cfg(test)]
 mod tests {
-    use super::{FromHexError, Hash256, HASH_256_BYTE_COUNT};
-
-    use starknet_ff::FieldElement;
+    use super::{Felt, FromHexError, Hash256, HASH_256_BYTE_COUNT};
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
@@ -227,13 +225,12 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_hash_256_from_felt() {
-        // Create a `FieldElement` from a hexadecimal string representation
-        let felt = FieldElement::from_hex_be(
-            "0x01a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003",
-        )
-        .unwrap();
+        // Create a `Felt` from a hexadecimal string representation
+        let felt =
+            Felt::from_hex("0x01a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003")
+                .unwrap();
 
-        // Convert the `FieldElement` to bytes and then to a vector
+        // Convert the `Felt` to bytes and then to a vector
         let bytes = (felt.to_bytes_be()).to_vec();
 
         // Convert bytes to a fixed-size array representing `Hash256`
@@ -243,7 +240,7 @@ mod tests {
         // Convert `Hash256` bytes to `Hash256` struct
         let hash_256: Hash256 = hash_bytes.into();
 
-        // Assert that the conversion from the `FieldElement` to `Hash256` is successful
+        // Assert that the conversion from the `Felt` to `Hash256` is successful
         assert_eq!(Hash256::from_felt(&felt), hash_256);
     }
 }

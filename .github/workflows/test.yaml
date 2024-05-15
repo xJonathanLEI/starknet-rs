@@ -90,10 +90,6 @@ jobs:
           command: install
           args: wasm-pack
 
-      - name: Run starknet-ff tests
-        run: |
-          (cd ./starknet-ff && wasm-pack test --release --node)
-
       - name: Run starknet-crypto tests
         run: |
           (cd ./starknet-crypto && wasm-pack test --release --node)
@@ -128,22 +124,6 @@ jobs:
       - name: Add --target thumbv6m-none-eabi target
         run: |
           rustup target add thumbv6m-none-eabi
-
-      - name: Build starknet-ff
-        run: |
-          cargo build --package starknet-ff \
-            --target thumbv6m-none-eabi \
-            --no-default-features
-
-          cargo build --package starknet-ff \
-            --target thumbv6m-none-eabi \
-            --no-default-features \
-            --features alloc
-
-          cargo build --package starknet-ff \
-            --target thumbv6m-none-eabi \
-            --no-default-features \
-            --features serde
 
       - name: Build starknet-crypto
         run: |

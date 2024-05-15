@@ -9,7 +9,7 @@ use starknet_core::{
         requests::*, BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
         BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
         ContractClass, ContractErrorData, DeclareTransactionResult, DeployAccountTransactionResult,
-        EventFilter, EventFilterWithPage, EventsPage, FeeEstimate, FieldElement, FunctionCall,
+        EventFilter, EventFilterWithPage, EventsPage, FeeEstimate, FunctionCall,
         InvokeTransactionResult, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
         MaybePendingBlockWithTxs, MaybePendingStateUpdate, MsgFromL1, NoTraceAvailableErrorData,
         ResultPageRequest, SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee,
@@ -18,6 +18,7 @@ use starknet_core::{
         TransactionTraceWithHash,
     },
 };
+use starknet_types_core::felt::Felt as FeltPrimitive;
 
 use crate::{provider::ProviderImplError, Provider, ProviderError};
 
@@ -168,11 +169,11 @@ pub enum JsonRpcErrorConversionError {
 
 #[serde_as]
 #[derive(Serialize, Deserialize)]
-struct Felt(#[serde_as(as = "UfeHex")] pub FieldElement);
+struct Felt(#[serde_as(as = "UfeHex")] pub FeltPrimitive);
 
 #[serde_as]
 #[derive(Serialize, Deserialize)]
-struct FeltArray(#[serde_as(as = "Vec<UfeHex>")] pub Vec<FieldElement>);
+struct FeltArray(#[serde_as(as = "Vec<UfeHex>")] pub Vec<FeltPrimitive>);
 
 impl<T> JsonRpcClient<T> {
     pub fn new(transport: T) -> Self {
@@ -292,10 +293,10 @@ where
         contract_address: A,
         key: K,
         block_id: B,
-    ) -> Result<FieldElement, ProviderError>
+    ) -> Result<FeltPrimitive, ProviderError>
     where
-        A: AsRef<FieldElement> + Send + Sync,
-        K: AsRef<FieldElement> + Send + Sync,
+        A: AsRef<FeltPrimitive> + Send + Sync,
+        K: AsRef<FeltPrimitive> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
         Ok(self
@@ -318,7 +319,7 @@ where
         transaction_hash: H,
     ) -> Result<TransactionStatus, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync,
+        H: AsRef<FeltPrimitive> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::GetTransactionStatus,
@@ -335,7 +336,7 @@ where
         transaction_hash: H,
     ) -> Result<Transaction, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync,
+        H: AsRef<FeltPrimitive> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::GetTransactionByHash,
@@ -371,7 +372,7 @@ where
         transaction_hash: H,
     ) -> Result<TransactionReceiptWithBlockInfo, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync,
+        H: AsRef<FeltPrimitive> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::GetTransactionReceipt,
@@ -390,7 +391,7 @@ where
     ) -> Result<ContractClass, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
-        H: AsRef<FieldElement> + Send + Sync,
+        H: AsRef<FeltPrimitive> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::GetClass,
@@ -407,10 +408,10 @@ where
         &self,
         block_id: B,
         contract_address: A,
-    ) -> Result<FieldElement, ProviderError>
+    ) -> Result<FeltPrimitive, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
-        A: AsRef<FieldElement> + Send + Sync,
+        A: AsRef<FeltPrimitive> + Send + Sync,
     {
         Ok(self
             .send_request::<_, Felt>(
@@ -432,7 +433,7 @@ where
     ) -> Result<ContractClass, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
-        A: AsRef<FieldElement> + Send + Sync,
+        A: AsRef<FeltPrimitive> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::GetClassAt,
@@ -459,7 +460,7 @@ where
     }
 
     /// Call a starknet function without creating a Starknet transaction
-    async fn call<R, B>(&self, request: R, block_id: B) -> Result<Vec<FieldElement>, ProviderError>
+    async fn call<R, B>(&self, request: R, block_id: B) -> Result<Vec<FeltPrimitive>, ProviderError>
     where
         R: AsRef<FunctionCall> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
@@ -532,7 +533,7 @@ where
     }
 
     /// Return the currently configured Starknet chain id
-    async fn chain_id(&self) -> Result<FieldElement, ProviderError> {
+    async fn chain_id(&self) -> Result<FeltPrimitive, ProviderError> {
         Ok(self
             .send_request::<_, Felt>(JsonRpcMethod::ChainId, ChainIdRequest)
             .await?
@@ -572,10 +573,10 @@ where
         &self,
         block_id: B,
         contract_address: A,
-    ) -> Result<FieldElement, ProviderError>
+    ) -> Result<FeltPrimitive, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
-        A: AsRef<FieldElement> + Send + Sync,
+        A: AsRef<FeltPrimitive> + Send + Sync,
     {
         Ok(self
             .send_request::<_, Felt>(
@@ -647,7 +648,7 @@ where
         transaction_hash: H,
     ) -> Result<TransactionTrace, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync,
+        H: AsRef<FeltPrimitive> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::TraceTransaction,

@@ -10,9 +10,10 @@ use starknet_core::{
             legacy::{LegacyContractClass, RawLegacyAbiEntry, RawLegacyEntryPoints},
             CompressProgramError,
         },
-        EntryPointsByType, FieldElement, FlattenedSierraClass,
+        EntryPointsByType, FlattenedSierraClass,
     },
 };
+use starknet_types_core::felt::Felt;
 
 #[derive(Debug, Serialize)]
 #[serde(untagged)]
@@ -78,7 +79,7 @@ impl CompressedSierraClass {
     ) -> Result<Self, DecompressProgramError> {
         #[serde_as]
         #[derive(Serialize)]
-        struct SierraProgram<'a>(#[serde_as(as = "Vec<UfeHex>")] &'a Vec<FieldElement>);
+        struct SierraProgram<'a>(#[serde_as(as = "Vec<UfeHex>")] &'a Vec<Felt>);
 
         let program_json = serde_json::to_string(&SierraProgram(&flattened_class.sierra_program))
             .map_err(DecompressProgramError::Json)?;

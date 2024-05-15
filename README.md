@@ -49,7 +49,6 @@ This workspace contains the following crates:
 - `starknet-crypto`: **Low-level** cryptography utilities for Starknet
 - `starknet-signers`: Starknet signer implementations
 - `starknet-accounts`: Types for handling Starknet account abstraction
-- `starknet-ff`: Starknet field element type
 - `starknet-curve`: Starknet curve operations
 - `starknet-macros`: Useful macros for using the `starknet` crates
 

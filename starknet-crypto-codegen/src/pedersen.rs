@@ -4,10 +4,8 @@
 use std::fmt::Write;
 
 use proc_macro::TokenStream;
-use starknet_curve::{
-    curve_params::{PEDERSEN_P0, PEDERSEN_P1, PEDERSEN_P2, PEDERSEN_P3},
-    AffinePoint,
-};
+use starknet_curve::curve_params::{PEDERSEN_P0, PEDERSEN_P1, PEDERSEN_P2, PEDERSEN_P3};
+use starknet_types_core::curve::{AffinePoint, ProjectivePoint};
 use syn::{parse_macro_input, LitInt};
 
 pub fn lookup_table(input: TokenStream) -> TokenStream {
@@ -40,26 +38,28 @@ fn push_points(
 
     writeln!(
         buf,
-        "pub const CURVE_CONSTS_{name}: [::starknet_curve::AffinePoint; {len}] = ["
+        "pub const CURVE_CONSTS_{name}: [starknet_types_core::curve::AffinePoint; {len}] = ["
     )?;
 
     let mut bits_left = max_bits;
-    let mut outer_point = base;
+    // let mut outer_point = base;
+    let mut outer_point = ProjectivePoint::from_affine(base.x(), base.y()).unwrap();
     while bits_left > 0 {
         let eat_bits = std::cmp::min(bits_left, bits);
         let table_size = (1 << eat_bits) - 1;
 
         // Loop through each possible bit combination except zero
-        let mut inner_point = outer_point;
+        let mut inner_point = outer_point.clone();
         for _ in 1..(table_size + 1) {
-            push_point(buf, &inner_point)?;
+            push_point(buf, &inner_point.to_affine().unwrap())?;
             inner_point += &outer_point;
         }
 
         // Shift outer point #bits times
         bits_left -= eat_bits;
         for _i in 0..bits {
-            outer_point.double_assign();
+            // outer_point.double_assign();
+            outer_point += outer_point.clone();
         }
     }
 
@@ -68,22 +68,24 @@ fn push_points(
 }
 
 fn push_point(buf: &mut String, p: &AffinePoint) -> std::fmt::Result {
-    let x = p.x.into_mont();
-    let y = p.y.into_mont();
-    writeln!(buf, "::starknet_curve::AffinePoint {{")?;
-    writeln!(buf, "x: ::starknet_ff::FieldElement::from_mont([")?;
+    let x = p.x().to_raw();
+    let y = p.y().to_raw();
+    writeln!(
+        buf,
+        "starknet_types_core::curve::AffinePoint::new_unchecked ("
+    )?;
+    writeln!(buf, "starknet_types_core::felt::Felt::from_raw([")?;
     writeln!(buf, "{},", x[0])?;
     writeln!(buf, "{},", x[1])?;
     writeln!(buf, "{},", x[2])?;
     writeln!(buf, "{},", x[3])?;
     writeln!(buf, "]),")?;
-    writeln!(buf, "y: ::starknet_ff::FieldElement::from_mont([")?;
+    writeln!(buf, "starknet_types_core::felt::Felt::from_raw([")?;
     writeln!(buf, "{},", y[0])?;
     writeln!(buf, "{},", y[1])?;
     writeln!(buf, "{},", y[2])?;
     writeln!(buf, "{},", y[3])?;
     writeln!(buf, "]),")?;
-    writeln!(buf, "infinity: false,")?;
-    writeln!(buf, "}},")?;
+    writeln!(buf, "),")?;
     Ok(())
 }

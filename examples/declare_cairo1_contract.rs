@@ -4,7 +4,7 @@ use starknet::{
     accounts::{Account, ExecutionEncoding, SingleOwnerAccount},
     core::{
         chain_id,
-        types::{contract::SierraClass, BlockId, BlockTag, FieldElement},
+        types::{contract::SierraClass, BlockId, BlockTag},
     },
     providers::{
         jsonrpc::{HttpTransport, JsonRpcClient},
@@ -12,6 +12,7 @@ use starknet::{
     },
     signers::{LocalWallet, SigningKey},
 };
+use starknet_types_core::felt::Felt;
 
 #[tokio::main]
 async fn main() {
@@ -21,17 +22,16 @@ async fn main() {
             .unwrap();
 
     // Class hash of the compiled CASM class from the `starknet-sierra-compile` command
-    let compiled_class_hash =
-        FieldElement::from_hex_be("COMPILED_CASM_CLASS_HASH_IN_HEX_HERE").unwrap();
+    let compiled_class_hash = Felt::from_hex("COMPILED_CASM_CLASS_HASH_IN_HEX_HERE").unwrap();
 
     let provider = JsonRpcClient::new(HttpTransport::new(
         Url::parse("https://starknet-sepolia.public.blastapi.io/rpc/v0_7").unwrap(),
     ));
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
+        Felt::from_hex("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
     ));
-    let address = FieldElement::from_hex_be("YOUR_ACCOUNT_CONTRACT_ADDRESS_IN_HEX_HERE").unwrap();
+    let address = Felt::from_hex("YOUR_ACCOUNT_CONTRACT_ADDRESS_IN_HEX_HERE").unwrap();
 
     let mut account = SingleOwnerAccount::new(
         provider,

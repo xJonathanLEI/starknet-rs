@@ -20,6 +20,7 @@ auto_impl = "1.0.1"
 thiserror = "1.0.40"
 crypto-bigint = { version = "0.5.1", default-features = false }
 rand = { version = "0.8.5", features = ["std_rng"] }
+starknet-types-core = { version = "0.1.1", default-features = false, features = ["curve"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 eth-keystore = { version = "0.5.0", default-features = false }

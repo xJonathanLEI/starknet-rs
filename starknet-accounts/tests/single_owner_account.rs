@@ -7,7 +7,7 @@ use starknet_core::{
             legacy::{LegacyContractClass, RawLegacyAbiEntry, RawLegacyFunction},
             SierraClass,
         },
-        BlockId, BlockTag, FieldElement, StarknetError,
+        BlockId, BlockTag, StarknetError,
     },
     utils::get_selector_from_name,
 };
@@ -16,14 +16,15 @@ use starknet_providers::{
     Provider, ProviderError, SequencerGatewayProvider,
 };
 use starknet_signers::{LocalWallet, SigningKey};
+use starknet_types_core::felt::Felt;
 use std::sync::Arc;
 
 /// Cairo short string encoding for `SN_SEPOLIA`.
-const CHAIN_ID: FieldElement = FieldElement::from_mont([
-    1555806712078248243,
-    18446744073708869172,
-    18446744073709551615,
+const CHAIN_ID: Felt = Felt::from_raw([
     507980251676163170,
+    18446744073709551615,
+    18446744073708869172,
+    1555806712078248243,
 ]);
 
 fn create_sequencer_client() -> SequencerGatewayProvider {
@@ -191,32 +192,24 @@ async fn can_declare_cairo0_contract_with_jsonrpc() {
 
 async fn can_get_nonce_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(address).unwrap();
+    let address = Felt::from_hex(address).unwrap();
 
     let mut account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
-    assert_ne!(account.get_nonce().await.unwrap(), FieldElement::ZERO);
+    assert_ne!(account.get_nonce().await.unwrap(), Felt::ZERO);
 }
 
 async fn can_estimate_invoke_v1_fee_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(address).unwrap();
-    let eth_token_address = FieldElement::from_hex_be(
-        "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-    )
-    .unwrap();
+    let address = Felt::from_hex(address).unwrap();
+    let eth_token_address =
+        Felt::from_hex("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7").unwrap();
 
     let mut account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
@@ -226,31 +219,22 @@ async fn can_estimate_invoke_v1_fee_inner<P: Provider + Send + Sync>(provider: P
         .execute_v1(vec![Call {
             to: eth_token_address,
             selector: get_selector_from_name("transfer").unwrap(),
-            calldata: vec![
-                FieldElement::from_hex_be("0x1234").unwrap(),
-                FieldElement::ONE,
-                FieldElement::ZERO,
-            ],
+            calldata: vec![Felt::from_hex("0x1234").unwrap(), Felt::ONE, Felt::ZERO],
         }])
         .estimate_fee()
         .await
         .unwrap();
 
-    assert!(fee_estimate.overall_fee > FieldElement::ZERO);
+    assert!(fee_estimate.overall_fee > Felt::ZERO);
 }
 
 async fn can_estimate_invoke_v3_fee_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(address).unwrap();
-    let eth_token_address = FieldElement::from_hex_be(
-        "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-    )
-    .unwrap();
+    let address = Felt::from_hex(address).unwrap();
+    let eth_token_address =
+        Felt::from_hex("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7").unwrap();
 
     let mut account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
@@ -260,17 +244,13 @@ async fn can_estimate_invoke_v3_fee_inner<P: Provider + Send + Sync>(provider: P
         .execute_v3(vec![Call {
             to: eth_token_address,
             selector: get_selector_from_name("transfer").unwrap(),
-            calldata: vec![
-                FieldElement::from_hex_be("0x1234").unwrap(),
-                FieldElement::ONE,
-                FieldElement::ZERO,
-            ],
+            calldata: vec![Felt::from_hex("0x1234").unwrap(), Felt::ONE, Felt::ZERO],
         }])
         .estimate_fee()
         .await
         .unwrap();
 
-    assert!(fee_estimate.overall_fee > FieldElement::ZERO);
+    assert!(fee_estimate.overall_fee > Felt::ZERO);
 }
 
 async fn can_parse_fee_estimation_error_inner<P: Provider + Send + Sync>(
@@ -278,16 +258,11 @@ async fn can_parse_fee_estimation_error_inner<P: Provider + Send + Sync>(
     address: &str,
 ) {
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(address).unwrap();
-    let eth_token_address = FieldElement::from_hex_be(
-        "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-    )
-    .unwrap();
+    let address = Felt::from_hex(address).unwrap();
+    let eth_token_address =
+        Felt::from_hex("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7").unwrap();
 
     let mut account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
@@ -299,8 +274,8 @@ async fn can_parse_fee_estimation_error_inner<P: Provider + Send + Sync>(
             selector: get_selector_from_name("transfer").unwrap(),
             calldata: vec![
                 address,
-                FieldElement::from_dec_str("1000000000000000000000").unwrap(),
-                FieldElement::ZERO,
+                Felt::from_dec_str("1000000000000000000000").unwrap(),
+                Felt::ZERO,
             ],
         }])
         .estimate_fee()
@@ -328,16 +303,11 @@ async fn can_execute_eth_transfer_invoke_v1_inner<P: Provider + Send + Sync>(
     //   - poll the transaction hash until it's processed.
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(address).unwrap();
-    let eth_token_address = FieldElement::from_hex_be(
-        "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-    )
-    .unwrap();
+    let address = Felt::from_hex(address).unwrap();
+    let eth_token_address =
+        Felt::from_hex("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7").unwrap();
 
     let mut account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
@@ -347,18 +317,14 @@ async fn can_execute_eth_transfer_invoke_v1_inner<P: Provider + Send + Sync>(
         .execute_v1(vec![Call {
             to: eth_token_address,
             selector: get_selector_from_name("transfer").unwrap(),
-            calldata: vec![
-                FieldElement::from_hex_be("0x1234").unwrap(),
-                FieldElement::ONE,
-                FieldElement::ZERO,
-            ],
+            calldata: vec![Felt::from_hex("0x1234").unwrap(), Felt::ONE, Felt::ZERO],
         }])
-        .max_fee(FieldElement::from_dec_str("1000000000000000000").unwrap())
+        .max_fee(Felt::from_dec_str("1000000000000000000").unwrap())
         .send()
         .await
         .unwrap();
 
-    assert!(result.transaction_hash > FieldElement::ZERO);
+    assert!(result.transaction_hash > Felt::ZERO);
 }
 
 async fn can_execute_eth_transfer_invoke_v3_inner<P: Provider + Send + Sync>(
@@ -373,16 +339,11 @@ async fn can_execute_eth_transfer_invoke_v3_inner<P: Provider + Send + Sync>(
     //   - poll the transaction hash until it's processed.
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(address).unwrap();
-    let eth_token_address = FieldElement::from_hex_be(
-        "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-    )
-    .unwrap();
+    let address = Felt::from_hex(address).unwrap();
+    let eth_token_address =
+        Felt::from_hex("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7").unwrap();
 
     let mut account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
@@ -392,11 +353,7 @@ async fn can_execute_eth_transfer_invoke_v3_inner<P: Provider + Send + Sync>(
         .execute_v3(vec![Call {
             to: eth_token_address,
             selector: get_selector_from_name("transfer").unwrap(),
-            calldata: vec![
-                FieldElement::from_hex_be("0x1234").unwrap(),
-                FieldElement::ONE,
-                FieldElement::ZERO,
-            ],
+            calldata: vec![Felt::from_hex("0x1234").unwrap(), Felt::ONE, Felt::ZERO],
         }])
         .gas(200000)
         .gas_price(500000000000000)
@@ -404,7 +361,7 @@ async fn can_execute_eth_transfer_invoke_v3_inner<P: Provider + Send + Sync>(
         .await
         .unwrap();
 
-    assert!(result.transaction_hash > FieldElement::ZERO);
+    assert!(result.transaction_hash > Felt::ZERO);
 }
 
 async fn can_execute_eth_transfer_invoke_v3_with_manual_gas_inner<P: Provider + Send + Sync>(
@@ -416,16 +373,11 @@ async fn can_execute_eth_transfer_invoke_v3_with_manual_gas_inner<P: Provider + 
     // performed on this call would have thrown.
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(address).unwrap();
-    let eth_token_address = FieldElement::from_hex_be(
-        "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-    )
-    .unwrap();
+    let address = Felt::from_hex(address).unwrap();
+    let eth_token_address =
+        Felt::from_hex("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7").unwrap();
 
     let mut account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
@@ -436,9 +388,9 @@ async fn can_execute_eth_transfer_invoke_v3_with_manual_gas_inner<P: Provider + 
             to: eth_token_address,
             selector: get_selector_from_name("transfer").unwrap(),
             calldata: vec![
-                FieldElement::from_hex_be("0x1234").unwrap(),
-                FieldElement::from_dec_str("10000000000000000000").unwrap(),
-                FieldElement::ZERO,
+                Felt::from_hex("0x1234").unwrap(),
+                Felt::from_dec_str("10000000000000000000").unwrap(),
+                Felt::ZERO,
             ],
         }])
         .gas(200000)
@@ -446,7 +398,7 @@ async fn can_execute_eth_transfer_invoke_v3_with_manual_gas_inner<P: Provider + 
         .await
         .unwrap();
 
-    assert!(result.transaction_hash > FieldElement::ZERO);
+    assert!(result.transaction_hash > Felt::ZERO);
 }
 
 async fn can_declare_cairo1_contract_v2_inner<P: Provider + Send + Sync>(
@@ -461,12 +413,9 @@ async fn can_declare_cairo1_contract_v2_inner<P: Provider + Send + Sync>(
     }
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(address).unwrap();
+    let address = Felt::from_hex(address).unwrap();
     let mut account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
@@ -494,16 +443,16 @@ async fn can_declare_cairo1_contract_v2_inner<P: Provider + Send + Sync>(
     let result = account
         .declare_v2(
             Arc::new(flattened_class),
-            FieldElement::from_hex_be(&hashes.compiled_class_hash).unwrap(),
+            Felt::from_hex(&hashes.compiled_class_hash).unwrap(),
         )
-        .max_fee(FieldElement::from_dec_str("1000000000000000000").unwrap())
+        .max_fee(Felt::from_dec_str("1000000000000000000").unwrap())
         .send()
         .await
         .unwrap();
 
     dbg!(&result);
 
-    assert!(result.transaction_hash > FieldElement::ZERO);
+    assert!(result.transaction_hash > Felt::ZERO);
 }
 
 async fn can_estimate_declare_v3_fee_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
@@ -513,12 +462,9 @@ async fn can_estimate_declare_v3_fee_inner<P: Provider + Send + Sync>(provider: 
     }
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(address).unwrap();
+    let address = Felt::from_hex(address).unwrap();
     let mut account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
@@ -546,13 +492,13 @@ async fn can_estimate_declare_v3_fee_inner<P: Provider + Send + Sync>(provider: 
     let result = account
         .declare_v3(
             Arc::new(flattened_class),
-            FieldElement::from_hex_be(&hashes.compiled_class_hash).unwrap(),
+            Felt::from_hex(&hashes.compiled_class_hash).unwrap(),
         )
         .estimate_fee()
         .await
         .unwrap();
 
-    assert!(result.overall_fee > FieldElement::ZERO);
+    assert!(result.overall_fee > Felt::ZERO);
 }
 
 async fn can_declare_cairo1_contract_v3_inner<P: Provider + Send + Sync>(
@@ -567,12 +513,9 @@ async fn can_declare_cairo1_contract_v3_inner<P: Provider + Send + Sync>(
     }
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(address).unwrap();
+    let address = Felt::from_hex(address).unwrap();
     let mut account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
@@ -600,7 +543,7 @@ async fn can_declare_cairo1_contract_v3_inner<P: Provider + Send + Sync>(
     let result = account
         .declare_v3(
             Arc::new(flattened_class),
-            FieldElement::from_hex_be(&hashes.compiled_class_hash).unwrap(),
+            Felt::from_hex(&hashes.compiled_class_hash).unwrap(),
         )
         .gas(200000)
         .gas_price(500000000000000)
@@ -608,19 +551,16 @@ async fn can_declare_cairo1_contract_v3_inner<P: Provider + Send + Sync>(
         .await
         .unwrap();
 
-    assert!(result.transaction_hash > FieldElement::ZERO);
+    assert!(result.transaction_hash > Felt::ZERO);
 }
 
 async fn can_declare_cairo0_contract_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
     // This test case is not very useful, same as `can_execute_eth_transfer` above.
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        FieldElement::from_hex_be(
-            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        )
-        .unwrap(),
+        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
-    let address = FieldElement::from_hex_be(address).unwrap();
+    let address = Felt::from_hex(address).unwrap();
     let mut account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
@@ -647,10 +587,10 @@ async fn can_declare_cairo0_contract_inner<P: Provider + Send + Sync>(provider: 
 
     let result = account
         .declare_legacy(Arc::new(contract_artifact))
-        .max_fee(FieldElement::from_dec_str("1000000000000000000").unwrap())
+        .max_fee(Felt::from_dec_str("1000000000000000000").unwrap())
         .send()
         .await
         .unwrap();
 
-    assert!(result.transaction_hash > FieldElement::ZERO);
+    assert!(result.transaction_hash > Felt::ZERO);
 }

@@ -6,6 +6,7 @@ edition = "2021"
 
 [dependencies]
 cxx = "1.0"
+starknet-types-core = { version = "0.1.1", default-features = false, features = ["curve"] }
 
 # Using path dependency here to make development easier. However, you probably want to fetch the
 # crate from GitHub instead (because the `starknet-core` crate isn't being published to crates.io
@@ -15,7 +16,7 @@ cxx = "1.0"
 starknet-core = { path = "../../../starknet-core" }
 
 # Same as above.
-# 
+#
 # This entry is needed to enable the `signature-display` feature of `starknet-crypto`.
 starknet-crypto = { path = "../../../starknet-crypto", default-features = false, features = ["signature-display"] }
 

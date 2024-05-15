@@ -1,7 +1,8 @@
 use core::{fmt::Display, str};
 
 use crypto_bigint::{ArrayEncoding, CheckedAdd, CheckedMul, CheckedSub, Zero};
-use starknet_ff::FieldElement;
+
+use crate::types::Felt;
 
 /// 256-bit unsiged integer.
 ///
@@ -242,8 +243,8 @@ impl From<crypto_bigint::U256> for U256 {
     }
 }
 
-impl From<FieldElement> for U256 {
-    fn from(value: FieldElement) -> Self {
+impl From<Felt> for U256 {
+    fn from(value: Felt) -> Self {
         Self(crypto_bigint::U256::from_be_byte_array(
             value.to_bytes_be().into(),
         ))
@@ -276,10 +277,7 @@ mod tests {
         assert_eq!(u256_value, 123u32.into());
         assert_eq!(u256_value, 123u64.into());
         assert_eq!(u256_value, 123u128.into());
-        assert_eq!(
-            u256_value,
-            FieldElement::from_dec_str("123").unwrap().into()
-        );
+        assert_eq!(u256_value, Felt::from_dec_str("123").unwrap().into());
     }
 
     #[test]
