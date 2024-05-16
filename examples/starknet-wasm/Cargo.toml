@@ -22,4 +22,3 @@ default = ["console_error_panic_hook"]
 starknet-crypto = { version = "0.6.2", path = "../../starknet-crypto" }
 console_error_panic_hook = { version = "0.1.7", optional = true }
 wasm-bindgen = "0.2.84"
-starknet-types-core = { version = "0.1.1", default-features = false, features = ["curve"] }

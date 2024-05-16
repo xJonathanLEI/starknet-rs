@@ -15,6 +15,8 @@ mod rfc6979;
 #[cfg(test)]
 mod test_utils;
 
+pub use starknet_types_core::felt::Felt;
+
 pub use pedersen_hash::pedersen_hash;
 
 pub use poseidon_hash::{

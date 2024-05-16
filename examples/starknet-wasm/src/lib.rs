@@ -1,6 +1,6 @@
 #![allow(clippy::unused_unit)]
 
-use starknet_types_core::felt::Felt;
+use starknet_crypto::Felt;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
