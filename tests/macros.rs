@@ -1,8 +1,10 @@
 use starknet::{
-    core::utils::{cairo_short_string_to_felt, get_selector_from_name},
+    core::{
+        types::Felt,
+        utils::{cairo_short_string_to_felt, get_selector_from_name},
+    },
     macros::{felt, felt_dec, felt_hex, selector, short_string},
 };
-use starknet_types_core::felt::Felt;
 
 #[test]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]

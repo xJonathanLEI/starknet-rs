@@ -13,8 +13,7 @@
 //! create idiomatic bindings, which is way too much work to maintain as an example, and should be
 //! a project of its own.
 
-use starknet_core::crypto::Signature;
-use starknet_types_core::felt::Felt;
+use starknet_core::{crypto::Signature, types::Felt};
 
 #[cxx::bridge]
 mod ffi {

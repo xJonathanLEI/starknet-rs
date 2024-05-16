@@ -5,7 +5,7 @@ use starknet::{
     contract::ContractFactory,
     core::{
         chain_id,
-        types::{contract::legacy::LegacyContractClass, BlockId, BlockTag},
+        types::{contract::legacy::LegacyContractClass, BlockId, BlockTag, Felt},
     },
     macros::felt,
     providers::{
@@ -14,7 +14,6 @@ use starknet::{
     },
     signers::{LocalWallet, SigningKey},
 };
-use starknet_types_core::felt::Felt;
 
 #[tokio::main]
 async fn main() {

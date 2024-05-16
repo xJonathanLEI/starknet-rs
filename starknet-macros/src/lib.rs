@@ -1,6 +1,8 @@
 use proc_macro::TokenStream;
-use starknet_core::utils::{cairo_short_string_to_felt, get_selector_from_name};
-use starknet_types_core::felt::Felt;
+use starknet_core::{
+    types::Felt,
+    utils::{cairo_short_string_to_felt, get_selector_from_name},
+};
 use syn::{parse_macro_input, LitStr};
 
 #[proc_macro]
@@ -120,5 +122,5 @@ fn field_element_path() -> &'static str {
 
 #[cfg(not(feature = "use_imported_type"))]
 fn field_element_path() -> &'static str {
-    "starknet_types_core::felt::Felt"
+    "::starknet::core::types::Felt"
 }

@@ -1,10 +1,9 @@
 use rand::{rngs::StdRng, RngCore, SeedableRng};
 use starknet_accounts::{ExecutionEncoding, SingleOwnerAccount};
 use starknet_contract::ContractFactory;
-use starknet_core::types::{contract::legacy::LegacyContractClass, BlockId, BlockTag};
+use starknet_core::types::{contract::legacy::LegacyContractClass, BlockId, BlockTag, Felt};
 use starknet_providers::{jsonrpc::HttpTransport, JsonRpcClient};
 use starknet_signers::{LocalWallet, SigningKey};
-use starknet_types_core::felt::Felt;
 use url::Url;
 
 /// Cairo short string encoding for `SN_SEPOLIA`.

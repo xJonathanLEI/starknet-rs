@@ -1,12 +1,11 @@
 use starknet::{
-    core::types::{BlockId, BlockTag, FunctionCall},
+    core::types::{BlockId, BlockTag, Felt, FunctionCall},
     macros::{felt, selector},
     providers::{
         jsonrpc::{HttpTransport, JsonRpcClient},
         Provider, Url,
     },
 };
-use starknet_types_core::felt::Felt;
 
 #[tokio::main]
 async fn main() {

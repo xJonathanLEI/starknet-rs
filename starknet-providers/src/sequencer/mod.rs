@@ -8,9 +8,8 @@ use serde_with::serde_as;
 use starknet_core::{
     chain_id,
     serde::unsigned_field_element::UfeHex,
-    types::{contract::CompiledClass, StarknetError},
+    types::{contract::CompiledClass, Felt, StarknetError},
 };
-use starknet_types_core::felt::Felt;
 use url::Url;
 
 // Sequencer specific model types. Not exposed by design to discourage sequencer usage.

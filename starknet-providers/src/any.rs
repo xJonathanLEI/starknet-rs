@@ -3,13 +3,12 @@ use starknet_core::types::{
     BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
     BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
-    EventsPage, FeeEstimate, FunctionCall, InvokeTransactionResult, MaybePendingBlockWithReceipts,
-    MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate, MsgFromL1,
-    SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, SyncStatusType,
-    Transaction, TransactionReceiptWithBlockInfo, TransactionStatus, TransactionTrace,
-    TransactionTraceWithHash,
+    EventsPage, FeeEstimate, Felt, FunctionCall, InvokeTransactionResult,
+    MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
+    MaybePendingStateUpdate, MsgFromL1, SimulatedTransaction, SimulationFlag,
+    SimulationFlagForEstimateFee, SyncStatusType, Transaction, TransactionReceiptWithBlockInfo,
+    TransactionStatus, TransactionTrace, TransactionTraceWithHash,
 };
-use starknet_types_core::felt::Felt;
 
 use crate::{
     jsonrpc::{HttpTransport, JsonRpcClient},

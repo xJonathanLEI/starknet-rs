@@ -3,9 +3,8 @@ use serde_with::serde_as;
 
 use starknet_core::{
     serde::unsigned_field_element::{UfeHex, UfePendingBlockHash},
-    types::DataAvailabilityResources,
+    types::{DataAvailabilityResources, Felt},
 };
-use starknet_types_core::felt::Felt;
 
 use super::{L1Address, TransactionFailureReason};
 

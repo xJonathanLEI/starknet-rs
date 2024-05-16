@@ -4,10 +4,9 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use starknet_core::types::{contract::ComputeClassHashError, BlockId, BlockTag};
+use starknet_core::types::{contract::ComputeClassHashError, BlockId, BlockTag, Felt};
 use starknet_providers::Provider;
 use starknet_signers::Signer;
-use starknet_types_core::felt::Felt;
 
 #[derive(Debug, Clone)]
 pub struct SingleOwnerAccount<P, S>

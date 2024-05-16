@@ -4,10 +4,9 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use starknet_core::types::{BlockId, BlockTag};
+use starknet_core::types::{BlockId, BlockTag, Felt};
 use starknet_providers::Provider;
 use starknet_signers::Signer;
-use starknet_types_core::felt::Felt;
 
 pub struct ArgentAccountFactory<S, P> {
     class_hash: Felt,

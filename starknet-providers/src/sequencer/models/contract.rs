@@ -10,10 +10,9 @@ use starknet_core::{
             legacy::{LegacyContractClass, RawLegacyAbiEntry, RawLegacyEntryPoints},
             CompressProgramError,
         },
-        EntryPointsByType, FlattenedSierraClass,
+        EntryPointsByType, Felt, FlattenedSierraClass,
     },
 };
-use starknet_types_core::felt::Felt;
 
 #[derive(Debug, Serialize)]
 #[serde(untagged)]

@@ -1,7 +1,9 @@
 use serde::{de::Visitor, Deserialize, Serialize};
 use serde_with::serde_as;
-use starknet_core::serde::unsigned_field_element::{UfeHex, UfePendingBlockHash};
-use starknet_types_core::felt::Felt;
+use starknet_core::{
+    serde::unsigned_field_element::{UfeHex, UfePendingBlockHash},
+    types::Felt,
+};
 
 use super::{
     serde_impls::{u128_hex, u64_hex, u64_hex_opt},

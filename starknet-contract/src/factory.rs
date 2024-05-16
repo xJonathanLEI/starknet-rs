@@ -1,9 +1,8 @@
 use starknet_accounts::{Account, AccountError, Call, ConnectedAccount, ExecutionV1, ExecutionV3};
 use starknet_core::{
-    types::{FeeEstimate, InvokeTransactionResult, SimulatedTransaction},
+    types::{FeeEstimate, Felt, InvokeTransactionResult, SimulatedTransaction},
     utils::{get_udc_deployed_address, UdcUniqueSettings, UdcUniqueness},
 };
-use starknet_types_core::felt::Felt;
 
 /// The default UDC address: 0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf.
 const UDC_ADDRESS: Felt = Felt::from_raw([

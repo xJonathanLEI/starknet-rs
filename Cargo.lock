@@ -1544,7 +1544,6 @@ dependencies = [
  "starknet-macros",
  "starknet-providers",
  "starknet-signers",
- "starknet-types-core",
  "tokio",
  "url",
 ]
@@ -1561,7 +1560,6 @@ dependencies = [
  "starknet-crypto",
  "starknet-providers",
  "starknet-signers",
- "starknet-types-core",
  "thiserror",
  "tokio",
  "url",
@@ -1579,7 +1577,6 @@ dependencies = [
  "starknet-core",
  "starknet-providers",
  "starknet-signers",
- "starknet-types-core",
  "thiserror",
  "tokio",
  "url",
@@ -1653,7 +1650,6 @@ dependencies = [
  "cxx-build",
  "starknet-core",
  "starknet-crypto",
- "starknet-types-core",
 ]
 
 [[package]]
@@ -1661,7 +1657,6 @@ name = "starknet-macros"
 version = "0.1.7"
 dependencies = [
  "starknet-core",
- "starknet-types-core",
  "syn 2.0.63",
 ]
 
@@ -1681,7 +1676,6 @@ dependencies = [
  "serde_with",
  "starknet-core",
  "starknet-providers",
- "starknet-types-core",
  "thiserror",
  "tokio",
  "url",
@@ -1699,7 +1693,6 @@ dependencies = [
  "rand",
  "starknet-core",
  "starknet-crypto",
- "starknet-types-core",
  "thiserror",
  "wasm-bindgen-test",
 ]

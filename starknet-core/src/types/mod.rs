@@ -5,7 +5,7 @@ use serde_with::serde_as;
 
 use crate::serde::unsigned_field_element::UfeHex;
 
-use starknet_types_core::felt::Felt;
+pub use starknet_types_core::felt::{Felt, NonZeroFelt};
 
 mod conversions;
 

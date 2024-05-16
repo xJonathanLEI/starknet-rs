@@ -1,6 +1,6 @@
 use starknet::{
     accounts::{AccountFactory, ArgentAccountFactory},
-    core::chain_id,
+    core::{chain_id, types::Felt},
     macros::felt,
     providers::{
         jsonrpc::{HttpTransport, JsonRpcClient},
@@ -8,7 +8,6 @@ use starknet::{
     },
     signers::{LocalWallet, SigningKey},
 };
-use starknet_types_core::felt::Felt;
 
 #[tokio::main]
 async fn main() {

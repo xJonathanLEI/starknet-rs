@@ -10,13 +10,12 @@ use starknet_core::{
         contract::{legacy::LegacyContractClass, ComputeClassHashError},
         BroadcastedDeclareTransaction, BroadcastedDeclareTransactionV1,
         BroadcastedDeclareTransactionV2, BroadcastedDeclareTransactionV3, BroadcastedTransaction,
-        DataAvailabilityMode, DeclareTransactionResult, FeeEstimate, FlattenedSierraClass,
+        DataAvailabilityMode, DeclareTransactionResult, FeeEstimate, Felt, FlattenedSierraClass,
         ResourceBounds, ResourceBoundsMapping, SimulatedTransaction, SimulationFlag,
     },
 };
 use starknet_crypto::PoseidonHasher;
 use starknet_providers::Provider;
-use starknet_types_core::felt::Felt;
 use std::sync::Arc;
 
 /// Cairo string for "declare"

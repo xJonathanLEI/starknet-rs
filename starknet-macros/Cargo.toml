@@ -18,7 +18,6 @@ proc-macro = true
 [dependencies]
 starknet-core = { version = "0.10.0", path = "../starknet-core" }
 syn = "2.0.15"
-starknet-types-core = { version = "0.1.1", default-features = false, features = ["curve"] }
 
 [features]
 default = []

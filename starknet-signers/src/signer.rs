@@ -2,8 +2,7 @@ use crate::VerifyingKey;
 
 use async_trait::async_trait;
 use auto_impl::auto_impl;
-use starknet_core::crypto::Signature;
-use starknet_types_core::felt::Felt;
+use starknet_core::{crypto::Signature, types::Felt};
 use std::error::Error;
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]

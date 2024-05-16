@@ -1,10 +1,10 @@
 use crypto_bigint::{Encoding, NonZero, U256};
 use rand::{rngs::StdRng, Rng, SeedableRng};
-use starknet_core::crypto::{
-    ecdsa_sign, ecdsa_verify, EcdsaSignError, EcdsaVerifyError, Signature,
+use starknet_core::{
+    crypto::{ecdsa_sign, ecdsa_verify, EcdsaSignError, EcdsaVerifyError, Signature},
+    types::Felt,
 };
 use starknet_crypto::get_public_key;
-use starknet_types_core::felt::Felt;
 
 #[derive(Debug, Clone)]
 pub struct SigningKey {

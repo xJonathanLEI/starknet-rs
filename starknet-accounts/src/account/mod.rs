@@ -4,10 +4,9 @@ use async_trait::async_trait;
 use auto_impl::auto_impl;
 use starknet_core::types::{
     contract::{legacy::LegacyContractClass, CompressProgramError, ComputeClassHashError},
-    BlockId, BlockTag, FlattenedSierraClass,
+    BlockId, BlockTag, Felt, FlattenedSierraClass,
 };
 use starknet_providers::{Provider, ProviderError};
-use starknet_types_core::felt::Felt;
 use std::{error::Error, sync::Arc};
 
 mod declaration;

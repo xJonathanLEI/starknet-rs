@@ -9,16 +9,15 @@ use starknet_core::{
         requests::*, BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
         BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
         ContractClass, ContractErrorData, DeclareTransactionResult, DeployAccountTransactionResult,
-        EventFilter, EventFilterWithPage, EventsPage, FeeEstimate, FunctionCall,
-        InvokeTransactionResult, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
-        MaybePendingBlockWithTxs, MaybePendingStateUpdate, MsgFromL1, NoTraceAvailableErrorData,
-        ResultPageRequest, SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee,
-        StarknetError, SyncStatusType, Transaction, TransactionExecutionErrorData,
-        TransactionReceiptWithBlockInfo, TransactionStatus, TransactionTrace,
-        TransactionTraceWithHash,
+        EventFilter, EventFilterWithPage, EventsPage, FeeEstimate, Felt as FeltPrimitive,
+        FunctionCall, InvokeTransactionResult, MaybePendingBlockWithReceipts,
+        MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
+        MsgFromL1, NoTraceAvailableErrorData, ResultPageRequest, SimulatedTransaction,
+        SimulationFlag, SimulationFlagForEstimateFee, StarknetError, SyncStatusType, Transaction,
+        TransactionExecutionErrorData, TransactionReceiptWithBlockInfo, TransactionStatus,
+        TransactionTrace, TransactionTraceWithHash,
     },
 };
-use starknet_types_core::felt::Felt as FeltPrimitive;
 
 use crate::{provider::ProviderImplError, Provider, ProviderError};
 

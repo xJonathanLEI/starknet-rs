@@ -9,13 +9,12 @@ use starknet_core::{
     types::{
         BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1,
         BroadcastedInvokeTransactionV3, BroadcastedTransaction, DataAvailabilityMode, FeeEstimate,
-        InvokeTransactionResult, ResourceBounds, ResourceBoundsMapping, SimulatedTransaction,
+        Felt, InvokeTransactionResult, ResourceBounds, ResourceBoundsMapping, SimulatedTransaction,
         SimulationFlag,
     },
 };
 use starknet_crypto::PoseidonHasher;
 use starknet_providers::Provider;
-use starknet_types_core::felt::Felt;
 
 /// Cairo string for "invoke"
 const PREFIX_INVOKE: Felt = Felt::from_raw([

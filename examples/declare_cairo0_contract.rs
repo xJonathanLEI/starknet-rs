@@ -4,7 +4,7 @@ use starknet::{
     accounts::{Account, ExecutionEncoding, SingleOwnerAccount},
     core::{
         chain_id,
-        types::{contract::legacy::LegacyContractClass, BlockId, BlockTag},
+        types::{contract::legacy::LegacyContractClass, BlockId, BlockTag, Felt},
     },
     providers::{
         jsonrpc::{HttpTransport, JsonRpcClient},
@@ -12,7 +12,6 @@ use starknet::{
     },
     signers::{LocalWallet, SigningKey},
 };
-use starknet_types_core::felt::Felt;
 
 #[tokio::main]
 async fn main() {

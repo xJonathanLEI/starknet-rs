@@ -7,13 +7,12 @@ use starknet_core::{
         BlockId, BlockTag, BroadcastedDeployAccountTransaction,
         BroadcastedDeployAccountTransactionV1, BroadcastedDeployAccountTransactionV3,
         BroadcastedTransaction, DataAvailabilityMode, DeployAccountTransactionResult, FeeEstimate,
-        ResourceBounds, ResourceBoundsMapping, SimulatedTransaction, SimulationFlag, StarknetError,
+        Felt, NonZeroFelt, ResourceBounds, ResourceBoundsMapping, SimulatedTransaction,
+        SimulationFlag, StarknetError,
     },
 };
 use starknet_crypto::PoseidonHasher;
 use starknet_providers::{Provider, ProviderError};
-use starknet_types_core::felt::Felt;
-use starknet_types_core::felt::NonZeroFelt;
 use std::error::Error;
 
 pub mod argent;

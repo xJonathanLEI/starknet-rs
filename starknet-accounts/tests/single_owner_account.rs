@@ -7,7 +7,7 @@ use starknet_core::{
             legacy::{LegacyContractClass, RawLegacyAbiEntry, RawLegacyFunction},
             SierraClass,
         },
-        BlockId, BlockTag, StarknetError,
+        BlockId, BlockTag, Felt, StarknetError,
     },
     utils::get_selector_from_name,
 };
@@ -16,7 +16,6 @@ use starknet_providers::{
     Provider, ProviderError, SequencerGatewayProvider,
 };
 use starknet_signers::{LocalWallet, SigningKey};
-use starknet_types_core::felt::Felt;
 use std::sync::Arc;
 
 /// Cairo short string encoding for `SN_SEPOLIA`.

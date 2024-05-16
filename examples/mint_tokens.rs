@@ -2,7 +2,7 @@ use starknet::{
     accounts::{Account, Call, ExecutionEncoding, SingleOwnerAccount},
     core::{
         chain_id,
-        types::{BlockId, BlockTag},
+        types::{BlockId, BlockTag, Felt},
         utils::get_selector_from_name,
     },
     providers::{
@@ -11,7 +11,6 @@ use starknet::{
     },
     signers::{LocalWallet, SigningKey},
 };
-use starknet_types_core::felt::Felt;
 
 #[tokio::main]
 async fn main() {

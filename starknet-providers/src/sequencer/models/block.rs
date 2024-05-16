@@ -2,9 +2,8 @@ use serde::Deserialize;
 use serde_with::serde_as;
 use starknet_core::{
     serde::unsigned_field_element::{UfeHex, UfeHexOption},
-    types::{L1DataAvailabilityMode, ResourcePrice},
+    types::{Felt, L1DataAvailabilityMode, ResourcePrice},
 };
-use starknet_types_core::felt::Felt;
 
 use super::{ConfirmedTransactionReceipt, TransactionType};
 

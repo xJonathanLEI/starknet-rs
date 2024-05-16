@@ -2,7 +2,7 @@ use starknet_core::{
     types::{
         BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1,
         BroadcastedTransaction, ContractClass, DeclareTransaction, DeployAccountTransaction,
-        EthAddress, EventFilter, ExecuteInvocation, ExecutionResult, FunctionCall,
+        EthAddress, EventFilter, ExecuteInvocation, ExecutionResult, Felt, FunctionCall,
         InvokeTransaction, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
         MaybePendingBlockWithTxs, MaybePendingStateUpdate, MsgFromL1, StarknetError,
         SyncStatusType, Transaction, TransactionExecutionStatus, TransactionReceipt,
@@ -14,7 +14,6 @@ use starknet_providers::{
     jsonrpc::{HttpTransport, JsonRpcClient},
     Provider, ProviderError,
 };
-use starknet_types_core::felt::Felt;
 use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {

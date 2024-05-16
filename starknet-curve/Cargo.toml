@@ -14,4 +14,3 @@ keywords = ["ethereum", "starknet", "web3", "no_std"]
 
 [dependencies]
 starknet-types-core = { version = "0.1.1", default-features = false, features = ["curve"] }
-
