@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#2fc8455d3720039015a9abf014c27ea3ca24bd25
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#4118b48cc450a8ff558c2ac480aa12bf5efdd3bd
 
 // These types are ignored from code generation. Implement them manually:
 // - `RECEIPT_BLOCK`
