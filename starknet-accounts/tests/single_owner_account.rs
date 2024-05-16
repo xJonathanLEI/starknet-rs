@@ -398,7 +398,7 @@ async fn can_execute_eth_transfer_invoke_v3_inner<P: Provider + Send + Sync>(
             ],
         }])
         .gas(200000)
-        .gas_price(100000000000000)
+        .gas_price(500000000000000)
         .send()
         .await
         .unwrap();
@@ -602,7 +602,7 @@ async fn can_declare_cairo1_contract_v3_inner<P: Provider + Send + Sync>(
             FieldElement::from_hex_be(&hashes.compiled_class_hash).unwrap(),
         )
         .gas(200000)
-        .gas_price(100000000000000)
+        .gas_price(500000000000000)
         .send()
         .await
         .unwrap();

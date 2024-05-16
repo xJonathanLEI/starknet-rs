@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#1dd2923818eb6ac2a44e685af25ab9d0b9fa4413
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#2fc8455d3720039015a9abf014c27ea3ca24bd25
 
 // These types are ignored from code generation. Implement them manually:
 // - `RECEIPT_BLOCK`
@@ -33,9 +33,9 @@ use crate::serde::byte_array::base64;
 
 use super::{serde_impls::NumAsHex, *};
 
-#[cfg(all(not(no_rc), not(no_sync), target_has_atomic = "ptr"))]
+#[cfg(target_has_atomic = "ptr")]
 pub type OwnedPtr<T> = alloc::sync::Arc<T>;
-#[cfg(not(all(not(no_rc), not(no_sync), target_has_atomic = "ptr")))]
+#[cfg(not(target_has_atomic = "ptr"))]
 pub type OwnedPtr<T> = alloc::boxed::Box<T>;
 
 const QUERY_VERSION_OFFSET: FieldElement = FieldElement::from_mont([
