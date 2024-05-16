@@ -81,7 +81,7 @@ async fn can_deploy_contract_to_alpha_sepolia_with_invoke_v3() {
     let result = factory
         .deploy_v3(vec![Felt::ONE], Felt::from_bytes_be(&salt_buffer), true)
         .gas(200000)
-        .gas_price(100000000000000)
+        .gas_price(500000000000000)
         .send()
         .await;
 
