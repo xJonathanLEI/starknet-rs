@@ -28,6 +28,9 @@ serde_json = "1.0.96"
 serde_with = "2.3.2"
 starknet-types-core = { version = "0.1.1", default-features = false , features = ["serde", "curve"] }
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2.9", features = ["js"] }
+
 [dev-dependencies]
 starknet-providers = { path = ".", features = ["no_unknown_fields"] }
 tokio = { version = "1.27.0", features = ["full"] }
