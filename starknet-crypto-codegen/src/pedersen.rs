@@ -70,7 +70,7 @@ fn push_point(buf: &mut String, p: &AffinePoint) -> std::fmt::Result {
     let y = p.y().to_raw();
     writeln!(
         buf,
-        "starknet_types_core::curve::AffinePoint::new_unchecked ("
+        "starknet_types_core::curve::AffinePoint::new_unchecked("
     )?;
     writeln!(buf, "starknet_types_core::felt::Felt::from_raw([")?;
     writeln!(buf, "{},", x[0])?;
