@@ -42,7 +42,6 @@ fn push_points(
     )?;
 
     let mut bits_left = max_bits;
-    // let mut outer_point = base;
     let mut outer_point = ProjectivePoint::from_affine(base.x(), base.y()).unwrap();
     while bits_left > 0 {
         let eat_bits = std::cmp::min(bits_left, bits);
@@ -58,7 +57,6 @@ fn push_points(
         // Shift outer point #bits times
         bits_left -= eat_bits;
         for _i in 0..bits {
-            // outer_point.double_assign();
             outer_point += outer_point.clone();
         }
     }
