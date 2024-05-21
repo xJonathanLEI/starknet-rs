@@ -1691,6 +1691,7 @@ version = "0.10.0"
 dependencies = [
  "base64 0.21.0",
  "criterion",
+ "crypto-bigint",
  "flate2",
  "hex",
  "hex-literal",

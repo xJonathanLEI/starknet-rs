@@ -41,6 +41,9 @@ pub use codegen::{
     TransactionReceiptWithBlockInfo, TransactionTraceWithHash, TransactionWithReceipt,
 };
 
+pub mod u256;
+pub use u256::U256;
+
 pub mod eth_address;
 pub use eth_address::EthAddress;
 
