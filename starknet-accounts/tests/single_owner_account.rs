@@ -180,6 +180,7 @@ async fn can_declare_cairo0_contract_with_sequencer() {
 }
 
 #[tokio::test]
+#[ignore = "Cairo 0 contract declaration has been blocked"]
 async fn can_declare_cairo0_contract_with_jsonrpc() {
     can_declare_cairo0_contract_inner(
         create_jsonrpc_client(),
