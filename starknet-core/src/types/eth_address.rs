@@ -71,6 +71,10 @@ mod errors {
 pub use errors::{FromBytesSliceError, FromFieldElementError, FromHexError};
 
 impl EthAddress {
+    pub const fn from_bytes(bytes: [u8; 20]) -> Self {
+        Self { inner: bytes }
+    }
+
     pub fn from_hex(hex: &str) -> Result<Self, FromHexError> {
         hex.parse()
     }

@@ -56,7 +56,7 @@ mod errors {
 pub use errors::{FromHexError, ToFieldElementError};
 
 impl Hash256 {
-    pub fn from_bytes(bytes: [u8; HASH_256_BYTE_COUNT]) -> Self {
+    pub const fn from_bytes(bytes: [u8; HASH_256_BYTE_COUNT]) -> Self {
         Self { inner: bytes }
     }
 
