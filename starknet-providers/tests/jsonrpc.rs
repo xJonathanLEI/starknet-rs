@@ -665,7 +665,7 @@ async fn jsonrpc_estimate_fee() {
 
     let estimate = rpc_client
         .estimate_fee_single(
-            &BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction::V1(
+            BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction::V1(
                 BroadcastedInvokeTransactionV1 {
                     max_fee: FieldElement::ZERO,
                     signature: vec![
