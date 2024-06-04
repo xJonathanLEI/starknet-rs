@@ -544,6 +544,22 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_felt_to_string() {
+        let felt = FieldElement::from_dec_str("123456").unwrap();
+
+        assert_eq!(format!("{}", felt), "123456");
+        assert_eq!(format!("{:x}", felt), "1e240");
+        assert_eq!(format!("{:X}", felt), "1E240");
+        assert_eq!(format!("{:#x}", felt), "0x1e240");
+        assert_eq!(format!("{:#X}", felt), "0x1E240");
+        assert_eq!(format!("{:010x}", felt), "000001e240");
+        assert_eq!(format!("{:010X}", felt), "000001E240");
+        assert_eq!(format!("{:#010x}", felt), "0x000001e240");
+        assert_eq!(format!("{:#010X}", felt), "0x000001E240");
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_broadcasted_invoke_v1_non_query_deser() {
         let raw = include_str!("../../test-data/serde/broadcasted_invoke_v1_non_query.json");
 
