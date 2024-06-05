@@ -316,6 +316,24 @@ impl SequencerGatewayProvider {
     #[deprecated(
         note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
     )]
+    pub async fn get_state_update_with_block(
+        &self,
+        block_identifier: BlockId,
+    ) -> Result<StateUpdateWithBlock, ProviderError> {
+        let mut request_url = self.extend_feeder_gateway_url("get_state_update");
+        append_block_id(&mut request_url, block_identifier);
+        request_url
+            .query_pairs_mut()
+            .append_pair("includeBlock", "true");
+
+        self.send_get_request::<GatewayResponse<_>>(request_url)
+            .await?
+            .into()
+    }
+
+    #[deprecated(
+        note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
+    )]
     pub async fn get_compiled_class_by_class_hash(
         &self,
         class_hash: Felt,
