@@ -502,9 +502,7 @@ impl LegacyProgram {
             compiler_version: &'a Option<String>,
             #[serde_as(as = "Vec<UfeHex>")]
             data: &'a Vec<Felt>,
-            // Needed due to pathfinder bug:
-            //   https://github.com/eqlabs/pathfinder/issues/1371
-            debug_info: EmptyDebugInfo,
+            debug_info: Option<()>,
             hints: &'a BTreeMap<u64, Vec<LegacyHint>>,
             identifiers: &'a BTreeMap<String, LegacyIdentifier>,
             main_scope: &'a String,
@@ -512,24 +510,12 @@ impl LegacyProgram {
             reference_manager: &'a LegacyReferenceManager,
         }
 
-        #[derive(Serialize)]
-        pub struct EmptyDebugInfo {
-            file_contents: Unit,
-            instruction_locations: Unit,
-        }
-
-        #[derive(Serialize)]
-        pub struct Unit {}
-
         let program_json = serde_json::to_string(&ProgramWithoutDebugInfo {
             attributes: &self.attributes,
             builtins: &self.builtins,
             compiler_version: &self.compiler_version,
             data: &self.data,
-            debug_info: EmptyDebugInfo {
-                file_contents: Unit {},
-                instruction_locations: Unit {},
-            },
+            debug_info: None,
             hints: &self.hints,
             identifiers: &self.identifiers,
             main_scope: &self.main_scope,
