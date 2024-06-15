@@ -3,6 +3,7 @@
 use std::any::Any;
 
 use async_trait::async_trait;
+use serde::Serialize;
 use starknet_core::types::{
     BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
     BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
@@ -15,6 +16,7 @@ use starknet_core::types::{
 };
 
 use crate::{
+    jsonrpc::JsonRpcMethod,
     provider::ProviderImplError,
     sequencer::{models::conversions::ConversionError, GatewayClientError},
     Provider, ProviderError, SequencerGatewayProvider,
@@ -28,6 +30,27 @@ use super::models::TransactionFinalityStatus;
 impl Provider for SequencerGatewayProvider {
     async fn spec_version(&self) -> Result<String, ProviderError> {
         Ok(String::from("0.7.1"))
+    }
+
+    async fn batch_requests<I, P>(
+        &self,
+        requests: I,
+    ) -> Result<Vec<serde_json::Value>, ProviderError>
+    where
+        I: IntoIterator<Item = (JsonRpcMethod, P)> + Send + Sync,
+        P: Serialize + Send + Sync,
+    {
+        Ok(self.batch_requests(requests).await?)
+    }
+
+    async fn get_block_with_tx_hashes_batch<B>(
+        &self,
+        block_ids: Vec<B>,
+    ) -> Result<Vec<MaybePendingBlockWithTxHashes>, ProviderError>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+    {
+        Ok(self.get_block_with_tx_hashes_batch(block_ids).await?)
     }
 
     async fn get_block_with_tx_hashes<B>(

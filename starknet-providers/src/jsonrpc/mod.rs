@@ -126,6 +126,16 @@ pub enum JsonRpcMethod {
 }
 
 /// JSON-RPC request.
+#[derive(Debug, Clone, Serialize)]
+#[serde(untagged)]
+pub enum JsonRpcRequestParams<'a> {
+    /// Parameters for getting a block with transaction hashes.
+    GetBlockWithTxHashes(GetBlockWithTxHashesRequestRef<'a>),
+    /// Parameters for getting a block with full transactions.
+    GetBlockWithTxs(GetBlockWithTxsRequestRef<'a>),
+}
+
+/// Represents a JSON-RPC request with a unique identifier.
 #[derive(Debug, Clone)]
 pub struct JsonRpcRequest {
     /// ID of the request. Useful for identifying responses in certain transports like `WebSocket`.
@@ -136,6 +146,13 @@ pub struct JsonRpcRequest {
 
 /// Typed request data for Starknet JSON-RPC requests.
 #[derive(Debug, Clone)]
+pub struct JsonRpcRequests {
+    /// A list of JSON-RPC requests.
+    pub requests: Vec<JsonRpcRequest>,
+}
+
+/// Represents the data for various JSON-RPC requests
+#[derive(Debug, Clone, Serialize)]
 pub enum JsonRpcRequestData {
     /// Request data for `starknet_specVersion`.
     SpecVersion(SpecVersionRequest),
@@ -303,6 +320,32 @@ where
             }
         }
     }
+
+    async fn send_requests<I, P, R>(&self, requests: I) -> Result<Vec<R>, ProviderError>
+    where
+        I: IntoIterator<Item = (JsonRpcMethod, P)> + Send + Sync,
+        P: Serialize + Send + Sync,
+        R: DeserializeOwned,
+    {
+        let responses = self
+            .transport
+            .send_requests(requests)
+            .await
+            .map_err(JsonRpcClientError::TransportError)?;
+
+        responses
+            .into_iter()
+            .map(|response| match response {
+                JsonRpcResponse::Success { result, .. } => Ok(result),
+                JsonRpcResponse::Error { error, .. } => {
+                    Err(match TryInto::<StarknetError>::try_into(&error) {
+                        Ok(error) => ProviderError::StarknetError(error),
+                        Err(_) => JsonRpcClientError::<T::Error>::JsonRpcError(error).into(),
+                    })
+                }
+            })
+            .collect()
+    }
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
@@ -315,6 +358,35 @@ where
     async fn spec_version(&self) -> Result<String, ProviderError> {
         self.send_request(JsonRpcMethod::SpecVersion, SpecVersionRequest)
             .await
+    }
+
+    async fn batch_requests<I, P>(
+        &self,
+        requests: I,
+    ) -> Result<Vec<serde_json::Value>, ProviderError>
+    where
+        I: IntoIterator<Item = (JsonRpcMethod, P)> + Send + Sync,
+        P: Serialize + Send + Sync,
+    {
+        self.send_requests(requests).await
+    }
+
+    async fn get_block_with_tx_hashes_batch<B>(
+        &self,
+        block_ids: Vec<B>,
+    ) -> Result<Vec<MaybePendingBlockWithTxHashes>, ProviderError>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+    {
+        let requests = block_ids.iter().map(|block_id| {
+            (
+                JsonRpcMethod::GetBlockWithTxHashes,
+                GetBlockWithTxHashesRequestRef {
+                    block_id: block_id.as_ref(),
+                },
+            )
+        });
+        self.send_requests(requests).await
     }
 
     /// Get block information with transaction hashes given the block id
