@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use auto_impl::auto_impl;
+use serde::Serialize;
 use starknet_core::types::{
     BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
     BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
@@ -11,6 +12,8 @@ use starknet_core::types::{
     TransactionReceiptWithBlockInfo, TransactionStatus, TransactionTrace, TransactionTraceWithHash,
 };
 use std::{any::Any, error::Error, fmt::Debug};
+
+use crate::jsonrpc::JsonRpcMethod;
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
@@ -298,6 +301,21 @@ pub trait Provider {
             Err(ProviderError::ArrayLengthMismatch)
         }
     }
+
+    async fn batch_requests<I, P>(
+        &self,
+        requests: I,
+    ) -> Result<Vec<serde_json::Value>, ProviderError>
+    where
+        I: IntoIterator<Item = (JsonRpcMethod, P)> + Send + Sync,
+        P: Serialize + Send + Sync;
+
+    async fn get_block_with_tx_hashes_batch<B>(
+        &self,
+        block_ids: Vec<B>,
+    ) -> Result<Vec<MaybePendingBlockWithTxHashes>, ProviderError>
+    where
+        B: AsRef<BlockId> + Send + Sync;
 }
 
 /// Trait for implementation-specific error type. These errors are irrelevant in most cases,

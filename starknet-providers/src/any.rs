@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use serde::Serialize;
 use starknet_core::types::{
     BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
     BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
@@ -11,7 +12,7 @@ use starknet_core::types::{
 };
 
 use crate::{
-    jsonrpc::{HttpTransport, JsonRpcClient},
+    jsonrpc::{HttpTransport, JsonRpcClient, JsonRpcMethod},
     Provider, ProviderError, SequencerGatewayProvider,
 };
 
@@ -667,4 +668,45 @@ impl Provider for AnyProvider {
             }
         }
     }
+
+    async fn batch_requests<I, P>(
+        &self,
+        requests: I,
+    ) -> Result<Vec<serde_json::Value>, ProviderError>
+    where
+        I: IntoIterator<Item = (JsonRpcMethod, P)> + Send + Sync,
+        P: Serialize + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => {
+                <JsonRpcClient<HttpTransport> as Provider>::batch_requests(inner, requests).await
+            }
+            Self::SequencerGateway(inner) => {
+                <SequencerGatewayProvider as Provider>::batch_requests(inner, requests).await
+            }
+        }
+    }
+    async fn get_block_with_tx_hashes_batch<B>(
+        &self,
+        block_ids: Vec<B>,
+    ) -> Result<Vec<MaybePendingBlockWithTxHashes>, ProviderError>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => {
+                <JsonRpcClient<HttpTransport> as Provider>::get_block_with_tx_hashes_batch(
+                    inner, block_ids,
+                )
+                .await
+            }
+            Self::SequencerGateway(inner) => {
+                <SequencerGatewayProvider as Provider>::get_block_with_tx_hashes_batch(
+                    inner, block_ids,
+                )
+                .await
+            }
+        }
+    }
+
 }
