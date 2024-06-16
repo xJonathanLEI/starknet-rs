@@ -15,7 +15,8 @@ if [ -z "$RUNTIME" ]; then
 fi
 
 benches=(
-  class_hash
+  cairo0_class_hash
+  sierra_class_hash
   ecdsa_get_public_key
   ecdsa_recover
   ecdsa_sign

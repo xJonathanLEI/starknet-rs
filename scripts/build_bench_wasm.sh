@@ -17,7 +17,8 @@ mkdir -p $REPO_ROOT/target/bench-wasm
 
 cd $REPO_ROOT/starknet-core
 benches=(
-  class_hash
+  cairo0_class_hash
+  sierra_class_hash
 )
 
 for bench in ${benches[@]}; do
