@@ -14,47 +14,47 @@ If you're a cryptographer, you're welcome to contribute by reviewing the impleme
 
 ## Benchmark
 
-These results were generated on the author's machine with _AMD Ryzen 9 5950X 16-Core Processor_ running _Ubuntu 22.04.1 LTS_.
+These results were generated on the author's machine with _Apple M3 Max_ running _macOS 14.5_.
 
 For instructions on running the benchmarks yourself, check out [this page](../BENCHMARK.md).
 
 ### Native
 
 ```log
-ecdsa_get_public_key    time:   [125.53 µs 125.63 µs 125.75 µs]
-ecdsa_recover           time:   [421.74 µs 421.93 µs 422.16 µs]
-ecdsa_sign              time:   [170.30 µs 170.50 µs 170.71 µs]
-ecdsa_verify            time:   [428.34 µs 428.73 µs 429.17 µs]
-pedersen_hash           time:   [33.379 µs 33.435 µs 33.521 µs]
-poseidon_hash           time:   [12.552 µs 12.571 µs 12.595 µs]
-poseidon_hash_single    time:   [12.572 µs 12.587 µs 12.601 µs]
-poseidon_hash_many      time:   [25.048 µs 25.089 µs 25.137 µs]
-rfc6979_generate_k      time:   [1.4810 µs 1.4817 µs 1.4827 µs]
+ecdsa_get_public_key    time:   [52.416 µs 52.456 µs 52.506 µs]
+ecdsa_recover           time:   [233.25 µs 234.29 µs 235.43 µs]
+ecdsa_sign              time:   [87.730 µs 87.967 µs 88.211 µs]
+ecdsa_verify            time:   [239.97 µs 240.65 µs 241.46 µs]
+pedersen_hash           time:   [15.635 µs 15.668 µs 15.695 µs]
+poseidon_hash           time:   [4.6606 µs 4.6828 µs 4.7052 µs]
+poseidon_hash_single    time:   [4.7146 µs 4.7243 µs 4.7341 µs]
+poseidon_hash_many      time:   [10.101 µs 10.419 µs 10.713 µs]
+rfc6979_generate_k      time:   [4.7230 µs 4.7346 µs 4.7469 µs]
 ```
 
 ### WebAssembly
 
-_(With its excellent wasm performance, results are only provided for Node.js here. Check out the [benchmark page](../BENCHMARK.md) for running the benchmark on other runtimes)._
+_(Results are only provided for `wasmtime` here. Check out the [benchmark page](../BENCHMARK.md) for running the benchmark on other runtimes)._
 
 Runtime version:
 
 ```console
-$ node --version
-v18.16.0
+$ wasmtime --version
+wasmtime-cli 21.0.1 (cedf9aa0f 2024-05-22)
 ```
 
-Node.js results:
+`wasmtime` results:
 
 ```log
-ecdsa_get_public_key    time:   [1.0093 ms 1.0118 ms 1.0147 ms]
-ecdsa_recover           time:   [3.0610 ms 3.0627 ms 3.0646 ms]
-ecdsa_sign              time:   [1.0584 ms 1.0600 ms 1.0615 ms]
-ecdsa_verify            time:   [3.0273 ms 3.0309 ms 3.0345 ms]
-pedersen_hash           time:   [234.12 µs 234.30 µs 234.49 µs]
-poseidon_hash           time:   [90.892 µs 91.032 µs 91.166 µs]
-poseidon_hash_single    time:   [90.358 µs 90.404 µs 90.451 µs]
-poseidon_hash_many      time:   [180.93 µs 181.13 µs 181.35 µs]
-rfc6979_generate_k      time:   [9.2623 µs 9.2793 µs 9.2979 µs]
+ecdsa_get_public_key    time:   [264.92 µs 265.06 µs 265.21 µs]
+ecdsa_recover           time:   [921.34 µs 922.06 µs 922.88 µs]
+ecdsa_sign              time:   [311.44 µs 311.58 µs 311.72 µs]
+ecdsa_verify            time:   [916.04 µs 917.13 µs 918.73 µs]
+pedersen_hash           time:   [71.713 µs 71.751 µs 71.795 µs]
+poseidon_hash           time:   [19.333 µs 19.359 µs 19.381 µs]
+poseidon_hash_single    time:   [19.223 µs 19.234 µs 19.245 µs]
+poseidon_hash_many      time:   [39.004 µs 39.048 µs 39.089 µs]
+rfc6979_generate_k      time:   [11.798 µs 11.807 µs 11.817 µs]
 ```
 
 ## Credits

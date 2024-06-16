@@ -8,7 +8,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     ))
     .unwrap();
 
-    c.bench_function("class_hash", |b| {
+    c.bench_function("cairo0_class_hash", |b| {
         b.iter(|| {
             black_box(&contract_artifact).class_hash().unwrap();
         });
