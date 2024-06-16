@@ -7,7 +7,7 @@ use starknet_crypto::{poseidon_hash_many, PoseidonHasher};
 
 use crate::{
     serde::unsigned_field_element::UfeHex,
-    types::{EntryPointsByType, FieldElement, FlattenedSierraClass, SierraEntryPoint},
+    types::{EntryPointsByType, Felt, FlattenedSierraClass, SierraEntryPoint},
     utils::{
         cairo_short_string_to_felt, normalize_address, starknet_keccak, CairoShortStringToFeltError,
     },
@@ -17,19 +17,19 @@ use crate::{
 pub mod legacy;
 
 /// Cairo string for "CONTRACT_CLASS_V0.1.0"
-const PREFIX_CONTRACT_CLASS_V0_1_0: FieldElement = FieldElement::from_mont([
-    5800711240972404213,
-    15539482671244488427,
-    18446734822722598327,
+const PREFIX_CONTRACT_CLASS_V0_1_0: Felt = Felt::from_raw([
     37302452645455172,
+    18446734822722598327,
+    15539482671244488427,
+    5800711240972404213,
 ]);
 
 /// Cairo string for "COMPILED_CLASS_V1"
-const PREFIX_COMPILED_CLASS_V1: FieldElement = FieldElement::from_mont([
-    2291010424822318237,
-    1609463842841646376,
-    18446744073709549462,
+const PREFIX_COMPILED_CLASS_V1: Felt = Felt::from_raw([
     324306817650036332,
+    18446744073709549462,
+    1609463842841646376,
+    2291010424822318237,
 ]);
 
 #[derive(Debug, Clone, Serialize)]
@@ -46,7 +46,7 @@ pub enum ContractArtifact {
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct SierraClass {
     #[serde_as(as = "Vec<UfeHex>")]
-    pub sierra_program: Vec<FieldElement>,
+    pub sierra_program: Vec<Felt>,
     pub sierra_program_debug_info: SierraClassDebugInfo,
     pub contract_class_version: String,
     pub entry_points_by_type: EntryPointsByType,
@@ -60,7 +60,7 @@ pub struct CompiledClass {
     pub prime: String,
     pub compiler_version: String,
     #[serde_as(as = "Vec<UfeHex>")]
-    pub bytecode: Vec<FieldElement>,
+    pub bytecode: Vec<Felt>,
     /// Represents the structure of the bytecode segments, using a nested list of segment lengths.
     /// For example, [2, [3, 4]] represents a bytecode with 2 segments, the first is a leaf of
     /// length 2 and the second is a node with 2 children of lengths 3 and 4.
@@ -121,7 +121,7 @@ pub struct PythonicHint {
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct CompiledClassEntrypoint {
     #[serde_as(as = "UfeHex")]
-    pub selector: FieldElement,
+    pub selector: Felt,
     pub offset: u64,
     pub builtins: Vec<String>,
 }
@@ -265,7 +265,7 @@ enum BytecodeSegmentStructure {
 /// Represents a leaf in the bytecode segment tree.
 struct BytecodeLeaf {
     // NOTE: change this to a slice?
-    data: Vec<FieldElement>,
+    data: Vec<Felt>,
 }
 
 /// Internal structure used for post-Sierra-1.5.0 CASM hash calculation.
@@ -410,7 +410,7 @@ pub use errors::{
 pub use errors::CompressProgramError;
 
 impl SierraClass {
-    pub fn class_hash(&self) -> Result<FieldElement, ComputeClassHashError> {
+    pub fn class_hash(&self) -> Result<Felt, ComputeClassHashError> {
         // Technically we don't have to use the Pythonic JSON style here. Doing this just to align
         // with the official `cairo-lang` CLI.
         //
@@ -457,7 +457,7 @@ impl SierraClass {
 }
 
 impl FlattenedSierraClass {
-    pub fn class_hash(&self) -> FieldElement {
+    pub fn class_hash(&self) -> Felt {
         let mut hasher = PoseidonHasher::new();
         hasher.update(PREFIX_CONTRACT_CLASS_V0_1_0);
 
@@ -481,7 +481,7 @@ impl FlattenedSierraClass {
 }
 
 impl CompiledClass {
-    pub fn class_hash(&self) -> Result<FieldElement, ComputeClassHashError> {
+    pub fn class_hash(&self) -> Result<Felt, ComputeClassHashError> {
         let mut hasher = PoseidonHasher::new();
         hasher.update(PREFIX_COMPILED_CLASS_V1);
 
@@ -542,7 +542,7 @@ impl CompiledClass {
 
     fn hash_entrypoints(
         entrypoints: &[CompiledClassEntrypoint],
-    ) -> Result<FieldElement, CairoShortStringToFeltError> {
+    ) -> Result<Felt, CairoShortStringToFeltError> {
         let mut hasher = PoseidonHasher::new();
 
         for entry in entrypoints.iter() {
@@ -565,7 +565,7 @@ impl CompiledClass {
     // `visited_pcs` should be given in reverse order, and is consumed by the function. Returns the
     // BytecodeSegmentStructure and the total length of the processed segment.
     fn create_bytecode_segment_structure_inner(
-        bytecode: &[FieldElement],
+        bytecode: &[Felt],
         bytecode_segment_lengths: &IntOrList,
         visited_pcs: &mut Vec<u64>,
         bytecode_offset: &mut u64,
@@ -649,7 +649,7 @@ impl CompiledClass {
 }
 
 impl BytecodeSegmentStructure {
-    fn hash(&self) -> FieldElement {
+    fn hash(&self) -> Felt {
         match self {
             Self::BytecodeLeaf(inner) => inner.hash(),
             Self::BytecodeSegmentedNode(inner) => inner.hash(),
@@ -658,19 +658,19 @@ impl BytecodeSegmentStructure {
 }
 
 impl BytecodeLeaf {
-    fn hash(&self) -> FieldElement {
+    fn hash(&self) -> Felt {
         poseidon_hash_many(&self.data)
     }
 }
 
 impl BytecodeSegmentedNode {
-    fn hash(&self) -> FieldElement {
+    fn hash(&self) -> Felt {
         let mut hasher = PoseidonHasher::new();
         for node in self.segments.iter() {
             hasher.update(node.segment_length.into());
             hasher.update(node.inner_structure.hash());
         }
-        hasher.finalize() + FieldElement::ONE
+        hasher.finalize() + Felt::ONE
     }
 }
 
@@ -834,7 +834,7 @@ impl<'de> Deserialize<'de> for IntOrList {
     }
 }
 
-fn hash_sierra_entrypoints(entrypoints: &[SierraEntryPoint]) -> FieldElement {
+fn hash_sierra_entrypoints(entrypoints: &[SierraEntryPoint]) -> Felt {
     let mut hasher = PoseidonHasher::new();
 
     for entry in entrypoints.iter() {
@@ -931,7 +931,7 @@ mod tests {
             let computed_hash = sierra_class.class_hash().unwrap();
 
             let hashes: ContractHashes = serde_json::from_str(raw_hashes).unwrap();
-            let expected_hash = FieldElement::from_hex_be(&hashes.sierra_class_hash).unwrap();
+            let expected_hash = Felt::from_hex(&hashes.sierra_class_hash).unwrap();
 
             assert_eq!(computed_hash, expected_hash);
         }
@@ -972,7 +972,7 @@ mod tests {
             let computed_hash = compiled_class.class_hash().unwrap();
 
             let hashes: ContractHashes = serde_json::from_str(raw_hashes).unwrap();
-            let expected_hash = FieldElement::from_hex_be(&hashes.compiled_class_hash).unwrap();
+            let expected_hash = Felt::from_hex(&hashes.compiled_class_hash).unwrap();
 
             assert_eq!(computed_hash, expected_hash);
         }

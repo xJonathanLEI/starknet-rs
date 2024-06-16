@@ -2,7 +2,7 @@ use serde::{de::Visitor, Deserialize, Serialize};
 use serde_with::serde_as;
 use starknet_core::{
     serde::unsigned_field_element::{UfeHex, UfePendingBlockHash},
-    types::FieldElement,
+    types::Felt,
 };
 
 use super::{
@@ -28,7 +28,7 @@ pub enum TransactionType {
 pub struct TransactionStatusInfo {
     #[serde(default)]
     #[serde_as(as = "UfePendingBlockHash")]
-    pub block_hash: Option<FieldElement>,
+    pub block_hash: Option<Felt>,
     #[serde(alias = "tx_status")]
     pub status: TransactionStatus,
     // This field is actually always present since v0.12.1, but we're keeping it optional until
@@ -56,7 +56,7 @@ pub struct TransactionFailureReason {
 pub struct TransactionInfo {
     #[serde(default)]
     #[serde_as(as = "UfePendingBlockHash")]
-    pub block_hash: Option<FieldElement>,
+    pub block_hash: Option<Felt>,
     pub block_number: Option<u64>,
     pub status: TransactionStatus,
     // This field is actually always present since v0.12.1, but we're keeping it optional until
@@ -87,31 +87,31 @@ pub enum EntryPointType {
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct DeclareTransaction {
     #[serde_as(as = "UfeHex")]
-    pub class_hash: FieldElement,
+    pub class_hash: Felt,
     #[serde_as(as = "Option<UfeHex>")]
-    pub compiled_class_hash: Option<FieldElement>,
+    pub compiled_class_hash: Option<Felt>,
     #[serde_as(as = "UfeHex")]
-    pub sender_address: FieldElement,
+    pub sender_address: Felt,
     #[serde_as(as = "UfeHex")]
-    pub nonce: FieldElement,
+    pub nonce: Felt,
     #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
-    pub max_fee: Option<FieldElement>,
+    pub max_fee: Option<Felt>,
     #[serde_as(as = "UfeHex")]
-    pub version: FieldElement,
+    pub version: Felt,
     #[serde_as(as = "UfeHex")]
-    pub transaction_hash: FieldElement,
+    pub transaction_hash: Felt,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
-    pub signature: Vec<FieldElement>,
+    pub signature: Vec<Felt>,
     pub nonce_data_availability_mode: Option<DataAvailabilityMode>,
     pub fee_data_availability_mode: Option<DataAvailabilityMode>,
     pub resource_bounds: Option<ResourceBoundsMapping>,
     #[serde(default, with = "u64_hex_opt")]
     pub tip: Option<u64>,
     #[serde_as(as = "Option<Vec<UfeHex>>")]
-    pub paymaster_data: Option<Vec<FieldElement>>,
+    pub paymaster_data: Option<Vec<Felt>>,
     #[serde_as(deserialize_as = "Option<Vec<UfeHex>>")]
-    pub account_deployment_data: Option<Vec<FieldElement>>,
+    pub account_deployment_data: Option<Vec<Felt>>,
 }
 
 #[serde_as]
@@ -119,17 +119,17 @@ pub struct DeclareTransaction {
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct DeployTransaction {
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
-    pub constructor_calldata: Vec<FieldElement>,
+    pub constructor_calldata: Vec<Felt>,
     #[serde_as(as = "UfeHex")]
-    pub contract_address: FieldElement,
+    pub contract_address: Felt,
     #[serde_as(as = "UfeHex")]
-    pub contract_address_salt: FieldElement,
+    pub contract_address_salt: Felt,
     #[serde_as(as = "UfeHex")]
-    pub class_hash: FieldElement,
+    pub class_hash: Felt,
     #[serde_as(as = "UfeHex")]
-    pub transaction_hash: FieldElement,
+    pub transaction_hash: Felt,
     #[serde_as(as = "UfeHex")]
-    pub version: FieldElement,
+    pub version: Felt,
 }
 
 #[serde_as]
@@ -137,35 +137,35 @@ pub struct DeployTransaction {
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct DeployAccountTransaction {
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
-    pub constructor_calldata: Vec<FieldElement>,
+    pub constructor_calldata: Vec<Felt>,
     #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
-    pub contract_address: Option<FieldElement>,
+    pub contract_address: Option<Felt>,
     #[serde_as(as = "UfeHex")]
-    pub contract_address_salt: FieldElement,
+    pub contract_address_salt: Felt,
     #[serde_as(as = "UfeHex")]
-    pub class_hash: FieldElement,
+    pub class_hash: Felt,
     #[serde_as(as = "UfeHex")]
-    pub transaction_hash: FieldElement,
+    pub transaction_hash: Felt,
     #[serde_as(as = "UfeHex")]
-    pub nonce: FieldElement,
+    pub nonce: Felt,
     #[serde_as(as = "UfeHex")]
-    pub version: FieldElement,
+    pub version: Felt,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
-    pub signature: Vec<FieldElement>,
+    pub signature: Vec<Felt>,
     #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
-    pub max_fee: Option<FieldElement>,
+    pub max_fee: Option<Felt>,
     pub nonce_data_availability_mode: Option<DataAvailabilityMode>,
     pub fee_data_availability_mode: Option<DataAvailabilityMode>,
     pub resource_bounds: Option<ResourceBoundsMapping>,
     #[serde(default, with = "u64_hex_opt")]
     pub tip: Option<u64>,
     #[serde_as(as = "Option<Vec<UfeHex>>")]
-    pub paymaster_data: Option<Vec<FieldElement>>,
+    pub paymaster_data: Option<Vec<Felt>>,
     #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
-    pub sender_address: Option<FieldElement>,
+    pub sender_address: Option<Felt>,
 }
 
 #[serde_as]
@@ -175,31 +175,31 @@ pub struct InvokeFunctionTransaction {
     #[serde_as(as = "UfeHex")]
     // Need this alias because older blocks still use `contract_address`
     #[serde(alias = "contract_address")]
-    pub sender_address: FieldElement,
+    pub sender_address: Felt,
     #[serde_as(as = "Option<UfeHex>")]
-    pub entry_point_selector: Option<FieldElement>,
+    pub entry_point_selector: Option<Felt>,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
-    pub calldata: Vec<FieldElement>,
+    pub calldata: Vec<Felt>,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
-    pub signature: Vec<FieldElement>,
+    pub signature: Vec<Felt>,
     #[serde_as(as = "UfeHex")]
-    pub transaction_hash: FieldElement,
+    pub transaction_hash: Felt,
     #[serde(default)]
     #[serde_as(as = "Option<UfeHex>")]
-    pub max_fee: Option<FieldElement>,
+    pub max_fee: Option<Felt>,
     #[serde_as(as = "Option<UfeHex>")]
-    pub nonce: Option<FieldElement>,
+    pub nonce: Option<Felt>,
     pub nonce_data_availability_mode: Option<DataAvailabilityMode>,
     pub fee_data_availability_mode: Option<DataAvailabilityMode>,
     pub resource_bounds: Option<ResourceBoundsMapping>,
     #[serde(default, with = "u64_hex_opt")]
     pub tip: Option<u64>,
     #[serde_as(as = "Option<Vec<UfeHex>>")]
-    pub paymaster_data: Option<Vec<FieldElement>>,
+    pub paymaster_data: Option<Vec<Felt>>,
     #[serde_as(deserialize_as = "Option<Vec<UfeHex>>")]
-    pub account_deployment_data: Option<Vec<FieldElement>>,
+    pub account_deployment_data: Option<Vec<Felt>>,
     #[serde_as(as = "UfeHex")]
-    pub version: FieldElement,
+    pub version: Felt,
 }
 
 #[serde_as]
@@ -207,17 +207,17 @@ pub struct InvokeFunctionTransaction {
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct L1HandlerTransaction {
     #[serde_as(as = "UfeHex")]
-    pub contract_address: FieldElement,
+    pub contract_address: Felt,
     #[serde_as(as = "UfeHex")]
-    pub entry_point_selector: FieldElement,
+    pub entry_point_selector: Felt,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
-    pub calldata: Vec<FieldElement>,
+    pub calldata: Vec<Felt>,
     #[serde_as(as = "UfeHex")]
-    pub transaction_hash: FieldElement,
+    pub transaction_hash: Felt,
     #[serde_as(as = "Option<UfeHex>")]
-    pub nonce: Option<FieldElement>,
+    pub nonce: Option<Felt>,
     #[serde_as(as = "UfeHex")]
-    pub version: FieldElement,
+    pub version: Felt,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -246,7 +246,7 @@ pub enum DataAvailabilityMode {
 struct DataAvailabilityModeVisitor;
 
 impl TransactionType {
-    pub fn transaction_hash(&self) -> FieldElement {
+    pub fn transaction_hash(&self) -> Felt {
         match self {
             TransactionType::Declare(inner) => inner.transaction_hash,
             TransactionType::Deploy(inner) => inner.transaction_hash,
@@ -412,7 +412,7 @@ mod tests {
 
         match tx.r#type.unwrap() {
             TransactionType::InvokeFunction(tx) => {
-                assert_eq!(tx.version, FieldElement::THREE);
+                assert_eq!(tx.version, Felt::THREE);
             }
             _ => panic!("Did not deserialize TransactionType::InvokeFunction properly"),
         }
@@ -428,7 +428,7 @@ mod tests {
 
         match tx.r#type.unwrap() {
             TransactionType::Declare(tx) => {
-                assert_eq!(tx.version, FieldElement::THREE);
+                assert_eq!(tx.version, Felt::THREE);
             }
             _ => panic!("Did not deserialize TransactionType::Declare properly"),
         }
@@ -444,7 +444,7 @@ mod tests {
 
         match tx.r#type.unwrap() {
             TransactionType::DeployAccount(tx) => {
-                assert_eq!(tx.version, FieldElement::THREE);
+                assert_eq!(tx.version, Felt::THREE);
             }
             _ => panic!("Did not deserialize TransactionType::DeployAccount properly"),
         }
@@ -463,10 +463,8 @@ mod tests {
         assert_eq!(
             tx.block_hash,
             Some(
-                FieldElement::from_hex_be(
-                    "0x13b390a0b2c48f907cda28c73a12aa31b96d51bc1be004ba5f71174d8d70e4f"
-                )
-                .unwrap()
+                Felt::from_hex("0x13b390a0b2c48f907cda28c73a12aa31b96d51bc1be004ba5f71174d8d70e4f")
+                    .unwrap()
             )
         );
     }

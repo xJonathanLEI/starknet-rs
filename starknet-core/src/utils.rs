@@ -1,27 +1,29 @@
 use alloc::string::*;
 
-use crate::{crypto::compute_hash_on_elements, types::FieldElement};
+use crate::crypto::compute_hash_on_elements;
 
 use sha3::{Digest, Keccak256};
 use starknet_crypto::pedersen_hash;
+use starknet_types_core::felt::Felt;
+use starknet_types_core::felt::NonZeroFelt;
 
 const DEFAULT_ENTRY_POINT_NAME: &str = "__default__";
 const DEFAULT_L1_ENTRY_POINT_NAME: &str = "__l1_default__";
 
 // 2 ** 251 - 256
-const ADDR_BOUND: FieldElement = FieldElement::from_mont([
-    18446743986131443745,
-    160989183,
-    18446744073709255680,
+const ADDR_BOUND: NonZeroFelt = NonZeroFelt::from_raw([
     576459263475590224,
+    18446744073709255680,
+    160989183,
+    18446743986131443745,
 ]);
 
 // Cairo string of "STARKNET_CONTRACT_ADDRESS"
-const CONTRACT_ADDRESS_PREFIX: FieldElement = FieldElement::from_mont([
-    3829237882463328880,
-    17289941567720117366,
-    8635008616843941496,
+const CONTRACT_ADDRESS_PREFIX: Felt = Felt::from_raw([
     533439743893157637,
+    8635008616843941496,
+    17289941567720117366,
+    3829237882463328880,
 ]);
 
 /// The uniqueness settings for UDC deployments.
@@ -33,8 +35,8 @@ pub enum UdcUniqueness {
 
 #[derive(Debug, Clone)]
 pub struct UdcUniqueSettings {
-    pub deployer_address: FieldElement,
-    pub udc_contract_address: FieldElement,
+    pub deployer_address: Felt,
+    pub udc_contract_address: Felt,
 }
 
 mod errors {
@@ -95,7 +97,7 @@ mod errors {
 pub use errors::{CairoShortStringToFeltError, NonAsciiNameError, ParseCairoShortStringError};
 
 /// A variant of eth-keccak that computes a value that fits in a Starknet field element.
-pub fn starknet_keccak(data: &[u8]) -> FieldElement {
+pub fn starknet_keccak(data: &[u8]) -> Felt {
     let mut hasher = Keccak256::new();
     hasher.update(data);
     let mut hash = hasher.finalize();
@@ -104,12 +106,12 @@ pub fn starknet_keccak(data: &[u8]) -> FieldElement {
     hash[0] &= 0b00000011;
 
     // Because we know hash is always 32 bytes
-    FieldElement::from_bytes_be(unsafe { &*(hash[..].as_ptr() as *const [u8; 32]) }).unwrap()
+    Felt::from_bytes_be(unsafe { &*(hash[..].as_ptr() as *const [u8; 32]) })
 }
 
-pub fn get_selector_from_name(func_name: &str) -> Result<FieldElement, NonAsciiNameError> {
+pub fn get_selector_from_name(func_name: &str) -> Result<Felt, NonAsciiNameError> {
     if func_name == DEFAULT_ENTRY_POINT_NAME || func_name == DEFAULT_L1_ENTRY_POINT_NAME {
-        Ok(FieldElement::ZERO)
+        Ok(Felt::ZERO)
     } else {
         let name_bytes = func_name.as_bytes();
         if name_bytes.is_ascii() {
@@ -120,10 +122,7 @@ pub fn get_selector_from_name(func_name: &str) -> Result<FieldElement, NonAsciiN
     }
 }
 
-pub fn get_storage_var_address(
-    var_name: &str,
-    args: &[FieldElement],
-) -> Result<FieldElement, NonAsciiNameError> {
+pub fn get_storage_var_address(var_name: &str, args: &[Felt]) -> Result<Felt, NonAsciiNameError> {
     let var_name_bytes = var_name.as_bytes();
     if var_name_bytes.is_ascii() {
         let mut res = starknet_keccak(var_name_bytes);
@@ -136,8 +135,8 @@ pub fn get_storage_var_address(
     }
 }
 
-/// Converts Cairo short string to [FieldElement].
-pub fn cairo_short_string_to_felt(str: &str) -> Result<FieldElement, CairoShortStringToFeltError> {
+/// Converts Cairo short string to [Felt].
+pub fn cairo_short_string_to_felt(str: &str) -> Result<Felt, CairoShortStringToFeltError> {
     if !str.is_ascii() {
         return Err(CairoShortStringToFeltError::NonAsciiCharacter);
     }
@@ -151,12 +150,12 @@ pub fn cairo_short_string_to_felt(str: &str) -> Result<FieldElement, CairoShortS
     buffer[(32 - ascii_bytes.len())..].copy_from_slice(ascii_bytes);
 
     // The conversion will never fail
-    Ok(FieldElement::from_bytes_be(&buffer).unwrap())
+    Ok(Felt::from_bytes_be(&buffer))
 }
 
-/// Converts [FieldElement] to Cairo short string.
-pub fn parse_cairo_short_string(felt: &FieldElement) -> Result<String, ParseCairoShortStringError> {
-    if felt == &FieldElement::ZERO {
+/// Converts [Felt] to Cairo short string.
+pub fn parse_cairo_short_string(felt: &Felt) -> Result<String, ParseCairoShortStringError> {
+    if felt == &Felt::ZERO {
         return Ok(String::new());
     }
 
@@ -182,11 +181,11 @@ pub fn parse_cairo_short_string(felt: &FieldElement) -> Result<String, ParseCair
 /// `get_udc_deployed_address` instead if you want to compute the target address for deployments
 /// through the Universal Deployer Contract.
 pub fn get_contract_address(
-    salt: FieldElement,
-    class_hash: FieldElement,
-    constructor_calldata: &[FieldElement],
-    deployer_address: FieldElement,
-) -> FieldElement {
+    salt: Felt,
+    class_hash: Felt,
+    constructor_calldata: &[Felt],
+    deployer_address: Felt,
+) -> Felt {
     normalize_address(compute_hash_on_elements(&[
         CONTRACT_ADDRESS_PREFIX,
         deployer_address,
@@ -198,14 +197,14 @@ pub fn get_contract_address(
 
 /// Computes the target contract address for deployments through the Universal Deploy Contract.
 pub fn get_udc_deployed_address(
-    salt: FieldElement,
-    class_hash: FieldElement,
+    salt: Felt,
+    class_hash: Felt,
     uniqueness: &UdcUniqueness,
-    constructor_calldata: &[FieldElement],
-) -> FieldElement {
+    constructor_calldata: &[Felt],
+) -> Felt {
     match uniqueness {
         UdcUniqueness::NotUnique => {
-            get_contract_address(salt, class_hash, constructor_calldata, FieldElement::ZERO)
+            get_contract_address(salt, class_hash, constructor_calldata, Felt::ZERO)
         }
         UdcUniqueness::Unique(settings) => {
             let unique_salt = pedersen_hash(&settings.deployer_address, &salt);
@@ -219,8 +218,8 @@ pub fn get_udc_deployed_address(
     }
 }
 
-pub fn normalize_address(address: FieldElement) -> FieldElement {
-    address % ADDR_BOUND
+pub fn normalize_address(address: Felt) -> Felt {
+    address.mod_floor(&ADDR_BOUND)
 }
 
 #[cfg(test)]
@@ -232,10 +231,9 @@ mod tests {
     fn test_starknet_keccak() {
         // Generated from `cairo-lang`
         let data = b"execute";
-        let expected_hash = FieldElement::from_hex_be(
-            "0240060cdb34fcc260f41eac7474ee1d7c80b7e3607daff9ac67c7ea2ebb1c44",
-        )
-        .unwrap();
+        let expected_hash =
+            Felt::from_hex("0240060cdb34fcc260f41eac7474ee1d7c80b7e3607daff9ac67c7ea2ebb1c44")
+                .unwrap();
 
         let hash = starknet_keccak(data);
 
@@ -247,10 +245,9 @@ mod tests {
     fn test_get_selector_from_name() {
         // Generated from `cairo-lang`
         let func_name = "execute";
-        let expected_selector = FieldElement::from_hex_be(
-            "0240060cdb34fcc260f41eac7474ee1d7c80b7e3607daff9ac67c7ea2ebb1c44",
-        )
-        .unwrap();
+        let expected_selector =
+            Felt::from_hex("0240060cdb34fcc260f41eac7474ee1d7c80b7e3607daff9ac67c7ea2ebb1c44")
+                .unwrap();
 
         let selector = get_selector_from_name(func_name).unwrap();
 
@@ -260,10 +257,9 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_default_selector() {
-        let default_selector = FieldElement::from_hex_be(
-            "0000000000000000000000000000000000000000000000000000000000000000",
-        )
-        .unwrap();
+        let default_selector =
+            Felt::from_hex("0000000000000000000000000000000000000000000000000000000000000000")
+                .unwrap();
 
         assert_eq!(
             get_selector_from_name("__default__").unwrap(),
@@ -291,10 +287,9 @@ mod tests {
     fn test_get_storage_var_address() {
         // Generated from `cairo-lang`
         let var_name = "balance";
-        let expected_addr = FieldElement::from_hex_be(
-            "0x0206f38f7e4f15e87567361213c28f235cccdaa1d7fd34c9db1dfe9489c6a091",
-        )
-        .unwrap();
+        let expected_addr =
+            Felt::from_hex("0x0206f38f7e4f15e87567361213c28f235cccdaa1d7fd34c9db1dfe9489c6a091")
+                .unwrap();
 
         let addr = get_storage_var_address(var_name, &[]).unwrap();
 
@@ -306,10 +301,9 @@ mod tests {
     fn test_get_storage_var_address_with_args() {
         // Generated from `cairo-lang`
         let var_name = "balanceOf";
-        let expected_addr = FieldElement::from_hex_be(
-            "0x07de334d65aa93d9185729b424025918b18892418c85b802775d1f0d2be30a1d",
-        )
-        .unwrap();
+        let expected_addr =
+            Felt::from_hex("0x07de334d65aa93d9185729b424025918b18892418c85b802775d1f0d2be30a1d")
+                .unwrap();
 
         let addr = get_storage_var_address(var_name, &[1234u64.into()]).unwrap();
 
@@ -333,7 +327,7 @@ mod tests {
         for (str, felt_dec) in data.into_iter() {
             assert_eq!(
                 cairo_short_string_to_felt(str).unwrap(),
-                FieldElement::from_dec_str(felt_dec).unwrap()
+                Felt::from_dec_str(felt_dec).unwrap()
             );
         }
     }
@@ -372,7 +366,7 @@ mod tests {
 
         for (str, felt_dec) in data.into_iter() {
             assert_eq!(
-                parse_cairo_short_string(&FieldElement::from_dec_str(felt_dec).unwrap()).unwrap(),
+                parse_cairo_short_string(&Felt::from_dec_str(felt_dec).unwrap()).unwrap(),
                 str
             );
         }
@@ -383,7 +377,7 @@ mod tests {
     fn test_parse_cairo_short_string_too_long() {
         assert!(matches!(
             parse_cairo_short_string(
-                &FieldElement::from_hex_be(
+                &Felt::from_hex(
                     "0x0111111111111111111111111111111111111111111111111111111111111111"
                 )
                 .unwrap()
@@ -397,7 +391,7 @@ mod tests {
     fn test_parse_cairo_short_string_unexpected_null() {
         assert!(matches!(
             parse_cairo_short_string(
-                &FieldElement::from_hex_be(
+                &Felt::from_hex(
                     "0x0011111111111111111111111111111111111111111111111111111111110011"
                 )
                 .unwrap()
@@ -411,21 +405,19 @@ mod tests {
     fn test_get_contract_address() {
         assert_eq!(
             get_contract_address(
-                FieldElement::from_hex_be(
+                Felt::from_hex(
                     "0x0018a7a329d1d85b621350f2b5fc9c64b2e57dfe708525f0aff2c90de1e5b9c8"
                 )
                 .unwrap(),
-                FieldElement::from_hex_be(
+                Felt::from_hex(
                     "0x0750cd490a7cd1572411169eaa8be292325990d33c5d4733655fe6b926985062"
                 )
                 .unwrap(),
-                &[FieldElement::ONE],
-                FieldElement::ZERO
+                &[Felt::ONE],
+                Felt::ZERO
             ),
-            FieldElement::from_hex_be(
-                "0x00da27ef7c3869c3a6cc6a0f7bf07a51c3e590825adba8a51cae27d815839eec"
-            )
-            .unwrap()
+            Felt::from_hex("0x00da27ef7c3869c3a6cc6a0f7bf07a51c3e590825adba8a51cae27d815839eec")
+                .unwrap()
         )
     }
 
@@ -433,23 +425,17 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_udc_address_not_unique() {
         let address = get_udc_deployed_address(
-            FieldElement::from_hex_be(
-                "0x06df0e9a9842d97ff3f4c6de7494d6e69d0a107a72150f9c53d59515b91ed9cb",
-            )
-            .unwrap(),
-            FieldElement::from_hex_be(
-                "0x0562fc1d911530d18a86ea3ef4be50018923898d3c573288c5abb9c2344459ed",
-            )
-            .unwrap(),
+            Felt::from_hex("0x06df0e9a9842d97ff3f4c6de7494d6e69d0a107a72150f9c53d59515b91ed9cb")
+                .unwrap(),
+            Felt::from_hex("0x0562fc1d911530d18a86ea3ef4be50018923898d3c573288c5abb9c2344459ed")
+                .unwrap(),
             &UdcUniqueness::NotUnique,
-            &[FieldElement::from_hex_be("0x1234").unwrap()],
+            &[Felt::from_hex("0x1234").unwrap()],
         );
 
         assert_eq!(
-            FieldElement::from_hex_be(
-                "0x0288e5952d2f2f0e897ea0c5401c6e9f584a89eebfb08b5b26f090a8bbf67eb6",
-            )
-            .unwrap(),
+            Felt::from_hex("0x0288e5952d2f2f0e897ea0c5401c6e9f584a89eebfb08b5b26f090a8bbf67eb6",)
+                .unwrap(),
             address
         );
     }
@@ -458,32 +444,26 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_udc_address_unique() {
         let address = get_udc_deployed_address(
-            FieldElement::from_hex_be(
-                "0x01f65976b95bf17ae1cb04afc9fc1eeee26d3e1aaa1f30aa535bf261e4322ab8",
-            )
-            .unwrap(),
-            FieldElement::from_hex_be(
-                "0x0562fc1d911530d18a86ea3ef4be50018923898d3c573288c5abb9c2344459ed",
-            )
-            .unwrap(),
+            Felt::from_hex("0x01f65976b95bf17ae1cb04afc9fc1eeee26d3e1aaa1f30aa535bf261e4322ab8")
+                .unwrap(),
+            Felt::from_hex("0x0562fc1d911530d18a86ea3ef4be50018923898d3c573288c5abb9c2344459ed")
+                .unwrap(),
             &UdcUniqueness::Unique(UdcUniqueSettings {
-                deployer_address: FieldElement::from_hex_be(
+                deployer_address: Felt::from_hex(
                     "0x00b1461de04c6a1aa3375bdf9b7723a8779c082ffe21311d683a0b15c078b5dc",
                 )
                 .unwrap(),
-                udc_contract_address: FieldElement::from_hex_be(
+                udc_contract_address: Felt::from_hex(
                     "0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf",
                 )
                 .unwrap(),
             }),
-            &[FieldElement::from_hex_be("0x1234").unwrap()],
+            &[Felt::from_hex("0x1234").unwrap()],
         );
 
         assert_eq!(
-            FieldElement::from_hex_be(
-                "0x02406943b25942021f213b047c8765e531dddce3b981722f7aeb2ca137e18dbf",
-            )
-            .unwrap(),
+            Felt::from_hex("0x02406943b25942021f213b047c8765e531dddce3b981722f7aeb2ca137e18dbf",)
+                .unwrap(),
             address
         );
     }

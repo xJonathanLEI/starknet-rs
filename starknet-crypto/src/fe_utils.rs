@@ -4,33 +4,25 @@ use num_bigint::BigInt;
 use num_integer::Integer;
 use num_traits::{One, Zero};
 
-use crate::FieldElement;
+use starknet_types_core::felt::Felt;
 
 // These are inefficient and crappy implementations of crypto math operations because I have
 // absolutely no idea how to do them without using `num-bigint`. But hey it works!!!
 //
 // Contributions are welcome. Please help us get rid of this junk :)
 
-pub fn add_unbounded(augend: &FieldElement, addend: &FieldElement) -> BigInt {
+pub fn add_unbounded(augend: &Felt, addend: &Felt) -> BigInt {
     let augend = BigInt::from_bytes_be(num_bigint::Sign::Plus, &augend.to_bytes_be());
     let addend = BigInt::from_bytes_be(num_bigint::Sign::Plus, &addend.to_bytes_be());
     augend.add(addend)
 }
 
-pub fn mul_mod_floor(
-    multiplicand: &FieldElement,
-    multiplier: &FieldElement,
-    modulus: &FieldElement,
-) -> FieldElement {
+pub fn mul_mod_floor(multiplicand: &Felt, multiplier: &Felt, modulus: &Felt) -> Felt {
     let multiplicand = BigInt::from_bytes_be(num_bigint::Sign::Plus, &multiplicand.to_bytes_be());
     bigint_mul_mod_floor(multiplicand, multiplier, modulus)
 }
 
-pub fn bigint_mul_mod_floor(
-    multiplicand: BigInt,
-    multiplier: &FieldElement,
-    modulus: &FieldElement,
-) -> FieldElement {
+pub fn bigint_mul_mod_floor(multiplicand: BigInt, multiplier: &Felt, modulus: &Felt) -> Felt {
     let multiplier = BigInt::from_bytes_be(num_bigint::Sign::Plus, &multiplier.to_bytes_be());
     let modulus = BigInt::from_bytes_be(num_bigint::Sign::Plus, &modulus.to_bytes_be());
 
@@ -40,10 +32,10 @@ pub fn bigint_mul_mod_floor(
     let mut result = [0u8; 32];
     result[(32 - buffer.len())..].copy_from_slice(&buffer[..]);
 
-    FieldElement::from_bytes_be(&result).unwrap()
+    Felt::from_bytes_be(&result)
 }
 
-pub fn mod_inverse(operand: &FieldElement, modulus: &FieldElement) -> FieldElement {
+pub fn mod_inverse(operand: &Felt, modulus: &Felt) -> Felt {
     let operand = BigInt::from_bytes_be(num_bigint::Sign::Plus, &operand.to_bytes_be());
     let modulus = BigInt::from_bytes_be(num_bigint::Sign::Plus, &modulus.to_bytes_be());
 
@@ -63,5 +55,5 @@ pub fn mod_inverse(operand: &FieldElement, modulus: &FieldElement) -> FieldEleme
     let mut result = [0u8; 32];
     result[(32 - buffer.len())..].copy_from_slice(&buffer[..]);
 
-    FieldElement::from_bytes_be(&result).unwrap()
+    Felt::from_bytes_be(&result)
 }

@@ -4,7 +4,7 @@ use starknet_core::types::{
     BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
     BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
-    EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
+    EventsPage, FeeEstimate, Felt, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
     MaybePendingStateUpdate, MsgFromL1, SimulatedTransaction, SimulationFlag,
     SimulationFlagForEstimateFee, StarknetError, SyncStatusType, Transaction,
@@ -57,10 +57,10 @@ pub trait Provider {
         contract_address: A,
         key: K,
         block_id: B,
-    ) -> Result<FieldElement, ProviderError>
+    ) -> Result<Felt, ProviderError>
     where
-        A: AsRef<FieldElement> + Send + Sync,
-        K: AsRef<FieldElement> + Send + Sync,
+        A: AsRef<Felt> + Send + Sync,
+        K: AsRef<Felt> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync;
 
     /// Gets the transaction status (possibly reflecting that the tx is still in
@@ -70,7 +70,7 @@ pub trait Provider {
         transaction_hash: H,
     ) -> Result<TransactionStatus, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync;
+        H: AsRef<Felt> + Send + Sync;
 
     /// Get the details and status of a submitted transaction
     async fn get_transaction_by_hash<H>(
@@ -78,7 +78,7 @@ pub trait Provider {
         transaction_hash: H,
     ) -> Result<Transaction, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync;
+        H: AsRef<Felt> + Send + Sync;
 
     /// Get the details of a transaction by a given block id and index
     async fn get_transaction_by_block_id_and_index<B>(
@@ -95,7 +95,7 @@ pub trait Provider {
         transaction_hash: H,
     ) -> Result<TransactionReceiptWithBlockInfo, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync;
+        H: AsRef<Felt> + Send + Sync;
 
     /// Get the contract class definition in the given block associated with the given hash
     async fn get_class<B, H>(
@@ -105,17 +105,17 @@ pub trait Provider {
     ) -> Result<ContractClass, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
-        H: AsRef<FieldElement> + Send + Sync;
+        H: AsRef<Felt> + Send + Sync;
 
     /// Get the contract class hash in the given block for the contract deployed at the given address
     async fn get_class_hash_at<B, A>(
         &self,
         block_id: B,
         contract_address: A,
-    ) -> Result<FieldElement, ProviderError>
+    ) -> Result<Felt, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
-        A: AsRef<FieldElement> + Send + Sync;
+        A: AsRef<Felt> + Send + Sync;
 
     /// Get the contract class definition in the given block at the given address
     async fn get_class_at<B, A>(
@@ -125,7 +125,7 @@ pub trait Provider {
     ) -> Result<ContractClass, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
-        A: AsRef<FieldElement> + Send + Sync;
+        A: AsRef<Felt> + Send + Sync;
 
     /// Get the number of transactions in a block given a block id
     async fn get_block_transaction_count<B>(&self, block_id: B) -> Result<u64, ProviderError>
@@ -133,7 +133,7 @@ pub trait Provider {
         B: AsRef<BlockId> + Send + Sync;
 
     /// Call a starknet function without creating a Starknet transaction
-    async fn call<R, B>(&self, request: R, block_id: B) -> Result<Vec<FieldElement>, ProviderError>
+    async fn call<R, B>(&self, request: R, block_id: B) -> Result<Vec<Felt>, ProviderError>
     where
         R: AsRef<FunctionCall> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync;
@@ -166,7 +166,7 @@ pub trait Provider {
     async fn block_hash_and_number(&self) -> Result<BlockHashAndNumber, ProviderError>;
 
     /// Return the currently configured Starknet chain id
-    async fn chain_id(&self) -> Result<FieldElement, ProviderError>;
+    async fn chain_id(&self) -> Result<Felt, ProviderError>;
 
     /// Returns an object about the sync status, or false if the node is not synching
     async fn syncing(&self) -> Result<SyncStatusType, ProviderError>;
@@ -184,10 +184,10 @@ pub trait Provider {
         &self,
         block_id: B,
         contract_address: A,
-    ) -> Result<FieldElement, ProviderError>
+    ) -> Result<Felt, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
-        A: AsRef<FieldElement> + Send + Sync;
+        A: AsRef<Felt> + Send + Sync;
 
     /// Submit a new transaction to be added to the chain
     async fn add_invoke_transaction<I>(
@@ -220,7 +220,7 @@ pub trait Provider {
         transaction_hash: H,
     ) -> Result<TransactionTrace, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync;
+        H: AsRef<Felt> + Send + Sync;
 
     /// Simulate a given sequence of transactions on the requested state, and generate the execution
     /// traces. Note that some of the transactions may revert, in which case no error is thrown, but

@@ -4,7 +4,7 @@
 use std::fmt::Write;
 
 use proc_macro::TokenStream;
-use starknet_ff::FieldElement;
+use starknet_types_core::felt::Felt;
 
 mod params;
 
@@ -14,7 +14,7 @@ const PARTIAL_ROUNDS: usize = 83;
 pub fn poseidon_consts() -> TokenStream {
     let round_keys = params::RAW_ROUND_KEYS
         .iter()
-        .map(|key| key.map(|num| FieldElement::from_dec_str(num).expect("Invalid round key")))
+        .map(|key| key.map(|num| Felt::from_dec_str(num).expect("Invalid round key")))
         .collect::<Vec<_>>();
 
     let flat = round_keys.iter().flatten().cloned().collect::<Vec<_>>();
@@ -35,7 +35,7 @@ pub fn poseidon_consts() -> TokenStream {
     buffer.parse().expect("Invalid code generated")
 }
 
-pub fn compress_roundkeys(rcs: &[[FieldElement; 3]]) -> Vec<FieldElement> {
+pub fn compress_roundkeys(rcs: &[[Felt; 3]]) -> Vec<Felt> {
     let mut result = Vec::new();
 
     // Add first full rounds
@@ -54,11 +54,11 @@ pub fn compress_roundkeys(rcs: &[[FieldElement; 3]]) -> Vec<FieldElement> {
     result
 }
 
-pub fn compress_roundkeys_partial(rcs: &[[FieldElement; 3]]) -> Vec<FieldElement> {
+pub fn compress_roundkeys_partial(rcs: &[[Felt; 3]]) -> Vec<Felt> {
     let mut result = Vec::new();
 
     let mut idx = FULL_ROUNDS / 2;
-    let mut state: [FieldElement; 3] = [FieldElement::ZERO; 3];
+    let mut state: [Felt; 3] = [Felt::ZERO; 3];
 
     // Add keys for partial rounds
     for _ in 0..PARTIAL_ROUNDS {
@@ -71,13 +71,13 @@ pub fn compress_roundkeys_partial(rcs: &[[FieldElement; 3]]) -> Vec<FieldElement
         result.push(state[2]);
 
         // Reset last state
-        state[2] = FieldElement::ZERO;
+        state[2] = Felt::ZERO;
 
         // MixLayer
         let t = state[0] + state[1] + state[2];
         state[0] = t + state[0].double();
         state[1] = t - state[1].double();
-        state[2] = t - FieldElement::THREE * state[2];
+        state[2] = t - Felt::THREE * state[2];
 
         idx += 1;
     }
@@ -93,16 +93,16 @@ pub fn compress_roundkeys_partial(rcs: &[[FieldElement; 3]]) -> Vec<FieldElement
     result
 }
 
-pub fn generate_code(name: &str, rcs: &[FieldElement]) -> String {
+pub fn generate_code(name: &str, rcs: &[Felt]) -> String {
     let mut buf = String::with_capacity(1024 * 1024);
 
-    writeln!(buf, "pub const {}: [FieldElement; {}] = [", name, rcs.len()).unwrap();
+    writeln!(buf, "pub const {}: [Felt; {}] = [", name, rcs.len()).unwrap();
 
     rcs.iter().for_each(|num| {
         writeln!(
             buf,
-            "FieldElement::from_mont([{}]),",
-            num.into_mont().map(|ele| format!("{ele}")).join(",")
+            "Felt::from_raw([{}]),",
+            num.to_raw().map(|ele| format!("{ele}")).join(",")
         )
         .unwrap();
     });

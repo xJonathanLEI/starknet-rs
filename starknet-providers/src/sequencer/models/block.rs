@@ -2,14 +2,14 @@ use serde::Deserialize;
 use serde_with::serde_as;
 use starknet_core::{
     serde::unsigned_field_element::{UfeHex, UfeHexOption},
-    types::{FieldElement, L1DataAvailabilityMode, ResourcePrice},
+    types::{Felt, L1DataAvailabilityMode, ResourcePrice},
 };
 
 use super::{ConfirmedTransactionReceipt, TransactionType};
 
 #[derive(Debug, Clone, Copy)]
 pub enum BlockId {
-    Hash(FieldElement),
+    Hash(Felt),
     Number(u64),
     Pending,
     Latest,
@@ -37,24 +37,24 @@ pub enum BlockStatus {
 pub struct Block {
     #[serde(default)]
     #[serde_as(as = "UfeHexOption")]
-    pub block_hash: Option<FieldElement>,
+    pub block_hash: Option<Felt>,
     pub block_number: Option<u64>,
     #[serde_as(as = "UfeHex")]
-    pub parent_block_hash: FieldElement,
+    pub parent_block_hash: Felt,
     pub timestamp: u64,
     // Field marked optional as old blocks don't include it yet. Drop optional once resolved.
     #[serde(default)]
     #[serde_as(as = "UfeHexOption")]
-    pub sequencer_address: Option<FieldElement>,
+    pub sequencer_address: Option<Felt>,
     #[serde(default)]
     #[serde_as(as = "UfeHexOption")]
-    pub state_root: Option<FieldElement>,
+    pub state_root: Option<Felt>,
     #[serde(default)]
     #[serde_as(as = "UfeHexOption")]
-    pub transaction_commitment: Option<FieldElement>,
+    pub transaction_commitment: Option<Felt>,
     #[serde(default)]
     #[serde_as(as = "UfeHexOption")]
-    pub event_commitment: Option<FieldElement>,
+    pub event_commitment: Option<Felt>,
     pub status: BlockStatus,
     pub l1_da_mode: L1DataAvailabilityMode,
     pub l1_gas_price: ResourcePrice,
@@ -82,24 +82,18 @@ mod tests {
         assert_eq!(block.status, BlockStatus::AcceptedOnL1);
         assert_eq!(
             block.state_root.unwrap(),
-            FieldElement::from_hex_be(
-                "051098918fd96edda4e251f695181c063e21fb0666352e3469db507c7fd62b89"
-            )
-            .unwrap()
+            Felt::from_hex("051098918fd96edda4e251f695181c063e21fb0666352e3469db507c7fd62b89")
+                .unwrap()
         );
         assert_eq!(
             block.transaction_commitment.unwrap(),
-            FieldElement::from_hex_be(
-                "0576db32d35cf011694a73c6ce400d5d77f768cbd77ee7cf87d12902e0f9b4ec"
-            )
-            .unwrap()
+            Felt::from_hex("0576db32d35cf011694a73c6ce400d5d77f768cbd77ee7cf87d12902e0f9b4ec")
+                .unwrap()
         );
         assert_eq!(
             block.event_commitment.unwrap(),
-            FieldElement::from_hex_be(
-                "01c972780140fd16dde94639226ca25818e4f24ecd5b5c3065cc1f5f5fc410f9"
-            )
-            .unwrap()
+            Felt::from_hex("01c972780140fd16dde94639226ca25818e4f24ecd5b5c3065cc1f5f5fc410f9")
+                .unwrap()
         );
         assert_eq!(block.transactions.len(), 4);
         assert_eq!(block.transaction_receipts.len(), 4);
@@ -219,10 +213,8 @@ mod tests {
 
         assert_eq!(
             tx.sender_address,
-            FieldElement::from_hex_be(
-                "0x68922eb87daed71fc3099031e178b6534fc39a570022342e8c166024da893f5"
-            )
-            .unwrap()
+            Felt::from_hex("0x68922eb87daed71fc3099031e178b6534fc39a570022342e8c166024da893f5")
+                .unwrap()
         );
     }
 
@@ -242,10 +234,8 @@ mod tests {
 
         assert_eq!(
             tx.contract_address,
-            FieldElement::from_hex_be(
-                "0x4c5772d1914fe6ce891b64eb35bf3522aeae1315647314aac58b01137607f3f"
-            )
-            .unwrap()
+            Felt::from_hex("0x4c5772d1914fe6ce891b64eb35bf3522aeae1315647314aac58b01137607f3f")
+                .unwrap()
         );
     }
 

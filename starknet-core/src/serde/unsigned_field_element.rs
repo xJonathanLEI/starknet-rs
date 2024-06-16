@@ -6,7 +6,7 @@ use serde::{
 };
 use serde_with::{DeserializeAs, SerializeAs};
 
-use crate::types::FieldElement;
+use starknet_types_core::felt::Felt;
 
 pub struct UfeHex;
 
@@ -18,8 +18,8 @@ struct UfeHexVisitor;
 struct UfeHexOptionVisitor;
 struct UfePendingBlockHashVisitor;
 
-impl SerializeAs<FieldElement> for UfeHex {
-    fn serialize_as<S>(value: &FieldElement, serializer: S) -> Result<S::Ok, S::Error>
+impl SerializeAs<Felt> for UfeHex {
+    fn serialize_as<S>(value: &Felt, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -27,8 +27,8 @@ impl SerializeAs<FieldElement> for UfeHex {
     }
 }
 
-impl<'de> DeserializeAs<'de, FieldElement> for UfeHex {
-    fn deserialize_as<D>(deserializer: D) -> Result<FieldElement, D::Error>
+impl<'de> DeserializeAs<'de, Felt> for UfeHex {
+    fn deserialize_as<D>(deserializer: D) -> Result<Felt, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -37,7 +37,7 @@ impl<'de> DeserializeAs<'de, FieldElement> for UfeHex {
 }
 
 impl<'de> Visitor<'de> for UfeHexVisitor {
-    type Value = FieldElement;
+    type Value = Felt;
 
     fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
         write!(formatter, "string")
@@ -47,13 +47,12 @@ impl<'de> Visitor<'de> for UfeHexVisitor {
     where
         E: DeError,
     {
-        FieldElement::from_hex_be(v)
-            .map_err(|err| DeError::custom(format!("invalid hex string: {err}")))
+        Felt::from_hex(v).map_err(|err| DeError::custom(format!("invalid hex string: {err}")))
     }
 }
 
-impl SerializeAs<Option<FieldElement>> for UfeHexOption {
-    fn serialize_as<S>(value: &Option<FieldElement>, serializer: S) -> Result<S::Ok, S::Error>
+impl SerializeAs<Option<Felt>> for UfeHexOption {
+    fn serialize_as<S>(value: &Option<Felt>, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -64,8 +63,8 @@ impl SerializeAs<Option<FieldElement>> for UfeHexOption {
     }
 }
 
-impl<'de> DeserializeAs<'de, Option<FieldElement>> for UfeHexOption {
-    fn deserialize_as<D>(deserializer: D) -> Result<Option<FieldElement>, D::Error>
+impl<'de> DeserializeAs<'de, Option<Felt>> for UfeHexOption {
+    fn deserialize_as<D>(deserializer: D) -> Result<Option<Felt>, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -74,7 +73,7 @@ impl<'de> DeserializeAs<'de, Option<FieldElement>> for UfeHexOption {
 }
 
 impl<'de> Visitor<'de> for UfeHexOptionVisitor {
-    type Value = Option<FieldElement>;
+    type Value = Option<Felt>;
 
     fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
         write!(formatter, "string")
@@ -86,7 +85,7 @@ impl<'de> Visitor<'de> for UfeHexOptionVisitor {
     {
         match v {
             "" => Ok(None),
-            _ => match FieldElement::from_hex_be(v) {
+            _ => match Felt::from_hex(v) {
                 Ok(value) => Ok(Some(value)),
                 Err(err) => Err(DeError::custom(format!("invalid hex string: {err}"))),
             },
@@ -94,8 +93,8 @@ impl<'de> Visitor<'de> for UfeHexOptionVisitor {
     }
 }
 
-impl SerializeAs<Option<FieldElement>> for UfePendingBlockHash {
-    fn serialize_as<S>(value: &Option<FieldElement>, serializer: S) -> Result<S::Ok, S::Error>
+impl SerializeAs<Option<Felt>> for UfePendingBlockHash {
+    fn serialize_as<S>(value: &Option<Felt>, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -107,8 +106,8 @@ impl SerializeAs<Option<FieldElement>> for UfePendingBlockHash {
     }
 }
 
-impl<'de> DeserializeAs<'de, Option<FieldElement>> for UfePendingBlockHash {
-    fn deserialize_as<D>(deserializer: D) -> Result<Option<FieldElement>, D::Error>
+impl<'de> DeserializeAs<'de, Option<Felt>> for UfePendingBlockHash {
+    fn deserialize_as<D>(deserializer: D) -> Result<Option<Felt>, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -117,7 +116,7 @@ impl<'de> DeserializeAs<'de, Option<FieldElement>> for UfePendingBlockHash {
 }
 
 impl<'de> Visitor<'de> for UfePendingBlockHashVisitor {
-    type Value = Option<FieldElement>;
+    type Value = Option<Felt>;
 
     fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
         write!(formatter, "string")
@@ -130,7 +129,7 @@ impl<'de> Visitor<'de> for UfePendingBlockHashVisitor {
         if v.is_empty() || v == "pending" || v == "None" {
             Ok(None)
         } else {
-            match FieldElement::from_hex_be(v) {
+            match Felt::from_hex(v) {
                 Ok(value) => Ok(Some(value)),
                 Err(err) => Err(DeError::custom(format!("invalid hex string: {err}"))),
             }
@@ -147,7 +146,7 @@ mod tests {
 
     #[serde_as]
     #[derive(Deserialize)]
-    struct TestStruct(#[serde_as(as = "UfeHexOption")] pub Option<FieldElement>);
+    struct TestStruct(#[serde_as(as = "UfeHexOption")] pub Option<Felt>);
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]

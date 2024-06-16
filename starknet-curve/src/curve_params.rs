@@ -1,116 +1,113 @@
-use starknet_ff::FieldElement;
+use starknet_types_core::curve::AffinePoint;
+use starknet_types_core::felt::Felt;
 
-use crate::ec_point::AffinePoint;
-
-pub const EC_ORDER: FieldElement = FieldElement::from_mont([
-    8939893405601011193,
-    1143265896874747514,
-    9,
+pub const EC_ORDER: Felt = Felt::from_raw([
     369010039416812937,
+    9,
+    1143265896874747514,
+    8939893405601011193,
 ]);
 
-pub const ALPHA: FieldElement = FieldElement::from_mont([
-    18446744073709551585,
-    18446744073709551615,
-    18446744073709551615,
+pub const ALPHA: Felt = Felt::from_raw([
     576460752303422960,
+    18446744073709551615,
+    18446744073709551615,
+    18446744073709551585,
 ]);
 
-pub const BETA: FieldElement = FieldElement::from_mont([
-    3863487492851900874,
-    7432612994240712710,
-    12360725113329547591,
+pub const BETA: Felt = Felt::from_raw([
     88155977965380735,
+    12360725113329547591,
+    7432612994240712710,
+    3863487492851900874,
 ]);
 
-pub const GENERATOR: AffinePoint = AffinePoint {
-    x: FieldElement::from_mont([
-        14484022957141291997,
-        5884444832209845738,
-        299981207024966779,
+pub const GENERATOR: AffinePoint = AffinePoint::new_unchecked(
+    Felt::from_raw([
         232005955912912577,
+        299981207024966779,
+        5884444832209845738,
+        14484022957141291997,
     ]),
-    y: FieldElement::from_mont([
-        6241159653446987914,
-        664812301889158119,
-        18147424675297964973,
+    Felt::from_raw([
         405578048423154473,
+        18147424675297964973,
+        664812301889158119,
+        6241159653446987914,
     ]),
-    infinity: false,
-};
+);
 
-pub const SHIFT_POINT: AffinePoint = AffinePoint {
-    x: FieldElement::from_mont([
-        1933903796324928314,
-        7739989395386261137,
-        1641324389046377921,
+pub const SHIFT_POINT: AffinePoint = AffinePoint::new_unchecked(
+    Felt::from_raw([
         316327189671755572,
+        1641324389046377921,
+        7739989395386261137,
+        1933903796324928314,
     ]),
-    y: FieldElement::from_mont([
-        14252083571674603243,
-        12587053260418384210,
-        4798858472748676776,
+    Felt::from_raw([
         81375596133053150,
+        4798858472748676776,
+        12587053260418384210,
+        14252083571674603243,
     ]),
-    infinity: false,
-};
-pub const PEDERSEN_P0: AffinePoint = AffinePoint {
-    x: FieldElement::from_mont([
-        3602345268353203007,
-        13758484295849329960,
-        518715844721862878,
+);
+
+pub const PEDERSEN_P0: AffinePoint = AffinePoint::new_unchecked(
+    Felt::from_raw([
         241691544791834578,
+        518715844721862878,
+        13758484295849329960,
+        3602345268353203007,
     ]),
-    y: FieldElement::from_mont([
-        13441546676070136227,
-        13001553326386915570,
-        433857700841878496,
+    Felt::from_raw([
         368891789801938570,
+        433857700841878496,
+        13001553326386915570,
+        13441546676070136227,
     ]),
-    infinity: false,
-};
-pub const PEDERSEN_P1: AffinePoint = AffinePoint {
-    x: FieldElement::from_mont([
-        16491878934996302286,
-        12382025591154462459,
-        10043949394709899044,
+);
+
+pub const PEDERSEN_P1: AffinePoint = AffinePoint::new_unchecked(
+    Felt::from_raw([
         253000153565733272,
+        10043949394709899044,
+        12382025591154462459,
+        16491878934996302286,
     ]),
-    y: FieldElement::from_mont([
-        13950428914333633429,
-        2545498000137298346,
-        5191292837124484988,
+    Felt::from_raw([
         285630633187035523,
+        5191292837124484988,
+        2545498000137298346,
+        13950428914333633429,
     ]),
-    infinity: false,
-};
-pub const PEDERSEN_P2: AffinePoint = AffinePoint {
-    x: FieldElement::from_mont([
-        1203723169299412240,
-        18195981508842736832,
-        12916675983929588442,
+);
+
+pub const PEDERSEN_P2: AffinePoint = AffinePoint::new_unchecked(
+    Felt::from_raw([
         338510149841406402,
+        12916675983929588442,
+        18195981508842736832,
+        1203723169299412240,
     ]),
-    y: FieldElement::from_mont([
-        12352616181161700245,
-        11743524503750604092,
-        11088962269971685343,
+    Felt::from_raw([
         161068411212710156,
+        11088962269971685343,
+        11743524503750604092,
+        12352616181161700245,
     ]),
-    infinity: false,
-};
-pub const PEDERSEN_P3: AffinePoint = AffinePoint {
-    x: FieldElement::from_mont([
-        1145636535101238356,
-        10664803185694787051,
-        299781701614706065,
+);
+
+pub const PEDERSEN_P3: AffinePoint = AffinePoint::new_unchecked(
+    Felt::from_raw([
         425493972656615276,
+        299781701614706065,
+        10664803185694787051,
+        1145636535101238356,
     ]),
-    y: FieldElement::from_mont([
-        8187986478389849302,
-        4428713245976508844,
-        6033691581221864148,
+    Felt::from_raw([
         345457391846365716,
+        6033691581221864148,
+        4428713245976508844,
+        8187986478389849302,
     ]),
-    infinity: false,
-};
+);

@@ -1,28 +1,28 @@
 use starknet_accounts::{Account, AccountError, Call, ConnectedAccount, ExecutionV1, ExecutionV3};
 use starknet_core::{
-    types::{FeeEstimate, FieldElement, InvokeTransactionResult, SimulatedTransaction},
+    types::{FeeEstimate, Felt, InvokeTransactionResult, SimulatedTransaction},
     utils::{get_udc_deployed_address, UdcUniqueSettings, UdcUniqueness},
 };
 
 /// The default UDC address: 0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf.
-const UDC_ADDRESS: FieldElement = FieldElement::from_mont([
-    15144800532519055890,
-    15685625669053253235,
-    9333317513348225193,
+const UDC_ADDRESS: Felt = Felt::from_raw([
     121672436446604875,
+    9333317513348225193,
+    15685625669053253235,
+    15144800532519055890,
 ]);
 
 /// Selector for entrypoint `deployContract`.
-const SELECTOR_DEPLOYCONTRACT: FieldElement = FieldElement::from_mont([
-    18249998464715511309,
-    1265649739554438882,
-    1439621915307882061,
+const SELECTOR_DEPLOYCONTRACT: Felt = Felt::from_raw([
     469988280392664069,
+    1439621915307882061,
+    1265649739554438882,
+    18249998464715511309,
 ]);
 
 pub struct ContractFactory<A> {
-    class_hash: FieldElement,
-    udc_address: FieldElement,
+    class_hash: Felt,
+    udc_address: Felt,
     account: A,
 }
 
@@ -32,12 +32,12 @@ pub struct ContractFactory<A> {
 #[must_use]
 pub struct DeploymentV1<'f, A> {
     factory: &'f ContractFactory<A>,
-    constructor_calldata: Vec<FieldElement>,
-    salt: FieldElement,
+    constructor_calldata: Vec<Felt>,
+    salt: Felt,
     unique: bool,
     // The following fields allow us to mimic an `Execution` API.
-    nonce: Option<FieldElement>,
-    max_fee: Option<FieldElement>,
+    nonce: Option<Felt>,
+    max_fee: Option<Felt>,
     fee_estimate_multiplier: f64,
 }
 
@@ -47,11 +47,11 @@ pub struct DeploymentV1<'f, A> {
 #[must_use]
 pub struct DeploymentV3<'f, A> {
     factory: &'f ContractFactory<A>,
-    constructor_calldata: Vec<FieldElement>,
-    salt: FieldElement,
+    constructor_calldata: Vec<Felt>,
+    salt: Felt,
     unique: bool,
     // The following fields allow us to mimic an `Execution` API.
-    nonce: Option<FieldElement>,
+    nonce: Option<Felt>,
     gas: Option<u64>,
     gas_price: Option<u128>,
     gas_estimate_multiplier: f64,
@@ -59,11 +59,11 @@ pub struct DeploymentV3<'f, A> {
 }
 
 impl<A> ContractFactory<A> {
-    pub fn new(class_hash: FieldElement, account: A) -> Self {
+    pub fn new(class_hash: Felt, account: A) -> Self {
         Self::new_with_udc(class_hash, account, UDC_ADDRESS)
     }
 
-    pub fn new_with_udc(class_hash: FieldElement, account: A, udc_address: FieldElement) -> Self {
+    pub fn new_with_udc(class_hash: Felt, account: A, udc_address: Felt) -> Self {
         Self {
             class_hash,
             udc_address,
@@ -78,8 +78,8 @@ where
 {
     pub fn deploy_v1(
         &self,
-        constructor_calldata: Vec<FieldElement>,
-        salt: FieldElement,
+        constructor_calldata: Vec<Felt>,
+        salt: Felt,
         unique: bool,
     ) -> DeploymentV1<A> {
         DeploymentV1 {
@@ -95,8 +95,8 @@ where
 
     pub fn deploy_v3(
         &self,
-        constructor_calldata: Vec<FieldElement>,
-        salt: FieldElement,
+        constructor_calldata: Vec<Felt>,
+        salt: Felt,
         unique: bool,
     ) -> DeploymentV3<A> {
         DeploymentV3 {
@@ -115,8 +115,8 @@ where
     #[deprecated = "use version specific variants (`deploy_v1` & `deploy_v3`) instead"]
     pub fn deploy(
         &self,
-        constructor_calldata: Vec<FieldElement>,
-        salt: FieldElement,
+        constructor_calldata: Vec<Felt>,
+        salt: Felt,
         unique: bool,
     ) -> DeploymentV1<A> {
         self.deploy_v1(constructor_calldata, salt, unique)
@@ -124,14 +124,14 @@ where
 }
 
 impl<'f, A> DeploymentV1<'f, A> {
-    pub fn nonce(self, nonce: FieldElement) -> Self {
+    pub fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
             ..self
         }
     }
 
-    pub fn max_fee(self, max_fee: FieldElement) -> Self {
+    pub fn max_fee(self, max_fee: Felt) -> Self {
         Self {
             max_fee: Some(max_fee),
             ..self
@@ -147,7 +147,7 @@ impl<'f, A> DeploymentV1<'f, A> {
 }
 
 impl<'f, A> DeploymentV3<'f, A> {
-    pub fn nonce(self, nonce: FieldElement) -> Self {
+    pub fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
             ..self
@@ -188,7 +188,7 @@ where
     A: Account,
 {
     /// Calculate the resulting contract address without sending a transaction.
-    pub fn deployed_address(&self) -> FieldElement {
+    pub fn deployed_address(&self) -> Felt {
         get_udc_deployed_address(
             self.salt,
             self.factory.class_hash,
@@ -210,7 +210,7 @@ where
     A: Account,
 {
     /// Calculate the resulting contract address without sending a transaction.
-    pub fn deployed_address(&self) -> FieldElement {
+    pub fn deployed_address(&self) -> Felt {
         get_udc_deployed_address(
             self.salt,
             self.factory.class_hash,
@@ -280,11 +280,7 @@ impl<'f, A> From<&DeploymentV1<'f, A>> for ExecutionV1<'f, A> {
         let mut calldata = vec![
             value.factory.class_hash,
             value.salt,
-            if value.unique {
-                FieldElement::ONE
-            } else {
-                FieldElement::ZERO
-            },
+            if value.unique { Felt::ONE } else { Felt::ZERO },
             value.constructor_calldata.len().into(),
         ];
         calldata.extend_from_slice(&value.constructor_calldata);
@@ -319,11 +315,7 @@ impl<'f, A> From<&DeploymentV3<'f, A>> for ExecutionV3<'f, A> {
         let mut calldata = vec![
             value.factory.class_hash,
             value.salt,
-            if value.unique {
-                FieldElement::ONE
-            } else {
-                FieldElement::ZERO
-            },
+            if value.unique { Felt::ONE } else { Felt::ZERO },
             value.constructor_calldata.len().into(),
         ];
         calldata.extend_from_slice(&value.constructor_calldata);
@@ -373,17 +365,13 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deployed_address_unique() {
         let factory = ContractFactory::new(
-            FieldElement::from_hex_be(
-                "0x2bfd9564754d9b4a326da62b2f22b8fea7bbeffd62da4fcaea986c323b7aeb",
-            )
-            .unwrap(),
+            Felt::from_hex("0x2bfd9564754d9b4a326da62b2f22b8fea7bbeffd62da4fcaea986c323b7aeb")
+                .unwrap(),
             SingleOwnerAccount::new(
                 SequencerGatewayProvider::starknet_alpha_sepolia(),
                 LocalWallet::from_signing_key(SigningKey::from_random()),
-                FieldElement::from_hex_be(
-                    "0xb1461de04c6a1aa3375bdf9b7723a8779c082ffe21311d683a0b15c078b5dc",
-                )
-                .unwrap(),
+                Felt::from_hex("0xb1461de04c6a1aa3375bdf9b7723a8779c082ffe21311d683a0b15c078b5dc")
+                    .unwrap(),
                 chain_id::SEPOLIA,
                 ExecutionEncoding::Legacy,
             ),
@@ -391,62 +379,54 @@ mod tests {
 
         let unique_address_v1 = factory
             .deploy_v1(
-                vec![FieldElement::from_hex_be("0x1234").unwrap()],
-                FieldElement::from_hex_be("0x3456").unwrap(),
+                vec![Felt::from_hex("0x1234").unwrap()],
+                Felt::from_hex("0x3456").unwrap(),
                 true,
             )
             .deployed_address();
         let unique_address_v3 = factory
             .deploy_v3(
-                vec![FieldElement::from_hex_be("0x1234").unwrap()],
-                FieldElement::from_hex_be("0x3456").unwrap(),
+                vec![Felt::from_hex("0x1234").unwrap()],
+                Felt::from_hex("0x3456").unwrap(),
                 true,
             )
             .deployed_address();
 
         let not_unique_address_v1 = factory
             .deploy_v1(
-                vec![FieldElement::from_hex_be("0x1234").unwrap()],
-                FieldElement::from_hex_be("0x3456").unwrap(),
+                vec![Felt::from_hex("0x1234").unwrap()],
+                Felt::from_hex("0x3456").unwrap(),
                 false,
             )
             .deployed_address();
         let not_unique_address_v3 = factory
             .deploy_v3(
-                vec![FieldElement::from_hex_be("0x1234").unwrap()],
-                FieldElement::from_hex_be("0x3456").unwrap(),
+                vec![Felt::from_hex("0x1234").unwrap()],
+                Felt::from_hex("0x3456").unwrap(),
                 false,
             )
             .deployed_address();
 
         assert_eq!(
             unique_address_v1,
-            FieldElement::from_hex_be(
-                "0x36e05bcd41191387bc2f04ed9cad4776a75df3b748b0246a5d217a988474181"
-            )
-            .unwrap()
+            Felt::from_hex("0x36e05bcd41191387bc2f04ed9cad4776a75df3b748b0246a5d217a988474181")
+                .unwrap()
         );
         assert_eq!(
             unique_address_v3,
-            FieldElement::from_hex_be(
-                "0x36e05bcd41191387bc2f04ed9cad4776a75df3b748b0246a5d217a988474181"
-            )
-            .unwrap()
+            Felt::from_hex("0x36e05bcd41191387bc2f04ed9cad4776a75df3b748b0246a5d217a988474181")
+                .unwrap()
         );
 
         assert_eq!(
             not_unique_address_v1,
-            FieldElement::from_hex_be(
-                "0x3a320b6aa0b451b22fba90b5d75b943932649137c09a86a5cf4853031be70c1"
-            )
-            .unwrap()
+            Felt::from_hex("0x3a320b6aa0b451b22fba90b5d75b943932649137c09a86a5cf4853031be70c1")
+                .unwrap()
         );
         assert_eq!(
             not_unique_address_v3,
-            FieldElement::from_hex_be(
-                "0x3a320b6aa0b451b22fba90b5d75b943932649137c09a86a5cf4853031be70c1"
-            )
-            .unwrap()
+            Felt::from_hex("0x3a320b6aa0b451b22fba90b5d75b943932649137c09a86a5cf4853031be70c1")
+                .unwrap()
         );
     }
 }

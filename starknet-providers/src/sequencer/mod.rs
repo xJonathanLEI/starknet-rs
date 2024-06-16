@@ -8,7 +8,7 @@ use serde_with::serde_as;
 use starknet_core::{
     chain_id,
     serde::unsigned_field_element::UfeHex,
-    types::{contract::CompiledClass, FieldElement, StarknetError},
+    types::{contract::CompiledClass, Felt, StarknetError},
 };
 use url::Url;
 
@@ -25,7 +25,7 @@ pub struct SequencerGatewayProvider {
     client: Client,
     gateway_url: Url,
     feeder_gateway_url: Url,
-    chain_id: FieldElement,
+    chain_id: Felt,
     headers: Vec<(String, String)>,
 }
 
@@ -103,7 +103,7 @@ impl SequencerGatewayProvider {
     pub fn new(
         gateway_url: impl Into<Url>,
         feeder_gateway_url: impl Into<Url>,
-        chain_id: FieldElement,
+        chain_id: Felt,
     ) -> Self {
         Self::new_with_client(gateway_url, feeder_gateway_url, chain_id, Client::new())
     }
@@ -111,7 +111,7 @@ impl SequencerGatewayProvider {
     pub fn new_with_client(
         gateway_url: impl Into<Url>,
         feeder_gateway_url: impl Into<Url>,
-        chain_id: FieldElement,
+        chain_id: Felt,
         client: Client,
     ) -> Self {
         Self {
@@ -165,12 +165,12 @@ enum GatewayResponse<D> {
     SequencerError(SequencerError),
 }
 
-// Work FieldElement deserialization
+// Work Felt deserialization
 #[serde_as]
 #[derive(Deserialize)]
 #[serde(untagged)]
 enum RawFieldElementResponse {
-    Data(#[serde_as(as = "UfeHex")] FieldElement),
+    Data(#[serde_as(as = "UfeHex")] Felt),
     SequencerError(SequencerError),
 }
 
@@ -321,7 +321,7 @@ impl SequencerGatewayProvider {
     )]
     pub async fn get_compiled_class_by_class_hash(
         &self,
-        class_hash: FieldElement,
+        class_hash: Felt,
         block_identifier: BlockId,
     ) -> Result<CompiledClass, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_compiled_class_by_class_hash");
@@ -340,7 +340,7 @@ impl SequencerGatewayProvider {
     )]
     pub async fn get_class_by_hash(
         &self,
-        class_hash: FieldElement,
+        class_hash: Felt,
         block_identifier: BlockId,
     ) -> Result<DeployedClass, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_class_by_hash");
@@ -359,7 +359,7 @@ impl SequencerGatewayProvider {
     )]
     pub async fn get_transaction_status(
         &self,
-        transaction_hash: FieldElement,
+        transaction_hash: Felt,
     ) -> Result<TransactionStatusInfo, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_status");
         request_url
@@ -376,7 +376,7 @@ impl SequencerGatewayProvider {
     )]
     pub async fn get_transaction(
         &self,
-        transaction_hash: FieldElement,
+        transaction_hash: Felt,
     ) -> Result<TransactionInfo, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction");
         request_url
@@ -393,7 +393,7 @@ impl SequencerGatewayProvider {
     )]
     pub async fn get_transaction_trace(
         &self,
-        transaction_hash: FieldElement,
+        transaction_hash: Felt,
     ) -> Result<TransactionTrace, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_transaction_trace");
         request_url
@@ -408,10 +408,7 @@ impl SequencerGatewayProvider {
     #[deprecated(
         note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
     )]
-    pub async fn get_block_hash_by_id(
-        &self,
-        block_number: u64,
-    ) -> Result<FieldElement, ProviderError> {
+    pub async fn get_block_hash_by_id(&self, block_number: u64) -> Result<Felt, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_block_hash_by_id");
         request_url
             .query_pairs_mut()
@@ -425,10 +422,7 @@ impl SequencerGatewayProvider {
     #[deprecated(
         note = "Sequencer-specific functions are deprecated. Use it via the Provider trait instead."
     )]
-    pub async fn get_block_id_by_hash(
-        &self,
-        block_hash: FieldElement,
-    ) -> Result<u64, ProviderError> {
+    pub async fn get_block_id_by_hash(&self, block_hash: Felt) -> Result<u64, ProviderError> {
         let mut request_url = self.extend_feeder_gateway_url("get_block_id_by_hash");
         request_url
             .query_pairs_mut()
@@ -509,7 +503,7 @@ impl<D> From<GatewayResponse<D>> for Result<D, ProviderError> {
     }
 }
 
-impl From<RawFieldElementResponse> for Result<FieldElement, ProviderError> {
+impl From<RawFieldElementResponse> for Result<Felt, ProviderError> {
     fn from(value: RawFieldElementResponse) -> Self {
         match value {
             RawFieldElementResponse::Data(data) => Ok(data),

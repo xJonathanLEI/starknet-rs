@@ -18,7 +18,6 @@ all-features = true
 
 [dependencies]
 starknet-crypto = { version = "0.6.2", path = "../starknet-crypto", default-features = false, features = ["alloc"] }
-starknet-ff = { version = "0.3.7", path = "../starknet-ff", default-features = false, features = ["serde"] }
 base64 = { version = "0.21.0", default-features = false, features = ["alloc"] }
 crypto-bigint = { version = "0.5.1", default-features = false }
 flate2 = { version = "1.0.25", optional = true }
@@ -28,6 +27,7 @@ serde_json = { version = "1.0.96", default-features = false, features = ["alloc"
 serde_json_pythonic = { version = "0.1.2", default-features = false, features = ["alloc", "raw_value"] }
 serde_with = { version = "2.3.2", default-features = false, features = ["alloc", "macros"] }
 sha3 = { version = "0.10.7", default-features = false }
+starknet-types-core = { version = "0.1.3", default-features = false, features = ["curve", "serde"] }
 
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false }
@@ -39,7 +39,7 @@ wasm-bindgen-test = "0.3.34"
 
 [features]
 default = ["std"]
-std = ["dep:flate2", "starknet-ff/std", "starknet-crypto/std"]
+std = ["dep:flate2", "starknet-crypto/std"]
 no_unknown_fields = []
 
 [[bench]]

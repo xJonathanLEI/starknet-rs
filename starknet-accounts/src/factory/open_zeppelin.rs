@@ -4,14 +4,14 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use starknet_core::types::{BlockId, BlockTag, FieldElement};
+use starknet_core::types::{BlockId, BlockTag, Felt};
 use starknet_providers::Provider;
 use starknet_signers::Signer;
 
 pub struct OpenZeppelinAccountFactory<S, P> {
-    class_hash: FieldElement,
-    chain_id: FieldElement,
-    public_key: FieldElement,
+    class_hash: Felt,
+    chain_id: Felt,
+    public_key: Felt,
     signer: S,
     provider: P,
     block_id: BlockId,
@@ -22,8 +22,8 @@ where
     S: Signer,
 {
     pub async fn new(
-        class_hash: FieldElement,
-        chain_id: FieldElement,
+        class_hash: Felt,
+        chain_id: Felt,
         signer: S,
         provider: P,
     ) -> Result<Self, S::GetPublicKeyError> {
@@ -54,15 +54,15 @@ where
     type Provider = P;
     type SignError = S::SignError;
 
-    fn class_hash(&self) -> FieldElement {
+    fn class_hash(&self) -> Felt {
         self.class_hash
     }
 
-    fn calldata(&self) -> Vec<FieldElement> {
+    fn calldata(&self) -> Vec<Felt> {
         vec![self.public_key]
     }
 
-    fn chain_id(&self) -> FieldElement {
+    fn chain_id(&self) -> Felt {
         self.chain_id
     }
 
@@ -77,7 +77,7 @@ where
     async fn sign_deployment_v1(
         &self,
         deployment: &RawAccountDeploymentV1,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         let tx_hash =
             PreparedAccountDeploymentV1::from_raw(deployment.clone(), self).transaction_hash();
         let signature = self.signer.sign_hash(&tx_hash).await?;
@@ -88,7 +88,7 @@ where
     async fn sign_deployment_v3(
         &self,
         deployment: &RawAccountDeploymentV3,
-    ) -> Result<Vec<FieldElement>, Self::SignError> {
+    ) -> Result<Vec<Felt>, Self::SignError> {
         let tx_hash =
             PreparedAccountDeploymentV3::from_raw(deployment.clone(), self).transaction_hash();
         let signature = self.signer.sign_hash(&tx_hash).await?;

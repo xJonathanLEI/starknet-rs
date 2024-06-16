@@ -1,8 +1,9 @@
 use serde::Deserialize;
 use serde_with::serde_as;
+
 use starknet_core::{
     serde::unsigned_field_element::{UfeHex, UfePendingBlockHash},
-    types::{DataAvailabilityResources, FieldElement},
+    types::{DataAvailabilityResources, Felt},
 };
 
 use super::{L1Address, TransactionFailureReason};
@@ -12,7 +13,7 @@ use super::{L1Address, TransactionFailureReason};
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ConfirmedReceipt {
     #[serde_as(as = "UfeHex")]
-    pub transaction_hash: FieldElement,
+    pub transaction_hash: Felt,
     pub transaction_index: u64,
     // This field is actually always present since v0.12.1, but we're keeping it optional until
     // mainnet is upgraded.
@@ -26,7 +27,7 @@ pub struct ConfirmedReceipt {
     pub l2_to_l1_messages: Vec<L2ToL1Message>,
     pub events: Vec<Event>,
     #[serde_as(as = "UfeHex")]
-    pub actual_fee: FieldElement,
+    pub actual_fee: Felt,
 }
 
 #[derive(Debug, Deserialize, PartialEq, Eq)]
@@ -97,13 +98,13 @@ pub struct BuiltinInstanceCounter {
 pub struct L1ToL2Message {
     pub from_address: L1Address,
     #[serde_as(as = "UfeHex")]
-    pub to_address: FieldElement,
+    pub to_address: Felt,
     #[serde_as(deserialize_as = "UfeHex")]
-    pub selector: FieldElement,
+    pub selector: Felt,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
-    pub payload: Vec<FieldElement>,
+    pub payload: Vec<Felt>,
     #[serde_as(deserialize_as = "Option<UfeHex>")]
-    pub nonce: Option<FieldElement>,
+    pub nonce: Option<Felt>,
 }
 
 #[serde_as]
@@ -111,10 +112,10 @@ pub struct L1ToL2Message {
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct L2ToL1Message {
     #[serde_as(as = "UfeHex")]
-    pub from_address: FieldElement,
+    pub from_address: Felt,
     pub to_address: L1Address,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
-    pub payload: Vec<FieldElement>,
+    pub payload: Vec<Felt>,
 }
 
 #[serde_as]
@@ -122,9 +123,9 @@ pub struct L2ToL1Message {
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct Event {
     #[serde_as(as = "UfeHex")]
-    pub from_address: FieldElement,
+    pub from_address: Felt,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
-    pub keys: Vec<FieldElement>,
+    pub keys: Vec<Felt>,
     #[serde_as(deserialize_as = "Vec<UfeHex>")]
-    pub data: Vec<FieldElement>,
+    pub data: Vec<Felt>,
 }

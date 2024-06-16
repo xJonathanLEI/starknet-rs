@@ -7,7 +7,7 @@ use starknet_core::types::{
     BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
     BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
-    EventsPage, FeeEstimate, FieldElement, FunctionCall, InvokeTransactionResult,
+    EventsPage, FeeEstimate, Felt, FunctionCall, InvokeTransactionResult,
     MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
     MaybePendingStateUpdate, MsgFromL1, SimulatedTransaction, SimulationFlag,
     SimulationFlagForEstimateFee, StarknetError, SyncStatusType, Transaction,
@@ -87,10 +87,10 @@ impl Provider for SequencerGatewayProvider {
         contract_address: A,
         key: K,
         block_id: B,
-    ) -> Result<FieldElement, ProviderError>
+    ) -> Result<Felt, ProviderError>
     where
-        A: AsRef<FieldElement> + Send + Sync,
-        K: AsRef<FieldElement> + Send + Sync,
+        A: AsRef<Felt> + Send + Sync,
+        K: AsRef<Felt> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
     {
         // Deprecated since Starknet v0.12.3
@@ -106,7 +106,7 @@ impl Provider for SequencerGatewayProvider {
         transaction_hash: H,
     ) -> Result<TransactionStatus, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync,
+        H: AsRef<Felt> + Send + Sync,
     {
         let status = self
             .get_transaction_status(*transaction_hash.as_ref())
@@ -127,7 +127,7 @@ impl Provider for SequencerGatewayProvider {
         transaction_hash: H,
     ) -> Result<Transaction, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync,
+        H: AsRef<Felt> + Send + Sync,
     {
         Ok(self
             .get_transaction(*transaction_hash.as_ref())
@@ -160,7 +160,7 @@ impl Provider for SequencerGatewayProvider {
         transaction_hash: H,
     ) -> Result<TransactionReceiptWithBlockInfo, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync,
+        H: AsRef<Felt> + Send + Sync,
     {
         // Deprecated since Starknet v0.12.3
         Err(ProviderError::Other(Box::new(
@@ -175,7 +175,7 @@ impl Provider for SequencerGatewayProvider {
     ) -> Result<ContractClass, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
-        H: AsRef<FieldElement> + Send + Sync,
+        H: AsRef<Felt> + Send + Sync,
     {
         Ok(self
             .get_class_by_hash(*class_hash.as_ref(), block_id.as_ref().to_owned().into())
@@ -187,10 +187,10 @@ impl Provider for SequencerGatewayProvider {
         &self,
         block_id: B,
         contract_address: A,
-    ) -> Result<FieldElement, ProviderError>
+    ) -> Result<Felt, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
-        A: AsRef<FieldElement> + Send + Sync,
+        A: AsRef<Felt> + Send + Sync,
     {
         // Deprecated since Starknet v0.12.3
         Err(ProviderError::Other(Box::new(
@@ -205,7 +205,7 @@ impl Provider for SequencerGatewayProvider {
     ) -> Result<ContractClass, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
-        A: AsRef<FieldElement> + Send + Sync,
+        A: AsRef<Felt> + Send + Sync,
     {
         // Deprecated since Starknet v0.12.3
         Err(ProviderError::Other(Box::new(
@@ -221,7 +221,7 @@ impl Provider for SequencerGatewayProvider {
         Ok(block.transactions.len() as u64)
     }
 
-    async fn call<R, B>(&self, request: R, block_id: B) -> Result<Vec<FieldElement>, ProviderError>
+    async fn call<R, B>(&self, request: R, block_id: B) -> Result<Vec<Felt>, ProviderError>
     where
         R: AsRef<FunctionCall> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
@@ -277,7 +277,7 @@ impl Provider for SequencerGatewayProvider {
         })
     }
 
-    async fn chain_id(&self) -> Result<FieldElement, ProviderError> {
+    async fn chain_id(&self) -> Result<Felt, ProviderError> {
         Ok(self.chain_id)
     }
 
@@ -296,14 +296,10 @@ impl Provider for SequencerGatewayProvider {
         )))
     }
 
-    async fn get_nonce<B, A>(
-        &self,
-        block_id: B,
-        contract_address: A,
-    ) -> Result<FieldElement, ProviderError>
+    async fn get_nonce<B, A>(&self, block_id: B, contract_address: A) -> Result<Felt, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
-        A: AsRef<FieldElement> + Send + Sync,
+        A: AsRef<Felt> + Send + Sync,
     {
         // Deprecated since Starknet v0.12.3
         Err(ProviderError::Other(Box::new(
@@ -372,7 +368,7 @@ impl Provider for SequencerGatewayProvider {
         _transaction_hash: H,
     ) -> Result<TransactionTrace, ProviderError>
     where
-        H: AsRef<FieldElement> + Send + Sync,
+        H: AsRef<Felt> + Send + Sync,
     {
         // With JSON-RPC v0.5.0 it's no longer possible to convert feeder traces to JSON-RPC traces. So we simply pretend that it's not supported here.
         //

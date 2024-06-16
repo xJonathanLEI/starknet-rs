@@ -1,9 +1,8 @@
-use starknet_curve::{curve_params, AffinePoint, ProjectivePoint};
-use starknet_ff::FieldElement;
+use starknet_curve::curve_params;
+use starknet_types_core::curve::{AffinePoint, ProjectivePoint};
+use starknet_types_core::felt::Felt;
 
 use crate::pedersen_points::*;
-
-const SHIFT_POINT: ProjectivePoint = ProjectivePoint::from_affine_point(&curve_params::SHIFT_POINT);
 
 /// Computes the Starkware version of the Pedersen hash of x and y. All inputs are little-endian.
 ///
@@ -11,7 +10,7 @@ const SHIFT_POINT: ProjectivePoint = ProjectivePoint::from_affine_point(&curve_p
 ///
 /// * `x`: The x coordinate
 /// * `y`: The y coordinate
-pub fn pedersen_hash(x: &FieldElement, y: &FieldElement) -> FieldElement {
+pub fn pedersen_hash(x: &Felt, y: &Felt) -> Felt {
     let x = x.to_bits_le();
     let y = y.to_bits_le();
 
@@ -25,7 +24,6 @@ pub fn pedersen_hash(x: &FieldElement, y: &FieldElement) -> FieldElement {
                     .iter()
                     .rev()
                     .fold(0, |acc, &bit| (acc << 1) + bit as usize);
-
                 if offset > 0 {
                     // Table lookup at 'offset-1' in table for chunk 'i'
                     *acc += &prep[i * table_size + offset - 1];
@@ -34,14 +32,20 @@ pub fn pedersen_hash(x: &FieldElement, y: &FieldElement) -> FieldElement {
     };
 
     // Compute hash
-    let mut acc = SHIFT_POINT;
+    let mut acc =
+        ProjectivePoint::from_affine(curve_params::SHIFT_POINT.x(), curve_params::SHIFT_POINT.y())
+            .unwrap();
+
     add_points(&mut acc, &x[..248], &CURVE_CONSTS_P0); // Add a_low * P1
     add_points(&mut acc, &x[248..252], &CURVE_CONSTS_P1); // Add a_high * P2
     add_points(&mut acc, &y[..248], &CURVE_CONSTS_P2); // Add b_low * P3
     add_points(&mut acc, &y[248..252], &CURVE_CONSTS_P3); // Add b_high * P4
 
+    // Convert to affine
+    let result = acc.to_affine().unwrap();
+
     // Return x-coordinate
-    AffinePoint::from(&acc).x
+    result.x()
 }
 
 #[cfg(test)]
