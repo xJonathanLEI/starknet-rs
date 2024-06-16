@@ -11,8 +11,8 @@ For instructions on running the benchmarks yourself, check out [this page](../BE
 ### Native
 
 ```log
-cairo0_class_hash       time:   [10.808 ms 10.813 ms 10.819 ms]
-sierra_class_hash       time:   [6.2774 ms 6.2802 ms 6.2832 ms]
+cairo0_class_hash       time:   [9.1665 ms 9.1690 ms 9.1718 ms]
+sierra_class_hash       time:   [6.6931 ms 6.6944 ms 6.6958 ms]
 ```
 
 ### WebAssembly
@@ -29,6 +29,6 @@ wasmtime-cli 21.0.1 (cedf9aa0f 2024-05-22)
 `wasmtime` results:
 
 ```log
-cairo0_class_hash       time:   [39.192 ms 39.207 ms 39.224 ms]
-sierra_class_hash       time:   [20.514 ms 20.521 ms 20.529 ms]
+cairo0_class_hash       time:   [36.515 ms 36.526 ms 36.538 ms]
+sierra_class_hash       time:   [22.550 ms 22.557 ms 22.567 ms]
 ```

@@ -21,15 +21,15 @@ For instructions on running the benchmarks yourself, check out [this page](../BE
 ### Native
 
 ```log
-ecdsa_get_public_key    time:   [52.416 µs 52.456 µs 52.506 µs]
-ecdsa_recover           time:   [233.25 µs 234.29 µs 235.43 µs]
-ecdsa_sign              time:   [87.730 µs 87.967 µs 88.211 µs]
-ecdsa_verify            time:   [239.97 µs 240.65 µs 241.46 µs]
-pedersen_hash           time:   [15.635 µs 15.668 µs 15.695 µs]
-poseidon_hash           time:   [4.6606 µs 4.6828 µs 4.7052 µs]
-poseidon_hash_single    time:   [4.7146 µs 4.7243 µs 4.7341 µs]
-poseidon_hash_many      time:   [10.101 µs 10.419 µs 10.713 µs]
-rfc6979_generate_k      time:   [4.7230 µs 4.7346 µs 4.7469 µs]
+ecdsa_get_public_key    time:   [62.223 µs 62.231 µs 62.240 µs]
+ecdsa_recover           time:   [253.15 µs 253.47 µs 254.13 µs]
+ecdsa_sign              time:   [95.633 µs 95.649 µs 95.668 µs]
+ecdsa_verify            time:   [255.70 µs 255.77 µs 255.84 µs]
+pedersen_hash           time:   [13.021 µs 13.023 µs 13.024 µs]
+poseidon_hash           time:   [5.0139 µs 5.0148 µs 5.0155 µs]
+poseidon_hash_single    time:   [5.0239 µs 5.0381 µs 5.0543 µs]
+poseidon_hash_many      time:   [10.077 µs 10.087 µs 10.100 µs]
+rfc6979_generate_k      time:   [4.5806 µs 4.5821 µs 4.5836 µs]
 ```
 
 ### WebAssembly
@@ -46,15 +46,15 @@ wasmtime-cli 21.0.1 (cedf9aa0f 2024-05-22)
 `wasmtime` results:
 
 ```log
-ecdsa_get_public_key    time:   [264.92 µs 265.06 µs 265.21 µs]
-ecdsa_recover           time:   [921.34 µs 922.06 µs 922.88 µs]
-ecdsa_sign              time:   [311.44 µs 311.58 µs 311.72 µs]
-ecdsa_verify            time:   [916.04 µs 917.13 µs 918.73 µs]
-pedersen_hash           time:   [71.713 µs 71.751 µs 71.795 µs]
-poseidon_hash           time:   [19.333 µs 19.359 µs 19.381 µs]
-poseidon_hash_single    time:   [19.223 µs 19.234 µs 19.245 µs]
-poseidon_hash_many      time:   [39.004 µs 39.048 µs 39.089 µs]
-rfc6979_generate_k      time:   [11.798 µs 11.807 µs 11.817 µs]
+ecdsa_get_public_key    time:   [333.64 µs 334.07 µs 334.48 µs]
+ecdsa_recover           time:   [1.1177 ms 1.1207 ms 1.1248 ms]
+ecdsa_sign              time:   [386.33 µs 387.42 µs 388.68 µs]
+ecdsa_verify            time:   [1.1246 ms 1.1280 ms 1.1320 ms]
+pedersen_hash           time:   [64.934 µs 64.962 µs 64.993 µs]
+poseidon_hash           time:   [20.745 µs 20.772 µs 20.825 µs]
+poseidon_hash_single    time:   [20.790 µs 20.813 µs 20.837 µs]
+poseidon_hash_many      time:   [41.878 µs 41.911 µs 41.945 µs]
+rfc6979_generate_k      time:   [11.564 µs 11.566 µs 11.569 µs]
 ```
 
 ## Credits
