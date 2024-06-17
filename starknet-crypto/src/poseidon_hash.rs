@@ -95,6 +95,7 @@ pub fn poseidon_hash_many<'a, I: IntoIterator<Item = &'a Felt>>(msgs: I) -> Felt
 
         poseidon_permute_comp(&mut state);
     }
+    poseidon_permute_comp(&mut state);
 
     state[0]
 }
