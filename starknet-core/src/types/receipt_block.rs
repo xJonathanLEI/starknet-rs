@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
+use crate::serde::unsigned_field_element::UfeHex;
 use starknet_types_core::felt::Felt;
 
 /// A more idiomatic way to access `execution_status` and `revert_reason`.
@@ -48,21 +49,22 @@ impl ReceiptBlock {
     }
 }
 
+#[serde_as]
+#[derive(Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+struct Raw {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde_as(as = "Option<UfeHex>")]
+    block_hash: Option<Felt>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    block_number: Option<u64>,
+}
+
 impl Serialize for ReceiptBlock {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
-        #[derive(Serialize)]
-        #[serde_as]
-        struct Raw<'a> {
-            #[serde_as(as = "Option<UfeHex>")]
-            #[serde(skip_serializing_if = "Option::is_none")]
-            block_hash: Option<&'a Felt>,
-            #[serde(skip_serializing_if = "Option::is_none")]
-            block_number: Option<&'a u64>,
-        }
-
         let raw = match self {
             Self::Pending => Raw {
                 block_hash: None,
@@ -72,8 +74,8 @@ impl Serialize for ReceiptBlock {
                 block_hash,
                 block_number,
             } => Raw {
-                block_hash: Some(block_hash),
-                block_number: Some(block_number),
+                block_hash: Some(*block_hash),
+                block_number: Some(*block_number),
             },
         };
 
@@ -86,17 +88,6 @@ impl<'de> Deserialize<'de> for ReceiptBlock {
     where
         D: serde::Deserializer<'de>,
     {
-        #[derive(Deserialize)]
-        #[serde_as]
-        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-        struct Raw {
-            #[serde_as(as = "Option<UfeHex>")]
-            #[serde(skip_serializing_if = "Option::is_none")]
-            block_hash: Option<Felt>,
-            #[serde(skip_serializing_if = "Option::is_none")]
-            block_number: Option<u64>,
-        }
-
         let raw = Raw::deserialize(deserializer)?;
 
         match (raw.block_hash, raw.block_number) {
