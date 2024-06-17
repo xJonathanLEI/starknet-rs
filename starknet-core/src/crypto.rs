@@ -46,14 +46,19 @@ mod errors {
 }
 pub use errors::{EcdsaSignError, EcdsaVerifyError};
 
-pub fn compute_hash_on_elements(data: &[Felt]) -> Felt {
+pub fn compute_hash_on_elements<'a, ESI, II>(data: II) -> Felt
+where
+    ESI: ExactSizeIterator<Item = &'a Felt>,
+    II: IntoIterator<IntoIter = ESI>,
+{
     let mut current_hash = Felt::ZERO;
+    let data_iter = data.into_iter();
+    let data_len = Felt::from(data_iter.len());
 
-    for item in data.iter() {
-        current_hash = pedersen_hash(&current_hash, item);
+    for elem in data_iter {
+        current_hash = pedersen_hash(&current_hash, elem);
     }
 
-    let data_len = Felt::from(data.len());
     pedersen_hash(&current_hash, &data_len)
 }
 
