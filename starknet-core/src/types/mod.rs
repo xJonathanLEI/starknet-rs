@@ -174,12 +174,39 @@ pub enum ContractClass {
     Legacy(CompressedLegacyContractClass),
 }
 
+/// Represents the status of a transaction.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TransactionStatus {
+    /// Transaction received and awaiting processing.
     Received,
+    /// Transaction rejected due to validation or other reasons.
     Rejected,
+    /// Transaction accepted on Layer 2 with a specific execution status.
     AcceptedOnL2(TransactionExecutionStatus),
+    /// Transaction accepted on Layer 1 with a specific execution status.
     AcceptedOnL1(TransactionExecutionStatus),
+}
+
+impl TransactionStatus {
+    /// Returns `true` if the transaction status is `Received`.
+    pub const fn is_received(&self) -> bool {
+        matches!(self, Self::Received)
+    }
+
+    /// Returns `true` if the transaction status is `Rejected`.
+    pub const fn is_rejected(&self) -> bool {
+        matches!(self, Self::Rejected)
+    }
+
+    /// Returns `true` if the transaction status is `AcceptedOnL2`.
+    pub const fn is_accepted_on_l2(&self) -> bool {
+        matches!(self, Self::AcceptedOnL2(_))
+    }
+
+    /// Returns `true` if the transaction status is `AcceptedOnL1`.
+    pub const fn is_accepted_on_l1(&self) -> bool {
+        matches!(self, Self::AcceptedOnL1(_))
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
