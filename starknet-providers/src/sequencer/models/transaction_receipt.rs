@@ -50,6 +50,43 @@ pub enum TransactionStatus {
     AcceptedOnL1,
 }
 
+impl TransactionStatus {
+    /// Returns `true` if the transaction status is `NotReceived`.
+    pub const fn is_not_received(&self) -> bool {
+        matches!(self, Self::NotReceived)
+    }
+
+    /// Returns `true` if the transaction status is `Received`.
+    pub const fn is_received(&self) -> bool {
+        matches!(self, Self::Received)
+    }
+
+    /// Returns `true` if the transaction status is `Pending`.
+    pub const fn is_pending(&self) -> bool {
+        matches!(self, Self::Pending)
+    }
+
+    /// Returns `true` if the transaction status is `Rejected`.
+    pub const fn is_rejected(&self) -> bool {
+        matches!(self, Self::Rejected)
+    }
+
+    /// Returns `true` if the transaction status is `Reverted`.
+    pub const fn is_reverted(&self) -> bool {
+        matches!(self, Self::Reverted)
+    }
+
+    /// Returns `true` if the transaction status is `AcceptedOnL2`.
+    pub const fn is_accepted_on_l2(&self) -> bool {
+        matches!(self, Self::AcceptedOnL2)
+    }
+
+    /// Returns `true` if the transaction status is `AcceptedOnL1`.
+    pub const fn is_accepted_on_l1(&self) -> bool {
+        matches!(self, Self::AcceptedOnL1)
+    }
+}
+
 #[derive(Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]

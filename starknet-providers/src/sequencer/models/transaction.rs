@@ -344,7 +344,7 @@ mod tests {
         let tx: TransactionInfo = serde_json::from_str(raw).unwrap();
 
         assert_eq!(tx.block_number, None);
-        assert_eq!(tx.status, TransactionStatus::NotReceived);
+        assert!(tx.status.is_not_received());
     }
 
     #[test]
@@ -459,7 +459,7 @@ mod tests {
 
         let tx: TransactionStatusInfo = serde_json::from_str(raw).unwrap();
 
-        assert_eq!(tx.status, TransactionStatus::AcceptedOnL1);
+        assert!(tx.status.is_accepted_on_l1());
         assert_eq!(
             tx.block_hash,
             Some(
@@ -478,7 +478,7 @@ mod tests {
 
         let tx: TransactionStatusInfo = serde_json::from_str(raw).unwrap();
 
-        assert_eq!(tx.status, TransactionStatus::NotReceived);
+        assert!(tx.status.is_not_received());
         assert!(tx.block_hash.is_none());
     }
 
@@ -492,7 +492,7 @@ mod tests {
 
         let tx: TransactionStatusInfo = serde_json::from_str(raw).unwrap();
 
-        assert_eq!(tx.status, TransactionStatus::Rejected);
+        assert!(tx.status.is_rejected());
         assert!(tx.block_hash.is_none());
         assert!(tx.transaction_failure_reason.is_some());
     }
