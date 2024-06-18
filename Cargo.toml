@@ -43,10 +43,13 @@ starknet-macros = { version = "0.2.0", path = "./starknet-macros" }
 
 [dev-dependencies]
 serde_json = "1.0.74"
+starknet-signers = { version = "0.9.0", path = "./starknet-signers", features = ["ledger"] }
 tokio = { version = "1.15.0", features = ["full"] }
 url = "2.2.2"
 
 [features]
+default = []
+ledger = ["starknet-signers/ledger"]
 no_unknown_fields = [
     "starknet-core/no_unknown_fields",
     "starknet-providers/no_unknown_fields",

@@ -1,18 +1,19 @@
 use starknet::{
-    accounts::{AccountFactory, ArgentAccountFactory},
-    core::{chain_id, types::Felt},
+    accounts::AccountFactory,
+    core::chain_id,
     macros::felt,
     providers::{
         jsonrpc::{HttpTransport, JsonRpcClient},
         Url,
     },
-    signers::{LocalWallet, SigningKey},
+    signers::LedgerSigner,
 };
+use starknet_accounts::OpenZeppelinAccountFactory;
 
 #[tokio::main]
 async fn main() {
-    // Latest hash as of 2023-09-15. For demo only.
-    let class_hash = felt!("0x01a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003");
+    // OpenZeppelin account contract v0.13.0 compiled with cairo v2.6.3
+    let class_hash = felt!("0x00e2eb8f5672af4e6a4e8a8f1b44989685e668489b0a25437733756c5a34a1d6");
 
     // Anything you like here as salt
     let salt = felt!("12345678");
@@ -21,14 +22,17 @@ async fn main() {
         Url::parse("https://starknet-sepolia.public.blastapi.io/rpc/v0_7").unwrap(),
     ));
 
-    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        Felt::from_hex("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
-    ));
+    let signer = LedgerSigner::new(
+        "m/2645'/1195502025'/1470455285'/0'/0'/0"
+            .try_into()
+            .expect("unable to parse path"),
+    )
+    .await
+    .expect("failed to initialize Starknet Ledger app");
 
-    let factory =
-        ArgentAccountFactory::new(class_hash, chain_id::SEPOLIA, Felt::ZERO, signer, provider)
-            .await
-            .unwrap();
+    let factory = OpenZeppelinAccountFactory::new(class_hash, chain_id::SEPOLIA, signer, provider)
+        .await
+        .unwrap();
 
     let deployment = factory.deploy_v1(salt);
 
