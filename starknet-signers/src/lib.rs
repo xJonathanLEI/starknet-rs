@@ -10,5 +10,10 @@ pub use signer::Signer;
 pub mod local_wallet;
 pub use local_wallet::LocalWallet;
 
+#[cfg(feature = "ledger")]
+pub mod ledger;
+#[cfg(feature = "ledger")]
+pub use ledger::{DerivationPath, LedgerError, LedgerSigner};
+
 #[derive(Debug, thiserror::Error)]
 pub enum Infallible {}

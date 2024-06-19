@@ -37,6 +37,7 @@ starknet = { git = "https://github.com/xJonathanLEI/starknet-rs" }
 - [x] Smart contract deployment
 - [x] Signer for using [IAccount](https://github.com/OpenZeppelin/cairo-contracts/blob/main/src/openzeppelin/account/IAccount.cairo) account contracts
 - [ ] Strongly-typed smart contract binding code generation from ABI
+- [x] Ledger hardware wallet support
 
 ## Crates
 
@@ -95,9 +96,13 @@ Examples can be found in the [examples folder](./examples):
 
 8. [Deploy an Argent X account to a pre-funded address](./examples/deploy_argent_account.rs)
 
-9. [Parsing a JSON-RPC request on the server side](./examples/parse_jsonrpc_request.rs)
+9. [Inspect public key with Ledger](./examples/ledger_public_key.rs)
 
-10. [Inspecting a erased provider-specific error type](./examples/downcast_provider_error.rs)
+10. [Deploy an OpenZeppelin account with Ledger](./examples/deploy_account_with_ledger.rs)
+
+11. [Parsing a JSON-RPC request on the server side](./examples/parse_jsonrpc_request.rs)
+
+12. [Inspecting a erased provider-specific error type](./examples/downcast_provider_error.rs)
 
 ## License
 
