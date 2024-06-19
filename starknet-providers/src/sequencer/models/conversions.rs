@@ -902,7 +902,7 @@ impl TryFrom<TransactionStatusInfo> for core::TransactionStatus {
     type Error = ConversionError;
 
     fn try_from(value: TransactionStatusInfo) -> Result<Self, Self::Error> {
-        if let TransactionStatus::Rejected = value.status {
+        if value.status.is_rejected() {
             return Ok(Self::Rejected);
         }
 
