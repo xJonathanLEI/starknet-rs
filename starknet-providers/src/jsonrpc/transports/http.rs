@@ -130,7 +130,7 @@ impl JsonRpcTransport for HttpTransport {
             .body(serialized_batch)
             .header("Content-Type", "application/json");
 
-        for (name, value) in self.headers.iter() {
+        for (name, value) in &self.headers {
             request = request.header(name, value);
         }
 

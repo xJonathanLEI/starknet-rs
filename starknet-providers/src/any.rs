@@ -678,14 +678,11 @@ impl Provider for AnyProvider {
         P: Serialize + Send + Sync,
     {
         match self {
-            Self::JsonRpcHttp(inner) => {
-                <JsonRpcClient<HttpTransport> as Provider>::batch_requests(inner, requests).await
-            }
-            Self::SequencerGateway(inner) => {
-                <SequencerGatewayProvider as Provider>::batch_requests(inner, requests).await
-            }
+            Self::JsonRpcHttp(inner) => inner.batch_requests(requests).await,
+            Self::SequencerGateway(inner) => inner.batch_requests(requests).await,
         }
     }
+
     async fn get_block_with_tx_hashes_batch<B>(
         &self,
         block_ids: Vec<B>,
@@ -694,19 +691,8 @@ impl Provider for AnyProvider {
         B: AsRef<BlockId> + Send + Sync,
     {
         match self {
-            Self::JsonRpcHttp(inner) => {
-                <JsonRpcClient<HttpTransport> as Provider>::get_block_with_tx_hashes_batch(
-                    inner, block_ids,
-                )
-                .await
-            }
-            Self::SequencerGateway(inner) => {
-                <SequencerGatewayProvider as Provider>::get_block_with_tx_hashes_batch(
-                    inner, block_ids,
-                )
-                .await
-            }
+            Self::JsonRpcHttp(inner) => inner.get_block_with_tx_hashes_batch(block_ids).await,
+            Self::SequencerGateway(inner) => inner.get_block_with_tx_hashes_batch(block_ids).await,
         }
     }
-
 }
