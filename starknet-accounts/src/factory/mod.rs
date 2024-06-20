@@ -26,6 +26,22 @@ const PREFIX_DEPLOY_ACCOUNT: Felt = Felt::from_raw([
     3350261884043292318,
 ]);
 
+/// 2 ^ 128 + 1
+const QUERY_VERSION_ONE: Felt = Felt::from_raw([
+    576460752142433776,
+    18446744073709551584,
+    17407,
+    18446744073700081633,
+]);
+
+/// 2 ^ 128 + 3
+const QUERY_VERSION_THREE: Felt = Felt::from_raw([
+    576460752142432688,
+    18446744073709551584,
+    17407,
+    18446744073700081569,
+]);
+
 /// Cairo string for "STARKNET_CONTRACT_ADDRESS"
 const PREFIX_CONTRACT_ADDRESS: Felt = Felt::from_raw([
     533439743893157637,
@@ -65,11 +81,13 @@ pub trait AccountFactory: Sized {
     async fn sign_deployment_v1(
         &self,
         deployment: &RawAccountDeploymentV1,
+        query_only: bool,
     ) -> Result<Vec<Felt>, Self::SignError>;
 
     async fn sign_deployment_v3(
         &self,
         deployment: &RawAccountDeploymentV3,
+        query_only: bool,
     ) -> Result<Vec<Felt>, Self::SignError>;
 
     fn deploy_v1(&self, salt: Felt) -> AccountDeploymentV1<Self> {
@@ -404,7 +422,7 @@ where
             },
         };
         let deploy = prepared
-            .get_deploy_request()
+            .get_deploy_request(true)
             .await
             .map_err(AccountFactoryError::Signing)?;
 
@@ -436,7 +454,7 @@ where
             },
         };
         let deploy = prepared
-            .get_deploy_request()
+            .get_deploy_request(true)
             .await
             .map_err(AccountFactoryError::Signing)?;
 
@@ -637,7 +655,7 @@ where
             },
         };
         let deploy = prepared
-            .get_deploy_request()
+            .get_deploy_request(true)
             .await
             .map_err(AccountFactoryError::Signing)?;
 
@@ -670,7 +688,7 @@ where
             },
         };
         let deploy = prepared
-            .get_deploy_request()
+            .get_deploy_request(true)
             .await
             .map_err(AccountFactoryError::Signing)?;
 
@@ -760,13 +778,17 @@ where
         )
     }
 
-    pub fn transaction_hash(&self) -> Felt {
+    pub fn transaction_hash(&self, query_only: bool) -> Felt {
         let mut calldata_to_hash = vec![self.factory.class_hash(), self.inner.salt];
         calldata_to_hash.append(&mut self.factory.calldata());
 
         compute_hash_on_elements(&[
             PREFIX_DEPLOY_ACCOUNT,
-            Felt::ONE, // version
+            if query_only {
+                QUERY_VERSION_ONE
+            } else {
+                Felt::ONE
+            }, // version
             self.address(),
             Felt::ZERO, // entry_point_selector
             compute_hash_on_elements(&calldata_to_hash),
@@ -780,7 +802,7 @@ where
         &self,
     ) -> Result<DeployAccountTransactionResult, AccountFactoryError<F::SignError>> {
         let tx_request = self
-            .get_deploy_request()
+            .get_deploy_request(false)
             .await
             .map_err(AccountFactoryError::Signing)?;
         self.factory
@@ -792,8 +814,12 @@ where
 
     async fn get_deploy_request(
         &self,
+        query_only: bool,
     ) -> Result<BroadcastedDeployAccountTransactionV1, F::SignError> {
-        let signature = self.factory.sign_deployment_v1(&self.inner).await?;
+        let signature = self
+            .factory
+            .sign_deployment_v1(&self.inner, query_only)
+            .await?;
 
         Ok(BroadcastedDeployAccountTransactionV1 {
             max_fee: self.inner.max_fee,
@@ -802,8 +828,7 @@ where
             contract_address_salt: self.inner.salt,
             constructor_calldata: self.factory.calldata(),
             class_hash: self.factory.class_hash(),
-            // TODO: make use of query version tx for estimating fees
-            is_query: false,
+            is_query: query_only,
         })
     }
 }
@@ -821,11 +846,15 @@ where
         )
     }
 
-    pub fn transaction_hash(&self) -> Felt {
+    pub fn transaction_hash(&self, query_only: bool) -> Felt {
         let mut hasher = PoseidonHasher::new();
 
         hasher.update(PREFIX_DEPLOY_ACCOUNT);
-        hasher.update(Felt::THREE);
+        hasher.update(if query_only {
+            QUERY_VERSION_THREE
+        } else {
+            Felt::THREE
+        });
         hasher.update(self.address());
 
         hasher.update({
@@ -882,7 +911,7 @@ where
         &self,
     ) -> Result<DeployAccountTransactionResult, AccountFactoryError<F::SignError>> {
         let tx_request = self
-            .get_deploy_request()
+            .get_deploy_request(false)
             .await
             .map_err(AccountFactoryError::Signing)?;
         self.factory
@@ -894,8 +923,12 @@ where
 
     async fn get_deploy_request(
         &self,
+        query_only: bool,
     ) -> Result<BroadcastedDeployAccountTransactionV3, F::SignError> {
-        let signature = self.factory.sign_deployment_v3(&self.inner).await?;
+        let signature = self
+            .factory
+            .sign_deployment_v3(&self.inner, query_only)
+            .await?;
 
         Ok(BroadcastedDeployAccountTransactionV3 {
             signature,
@@ -921,8 +954,7 @@ where
             // Hard-coded L1 DA mode for nonce and fee
             nonce_data_availability_mode: DataAvailabilityMode::L1,
             fee_data_availability_mode: DataAvailabilityMode::L1,
-            // TODO: make use of query version tx for estimating fees
-            is_query: false,
+            is_query: query_only,
         })
     }
 }
