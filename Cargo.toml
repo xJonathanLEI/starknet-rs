@@ -34,7 +34,7 @@ all-features = true
 
 [dependencies]
 starknet-crypto = { version = "0.7.0", path = "./starknet-crypto" }
-starknet-core = { version = "0.11.0", path = "./starknet-core", default-features = false }
+starknet-core = { version = "0.11.1", path = "./starknet-core", default-features = false }
 starknet-providers = { version = "0.11.0", path = "./starknet-providers" }
 starknet-contract = { version = "0.10.0", path = "./starknet-contract" }
 starknet-signers = { version = "0.9.0", path = "./starknet-signers" }
