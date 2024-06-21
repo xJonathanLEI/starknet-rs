@@ -110,7 +110,6 @@ mod tests {
 
     #[test]
     #[should_panic]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_bytes31_from_invalid_utf8() {
         let invalid = b"Hello \xF0\x90\x80World";
         let felt = Felt::from_bytes_be_slice(invalid);
