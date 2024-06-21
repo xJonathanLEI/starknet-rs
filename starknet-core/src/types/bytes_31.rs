@@ -6,6 +6,7 @@ use alloc::{
     string::{FromUtf8Error, String},
     vec::Vec,
 };
+use starknet_types_core::felt::FromStrError;
 
 use crate::types::Felt;
 
@@ -56,6 +57,10 @@ impl Bytes31 {
         }
 
         String::from_utf8(buffer)
+    }
+
+    pub fn from_hex(hex: &str) -> Result<Self, FromStrError> {
+        Ok(Self(Felt::from_hex(hex)?))
     }
 }
 
@@ -111,9 +116,8 @@ mod tests {
         let felt = Felt::from_bytes_be_slice(invalid);
         let bytes31 = Bytes31::try_from(felt).unwrap();
 
-        match bytes31.to_string(4) {
-            Ok(_) => panic!("Expected Bytes31 to contain invalid UTF-8"),
-            Err(_) => {}
+        if bytes31.to_string(4).is_ok() {
+            panic!("Expected Bytes31 to contain invalid UTF-8")
         }
     }
 
@@ -128,5 +132,21 @@ mod tests {
         let string = bytes31.to_string(8).unwrap();
 
         assert_eq!(string, "🦀🌟");
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_bytes31_from_string_empty() {
+        let bytes31 = Bytes31::try_from(Felt::ZERO).unwrap();
+        let string = bytes31.to_string(0).unwrap();
+
+        assert_eq!(string, "");
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_bytes31_from_hex() {
+        let bytes31 = Bytes31::from_hex("0x1").unwrap();
+        assert_eq!(Felt::ONE, bytes31.into());
     }
 }
