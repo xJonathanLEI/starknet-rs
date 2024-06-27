@@ -22,3 +22,6 @@ syn = "2.0.15"
 [features]
 default = []
 use_imported_type = []
+
+[lints]
+workspace = true

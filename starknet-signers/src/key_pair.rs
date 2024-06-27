@@ -47,7 +47,7 @@ impl SigningKey {
         Self { secret_scalar }
     }
 
-    pub fn from_secret_scalar(secret_scalar: Felt) -> Self {
+    pub const fn from_secret_scalar(secret_scalar: Felt) -> Self {
         Self { secret_scalar }
     }
 
@@ -92,7 +92,7 @@ impl SigningKey {
         Ok(())
     }
 
-    pub fn secret_scalar(&self) -> Felt {
+    pub const fn secret_scalar(&self) -> Felt {
         self.secret_scalar
     }
 
@@ -106,11 +106,11 @@ impl SigningKey {
 }
 
 impl VerifyingKey {
-    pub fn from_scalar(scalar: Felt) -> Self {
+    pub const fn from_scalar(scalar: Felt) -> Self {
         Self { scalar }
     }
 
-    pub fn scalar(&self) -> Felt {
+    pub const fn scalar(&self) -> Felt {
         self.scalar
     }
 

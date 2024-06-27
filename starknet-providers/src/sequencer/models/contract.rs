@@ -91,7 +91,7 @@ impl CompressedSierraClass {
 
         let compressed_program = gzip_encoder.finish().map_err(DecompressProgramError::Io)?;
 
-        Ok(CompressedSierraClass {
+        Ok(Self {
             sierra_program: compressed_program,
             contract_class_version: flattened_class.contract_class_version.clone(),
             entry_points_by_type: flattened_class.entry_points_by_type.clone(),

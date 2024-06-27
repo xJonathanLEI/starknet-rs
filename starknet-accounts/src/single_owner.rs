@@ -54,7 +54,7 @@ where
     /// * `address`: Account contract address.
     /// * `chain_id`: Network chain ID.
     /// * `encoding`: How `__execute__` calldata should be encoded.
-    pub fn new(
+    pub const fn new(
         provider: P,
         signer: S,
         address: Felt,
@@ -183,13 +183,13 @@ where
         match self.encoding {
             ExecutionEncoding::Legacy => {
                 let mut concated_calldata: Vec<Felt> = vec![];
-                for call in calls.iter() {
+                for call in calls {
                     execute_calldata.push(call.to); // to
                     execute_calldata.push(call.selector); // selector
                     execute_calldata.push(concated_calldata.len().into()); // data_offset
                     execute_calldata.push(call.calldata.len().into()); // data_len
 
-                    for item in call.calldata.iter() {
+                    for item in &call.calldata {
                         concated_calldata.push(*item);
                     }
                 }
@@ -198,7 +198,7 @@ where
                 execute_calldata.extend_from_slice(&concated_calldata);
             }
             ExecutionEncoding::New => {
-                for call in calls.iter() {
+                for call in calls {
                     execute_calldata.push(call.to); // to
                     execute_calldata.push(call.selector); // selector
 

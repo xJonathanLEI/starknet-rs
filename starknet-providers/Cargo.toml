@@ -39,3 +39,6 @@ default = []
 no_unknown_fields = [
     "starknet-core/no_unknown_fields"
 ]
+
+[lints]
+workspace = true

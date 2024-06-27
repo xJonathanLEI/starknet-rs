@@ -1,6 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![doc = include_str!("../README.md")]
 
+#[allow(unused_extern_crates)]
 #[cfg(all(not(feature = "std"), any(test, feature = "alloc")))]
 extern crate alloc;
 

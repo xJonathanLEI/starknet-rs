@@ -121,6 +121,6 @@ fn field_element_path() -> &'static str {
 }
 
 #[cfg(not(feature = "use_imported_type"))]
-fn field_element_path() -> &'static str {
+const fn field_element_path() -> &'static str {
     "::starknet::core::types::Felt"
 }

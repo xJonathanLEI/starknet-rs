@@ -1,3 +1,4 @@
+#![allow(clippy::missing_const_for_fn)]
 use core::{fmt::Display, str};
 
 use crypto_bigint::{ArrayEncoding, CheckedAdd, CheckedMul, CheckedSub, Zero};
@@ -46,72 +47,72 @@ impl U256 {
     }
 }
 
-impl core::ops::Add<U256> for U256 {
-    type Output = U256;
+impl core::ops::Add<Self> for U256 {
+    type Output = Self;
 
-    fn add(self, rhs: U256) -> Self::Output {
+    fn add(self, rhs: Self) -> Self::Output {
         Self(self.0.checked_add(&rhs.0).unwrap())
     }
 }
 
-impl core::ops::AddAssign<U256> for U256 {
-    fn add_assign(&mut self, rhs: U256) {
+impl core::ops::AddAssign<Self> for U256 {
+    fn add_assign(&mut self, rhs: Self) {
         self.0 = self.0.checked_add(&rhs.0).unwrap()
     }
 }
 
-impl core::ops::Sub<U256> for U256 {
-    type Output = U256;
+impl core::ops::Sub<Self> for U256 {
+    type Output = Self;
 
-    fn sub(self, rhs: U256) -> Self::Output {
+    fn sub(self, rhs: Self) -> Self::Output {
         Self(self.0.checked_sub(&rhs.0).unwrap())
     }
 }
 
-impl core::ops::SubAssign<U256> for U256 {
-    fn sub_assign(&mut self, rhs: U256) {
+impl core::ops::SubAssign<Self> for U256 {
+    fn sub_assign(&mut self, rhs: Self) {
         self.0 = self.0.checked_sub(&rhs.0).unwrap()
     }
 }
 
-impl core::ops::Mul<U256> for U256 {
-    type Output = U256;
+impl core::ops::Mul<Self> for U256 {
+    type Output = Self;
 
-    fn mul(self, rhs: U256) -> Self::Output {
+    fn mul(self, rhs: Self) -> Self::Output {
         Self(self.0.checked_mul(&rhs.0).unwrap())
     }
 }
 
-impl core::ops::MulAssign<U256> for U256 {
-    fn mul_assign(&mut self, rhs: U256) {
+impl core::ops::MulAssign<Self> for U256 {
+    fn mul_assign(&mut self, rhs: Self) {
         self.0 = self.0.checked_mul(&rhs.0).unwrap()
     }
 }
 
-impl core::ops::Div<U256> for U256 {
-    type Output = U256;
+impl core::ops::Div<Self> for U256 {
+    type Output = Self;
 
-    fn div(self, rhs: U256) -> Self::Output {
+    fn div(self, rhs: Self) -> Self::Output {
         Self(self.0.checked_div(&rhs.0).unwrap())
     }
 }
 
-impl core::ops::DivAssign<U256> for U256 {
-    fn div_assign(&mut self, rhs: U256) {
+impl core::ops::DivAssign<Self> for U256 {
+    fn div_assign(&mut self, rhs: Self) {
         self.0 = self.0.checked_div(&rhs.0).unwrap()
     }
 }
 
-impl core::ops::Rem<U256> for U256 {
-    type Output = U256;
+impl core::ops::Rem<Self> for U256 {
+    type Output = Self;
 
-    fn rem(self, rhs: U256) -> Self::Output {
+    fn rem(self, rhs: Self) -> Self::Output {
         Self(self.0.checked_rem(&rhs.0).unwrap())
     }
 }
 
-impl core::ops::RemAssign<U256> for U256 {
-    fn rem_assign(&mut self, rhs: U256) {
+impl core::ops::RemAssign<Self> for U256 {
+    fn rem_assign(&mut self, rhs: Self) {
         self.0 = self.0.checked_rem(&rhs.0).unwrap()
     }
 }

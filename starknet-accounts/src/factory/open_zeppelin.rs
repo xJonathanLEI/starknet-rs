@@ -8,6 +8,7 @@ use starknet_core::types::{BlockId, BlockTag, Felt};
 use starknet_providers::Provider;
 use starknet_signers::Signer;
 
+#[derive(Debug)]
 pub struct OpenZeppelinAccountFactory<S, P> {
     class_hash: Felt,
     chain_id: Felt,

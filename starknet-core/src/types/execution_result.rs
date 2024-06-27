@@ -12,10 +12,10 @@ pub enum ExecutionResult {
 }
 
 impl ExecutionResult {
-    pub fn status(&self) -> TransactionExecutionStatus {
+    pub const fn status(&self) -> TransactionExecutionStatus {
         match self {
-            ExecutionResult::Succeeded => TransactionExecutionStatus::Succeeded,
-            ExecutionResult::Reverted { .. } => TransactionExecutionStatus::Reverted,
+            Self::Succeeded => TransactionExecutionStatus::Succeeded,
+            Self::Reverted { .. } => TransactionExecutionStatus::Reverted,
         }
     }
 
@@ -25,8 +25,8 @@ impl ExecutionResult {
     /// variant.
     pub fn revert_reason(&self) -> Option<&str> {
         match self {
-            ExecutionResult::Succeeded => None,
-            ExecutionResult::Reverted { reason } => Some(reason),
+            Self::Succeeded => None,
+            Self::Reverted { reason } => Some(reason),
         }
     }
 }

@@ -19,3 +19,6 @@ proc-macro = true
 starknet-curve = { version = "0.5.0", path = "../starknet-curve" }
 syn = "2.0.55"
 starknet-types-core = { version = "0.1.3", default-features = false, features = ["curve"] }
+
+[lints]
+workspace = true

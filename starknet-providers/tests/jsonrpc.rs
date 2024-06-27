@@ -17,6 +17,7 @@ use starknet_providers::{
 use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
+    #[allow(clippy::or_fun_call)]
     let rpc_url = std::env::var("STARKNET_RPC")
         .unwrap_or("https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_7".into());
     JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()))

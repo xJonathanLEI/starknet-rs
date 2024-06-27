@@ -336,7 +336,7 @@ pub enum ExecuteInvocation {
 mod errors {
     use core::fmt::{Display, Formatter, Result};
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Eq)]
     pub enum ParseMsgToL2Error {
         EmptyCalldata,
         FromAddressOutOfRange,
@@ -366,15 +366,15 @@ pub use errors::ParseMsgToL2Error;
 impl MaybePendingBlockWithTxHashes {
     pub fn transactions(&self) -> &[Felt] {
         match self {
-            MaybePendingBlockWithTxHashes::Block(block) => &block.transactions,
-            MaybePendingBlockWithTxHashes::PendingBlock(block) => &block.transactions,
+            Self::Block(block) => &block.transactions,
+            Self::PendingBlock(block) => &block.transactions,
         }
     }
 
-    pub fn l1_gas_price(&self) -> &ResourcePrice {
+    pub const fn l1_gas_price(&self) -> &ResourcePrice {
         match self {
-            MaybePendingBlockWithTxHashes::Block(block) => &block.l1_gas_price,
-            MaybePendingBlockWithTxHashes::PendingBlock(block) => &block.l1_gas_price,
+            Self::Block(block) => &block.l1_gas_price,
+            Self::PendingBlock(block) => &block.l1_gas_price,
         }
     }
 }
@@ -382,15 +382,15 @@ impl MaybePendingBlockWithTxHashes {
 impl MaybePendingBlockWithTxs {
     pub fn transactions(&self) -> &[Transaction] {
         match self {
-            MaybePendingBlockWithTxs::Block(block) => &block.transactions,
-            MaybePendingBlockWithTxs::PendingBlock(block) => &block.transactions,
+            Self::Block(block) => &block.transactions,
+            Self::PendingBlock(block) => &block.transactions,
         }
     }
 
-    pub fn l1_gas_price(&self) -> &ResourcePrice {
+    pub const fn l1_gas_price(&self) -> &ResourcePrice {
         match self {
-            MaybePendingBlockWithTxs::Block(block) => &block.l1_gas_price,
-            MaybePendingBlockWithTxs::PendingBlock(block) => &block.l1_gas_price,
+            Self::Block(block) => &block.l1_gas_price,
+            Self::PendingBlock(block) => &block.l1_gas_price,
         }
     }
 }
@@ -398,100 +398,100 @@ impl MaybePendingBlockWithTxs {
 impl MaybePendingBlockWithReceipts {
     pub fn transactions(&self) -> &[TransactionWithReceipt] {
         match self {
-            MaybePendingBlockWithReceipts::Block(block) => &block.transactions,
-            MaybePendingBlockWithReceipts::PendingBlock(block) => &block.transactions,
+            Self::Block(block) => &block.transactions,
+            Self::PendingBlock(block) => &block.transactions,
         }
     }
 
-    pub fn l1_gas_price(&self) -> &ResourcePrice {
+    pub const fn l1_gas_price(&self) -> &ResourcePrice {
         match self {
-            MaybePendingBlockWithReceipts::Block(block) => &block.l1_gas_price,
-            MaybePendingBlockWithReceipts::PendingBlock(block) => &block.l1_gas_price,
+            Self::Block(block) => &block.l1_gas_price,
+            Self::PendingBlock(block) => &block.l1_gas_price,
         }
     }
 }
 
 impl TransactionStatus {
-    pub fn finality_status(&self) -> SequencerTransactionStatus {
+    pub const fn finality_status(&self) -> SequencerTransactionStatus {
         match self {
-            TransactionStatus::Received => SequencerTransactionStatus::Received,
-            TransactionStatus::Rejected => SequencerTransactionStatus::Rejected,
-            TransactionStatus::AcceptedOnL2(_) => SequencerTransactionStatus::AcceptedOnL2,
-            TransactionStatus::AcceptedOnL1(_) => SequencerTransactionStatus::AcceptedOnL1,
+            Self::Received => SequencerTransactionStatus::Received,
+            Self::Rejected => SequencerTransactionStatus::Rejected,
+            Self::AcceptedOnL2(_) => SequencerTransactionStatus::AcceptedOnL2,
+            Self::AcceptedOnL1(_) => SequencerTransactionStatus::AcceptedOnL1,
         }
     }
 }
 
 impl Transaction {
-    pub fn transaction_hash(&self) -> &Felt {
+    pub const fn transaction_hash(&self) -> &Felt {
         match self {
-            Transaction::Invoke(tx) => tx.transaction_hash(),
-            Transaction::L1Handler(tx) => &tx.transaction_hash,
-            Transaction::Declare(tx) => tx.transaction_hash(),
-            Transaction::Deploy(tx) => &tx.transaction_hash,
-            Transaction::DeployAccount(tx) => tx.transaction_hash(),
+            Self::Invoke(tx) => tx.transaction_hash(),
+            Self::L1Handler(tx) => &tx.transaction_hash,
+            Self::Declare(tx) => tx.transaction_hash(),
+            Self::Deploy(tx) => &tx.transaction_hash,
+            Self::DeployAccount(tx) => tx.transaction_hash(),
         }
     }
 }
 
 impl InvokeTransaction {
-    pub fn transaction_hash(&self) -> &Felt {
+    pub const fn transaction_hash(&self) -> &Felt {
         match self {
-            InvokeTransaction::V0(tx) => &tx.transaction_hash,
-            InvokeTransaction::V1(tx) => &tx.transaction_hash,
-            InvokeTransaction::V3(tx) => &tx.transaction_hash,
+            Self::V0(tx) => &tx.transaction_hash,
+            Self::V1(tx) => &tx.transaction_hash,
+            Self::V3(tx) => &tx.transaction_hash,
         }
     }
 }
 
 impl DeclareTransaction {
-    pub fn transaction_hash(&self) -> &Felt {
+    pub const fn transaction_hash(&self) -> &Felt {
         match self {
-            DeclareTransaction::V0(tx) => &tx.transaction_hash,
-            DeclareTransaction::V1(tx) => &tx.transaction_hash,
-            DeclareTransaction::V2(tx) => &tx.transaction_hash,
-            DeclareTransaction::V3(tx) => &tx.transaction_hash,
+            Self::V0(tx) => &tx.transaction_hash,
+            Self::V1(tx) => &tx.transaction_hash,
+            Self::V2(tx) => &tx.transaction_hash,
+            Self::V3(tx) => &tx.transaction_hash,
         }
     }
 }
 
 impl DeployAccountTransaction {
-    pub fn transaction_hash(&self) -> &Felt {
+    pub const fn transaction_hash(&self) -> &Felt {
         match self {
-            DeployAccountTransaction::V1(tx) => &tx.transaction_hash,
-            DeployAccountTransaction::V3(tx) => &tx.transaction_hash,
+            Self::V1(tx) => &tx.transaction_hash,
+            Self::V3(tx) => &tx.transaction_hash,
         }
     }
 }
 
 impl TransactionReceipt {
-    pub fn transaction_hash(&self) -> &Felt {
+    pub const fn transaction_hash(&self) -> &Felt {
         match self {
-            TransactionReceipt::Invoke(receipt) => &receipt.transaction_hash,
-            TransactionReceipt::L1Handler(receipt) => &receipt.transaction_hash,
-            TransactionReceipt::Declare(receipt) => &receipt.transaction_hash,
-            TransactionReceipt::Deploy(receipt) => &receipt.transaction_hash,
-            TransactionReceipt::DeployAccount(receipt) => &receipt.transaction_hash,
+            Self::Invoke(receipt) => &receipt.transaction_hash,
+            Self::L1Handler(receipt) => &receipt.transaction_hash,
+            Self::Declare(receipt) => &receipt.transaction_hash,
+            Self::Deploy(receipt) => &receipt.transaction_hash,
+            Self::DeployAccount(receipt) => &receipt.transaction_hash,
         }
     }
 
-    pub fn finality_status(&self) -> &TransactionFinalityStatus {
+    pub const fn finality_status(&self) -> &TransactionFinalityStatus {
         match self {
-            TransactionReceipt::Invoke(receipt) => &receipt.finality_status,
-            TransactionReceipt::L1Handler(receipt) => &receipt.finality_status,
-            TransactionReceipt::Declare(receipt) => &receipt.finality_status,
-            TransactionReceipt::Deploy(receipt) => &receipt.finality_status,
-            TransactionReceipt::DeployAccount(receipt) => &receipt.finality_status,
+            Self::Invoke(receipt) => &receipt.finality_status,
+            Self::L1Handler(receipt) => &receipt.finality_status,
+            Self::Declare(receipt) => &receipt.finality_status,
+            Self::Deploy(receipt) => &receipt.finality_status,
+            Self::DeployAccount(receipt) => &receipt.finality_status,
         }
     }
 
-    pub fn execution_result(&self) -> &ExecutionResult {
+    pub const fn execution_result(&self) -> &ExecutionResult {
         match self {
-            TransactionReceipt::Invoke(receipt) => &receipt.execution_result,
-            TransactionReceipt::L1Handler(receipt) => &receipt.execution_result,
-            TransactionReceipt::Declare(receipt) => &receipt.execution_result,
-            TransactionReceipt::Deploy(receipt) => &receipt.execution_result,
-            TransactionReceipt::DeployAccount(receipt) => &receipt.execution_result,
+            Self::Invoke(receipt) => &receipt.execution_result,
+            Self::L1Handler(receipt) => &receipt.execution_result,
+            Self::Declare(receipt) => &receipt.execution_result,
+            Self::Deploy(receipt) => &receipt.execution_result,
+            Self::DeployAccount(receipt) => &receipt.execution_result,
         }
     }
 }
@@ -515,44 +515,44 @@ impl L1HandlerTransaction {
     }
 }
 
-impl AsRef<BlockId> for BlockId {
-    fn as_ref(&self) -> &BlockId {
+impl AsRef<Self> for BlockId {
+    fn as_ref(&self) -> &Self {
         self
     }
 }
 
-impl AsRef<FunctionCall> for FunctionCall {
-    fn as_ref(&self) -> &FunctionCall {
+impl AsRef<Self> for FunctionCall {
+    fn as_ref(&self) -> &Self {
         self
     }
 }
 
-impl AsRef<MsgFromL1> for MsgFromL1 {
-    fn as_ref(&self) -> &MsgFromL1 {
+impl AsRef<Self> for MsgFromL1 {
+    fn as_ref(&self) -> &Self {
         self
     }
 }
 
-impl AsRef<BroadcastedTransaction> for BroadcastedTransaction {
-    fn as_ref(&self) -> &BroadcastedTransaction {
+impl AsRef<Self> for BroadcastedTransaction {
+    fn as_ref(&self) -> &Self {
         self
     }
 }
 
-impl AsRef<BroadcastedInvokeTransaction> for BroadcastedInvokeTransaction {
-    fn as_ref(&self) -> &BroadcastedInvokeTransaction {
+impl AsRef<Self> for BroadcastedInvokeTransaction {
+    fn as_ref(&self) -> &Self {
         self
     }
 }
 
-impl AsRef<BroadcastedDeclareTransaction> for BroadcastedDeclareTransaction {
-    fn as_ref(&self) -> &BroadcastedDeclareTransaction {
+impl AsRef<Self> for BroadcastedDeclareTransaction {
+    fn as_ref(&self) -> &Self {
         self
     }
 }
 
-impl AsRef<BroadcastedDeployAccountTransaction> for BroadcastedDeployAccountTransaction {
-    fn as_ref(&self) -> &BroadcastedDeployAccountTransaction {
+impl AsRef<Self> for BroadcastedDeployAccountTransaction {
+    fn as_ref(&self) -> &Self {
         self
     }
 }

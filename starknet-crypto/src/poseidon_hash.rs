@@ -8,7 +8,7 @@ poseidon_consts!();
 
 /// A hasher for Starknet Poseidon hash.
 ///
-/// Using this hasher is the same as calling [poseidon_hash_many].
+/// Using this hasher is the same as calling [`poseidon_hash_many`].
 #[derive(Debug, Default)]
 pub struct PoseidonHasher {
     state: [Felt; 3],
@@ -16,7 +16,7 @@ pub struct PoseidonHasher {
 }
 
 impl PoseidonHasher {
-    /// Creates a new [PoseidonHasher].
+    /// Creates a new [`PoseidonHasher`].
     pub fn new() -> Self {
         Self::default()
     }
@@ -61,7 +61,7 @@ pub fn poseidon_hash(x: Felt, y: Felt) -> Felt {
     state[0]
 }
 
-/// Computes the Starknet Poseidon hash of a single [Felt].
+/// Computes the Starknet Poseidon hash of a single [`Felt`].
 pub fn poseidon_hash_single(x: Felt) -> Felt {
     let mut state = [x, Felt::ZERO, Felt::ONE];
     poseidon_permute_comp(&mut state);
@@ -69,9 +69,9 @@ pub fn poseidon_hash_single(x: Felt) -> Felt {
     state[0]
 }
 
-/// Computes the Starknet Poseidon hash of an arbitrary number of [Felt]s.
+/// Computes the Starknet Poseidon hash of an arbitrary number of [`Felt`]s.
 ///
-/// Using this function is the same as using [PoseidonHasher].
+/// Using this function is the same as using [`PoseidonHasher`].
 pub fn poseidon_hash_many<'a, I: IntoIterator<Item = &'a Felt>>(msgs: I) -> Felt {
     let mut state = [Felt::ZERO, Felt::ZERO, Felt::ZERO];
     let mut iter = msgs.into_iter();
@@ -141,11 +141,10 @@ fn round_comp(state: &mut [Felt; 3], idx: usize, full: bool) {
         state[2] += POSEIDON_COMP_CONSTS[idx + 2];
         state[0] = state[0] * state[0] * state[0];
         state[1] = state[1] * state[1] * state[1];
-        state[2] = state[2] * state[2] * state[2];
     } else {
         state[2] += POSEIDON_COMP_CONSTS[idx];
-        state[2] = state[2] * state[2] * state[2];
     }
+    state[2] = state[2] * state[2] * state[2];
     mix(state);
 }
 
@@ -176,7 +175,7 @@ mod tests {
             ),
         ];
 
-        for (x, y, hash) in test_data.into_iter() {
+        for (x, y, hash) in test_data {
             assert_eq!(poseidon_hash(x, y), hash);
         }
     }
@@ -200,7 +199,7 @@ mod tests {
             ),
         ];
 
-        for (x, hash) in test_data.into_iter() {
+        for (x, hash) in test_data {
             assert_eq!(poseidon_hash_single(x), hash);
         }
     }
@@ -252,7 +251,7 @@ mod tests {
             ),
         ];
 
-        for (input, hash) in test_data.into_iter() {
+        for (input, hash) in test_data {
             // Direct function call
             assert_eq!(poseidon_hash_many(&input), hash);
 

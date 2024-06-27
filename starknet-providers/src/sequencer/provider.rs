@@ -113,7 +113,10 @@ impl Provider for SequencerGatewayProvider {
             .await?;
 
         // `NotReceived` is not a valid status for JSON-RPC. It's an error.
-        if let Some(TransactionFinalityStatus::NotReceived) = &status.finality_status {
+        if matches!(
+            &status.finality_status,
+            Some(TransactionFinalityStatus::NotReceived)
+        ) {
             return Err(ProviderError::StarknetError(
                 StarknetError::TransactionHashNotFound,
             ));

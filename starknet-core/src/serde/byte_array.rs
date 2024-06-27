@@ -24,7 +24,7 @@ pub mod base64 {
     impl<'de> Visitor<'de> for Base64Visitor {
         type Value = Vec<u8>;
 
-        fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
+        fn expecting(&self, formatter: &mut Formatter<'_>) -> alloc::fmt::Result {
             write!(formatter, "string")
         }
 
