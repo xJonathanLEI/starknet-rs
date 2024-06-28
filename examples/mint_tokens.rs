@@ -51,5 +51,5 @@ async fn main() {
         .await
         .unwrap();
 
-    dbg!(result);
+    println!("Transaction hash: {:#064x}", result.transaction_hash);
 }

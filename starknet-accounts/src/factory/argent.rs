@@ -73,6 +73,10 @@ where
         &self.provider
     }
 
+    fn is_signer_interactive(&self) -> bool {
+        self.signer.is_interactive()
+    }
+
     fn block_id(&self) -> BlockId {
         self.block_id
     }

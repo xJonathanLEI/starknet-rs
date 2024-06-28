@@ -10,7 +10,7 @@ use starknet_core::{
         BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1,
         BroadcastedInvokeTransactionV3, BroadcastedTransaction, DataAvailabilityMode, FeeEstimate,
         Felt, InvokeTransactionResult, ResourceBounds, ResourceBoundsMapping, SimulatedTransaction,
-        SimulationFlag,
+        SimulationFlag, SimulationFlagForEstimateFee,
     },
 };
 use starknet_crypto::PoseidonHasher;
@@ -245,6 +245,8 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
+        let skip_signature = self.account.is_signer_interactive();
+
         let prepared = PreparedExecutionV1 {
             account: self.account,
             inner: RawExecutionV1 {
@@ -254,7 +256,7 @@ where
             },
         };
         let invoke = prepared
-            .get_invoke_request(true)
+            .get_invoke_request(true, skip_signature)
             .await
             .map_err(AccountError::Signing)?;
 
@@ -262,7 +264,13 @@ where
             .provider()
             .estimate_fee_single(
                 BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction::V1(invoke)),
-                [],
+                if skip_signature {
+                    // Validation would fail since real signature was not requested
+                    vec![SimulationFlagForEstimateFee::SkipValidate]
+                } else {
+                    // With the correct signature in place, run validation for accurate results
+                    vec![]
+                },
                 self.account.block_id(),
             )
             .await
@@ -275,6 +283,16 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
+        let skip_signature = if self.account.is_signer_interactive() {
+            // If signer is interactive, we would try to minimize signing requests. However, if the
+            // caller has decided to not skip validation, it's best we still request a real
+            // signature, as otherwise the simulation would most likely fail.
+            skip_validate
+        } else {
+            // Signing with non-interactive signers is cheap so always request signatures.
+            false
+        };
+
         let prepared = PreparedExecutionV1 {
             account: self.account,
             inner: RawExecutionV1 {
@@ -284,7 +302,7 @@ where
             },
         };
         let invoke = prepared
-            .get_invoke_request(true)
+            .get_invoke_request(true, skip_signature)
             .await
             .map_err(AccountError::Signing)?;
 
@@ -450,6 +468,8 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
+        let skip_signature = self.account.is_signer_interactive();
+
         let prepared = PreparedExecutionV3 {
             account: self.account,
             inner: RawExecutionV3 {
@@ -460,7 +480,7 @@ where
             },
         };
         let invoke = prepared
-            .get_invoke_request(true)
+            .get_invoke_request(true, skip_signature)
             .await
             .map_err(AccountError::Signing)?;
 
@@ -468,7 +488,13 @@ where
             .provider()
             .estimate_fee_single(
                 BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction::V3(invoke)),
-                [],
+                if skip_signature {
+                    // Validation would fail since real signature was not requested
+                    vec![SimulationFlagForEstimateFee::SkipValidate]
+                } else {
+                    // With the correct signature in place, run validation for accurate results
+                    vec![]
+                },
                 self.account.block_id(),
             )
             .await
@@ -481,6 +507,16 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
+        let skip_signature = if self.account.is_signer_interactive() {
+            // If signer is interactive, we would try to minimize signing requests. However, if the
+            // caller has decided to not skip validation, it's best we still request a real
+            // signature, as otherwise the simulation would most likely fail.
+            skip_validate
+        } else {
+            // Signing with non-interactive signers is cheap so always request signatures.
+            false
+        };
+
         let prepared = PreparedExecutionV3 {
             account: self.account,
             inner: RawExecutionV3 {
@@ -491,7 +527,7 @@ where
             },
         };
         let invoke = prepared
-            .get_invoke_request(true)
+            .get_invoke_request(true, skip_signature)
             .await
             .map_err(AccountError::Signing)?;
 
@@ -682,7 +718,7 @@ where
 {
     pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
         let tx_request = self
-            .get_invoke_request(false)
+            .get_invoke_request(false, false)
             .await
             .map_err(AccountError::Signing)?;
         self.account
@@ -695,18 +731,20 @@ where
     // The `simulate` function is temporarily removed until it's supported in [Provider]
     // TODO: add `simulate` back once transaction simulation in supported
 
-    pub async fn get_invoke_request(
+    async fn get_invoke_request(
         &self,
         query_only: bool,
+        skip_signature: bool,
     ) -> Result<BroadcastedInvokeTransactionV1, A::SignError> {
-        let signature = self
-            .account
-            .sign_execution_v1(&self.inner, query_only)
-            .await?;
-
         Ok(BroadcastedInvokeTransactionV1 {
             max_fee: self.inner.max_fee,
-            signature,
+            signature: if skip_signature {
+                vec![]
+            } else {
+                self.account
+                    .sign_execution_v1(&self.inner, query_only)
+                    .await?
+            },
             nonce: self.inner.nonce,
             sender_address: self.account.address(),
             calldata: self.account.encode_calls(&self.inner.calls),
@@ -721,7 +759,7 @@ where
 {
     pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
         let tx_request = self
-            .get_invoke_request(false)
+            .get_invoke_request(false, false)
             .await
             .map_err(AccountError::Signing)?;
         self.account
@@ -734,19 +772,21 @@ where
     // The `simulate` function is temporarily removed until it's supported in [Provider]
     // TODO: add `simulate` back once transaction simulation in supported
 
-    pub async fn get_invoke_request(
+    async fn get_invoke_request(
         &self,
         query_only: bool,
+        skip_signature: bool,
     ) -> Result<BroadcastedInvokeTransactionV3, A::SignError> {
-        let signature = self
-            .account
-            .sign_execution_v3(&self.inner, query_only)
-            .await?;
-
         Ok(BroadcastedInvokeTransactionV3 {
             sender_address: self.account.address(),
             calldata: self.account.encode_calls(&self.inner.calls),
-            signature,
+            signature: if skip_signature {
+                vec![]
+            } else {
+                self.account
+                    .sign_execution_v3(&self.inner, query_only)
+                    .await?
+            },
             nonce: self.inner.nonce,
             resource_bounds: ResourceBoundsMapping {
                 l1_gas: ResourceBounds {

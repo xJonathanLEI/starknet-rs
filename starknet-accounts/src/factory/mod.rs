@@ -8,7 +8,7 @@ use starknet_core::{
         BroadcastedDeployAccountTransactionV1, BroadcastedDeployAccountTransactionV3,
         BroadcastedTransaction, DataAvailabilityMode, DeployAccountTransactionResult, FeeEstimate,
         Felt, NonZeroFelt, ResourceBounds, ResourceBoundsMapping, SimulatedTransaction,
-        SimulationFlag, StarknetError,
+        SimulationFlag, SimulationFlagForEstimateFee, StarknetError,
     },
 };
 use starknet_crypto::PoseidonHasher;
@@ -72,6 +72,14 @@ pub trait AccountFactory: Sized {
     fn chain_id(&self) -> Felt;
 
     fn provider(&self) -> &Self::Provider;
+
+    /// Whether the underlying signer implementation is interactive, such as a hardware wallet.
+    /// Implementations should return `true` if the signing operation is very expensive, even if not
+    /// strictly "interactive" as in requiring human input.
+    ///
+    /// This affects how an account factory makes decision on whether to request a real signature
+    /// for estimation/simulation purposes.
+    fn is_signer_interactive(&self) -> bool;
 
     /// Block ID to use when estimating fees.
     fn block_id(&self) -> BlockId {
@@ -413,6 +421,8 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountFactoryError<F::SignError>> {
+        let skip_signature = self.factory.is_signer_interactive();
+
         let prepared = PreparedAccountDeploymentV1 {
             factory: self.factory,
             inner: RawAccountDeploymentV1 {
@@ -422,7 +432,7 @@ where
             },
         };
         let deploy = prepared
-            .get_deploy_request(true)
+            .get_deploy_request(true, skip_signature)
             .await
             .map_err(AccountFactoryError::Signing)?;
 
@@ -432,7 +442,13 @@ where
                 BroadcastedTransaction::DeployAccount(BroadcastedDeployAccountTransaction::V1(
                     deploy,
                 )),
-                [],
+                if skip_signature {
+                    // Validation would fail since real signature was not requested
+                    vec![SimulationFlagForEstimateFee::SkipValidate]
+                } else {
+                    // With the correct signature in place, run validation for accurate results
+                    vec![]
+                },
                 self.factory.block_id(),
             )
             .await
@@ -445,6 +461,16 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountFactoryError<F::SignError>> {
+        let skip_signature = if self.factory.is_signer_interactive() {
+            // If signer is interactive, we would try to minimize signing requests. However, if the
+            // caller has decided to not skip validation, it's best we still request a real
+            // signature, as otherwise the simulation would most likely fail.
+            skip_validate
+        } else {
+            // Signing with non-interactive signers is cheap so always request signatures.
+            false
+        };
+
         let prepared = PreparedAccountDeploymentV1 {
             factory: self.factory,
             inner: RawAccountDeploymentV1 {
@@ -454,7 +480,7 @@ where
             },
         };
         let deploy = prepared
-            .get_deploy_request(true)
+            .get_deploy_request(true, skip_signature)
             .await
             .map_err(AccountFactoryError::Signing)?;
 
@@ -645,6 +671,8 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountFactoryError<F::SignError>> {
+        let skip_signature = self.factory.is_signer_interactive();
+
         let prepared = PreparedAccountDeploymentV3 {
             factory: self.factory,
             inner: RawAccountDeploymentV3 {
@@ -655,7 +683,7 @@ where
             },
         };
         let deploy = prepared
-            .get_deploy_request(true)
+            .get_deploy_request(true, skip_signature)
             .await
             .map_err(AccountFactoryError::Signing)?;
 
@@ -665,7 +693,13 @@ where
                 BroadcastedTransaction::DeployAccount(BroadcastedDeployAccountTransaction::V3(
                     deploy,
                 )),
-                [],
+                if skip_signature {
+                    // Validation would fail since real signature was not requested
+                    vec![SimulationFlagForEstimateFee::SkipValidate]
+                } else {
+                    // With the correct signature in place, run validation for accurate results
+                    vec![]
+                },
                 self.factory.block_id(),
             )
             .await
@@ -678,6 +712,16 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountFactoryError<F::SignError>> {
+        let skip_signature = if self.factory.is_signer_interactive() {
+            // If signer is interactive, we would try to minimize signing requests. However, if the
+            // caller has decided to not skip validation, it's best we still request a real
+            // signature, as otherwise the simulation would most likely fail.
+            skip_validate
+        } else {
+            // Signing with non-interactive signers is cheap so always request signatures.
+            false
+        };
+
         let prepared = PreparedAccountDeploymentV3 {
             factory: self.factory,
             inner: RawAccountDeploymentV3 {
@@ -688,7 +732,7 @@ where
             },
         };
         let deploy = prepared
-            .get_deploy_request(true)
+            .get_deploy_request(true, skip_signature)
             .await
             .map_err(AccountFactoryError::Signing)?;
 
@@ -802,7 +846,7 @@ where
         &self,
     ) -> Result<DeployAccountTransactionResult, AccountFactoryError<F::SignError>> {
         let tx_request = self
-            .get_deploy_request(false)
+            .get_deploy_request(false, false)
             .await
             .map_err(AccountFactoryError::Signing)?;
         self.factory
@@ -815,15 +859,17 @@ where
     async fn get_deploy_request(
         &self,
         query_only: bool,
+        skip_signature: bool,
     ) -> Result<BroadcastedDeployAccountTransactionV1, F::SignError> {
-        let signature = self
-            .factory
-            .sign_deployment_v1(&self.inner, query_only)
-            .await?;
-
         Ok(BroadcastedDeployAccountTransactionV1 {
             max_fee: self.inner.max_fee,
-            signature,
+            signature: if skip_signature {
+                vec![]
+            } else {
+                self.factory
+                    .sign_deployment_v1(&self.inner, query_only)
+                    .await?
+            },
             nonce: self.inner.nonce,
             contract_address_salt: self.inner.salt,
             constructor_calldata: self.factory.calldata(),
@@ -911,7 +957,7 @@ where
         &self,
     ) -> Result<DeployAccountTransactionResult, AccountFactoryError<F::SignError>> {
         let tx_request = self
-            .get_deploy_request(false)
+            .get_deploy_request(false, false)
             .await
             .map_err(AccountFactoryError::Signing)?;
         self.factory
@@ -924,14 +970,16 @@ where
     async fn get_deploy_request(
         &self,
         query_only: bool,
+        skip_signature: bool,
     ) -> Result<BroadcastedDeployAccountTransactionV3, F::SignError> {
-        let signature = self
-            .factory
-            .sign_deployment_v3(&self.inner, query_only)
-            .await?;
-
         Ok(BroadcastedDeployAccountTransactionV3 {
-            signature,
+            signature: if skip_signature {
+                vec![]
+            } else {
+                self.factory
+                    .sign_deployment_v3(&self.inner, query_only)
+                    .await?
+            },
             nonce: self.inner.nonce,
             contract_address_salt: self.inner.salt,
             constructor_calldata: self.factory.calldata(),

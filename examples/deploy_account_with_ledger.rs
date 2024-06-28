@@ -51,6 +51,7 @@ async fn main() {
     match result {
         Ok(tx) => {
             println!("Transaction hash: {:#064x}", tx.transaction_hash);
+            println!("Account: {:#064x}", tx.contract_address);
         }
         Err(err) => {
             eprintln!("Error: {err}");

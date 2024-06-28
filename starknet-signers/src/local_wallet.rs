@@ -36,6 +36,10 @@ impl Signer for LocalWallet {
     async fn sign_hash(&self, hash: &Felt) -> Result<Signature, Self::SignError> {
         Ok(self.private_key.sign(hash)?)
     }
+
+    fn is_interactive(&self) -> bool {
+        false
+    }
 }
 
 impl From<SigningKey> for LocalWallet {

@@ -163,6 +163,10 @@ impl Signer for LedgerSigner {
 
         Ok(signature)
     }
+
+    fn is_interactive(&self) -> bool {
+        true
+    }
 }
 
 impl From<coins_ledger::LedgerError> for LedgerError {
