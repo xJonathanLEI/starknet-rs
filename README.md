@@ -100,9 +100,11 @@ Examples can be found in the [examples folder](./examples):
 
 10. [Deploy an OpenZeppelin account with Ledger](./examples/deploy_account_with_ledger.rs)
 
-11. [Parsing a JSON-RPC request on the server side](./examples/parse_jsonrpc_request.rs)
+11. [Transfer ERC20 tokens with Ledger](./examples/transfer_with_ledger.rs)
 
-12. [Inspecting a erased provider-specific error type](./examples/downcast_provider_error.rs)
+12. [Parsing a JSON-RPC request on the server side](./examples/parse_jsonrpc_request.rs)
+
+13. [Inspecting a erased provider-specific error type](./examples/downcast_provider_error.rs)
 
 ## License
 

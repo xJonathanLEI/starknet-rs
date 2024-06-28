@@ -12,6 +12,7 @@ use starknet_core::{
         BroadcastedDeclareTransactionV2, BroadcastedDeclareTransactionV3, BroadcastedTransaction,
         DataAvailabilityMode, DeclareTransactionResult, FeeEstimate, Felt, FlattenedSierraClass,
         ResourceBounds, ResourceBoundsMapping, SimulatedTransaction, SimulationFlag,
+        SimulationFlagForEstimateFee,
     },
 };
 use starknet_crypto::PoseidonHasher;
@@ -195,6 +196,8 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
+        let skip_signature = self.account.is_signer_interactive();
+
         let prepared = PreparedDeclarationV2 {
             account: self.account,
             inner: RawDeclarationV2 {
@@ -204,13 +207,19 @@ where
                 max_fee: Felt::ZERO,
             },
         };
-        let declare = prepared.get_declare_request(true).await?;
+        let declare = prepared.get_declare_request(true, skip_signature).await?;
 
         self.account
             .provider()
             .estimate_fee_single(
                 BroadcastedTransaction::Declare(BroadcastedDeclareTransaction::V2(declare)),
-                [],
+                if skip_signature {
+                    // Validation would fail since real signature was not requested
+                    vec![SimulationFlagForEstimateFee::SkipValidate]
+                } else {
+                    // With the correct signature in place, run validation for accurate results
+                    vec![]
+                },
                 self.account.block_id(),
             )
             .await
@@ -223,6 +232,16 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
+        let skip_signature = if self.account.is_signer_interactive() {
+            // If signer is interactive, we would try to minimize signing requests. However, if the
+            // caller has decided to not skip validation, it's best we still request a real
+            // signature, as otherwise the simulation would most likely fail.
+            skip_validate
+        } else {
+            // Signing with non-interactive signers is cheap so always request signatures.
+            false
+        };
+
         let prepared = PreparedDeclarationV2 {
             account: self.account,
             inner: RawDeclarationV2 {
@@ -232,7 +251,7 @@ where
                 max_fee: self.max_fee.unwrap_or_default(),
             },
         };
-        let declare = prepared.get_declare_request(true).await?;
+        let declare = prepared.get_declare_request(true, skip_signature).await?;
 
         let mut flags = vec![];
 
@@ -470,6 +489,8 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
+        let skip_signature = self.account.is_signer_interactive();
+
         let prepared = PreparedDeclarationV3 {
             account: self.account,
             inner: RawDeclarationV3 {
@@ -480,13 +501,19 @@ where
                 gas_price: 0,
             },
         };
-        let declare = prepared.get_declare_request(true).await?;
+        let declare = prepared.get_declare_request(true, skip_signature).await?;
 
         self.account
             .provider()
             .estimate_fee_single(
                 BroadcastedTransaction::Declare(BroadcastedDeclareTransaction::V3(declare)),
-                [],
+                if skip_signature {
+                    // Validation would fail since real signature was not requested
+                    vec![SimulationFlagForEstimateFee::SkipValidate]
+                } else {
+                    // With the correct signature in place, run validation for accurate results
+                    vec![]
+                },
                 self.account.block_id(),
             )
             .await
@@ -499,6 +526,16 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
+        let skip_signature = if self.account.is_signer_interactive() {
+            // If signer is interactive, we would try to minimize signing requests. However, if the
+            // caller has decided to not skip validation, it's best we still request a real
+            // signature, as otherwise the simulation would most likely fail.
+            skip_validate
+        } else {
+            // Signing with non-interactive signers is cheap so always request signatures.
+            false
+        };
+
         let prepared = PreparedDeclarationV3 {
             account: self.account,
             inner: RawDeclarationV3 {
@@ -509,7 +546,7 @@ where
                 gas_price: self.gas_price.unwrap_or_default(),
             },
         };
-        let declare = prepared.get_declare_request(true).await?;
+        let declare = prepared.get_declare_request(true, skip_signature).await?;
 
         let mut flags = vec![];
 
@@ -673,6 +710,8 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
+        let skip_signature = self.account.is_signer_interactive();
+
         let prepared = PreparedLegacyDeclaration {
             account: self.account,
             inner: RawLegacyDeclaration {
@@ -681,13 +720,19 @@ where
                 max_fee: Felt::ZERO,
             },
         };
-        let declare = prepared.get_declare_request(true).await?;
+        let declare = prepared.get_declare_request(true, skip_signature).await?;
 
         self.account
             .provider()
             .estimate_fee_single(
                 BroadcastedTransaction::Declare(BroadcastedDeclareTransaction::V1(declare)),
-                [],
+                if skip_signature {
+                    // Validation would fail since real signature was not requested
+                    vec![SimulationFlagForEstimateFee::SkipValidate]
+                } else {
+                    // With the correct signature in place, run validation for accurate results
+                    vec![]
+                },
                 self.account.block_id(),
             )
             .await
@@ -700,6 +745,16 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
+        let skip_signature = if self.account.is_signer_interactive() {
+            // If signer is interactive, we would try to minimize signing requests. However, if the
+            // caller has decided to not skip validation, it's best we still request a real
+            // signature, as otherwise the simulation would most likely fail.
+            skip_validate
+        } else {
+            // Signing with non-interactive signers is cheap so always request signatures.
+            false
+        };
+
         let prepared = PreparedLegacyDeclaration {
             account: self.account,
             inner: RawLegacyDeclaration {
@@ -708,7 +763,7 @@ where
                 max_fee: self.max_fee.unwrap_or_default(),
             },
         };
-        let declare = prepared.get_declare_request(true).await?;
+        let declare = prepared.get_declare_request(true, skip_signature).await?;
 
         let mut flags = vec![];
 
@@ -895,7 +950,7 @@ where
     A: ConnectedAccount,
 {
     pub async fn send(&self) -> Result<DeclareTransactionResult, AccountError<A::SignError>> {
-        let tx_request = self.get_declare_request(false).await?;
+        let tx_request = self.get_declare_request(false, false).await?;
         self.account
             .provider()
             .add_declare_transaction(BroadcastedDeclareTransaction::V2(tx_request))
@@ -903,19 +958,21 @@ where
             .map_err(AccountError::Provider)
     }
 
-    pub async fn get_declare_request(
+    async fn get_declare_request(
         &self,
         query_only: bool,
+        skip_signature: bool,
     ) -> Result<BroadcastedDeclareTransactionV2, AccountError<A::SignError>> {
-        let signature = self
-            .account
-            .sign_declaration_v2(&self.inner, query_only)
-            .await
-            .map_err(AccountError::Signing)?;
-
         Ok(BroadcastedDeclareTransactionV2 {
             max_fee: self.inner.max_fee,
-            signature,
+            signature: if skip_signature {
+                vec![]
+            } else {
+                self.account
+                    .sign_declaration_v2(&self.inner, query_only)
+                    .await
+                    .map_err(AccountError::Signing)?
+            },
             nonce: self.inner.nonce,
             contract_class: self.inner.contract_class.clone(),
             compiled_class_hash: self.inner.compiled_class_hash,
@@ -942,7 +999,7 @@ where
     A: ConnectedAccount,
 {
     pub async fn send(&self) -> Result<DeclareTransactionResult, AccountError<A::SignError>> {
-        let tx_request = self.get_declare_request(false).await?;
+        let tx_request = self.get_declare_request(false, false).await?;
         self.account
             .provider()
             .add_declare_transaction(BroadcastedDeclareTransaction::V3(tx_request))
@@ -950,20 +1007,22 @@ where
             .map_err(AccountError::Provider)
     }
 
-    pub async fn get_declare_request(
+    async fn get_declare_request(
         &self,
         query_only: bool,
+        skip_signature: bool,
     ) -> Result<BroadcastedDeclareTransactionV3, AccountError<A::SignError>> {
-        let signature = self
-            .account
-            .sign_declaration_v3(&self.inner, query_only)
-            .await
-            .map_err(AccountError::Signing)?;
-
         Ok(BroadcastedDeclareTransactionV3 {
             sender_address: self.account.address(),
             compiled_class_hash: self.inner.compiled_class_hash,
-            signature,
+            signature: if skip_signature {
+                vec![]
+            } else {
+                self.account
+                    .sign_declaration_v3(&self.inner, query_only)
+                    .await
+                    .map_err(AccountError::Signing)?
+            },
             nonce: self.inner.nonce,
             contract_class: self.inner.contract_class.clone(),
             resource_bounds: ResourceBoundsMapping {
@@ -1008,7 +1067,7 @@ where
     A: ConnectedAccount,
 {
     pub async fn send(&self) -> Result<DeclareTransactionResult, AccountError<A::SignError>> {
-        let tx_request = self.get_declare_request(false).await?;
+        let tx_request = self.get_declare_request(false, false).await?;
         self.account
             .provider()
             .add_declare_transaction(BroadcastedDeclareTransaction::V1(tx_request))
@@ -1016,21 +1075,23 @@ where
             .map_err(AccountError::Provider)
     }
 
-    pub async fn get_declare_request(
+    async fn get_declare_request(
         &self,
         query_only: bool,
+        skip_signature: bool,
     ) -> Result<BroadcastedDeclareTransactionV1, AccountError<A::SignError>> {
-        let signature = self
-            .account
-            .sign_legacy_declaration(&self.inner, query_only)
-            .await
-            .map_err(AccountError::Signing)?;
-
         let compressed_class = self.inner.contract_class.compress().unwrap();
 
         Ok(BroadcastedDeclareTransactionV1 {
             max_fee: self.inner.max_fee,
-            signature,
+            signature: if skip_signature {
+                vec![]
+            } else {
+                self.account
+                    .sign_legacy_declaration(&self.inner, query_only)
+                    .await
+                    .map_err(AccountError::Signing)?
+            },
             nonce: self.inner.nonce,
             contract_class: Arc::new(compressed_class),
             sender_address: self.account.address(),

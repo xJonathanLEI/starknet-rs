@@ -170,6 +170,10 @@ where
 
         Ok(vec![signature.r, signature.s])
     }
+
+    fn is_signer_interactive(&self) -> bool {
+        self.signer.is_interactive()
+    }
 }
 
 impl<P, S> ExecutionEncoder for SingleOwnerAccount<P, S>

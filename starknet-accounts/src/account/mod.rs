@@ -55,6 +55,14 @@ pub trait Account: ExecutionEncoder + Sized {
         query_only: bool,
     ) -> Result<Vec<Felt>, Self::SignError>;
 
+    /// Whether the underlying signer implementation is interactive, such as a hardware wallet.
+    /// Implementations should return `true` if the signing operation is very expensive, even if not
+    /// strictly "interactive" as in requiring human input.
+    ///
+    /// This affects how an account makes decision on whether to request a real signature for
+    /// estimation/simulation purposes.
+    fn is_signer_interactive(&self) -> bool;
+
     fn execute_v1(&self, calls: Vec<Call>) -> ExecutionV1<Self> {
         ExecutionV1::new(calls, self)
     }
@@ -354,6 +362,10 @@ where
             .sign_legacy_declaration(legacy_declaration, query_only)
             .await
     }
+
+    fn is_signer_interactive(&self) -> bool {
+        (*self).is_signer_interactive()
+    }
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
@@ -417,6 +429,10 @@ where
             .sign_legacy_declaration(legacy_declaration, query_only)
             .await
     }
+
+    fn is_signer_interactive(&self) -> bool {
+        self.as_ref().is_signer_interactive()
+    }
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
@@ -479,6 +495,10 @@ where
         self.as_ref()
             .sign_legacy_declaration(legacy_declaration, query_only)
             .await
+    }
+
+    fn is_signer_interactive(&self) -> bool {
+        self.as_ref().is_signer_interactive()
     }
 }
 

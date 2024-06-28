@@ -15,4 +15,14 @@ pub trait Signer {
     async fn get_public_key(&self) -> Result<VerifyingKey, Self::GetPublicKeyError>;
 
     async fn sign_hash(&self, hash: &Felt) -> Result<Signature, Self::SignError>;
+
+    /// Whether the underlying signer implementation is interactive, such as a hardware wallet.
+    /// Implementations should return `true` if the signing operation is very expensive, even if not
+    /// strictly "interactive" as in requiring human input.
+    ///
+    /// This mainly affects the transaction simulation strategy used by higher-level types. With
+    /// non-interactive signers, it's fine to sign multiple times for getting the most accurate
+    /// estimation/simulation possible; but with interactive signers, they would accept less
+    /// accurate results to minimize signing requests.
+    fn is_interactive(&self) -> bool;
 }
