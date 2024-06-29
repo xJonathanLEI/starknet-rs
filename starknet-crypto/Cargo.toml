@@ -29,7 +29,7 @@ starknet-types-core = { version = "0.1.3", default-features = false, features = 
 
 [features]
 default = ["std", "signature-display"]
-std = []
+std = ["starknet-types-core/std"]
 alloc = ["hex?/alloc", "starknet-types-core/alloc"]
 signature-display = ["dep:hex", "alloc"]
 
