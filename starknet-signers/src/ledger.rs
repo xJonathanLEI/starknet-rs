@@ -5,6 +5,7 @@ use coins_ledger::{
     APDUAnswer, APDUCommand, Ledger,
 };
 use crypto_bigint::{ArrayEncoding, U256};
+use semver::Version;
 use starknet_core::{crypto::Signature, types::Felt};
 
 use crate::{Signer, VerifyingKey};
@@ -19,6 +20,7 @@ const EIP_2645_PURPOSE: u32 = 0x80000a55;
 
 const EIP_2645_PATH_LENGTH: usize = 6;
 
+const VERSION_SIZE: usize = 3;
 const PUBLIC_KEY_SIZE: usize = 65;
 const SIGNATURE_SIZE: usize = 65;
 
@@ -48,6 +50,9 @@ pub enum LedgerError {
     #[error("unexpected response length - expected: {expected}; actual: {actual}")]
     UnexpectedResponseLength { expected: usize, actual: usize },
 }
+
+/// The `GetPubKey` Ledger command.
+struct GetVersion;
 
 /// The `GetPubKey` Ledger command.
 struct GetPubKeyCommand {
@@ -124,6 +129,21 @@ impl LedgerStarknetApp {
         let transport = Ledger::init().await?;
 
         Ok(Self { transport })
+    }
+
+    /// Gets the Ledger app version.
+    pub async fn get_version(&self) -> Result<Version, LedgerError> {
+        let response = self.transport.exchange(&GetVersion.into()).await?;
+
+        let data = get_apdu_data(&response)?;
+        if data.len() != VERSION_SIZE {
+            return Err(LedgerError::UnexpectedResponseLength {
+                expected: VERSION_SIZE,
+                actual: data.len(),
+            });
+        }
+
+        Ok(Version::new(data[0] as u64, data[1] as u64, data[2] as u64))
     }
 
     /// Gets a public key from the app for a particular derivation path, with optional on-device
@@ -239,6 +259,19 @@ impl LedgerStarknetApp {
 impl From<coins_ledger::LedgerError> for LedgerError {
     fn from(value: coins_ledger::LedgerError) -> Self {
         Self::TransportError(value)
+    }
+}
+
+impl From<GetVersion> for APDUCommand {
+    fn from(_value: GetVersion) -> Self {
+        Self {
+            cla: CLA_STARKNET,
+            ins: 0x00,
+            p1: 0x00,
+            p2: 0x00,
+            data: APDUData::new(&[]),
+            response_len: None,
+        }
     }
 }
 
