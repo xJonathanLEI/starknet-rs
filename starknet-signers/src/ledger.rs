@@ -143,7 +143,7 @@ impl LedgerStarknetApp {
     /// - `1470455285'`, decimal for `0x57a55df5`, is the 31 lowest bits for `sha256(starkli)`
     ///
     /// Currently, the Ledger app only enforces the length and the first level of the path.
-    async fn get_public_key(
+    pub async fn get_public_key(
         &self,
         derivation_path: DerivationPath,
         display: bool,
@@ -190,7 +190,7 @@ impl LedgerStarknetApp {
     /// - `1470455285'`, decimal for `0x57a55df5`, is the 31 lowest bits for `sha256(starkli)`
     ///
     /// Currently, the Ledger app only enforces the length and the first level of the path.
-    async fn sign_hash(
+    pub async fn sign_hash(
         &self,
         derivation_path: DerivationPath,
         hash: &Felt,
