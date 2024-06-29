@@ -21,6 +21,7 @@ thiserror = "1.0.40"
 crypto-bigint = { version = "0.5.1", default-features = false }
 rand = { version = "0.8.5", features = ["std_rng"] }
 coins-bip32 = { version = "0.11.1", optional = true }
+semver = { version = "1.0.23", optional = true }
 
 # Using a fork until https://github.com/summa-tx/coins/issues/137 is fixed
 coins-ledger = { git = "https://github.com/xJonathanLEI/coins", rev = "0e3be5db0b18b683433de6b666556b99c726e785", default-features = false, optional = true }
@@ -37,4 +38,4 @@ wasm-bindgen-test = "0.3.34"
 [features]
 default = []
 
-ledger = ["coins-bip32", "coins-ledger"]
+ledger = ["coins-bip32", "coins-ledger", "semver"]
