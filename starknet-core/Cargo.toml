@@ -39,7 +39,7 @@ wasm-bindgen-test = "0.3.34"
 
 [features]
 default = ["std"]
-std = ["dep:flate2", "starknet-crypto/std"]
+std = ["dep:flate2", "starknet-crypto/std", "starknet-types-core/std"]
 no_unknown_fields = []
 
 [[bench]]
