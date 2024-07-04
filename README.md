@@ -35,7 +35,7 @@ starknet = { git = "https://github.com/xJonathanLEI/starknet-rs" }
 - [x] Sequencer gateway / feeder gateway client
 - [x] Full node JSON-RPC API client
 - [x] Smart contract deployment
-- [x] Signer for using [IAccount](https://github.com/OpenZeppelin/cairo-contracts/blob/main/src/openzeppelin/account/IAccount.cairo) account contracts
+- [x] Signer for using [IAccount](https://github.com/OpenZeppelin/cairo-contracts/blob/release-v0.6.1/src/openzeppelin/account/IAccount.cairo) account contracts
 - [ ] Strongly-typed smart contract binding code generation from ABI
 - [x] Ledger hardware wallet support
 
