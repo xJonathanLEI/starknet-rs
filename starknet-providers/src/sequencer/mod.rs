@@ -174,9 +174,6 @@ enum RawFieldElementResponse {
     SequencerError(SequencerError),
 }
 
-#[derive(Deserialize)]
-struct EmptyObject {}
-
 impl SequencerGatewayProvider {
     fn extend_gateway_url(&self, segment: &str) -> Url {
         let mut url = self.gateway_url.clone();
