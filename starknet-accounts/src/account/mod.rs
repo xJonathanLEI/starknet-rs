@@ -92,7 +92,7 @@ pub trait Account: ExecutionEncoder + Sized {
         DeclarationV3::new(contract_class, compiled_class_hash, self)
     }
 
-    #[deprecated = "use version specific variants (`declare_v1` & `declare_v3`) instead"]
+    #[deprecated = "use version specific variants (`declare_v2` & `declare_v3`) instead"]
     fn declare(
         &self,
         contract_class: Arc<FlattenedSierraClass>,
