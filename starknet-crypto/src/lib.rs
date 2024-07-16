@@ -20,9 +20,7 @@ pub use starknet_types_core::felt::Felt;
 
 pub use pedersen_hash::pedersen_hash;
 
-pub use poseidon_hash::{
-    poseidon_hash, poseidon_hash_many, poseidon_hash_single, poseidon_permute_comp, PoseidonHasher,
-};
+pub use poseidon_hash::{poseidon_hash, poseidon_hash_many, poseidon_hash_single, PoseidonHasher};
 
 pub use ecdsa::{get_public_key, recover, sign, verify, ExtendedSignature, Signature};
 
