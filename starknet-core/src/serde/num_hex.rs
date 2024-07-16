@@ -1,6 +1,5 @@
 pub mod u64 {
     use alloc::{fmt::Formatter, format};
-    use core::mem;
 
     use serde::{de::Visitor, Deserializer, Serializer};
 
@@ -13,7 +12,7 @@ pub mod u64 {
         if serializer.is_human_readable() {
             serializer.serialize_str(&format!("{value:#x}"))
         } else {
-            serializer.serialize_bytes(&value.to_be_bytes())
+            serializer.serialize_u64(*value)
         }
     }
 
@@ -22,9 +21,9 @@ pub mod u64 {
         D: Deserializer<'de>,
     {
         if deserializer.is_human_readable() {
-            deserializer.deserialize_any(NumHexVisitor)
+            deserializer.deserialize_str(NumHexVisitor)
         } else {
-            deserializer.deserialize_bytes(NumHexVisitor)
+            deserializer.deserialize_u64(NumHexVisitor)
         }
     }
 
@@ -43,10 +42,11 @@ pub mod u64 {
                 .map_err(|err| serde::de::Error::custom(format!("invalid u64 hex string: {err}")))
         }
 
-        fn visit_bytes<E: serde::de::Error>(self, v: &[u8]) -> Result<Self::Value, E> {
-            <[u8; mem::size_of::<u64>()]>::try_from(v)
-                .map(u64::from_be_bytes)
-                .map_err(serde::de::Error::custom)
+        fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+        where
+            E: serde::de::Error,
+        {
+            Ok(v)
         }
     }
 }
@@ -65,14 +65,13 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn bin_ser() {
         let r = bincode::serialize(&TestStruct(0x1234)).unwrap();
-        assert_eq!(r, hex!("0800000000000000 0000000000001234"));
+        assert_eq!(r, hex!("3412000000000000"));
     }
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn bin_deser() {
-        let r =
-            bincode::deserialize::<TestStruct>(&hex!("0800000000000000 0000000000001234")).unwrap();
+        let r = bincode::deserialize::<TestStruct>(&hex!("3412000000000000")).unwrap();
         assert_eq!(r.0, 0x1234);
     }
 }
