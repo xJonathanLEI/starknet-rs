@@ -163,17 +163,56 @@ impl<'de> Visitor<'de> for UfePendingBlockHashVisitor {
 mod tests {
     use super::*;
 
-    use serde::Deserialize;
+    use hex_literal::hex;
+    use serde::{Deserialize, Serialize};
     use serde_with::serde_as;
 
     #[serde_as]
+    #[derive(Serialize, Deserialize)]
+    struct TestStruct(#[serde_as(as = "UfeHex")] pub Felt);
+
+    #[serde_as]
     #[derive(Deserialize)]
-    struct TestStruct(#[serde_as(as = "UfeHexOption")] pub Option<Felt>);
+    struct TestOptionStruct(#[serde_as(as = "UfeHexOption")] pub Option<Felt>);
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn empty_string_deser() {
-        let r = serde_json::from_str::<TestStruct>("\"\"").unwrap();
+        let r = serde_json::from_str::<TestOptionStruct>("\"\"").unwrap();
         assert_eq!(r.0, None);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn bin_ser() {
+        let r = bincode::serialize(&TestStruct(Felt::ONE)).unwrap();
+        assert_eq!(
+            r,
+            hex!(
+                "2000000000000000 0000000000000000000000000000000000000000000000000000000000000001"
+            )
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn bin_deser() {
+        let r = bincode::deserialize::<TestStruct>(&hex!(
+            "2000000000000000 0000000000000000000000000000000000000000000000000000000000000001"
+        ))
+        .unwrap();
+        assert_eq!(r.0, Felt::ONE);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn bin_deser_out_of_range() {
+        if bincode::deserialize::<TestStruct>(&hex!(
+            "2000000000000000 0800000000000011000000000000000000000000000000000000000000000001"
+        ))
+        .is_ok()
+        {
+            panic!("deserialization should fail")
+        }
     }
 }

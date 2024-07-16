@@ -50,3 +50,29 @@ pub mod u64 {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use hex_literal::hex;
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Serialize, Deserialize)]
+    struct TestStruct(#[serde(with = "u64")] pub u64);
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn bin_ser() {
+        let r = bincode::serialize(&TestStruct(0x1234)).unwrap();
+        assert_eq!(r, hex!("0800000000000000 0000000000001234"));
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn bin_deser() {
+        let r =
+            bincode::deserialize::<TestStruct>(&hex!("0800000000000000 0000000000001234")).unwrap();
+        assert_eq!(r.0, 0x1234);
+    }
+}
