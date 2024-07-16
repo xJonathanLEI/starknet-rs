@@ -37,7 +37,7 @@ mod tests {
             ),
         ];
 
-        for (in1, in2, expected_hash) in test_data.into_iter() {
+        for (in1, in2, expected_hash) in test_data {
             let in1 = field_element_from_be_hex(in1);
             let in2 = field_element_from_be_hex(in2);
             let expected_hash = field_element_from_be_hex(expected_hash);

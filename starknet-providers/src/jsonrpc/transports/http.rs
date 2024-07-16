@@ -40,8 +40,8 @@ impl HttpTransport {
         }
     }
 
-    /// Consumes the current [HttpTransport] instance and returns a new one with the header
-    /// appended. Same as calling [add_header].
+    /// Consumes the current [`HttpTransport`] instance and returns a new one with the header
+    /// appended. Same as calling [`add_header`].
     pub fn with_header(self, name: String, value: String) -> Self {
         let mut headers = self.headers;
         headers.push((name, value));
@@ -88,7 +88,7 @@ impl JsonRpcTransport for HttpTransport {
             .post(self.url.clone())
             .body(request_body)
             .header("Content-Type", "application/json");
-        for (name, value) in self.headers.iter() {
+        for (name, value) in &self.headers {
             request = request.header(name, value);
         }
 

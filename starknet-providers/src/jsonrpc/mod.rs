@@ -155,7 +155,7 @@ pub enum JsonRpcResponse<T> {
     Error { id: u64, error: JsonRpcError },
 }
 
-/// Failures trying to parse a [JsonRpcError] into [StarknetError].
+/// Failures trying to parse a [`JsonRpcError`] into [`StarknetError`].
 #[derive(Debug, thiserror::Error)]
 pub enum JsonRpcErrorConversionError {
     #[error("unknown error code")]
@@ -175,7 +175,7 @@ struct Felt(#[serde_as(as = "UfeHex")] pub FeltPrimitive);
 struct FeltArray(#[serde_as(as = "Vec<UfeHex>")] pub Vec<FeltPrimitive>);
 
 impl<T> JsonRpcClient<T> {
-    pub fn new(transport: T) -> Self {
+    pub const fn new(transport: T) -> Self {
         Self { transport }
     }
 }
@@ -884,16 +884,16 @@ impl TryFrom<&JsonRpcError> for StarknetError {
 
     fn try_from(value: &JsonRpcError) -> Result<Self, Self::Error> {
         match value.code {
-            1 => Ok(StarknetError::FailedToReceiveTransaction),
-            20 => Ok(StarknetError::ContractNotFound),
-            24 => Ok(StarknetError::BlockNotFound),
-            27 => Ok(StarknetError::InvalidTransactionIndex),
-            28 => Ok(StarknetError::ClassHashNotFound),
-            29 => Ok(StarknetError::TransactionHashNotFound),
-            31 => Ok(StarknetError::PageSizeTooBig),
-            32 => Ok(StarknetError::NoBlocks),
-            33 => Ok(StarknetError::InvalidContinuationToken),
-            34 => Ok(StarknetError::TooManyKeysInFilter),
+            1 => Ok(Self::FailedToReceiveTransaction),
+            20 => Ok(Self::ContractNotFound),
+            24 => Ok(Self::BlockNotFound),
+            27 => Ok(Self::InvalidTransactionIndex),
+            28 => Ok(Self::ClassHashNotFound),
+            29 => Ok(Self::TransactionHashNotFound),
+            31 => Ok(Self::PageSizeTooBig),
+            32 => Ok(Self::NoBlocks),
+            33 => Ok(Self::InvalidContinuationToken),
+            34 => Ok(Self::TooManyKeysInFilter),
             40 => {
                 let data = ContractErrorData::deserialize(
                     value
@@ -902,7 +902,7 @@ impl TryFrom<&JsonRpcError> for StarknetError {
                         .ok_or(JsonRpcErrorConversionError::MissingData)?,
                 )
                 .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
-                Ok(StarknetError::ContractError(data))
+                Ok(Self::ContractError(data))
             }
             41 => {
                 let data = TransactionExecutionErrorData::deserialize(
@@ -912,12 +912,12 @@ impl TryFrom<&JsonRpcError> for StarknetError {
                         .ok_or(JsonRpcErrorConversionError::MissingData)?,
                 )
                 .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
-                Ok(StarknetError::TransactionExecutionError(data))
+                Ok(Self::TransactionExecutionError(data))
             }
-            51 => Ok(StarknetError::ClassAlreadyDeclared),
-            52 => Ok(StarknetError::InvalidTransactionNonce),
-            53 => Ok(StarknetError::InsufficientMaxFee),
-            54 => Ok(StarknetError::InsufficientAccountBalance),
+            51 => Ok(Self::ClassAlreadyDeclared),
+            52 => Ok(Self::InvalidTransactionNonce),
+            53 => Ok(Self::InsufficientMaxFee),
+            54 => Ok(Self::InsufficientAccountBalance),
             55 => {
                 let data = String::deserialize(
                     value
@@ -926,15 +926,15 @@ impl TryFrom<&JsonRpcError> for StarknetError {
                         .ok_or(JsonRpcErrorConversionError::MissingData)?,
                 )
                 .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
-                Ok(StarknetError::ValidationFailure(data))
+                Ok(Self::ValidationFailure(data))
             }
-            56 => Ok(StarknetError::CompilationFailed),
-            57 => Ok(StarknetError::ContractClassSizeIsTooLarge),
-            58 => Ok(StarknetError::NonAccount),
-            59 => Ok(StarknetError::DuplicateTx),
-            60 => Ok(StarknetError::CompiledClassHashMismatch),
-            61 => Ok(StarknetError::UnsupportedTxVersion),
-            62 => Ok(StarknetError::UnsupportedContractClassVersion),
+            56 => Ok(Self::CompilationFailed),
+            57 => Ok(Self::ContractClassSizeIsTooLarge),
+            58 => Ok(Self::NonAccount),
+            59 => Ok(Self::DuplicateTx),
+            60 => Ok(Self::CompiledClassHashMismatch),
+            61 => Ok(Self::UnsupportedTxVersion),
+            62 => Ok(Self::UnsupportedContractClassVersion),
             63 => {
                 let data = String::deserialize(
                     value
@@ -943,7 +943,7 @@ impl TryFrom<&JsonRpcError> for StarknetError {
                         .ok_or(JsonRpcErrorConversionError::MissingData)?,
                 )
                 .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
-                Ok(StarknetError::UnexpectedError(data))
+                Ok(Self::UnexpectedError(data))
             }
             10 => {
                 let data = NoTraceAvailableErrorData::deserialize(
@@ -953,7 +953,7 @@ impl TryFrom<&JsonRpcError> for StarknetError {
                         .ok_or(JsonRpcErrorConversionError::MissingData)?,
                 )
                 .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
-                Ok(StarknetError::NoTraceAvailable(data))
+                Ok(Self::NoTraceAvailable(data))
             }
             _ => Err(JsonRpcErrorConversionError::UnknownCode),
         }

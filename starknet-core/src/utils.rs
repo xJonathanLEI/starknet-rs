@@ -126,7 +126,7 @@ pub fn get_storage_var_address(var_name: &str, args: &[Felt]) -> Result<Felt, No
     let var_name_bytes = var_name.as_bytes();
     if var_name_bytes.is_ascii() {
         let mut res = starknet_keccak(var_name_bytes);
-        for arg in args.iter() {
+        for arg in args {
             res = pedersen_hash(&res, arg);
         }
         Ok(normalize_address(res))
@@ -135,7 +135,7 @@ pub fn get_storage_var_address(var_name: &str, args: &[Felt]) -> Result<Felt, No
     }
 }
 
-/// Converts Cairo short string to [Felt].
+/// Converts Cairo short string to [`Felt`].
 pub fn cairo_short_string_to_felt(str: &str) -> Result<Felt, CairoShortStringToFeltError> {
     if !str.is_ascii() {
         return Err(CairoShortStringToFeltError::NonAsciiCharacter);
@@ -153,7 +153,7 @@ pub fn cairo_short_string_to_felt(str: &str) -> Result<Felt, CairoShortStringToF
     Ok(Felt::from_bytes_be(&buffer))
 }
 
-/// Converts [Felt] to Cairo short string.
+/// Converts [`Felt`] to Cairo short string.
 pub fn parse_cairo_short_string(felt: &Felt) -> Result<String, ParseCairoShortStringError> {
     if felt == &Felt::ZERO {
         return Ok(String::new());
@@ -165,7 +165,7 @@ pub fn parse_cairo_short_string(felt: &Felt) -> Result<String, ParseCairoShortSt
     }
 
     let mut buffer = String::with_capacity(31);
-    for byte in be_bytes.into_iter() {
+    for byte in be_bytes {
         if byte == 0u8 {
             if !buffer.is_empty() {
                 return Err(ParseCairoShortStringError::UnexpectedNullTerminator);
@@ -324,7 +324,7 @@ mod tests {
             ),
         ];
 
-        for (str, felt_dec) in data.into_iter() {
+        for (str, felt_dec) in data {
             assert_eq!(
                 cairo_short_string_to_felt(str).unwrap(),
                 Felt::from_dec_str(felt_dec).unwrap()
@@ -364,7 +364,7 @@ mod tests {
             ),
         ];
 
-        for (str, felt_dec) in data.into_iter() {
+        for (str, felt_dec) in data {
             assert_eq!(
                 parse_cairo_short_string(&Felt::from_dec_str(felt_dec).unwrap()).unwrap(),
                 str

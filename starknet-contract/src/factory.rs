@@ -20,6 +20,7 @@ const SELECTOR_DEPLOYCONTRACT: Felt = Felt::from_raw([
     18249998464715511309,
 ]);
 
+#[derive(Debug)]
 pub struct ContractFactory<A> {
     class_hash: Felt,
     udc_address: Felt,
@@ -28,8 +29,9 @@ pub struct ContractFactory<A> {
 
 /// Abstraction over contract deployment via the UDC. This type uses `INVOKE` v1 transactions under
 /// the hood, and hence pays transaction fees in ETH. To use v3 transactions for STRK fee payment,
-/// use [DeploymentV3] instead.
+/// use [`DeploymentV3`] instead.
 #[must_use]
+#[derive(Debug)]
 pub struct DeploymentV1<'f, A> {
     factory: &'f ContractFactory<A>,
     constructor_calldata: Vec<Felt>,
@@ -43,8 +45,9 @@ pub struct DeploymentV1<'f, A> {
 
 /// Abstraction over contract deployment via the UDC. This type uses `INVOKE` v3 transactions under
 /// the hood, and hence pays transaction fees in STRK. To use v1 transactions for ETH fee payment,
-/// use [DeploymentV1] instead.
+/// use [`DeploymentV1`] instead.
 #[must_use]
+#[derive(Debug)]
 pub struct DeploymentV3<'f, A> {
     factory: &'f ContractFactory<A>,
     constructor_calldata: Vec<Felt>,
@@ -59,11 +62,11 @@ pub struct DeploymentV3<'f, A> {
 }
 
 impl<A> ContractFactory<A> {
-    pub fn new(class_hash: Felt, account: A) -> Self {
+    pub const fn new(class_hash: Felt, account: A) -> Self {
         Self::new_with_udc(class_hash, account, UDC_ADDRESS)
     }
 
-    pub fn new_with_udc(class_hash: Felt, account: A, udc_address: Felt) -> Self {
+    pub const fn new_with_udc(class_hash: Felt, account: A, udc_address: Felt) -> Self {
         Self {
             class_hash,
             udc_address,
@@ -76,12 +79,12 @@ impl<A> ContractFactory<A>
 where
     A: Account,
 {
-    pub fn deploy_v1(
+    pub const fn deploy_v1(
         &self,
         constructor_calldata: Vec<Felt>,
         salt: Felt,
         unique: bool,
-    ) -> DeploymentV1<A> {
+    ) -> DeploymentV1<'_, A> {
         DeploymentV1 {
             factory: self,
             constructor_calldata,
@@ -93,12 +96,12 @@ where
         }
     }
 
-    pub fn deploy_v3(
+    pub const fn deploy_v3(
         &self,
         constructor_calldata: Vec<Felt>,
         salt: Felt,
         unique: bool,
-    ) -> DeploymentV3<A> {
+    ) -> DeploymentV3<'_, A> {
         DeploymentV3 {
             factory: self,
             constructor_calldata,
@@ -113,12 +116,12 @@ where
     }
 
     #[deprecated = "use version specific variants (`deploy_v1` & `deploy_v3`) instead"]
-    pub fn deploy(
+    pub const fn deploy(
         &self,
         constructor_calldata: Vec<Felt>,
         salt: Felt,
         unique: bool,
-    ) -> DeploymentV1<A> {
+    ) -> DeploymentV1<'_, A> {
         self.deploy_v1(constructor_calldata, salt, unique)
     }
 }
@@ -232,7 +235,7 @@ where
     A: ConnectedAccount + Sync,
 {
     pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
-        let execution: ExecutionV1<A> = self.into();
+        let execution: ExecutionV1<'_, A> = self.into();
         execution.estimate_fee().await
     }
 
@@ -241,12 +244,12 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
-        let execution: ExecutionV1<A> = self.into();
+        let execution: ExecutionV1<'_, A> = self.into();
         execution.simulate(skip_validate, skip_fee_charge).await
     }
 
     pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
-        let execution: ExecutionV1<A> = self.into();
+        let execution: ExecutionV1<'_, A> = self.into();
         execution.send().await
     }
 }
@@ -256,7 +259,7 @@ where
     A: ConnectedAccount + Sync,
 {
     pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
-        let execution: ExecutionV3<A> = self.into();
+        let execution: ExecutionV3<'_, A> = self.into();
         execution.estimate_fee().await
     }
 
@@ -265,12 +268,12 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
-        let execution: ExecutionV3<A> = self.into();
+        let execution: ExecutionV3<'_, A> = self.into();
         execution.simulate(skip_validate, skip_fee_charge).await
     }
 
     pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
-        let execution: ExecutionV3<A> = self.into();
+        let execution: ExecutionV3<'_, A> = self.into();
         execution.send().await
     }
 }

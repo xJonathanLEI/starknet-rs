@@ -41,7 +41,7 @@ const QUERY_VERSION_THREE: Felt = Felt::from_raw([
 ]);
 
 impl<'a, A> ExecutionV1<'a, A> {
-    pub fn new(calls: Vec<Call>, account: &'a A) -> Self {
+    pub const fn new(calls: Vec<Call>, account: &'a A) -> Self {
         Self {
             account,
             calls,
@@ -72,8 +72,8 @@ impl<'a, A> ExecutionV1<'a, A> {
         }
     }
 
-    /// Calling this function after manually specifying `nonce` and `max_fee` turns [ExecutionV1] into
-    /// [PreparedExecutionV1]. Returns `Err` if either field is `None`.
+    /// Calling this function after manually specifying `nonce` and `max_fee` turns [`ExecutionV1`] into
+    /// [`PreparedExecutionV1`]. Returns `Err` if either field is `None`.
     pub fn prepared(self) -> Result<PreparedExecutionV1<'a, A>, NotPreparedError> {
         let nonce = self.nonce.ok_or(NotPreparedError)?;
         let max_fee = self.max_fee.ok_or(NotPreparedError)?;
@@ -90,7 +90,7 @@ impl<'a, A> ExecutionV1<'a, A> {
 }
 
 impl<'a, A> ExecutionV3<'a, A> {
-    pub fn new(calls: Vec<Call>, account: &'a A) -> Self {
+    pub const fn new(calls: Vec<Call>, account: &'a A) -> Self {
         Self {
             account,
             calls,
@@ -138,7 +138,7 @@ impl<'a, A> ExecutionV3<'a, A> {
     }
 
     /// Calling this function after manually specifying `nonce`, `gas` and `gas_price` turns
-    /// [ExecutionV3] into [PreparedExecutionV3]. Returns `Err` if any field is `None`.
+    /// [`ExecutionV3`] into [`PreparedExecutionV3`]. Returns `Err` if any field is `None`.
     pub fn prepared(self) -> Result<PreparedExecutionV3<'a, A>, NotPreparedError> {
         let nonce = self.nonce.ok_or(NotPreparedError)?;
         let gas = self.gas.ok_or(NotPreparedError)?;
@@ -583,11 +583,11 @@ impl RawExecutionV1 {
         &self.calls
     }
 
-    pub fn nonce(&self) -> Felt {
+    pub const fn nonce(&self) -> Felt {
         self.nonce
     }
 
-    pub fn max_fee(&self) -> Felt {
+    pub const fn max_fee(&self) -> Felt {
         self.max_fee
     }
 }
@@ -667,15 +667,15 @@ impl RawExecutionV3 {
         &self.calls
     }
 
-    pub fn nonce(&self) -> Felt {
+    pub const fn nonce(&self) -> Felt {
         self.nonce
     }
 
-    pub fn gas(&self) -> u64 {
+    pub const fn gas(&self) -> u64 {
         self.gas
     }
 
-    pub fn gas_price(&self) -> u128 {
+    pub const fn gas_price(&self) -> u128 {
         self.gas_price
     }
 }

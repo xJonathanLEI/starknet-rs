@@ -17,7 +17,7 @@ pub struct MsgToL2 {
 impl MsgToL2 {
     /// Calculates the message hash based on the algorithm documented here:
     ///
-    /// https://docs.starknet.io/documentation/architecture_and_concepts/L1-L2_Communication/messaging-mechanism/
+    /// <https://docs.starknet.io/documentation/architecture_and_concepts/L1-L2_Communication/messaging-mechanism/>
     pub fn hash(&self) -> Hash256 {
         let mut hasher = Keccak256::new();
 
@@ -40,7 +40,7 @@ impl MsgToL2 {
         hasher.update((self.payload.len() as u64).to_be_bytes());
 
         // Payload
-        for item in self.payload.iter() {
+        for item in &self.payload {
             hasher.update(item.to_bytes_be());
         }
 
@@ -54,7 +54,7 @@ impl MsgToL2 {
 impl MsgToL1 {
     /// Calculates the message hash based on the algorithm documented here:
     ///
-    /// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/messaging-mechanism/#structure_and_hashing_l2-l1
+    /// <https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/messaging-mechanism/#structure_and_hashing_l2-l1>
     pub fn hash(&self) -> Hash256 {
         let mut hasher = Keccak256::new();
 
@@ -69,7 +69,7 @@ impl MsgToL1 {
         hasher.update((self.payload.len() as u64).to_be_bytes());
 
         // Payload
-        for item in self.payload.iter() {
+        for item in &self.payload {
             hasher.update(item.to_bytes_be());
         }
 

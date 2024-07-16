@@ -246,13 +246,13 @@ pub enum DataAvailabilityMode {
 struct DataAvailabilityModeVisitor;
 
 impl TransactionType {
-    pub fn transaction_hash(&self) -> Felt {
+    pub const fn transaction_hash(&self) -> Felt {
         match self {
-            TransactionType::Declare(inner) => inner.transaction_hash,
-            TransactionType::Deploy(inner) => inner.transaction_hash,
-            TransactionType::DeployAccount(inner) => inner.transaction_hash,
-            TransactionType::InvokeFunction(inner) => inner.transaction_hash,
-            TransactionType::L1Handler(inner) => inner.transaction_hash,
+            Self::Declare(inner) => inner.transaction_hash,
+            Self::Deploy(inner) => inner.transaction_hash,
+            Self::DeployAccount(inner) => inner.transaction_hash,
+            Self::InvokeFunction(inner) => inner.transaction_hash,
+            Self::L1Handler(inner) => inner.transaction_hash,
         }
     }
 }
@@ -281,7 +281,7 @@ impl<'de> Deserialize<'de> for DataAvailabilityMode {
 impl<'de> Visitor<'de> for DataAvailabilityModeVisitor {
     type Value = DataAvailabilityMode;
 
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(formatter, "integer")
     }
 

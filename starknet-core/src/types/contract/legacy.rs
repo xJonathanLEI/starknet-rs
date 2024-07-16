@@ -361,26 +361,26 @@ impl<'de> Deserialize<'de> for RawLegacyAbiEntry {
         let temp_value = serde_json::Value::deserialize(deserializer)?;
         match &temp_value["type"] {
             serde_json::Value::String(type_str) => match &type_str[..] {
-                "constructor" => Ok(RawLegacyAbiEntry::Constructor(
+                "constructor" => Ok(Self::Constructor(
                     RawLegacyConstructor::deserialize(temp_value).map_err(|err| {
                         DeError::custom(format!("invalid constructor variant: {err}"))
                     })?,
                 )),
-                "function" => Ok(RawLegacyAbiEntry::Function(
+                "function" => Ok(Self::Function(
                     RawLegacyFunction::deserialize(temp_value).map_err(|err| {
                         DeError::custom(format!("invalid function variant: {err}"))
                     })?,
                 )),
-                "struct" => Ok(RawLegacyAbiEntry::Struct(
+                "struct" => Ok(Self::Struct(
                     RawLegacyStruct::deserialize(temp_value)
                         .map_err(|err| DeError::custom(format!("invalid struct variant: {err}")))?,
                 )),
-                "l1_handler" => Ok(RawLegacyAbiEntry::L1Handler(
+                "l1_handler" => Ok(Self::L1Handler(
                     RawLegacyL1Handler::deserialize(temp_value).map_err(|err| {
                         DeError::custom(format!("invalid l1_handler variant: {err}"))
                     })?,
                 )),
-                "event" => Ok(RawLegacyAbiEntry::Event(
+                "event" => Ok(Self::Event(
                     RawLegacyEvent::deserialize(temp_value)
                         .map_err(|err| DeError::custom(format!("invalid event variant: {err}")))?,
                 )),
@@ -402,7 +402,7 @@ impl LegacyContractClass {
         // Hashes external entry points
         elements.push({
             let mut buffer = Vec::new();
-            for entrypoint in self.entry_points_by_type.external.iter() {
+            for entrypoint in &self.entry_points_by_type.external {
                 buffer.push(entrypoint.selector);
                 buffer.push(entrypoint.offset.into());
             }
@@ -412,7 +412,7 @@ impl LegacyContractClass {
         // Hashes L1 handler entry points
         elements.push({
             let mut buffer = Vec::new();
-            for entrypoint in self.entry_points_by_type.l1_handler.iter() {
+            for entrypoint in &self.entry_points_by_type.l1_handler {
                 buffer.push(entrypoint.selector);
                 buffer.push(entrypoint.offset.into());
             }
@@ -422,7 +422,7 @@ impl LegacyContractClass {
         // Hashes constructor entry points
         elements.push({
             let mut buffer = Vec::new();
-            for entrypoint in self.entry_points_by_type.constructor.iter() {
+            for entrypoint in &self.entry_points_by_type.constructor {
                 buffer.push(entrypoint.selector);
                 buffer.push(entrypoint.offset.into());
             }
@@ -853,9 +853,7 @@ mod tests {
             include_str!(
                 "../../../test-data/contracts/cairo0/artifacts/pre-0.11.0/event_example.txt"
             ),
-        ]
-        .into_iter()
-        {
+        ] {
             serde_json::from_str::<LegacyContractClass>(raw_artifact).unwrap();
         }
     }
@@ -893,7 +891,6 @@ mod tests {
                 ),
             ),
         ]
-        .into_iter()
         {
             let artifact = serde_json::from_str::<LegacyContractClass>(raw_artifact).unwrap();
             let computed_hash = artifact.class_hash().unwrap();
@@ -938,7 +935,6 @@ mod tests {
                 ),
             ),
         ]
-        .into_iter()
         {
             let artifact = serde_json::from_str::<LegacyContractClass>(raw_artifact).unwrap();
             let computed_hash = artifact.hinted_class_hash().unwrap();

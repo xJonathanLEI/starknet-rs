@@ -16,7 +16,7 @@ use crate::{
 /// Module containing types related to artifacts of contracts compiled with a Cairo 0.x compiler.
 pub mod legacy;
 
-/// Cairo string for "CONTRACT_CLASS_V0.1.0"
+/// Cairo string for `CONTRACT_CLASS_V0.1.0`
 const PREFIX_CONTRACT_CLASS_V0_1_0: Felt = Felt::from_raw([
     37302452645455172,
     18446734822722598327,
@@ -24,7 +24,7 @@ const PREFIX_CONTRACT_CLASS_V0_1_0: Felt = Felt::from_raw([
     5800711240972404213,
 ]);
 
-/// Cairo string for "COMPILED_CLASS_V1"
+/// Cairo string for `COMPILED_CLASS_V1`
 const PREFIX_COMPILED_CLASS_V1: Felt = Felt::from_raw([
     324306817650036332,
     18446744073709549462,
@@ -278,7 +278,7 @@ struct BytecodeSegmentedNode {
 
 /// Internal structure used for post-Sierra-1.5.0 CASM hash calculation.
 ///
-/// Represents a child of [BytecodeSegmentedNode].
+/// Represents a child of [`BytecodeSegmentedNode`].
 struct BytecodeSegment {
     segment_length: u64,
     #[allow(unused)]
@@ -545,12 +545,12 @@ impl CompiledClass {
     ) -> Result<Felt, CairoShortStringToFeltError> {
         let mut hasher = PoseidonHasher::new();
 
-        for entry in entrypoints.iter() {
+        for entry in entrypoints {
             hasher.update(entry.selector);
             hasher.update(entry.offset.into());
 
             let mut builtin_hasher = PoseidonHasher::new();
-            for builtin in entry.builtins.iter() {
+            for builtin in &entry.builtins {
                 builtin_hasher.update(cairo_short_string_to_felt(builtin)?)
             }
 
@@ -594,7 +594,7 @@ impl CompiledClass {
                 let mut res = Vec::new();
                 let mut total_len = 0;
 
-                for item in bytecode_segment_lengths.iter() {
+                for item in bytecode_segment_lengths {
                     let visited_pc_before = if !visited_pcs.is_empty() {
                         Some(visited_pcs[visited_pcs.len() - 1])
                     } else {
@@ -666,7 +666,7 @@ impl BytecodeLeaf {
 impl BytecodeSegmentedNode {
     fn hash(&self) -> Felt {
         let mut hasher = PoseidonHasher::new();
-        for node in self.segments.iter() {
+        for node in &self.segments {
             hasher.update(node.segment_length.into());
             hasher.update(node.inner_structure.hash());
         }
@@ -761,7 +761,7 @@ impl Serialize for TypedAbiEvent {
         }
 
         match self {
-            TypedAbiEvent::Struct(inner) => StructRef::serialize(
+            Self::Struct(inner) => StructRef::serialize(
                 &StructRef {
                     name: &inner.name,
                     kind: "struct",
@@ -769,7 +769,7 @@ impl Serialize for TypedAbiEvent {
                 },
                 serializer,
             ),
-            TypedAbiEvent::Enum(inner) => EnumRef::serialize(
+            Self::Enum(inner) => EnumRef::serialize(
                 &EnumRef {
                     name: &inner.name,
                     kind: "enum",
@@ -790,7 +790,7 @@ impl Serialize for IntOrList {
             Self::Int(int) => serializer.serialize_u64(*int),
             Self::List(list) => {
                 let mut seq = serializer.serialize_seq(Some(list.len()))?;
-                for item in list.iter() {
+                for item in list {
                     seq.serialize_element(item)?;
                 }
                 seq.end()
@@ -802,7 +802,7 @@ impl Serialize for IntOrList {
 impl<'de> Visitor<'de> for IntOrListVisitor {
     type Value = IntOrList;
 
-    fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
+    fn expecting(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(formatter, "number or list")
     }
 
@@ -837,7 +837,7 @@ impl<'de> Deserialize<'de> for IntOrList {
 fn hash_sierra_entrypoints(entrypoints: &[SierraEntryPoint]) -> Felt {
     let mut hasher = PoseidonHasher::new();
 
-    for entry in entrypoints.iter() {
+    for entry in entrypoints {
         hasher.update(entry.selector);
         hasher.update(entry.function_idx.into());
     }
@@ -864,9 +864,7 @@ mod tests {
             include_str!("../../../test-data/contracts/cairo2/artifacts/abi_types_sierra.txt"),
             include_str!("../../../test-data/contracts/cairo2/artifacts/erc20_sierra.txt"),
             include_str!("../../../test-data/contracts/cairo2.6/artifacts/erc20_sierra.txt"),
-        ]
-        .into_iter()
-        {
+        ] {
             match serde_json::from_str::<ContractArtifact>(raw_artifact) {
                 Ok(ContractArtifact::SierraClass(_)) => {}
                 _ => panic!("Unexpected result"),
@@ -883,9 +881,7 @@ mod tests {
             include_str!("../../../test-data/contracts/cairo2/artifacts/abi_types_compiled.txt"),
             include_str!("../../../test-data/contracts/cairo2/artifacts/erc20_compiled.txt"),
             include_str!("../../../test-data/contracts/cairo2.6/artifacts/erc20_compiled.txt"),
-        ]
-        .into_iter()
-        {
+        ] {
             match serde_json::from_str::<ContractArtifact>(raw_artifact) {
                 Ok(ContractArtifact::CompiledClass(_)) => {}
                 _ => panic!("Unexpected result"),
@@ -924,9 +920,7 @@ mod tests {
                 include_str!("../../../test-data/contracts/cairo2/artifacts/abi_types_sierra.txt"),
                 include_str!("../../../test-data/contracts/cairo2/artifacts/abi_types.hashes.json"),
             ),
-        ]
-        .into_iter()
-        {
+        ] {
             let sierra_class = serde_json::from_str::<SierraClass>(raw_artifact).unwrap();
             let computed_hash = sierra_class.class_hash().unwrap();
 
@@ -965,9 +959,7 @@ mod tests {
                 include_str!("../../../test-data/contracts/cairo2.6/artifacts/erc20_compiled.txt"),
                 include_str!("../../../test-data/contracts/cairo2.6/artifacts/erc20.hashes.json"),
             ),
-        ]
-        .into_iter()
-        {
+        ] {
             let compiled_class = serde_json::from_str::<CompiledClass>(raw_artifact).unwrap();
             let computed_hash = compiled_class.class_hash().unwrap();
 

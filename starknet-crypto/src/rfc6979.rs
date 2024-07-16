@@ -104,9 +104,9 @@ mod tests {
     }
 
     fn test_generate_k_from_json_str(json_str: &'static str) {
-        let test_vectors: Vec<Rfc6979TestVecotr> = serde_json::from_str(json_str).unwrap();
+        let test_vectors: Vec<Rfc6979TestVecotr<'_>> = serde_json::from_str(json_str).unwrap();
 
-        for test_vector in test_vectors.iter() {
+        for test_vector in &test_vectors {
             let msg_hash = field_element_from_be_hex(test_vector.msg_hash);
             let priv_key = field_element_from_be_hex(test_vector.priv_key);
             let seed = field_element_from_be_hex(test_vector.seed);

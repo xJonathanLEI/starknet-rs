@@ -39,3 +39,6 @@ wasm-bindgen-test = "0.3.34"
 default = []
 
 ledger = ["coins-bip32", "coins-ledger", "semver"]
+
+[lints]
+workspace = true

@@ -302,10 +302,10 @@ pub trait Provider {
 
 /// Trait for implementation-specific error type. These errors are irrelevant in most cases,
 /// assuming that users typically care more about the specifics of RPC errors instead of the
-/// underlying transport. Therefore, it makes little sense to bloat [ProviderError] with a generic
+/// underlying transport. Therefore, it makes little sense to bloat [`ProviderError`] with a generic
 /// parameter just for these errors. Instead, they're erased to this trait object.
 ///
-/// This trait is used instead of a plain [std::error::Error] to allow downcasting, in case access
+/// This trait is used instead of a plain [`std::error::Error`] to allow downcasting, in case access
 /// to the specific error type is indeed desired. This is achieved with the `as_any()` method.
 pub trait ProviderImplError: Error + Debug + Send + Sync {
     fn as_any(&self) -> &dyn Any;
