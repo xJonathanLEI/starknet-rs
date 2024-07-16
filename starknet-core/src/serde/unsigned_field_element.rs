@@ -12,10 +12,13 @@ use starknet_types_core::felt::Felt;
 const PRIME: U256 =
     U256::from_be_hex("0800000000000011000000000000000000000000000000000000000000000001");
 
+#[derive(Debug)]
 pub struct UfeHex;
 
+#[derive(Debug)]
 pub struct UfeHexOption;
 
+#[derive(Debug)]
 pub struct UfePendingBlockHash;
 
 struct UfeHexVisitor;
@@ -51,7 +54,7 @@ impl<'de> DeserializeAs<'de, Felt> for UfeHex {
 impl<'de> Visitor<'de> for UfeHexVisitor {
     type Value = Felt;
 
-    fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> alloc::fmt::Result {
         write!(formatter, "a hex string, or an array of u8")
     }
 
@@ -108,7 +111,7 @@ impl<'de> DeserializeAs<'de, Option<Felt>> for UfeHexOption {
 impl<'de> Visitor<'de> for UfeHexOptionVisitor {
     type Value = Option<Felt>;
 
-    fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> alloc::fmt::Result {
         write!(formatter, "string")
     }
 
@@ -176,7 +179,7 @@ impl<'de> DeserializeAs<'de, Option<Felt>> for UfePendingBlockHash {
 impl<'de> Visitor<'de> for UfePendingBlockHashVisitor {
     type Value = Option<Felt>;
 
-    fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> alloc::fmt::Result {
         write!(formatter, "string")
     }
 

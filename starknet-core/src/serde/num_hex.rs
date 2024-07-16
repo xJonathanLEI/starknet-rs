@@ -30,7 +30,7 @@ pub mod u64 {
     impl<'de> Visitor<'de> for NumHexVisitor {
         type Value = u64;
 
-        fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
+        fn expecting(&self, formatter: &mut Formatter<'_>) -> alloc::fmt::Result {
             write!(formatter, "string, or an array of u8")
         }
 

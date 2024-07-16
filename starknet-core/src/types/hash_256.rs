@@ -68,7 +68,7 @@ impl Hash256 {
         felt.into()
     }
 
-    pub fn as_bytes(&self) -> &[u8; HASH_256_BYTE_COUNT] {
+    pub const fn as_bytes(&self) -> &[u8; HASH_256_BYTE_COUNT] {
         &self.inner
     }
 }
@@ -102,7 +102,7 @@ impl<'de> Deserialize<'de> for Hash256 {
 impl<'de> Visitor<'de> for Hash256Visitor {
     type Value = Hash256;
 
-    fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> alloc::fmt::Result {
         write!(formatter, "string, or an array of u8")
     }
 
@@ -186,7 +186,7 @@ impl TryFrom<&Hash256> for Felt {
     type Error = ToFieldElementError;
 
     fn try_from(value: &Hash256) -> Result<Self, Self::Error> {
-        Ok(Felt::from_bytes_be(&value.inner))
+        Ok(Self::from_bytes_be(&value.inner))
     }
 }
 
@@ -212,7 +212,7 @@ mod tests {
             "25c5b1592b1743b62d7fabd4373d98219c2ff3750f49ec0608a8355fa3bb060f5",
         ];
 
-        for item in test_data.into_iter() {
+        for item in test_data {
             match Hash256::from_hex(item) {
                 Err(FromHexError::UnexpectedLength) => {}
                 _ => panic!("Unexpected test result"),
@@ -230,7 +230,7 @@ mod tests {
             "0x?5c5b1592b1743b62d7fabd4373d98219c2f63750f49ec0608a8355fa3bb060",
         ];
 
-        for item in test_data.into_iter() {
+        for item in test_data {
             match Hash256::from_hex(item) {
                 Err(FromHexError::InvalidHexString) => {}
                 _ => panic!("Unexpected test result"),

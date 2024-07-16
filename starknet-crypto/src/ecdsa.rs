@@ -45,7 +45,7 @@ impl From<ExtendedSignature> for Signature {
 
 #[cfg(feature = "signature-display")]
 impl core::fmt::Display for Signature {
-    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(
             f,
             "{}{}",
@@ -57,7 +57,7 @@ impl core::fmt::Display for Signature {
 
 #[cfg(feature = "signature-display")]
 impl core::fmt::Display for ExtendedSignature {
-    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(
             f,
             "{}{}{:02x}",
@@ -278,7 +278,7 @@ mod tests {
             serde_json::from_str(json_data).expect("Unable to parse the JSON");
 
         // Iterating over each element in the JSON
-        for (private_key, expected_public_key) in key_map.into_iter() {
+        for (private_key, expected_public_key) in key_map {
             let private_key = if private_key.len() % 2 != 0 {
                 format!("0{}", private_key.trim_start_matches("0x"))
             } else {

@@ -20,7 +20,7 @@ use crate::{
 /// the [Provider] trait itself cannot be Box-ed due to the use of associated type.
 ///
 /// A recommended pattern is to make your business logic code (e.g. functions) generic over the
-/// [Provider] trait, while using this [AnyProvider] type for bootstrapping your application.
+/// [Provider] trait, while using this [`AnyProvider`] type for bootstrapping your application.
 ///
 /// NOTE: This type was introduced when [Provider] was not Box-able. It should be reviewed whether
 ///       it's still needed anymore.

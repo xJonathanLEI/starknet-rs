@@ -63,16 +63,16 @@ pub trait Account: ExecutionEncoder + Sized {
     /// estimation/simulation purposes.
     fn is_signer_interactive(&self) -> bool;
 
-    fn execute_v1(&self, calls: Vec<Call>) -> ExecutionV1<Self> {
+    fn execute_v1(&self, calls: Vec<Call>) -> ExecutionV1<'_, Self> {
         ExecutionV1::new(calls, self)
     }
 
-    fn execute_v3(&self, calls: Vec<Call>) -> ExecutionV3<Self> {
+    fn execute_v3(&self, calls: Vec<Call>) -> ExecutionV3<'_, Self> {
         ExecutionV3::new(calls, self)
     }
 
     #[deprecated = "use version specific variants (`execute_v1` & `execute_v3`) instead"]
-    fn execute(&self, calls: Vec<Call>) -> ExecutionV1<Self> {
+    fn execute(&self, calls: Vec<Call>) -> ExecutionV1<'_, Self> {
         self.execute_v1(calls)
     }
 
@@ -80,7 +80,7 @@ pub trait Account: ExecutionEncoder + Sized {
         &self,
         contract_class: Arc<FlattenedSierraClass>,
         compiled_class_hash: Felt,
-    ) -> DeclarationV2<Self> {
+    ) -> DeclarationV2<'_, Self> {
         DeclarationV2::new(contract_class, compiled_class_hash, self)
     }
 
@@ -88,7 +88,7 @@ pub trait Account: ExecutionEncoder + Sized {
         &self,
         contract_class: Arc<FlattenedSierraClass>,
         compiled_class_hash: Felt,
-    ) -> DeclarationV3<Self> {
+    ) -> DeclarationV3<'_, Self> {
         DeclarationV3::new(contract_class, compiled_class_hash, self)
     }
 
@@ -97,11 +97,14 @@ pub trait Account: ExecutionEncoder + Sized {
         &self,
         contract_class: Arc<FlattenedSierraClass>,
         compiled_class_hash: Felt,
-    ) -> DeclarationV2<Self> {
+    ) -> DeclarationV2<'_, Self> {
         self.declare_v2(contract_class, compiled_class_hash)
     }
 
-    fn declare_legacy(&self, contract_class: Arc<LegacyContractClass>) -> LegacyDeclaration<Self> {
+    fn declare_legacy(
+        &self,
+        contract_class: Arc<LegacyContractClass>,
+    ) -> LegacyDeclaration<'_, Self> {
         LegacyDeclaration::new(contract_class, self)
     }
 }
@@ -135,7 +138,7 @@ pub trait ConnectedAccount: Account {
 
 /// Abstraction over `INVOKE` transactions from accounts for invoking contracts. This struct uses
 /// v1 `INVOKE` transactions under the hood, and hence pays transaction fees in ETH. To use v3
-/// transactions for STRK fee payment, use [ExecutionV3] instead.
+/// transactions for STRK fee payment, use [`ExecutionV3`] instead.
 ///
 /// This is an intermediate type allowing users to optionally specify `nonce` and/or `max_fee`.
 #[must_use]
@@ -150,7 +153,7 @@ pub struct ExecutionV1<'a, A> {
 
 /// Abstraction over `INVOKE` transactions from accounts for invoking contracts. This struct uses
 /// v3 `INVOKE` transactions under the hood, and hence pays transaction fees in STRK. To use v1
-/// transactions for ETH fee payment, use [ExecutionV1] instead.
+/// transactions for ETH fee payment, use [`ExecutionV1`] instead.
 ///
 /// This is an intermediate type allowing users to optionally specify `nonce`, `gas`, and/or
 /// `gas_price`.
@@ -168,7 +171,7 @@ pub struct ExecutionV3<'a, A> {
 
 /// Abstraction over `DECLARE` transactions from accounts for invoking contracts. This struct uses
 /// v2 `DECLARE` transactions under the hood, and hence pays transaction fees in ETH. To use v3
-/// transactions for STRK fee payment, use [DeclarationV3] instead.
+/// transactions for STRK fee payment, use [`DeclarationV3`] instead.
 ///
 /// An intermediate type allowing users to optionally specify `nonce` and/or `max_fee`.
 #[must_use]
@@ -184,7 +187,7 @@ pub struct DeclarationV2<'a, A> {
 
 /// Abstraction over `DECLARE` transactions from accounts for invoking contracts. This struct uses
 /// v3 `DECLARE` transactions under the hood, and hence pays transaction fees in STRK. To use v2
-/// transactions for ETH fee payment, use [DeclarationV2] instead.
+/// transactions for ETH fee payment, use [`DeclarationV2`] instead.
 ///
 /// This is an intermediate type allowing users to optionally specify `nonce`, `gas`, and/or
 /// `gas_price`.
@@ -212,7 +215,7 @@ pub struct LegacyDeclaration<'a, A> {
     fee_estimate_multiplier: f64,
 }
 
-/// [ExecutionV1] but with `nonce` and `max_fee` already determined.
+/// [`ExecutionV1`] but with `nonce` and `max_fee` already determined.
 #[derive(Debug)]
 pub struct RawExecutionV1 {
     calls: Vec<Call>,
@@ -220,7 +223,7 @@ pub struct RawExecutionV1 {
     max_fee: Felt,
 }
 
-/// [ExecutionV3] but with `nonce`, `gas` and `gas_price` already determined.
+/// [`ExecutionV3`] but with `nonce`, `gas` and `gas_price` already determined.
 #[derive(Debug)]
 pub struct RawExecutionV3 {
     calls: Vec<Call>,
@@ -229,7 +232,7 @@ pub struct RawExecutionV3 {
     gas_price: u128,
 }
 
-/// [DeclarationV2] but with `nonce` and `max_fee` already determined.
+/// [`DeclarationV2`] but with `nonce` and `max_fee` already determined.
 #[derive(Debug)]
 pub struct RawDeclarationV2 {
     contract_class: Arc<FlattenedSierraClass>,
@@ -238,7 +241,7 @@ pub struct RawDeclarationV2 {
     max_fee: Felt,
 }
 
-/// [DeclarationV3] but with `nonce`, `gas` and `gas_price` already determined.
+/// [`DeclarationV3`] but with `nonce`, `gas` and `gas_price` already determined.
 #[derive(Debug)]
 pub struct RawDeclarationV3 {
     contract_class: Arc<FlattenedSierraClass>,
@@ -248,7 +251,7 @@ pub struct RawDeclarationV3 {
     gas_price: u128,
 }
 
-/// [LegacyDeclaration] but with `nonce` and `max_fee` already determined.
+/// [`LegacyDeclaration`] but with `nonce` and `max_fee` already determined.
 #[derive(Debug)]
 pub struct RawLegacyDeclaration {
     contract_class: Arc<LegacyContractClass>,
@@ -256,35 +259,35 @@ pub struct RawLegacyDeclaration {
     max_fee: Felt,
 }
 
-/// [RawExecutionV1] but with an account associated.
+/// [`RawExecutionV1`] but with an account associated.
 #[derive(Debug)]
 pub struct PreparedExecutionV1<'a, A> {
     account: &'a A,
     inner: RawExecutionV1,
 }
 
-/// [RawExecutionV3] but with an account associated.
+/// [`RawExecutionV3`] but with an account associated.
 #[derive(Debug)]
 pub struct PreparedExecutionV3<'a, A> {
     account: &'a A,
     inner: RawExecutionV3,
 }
 
-/// [RawDeclarationV2] but with an account associated.
+/// [`RawDeclarationV2`] but with an account associated.
 #[derive(Debug)]
 pub struct PreparedDeclarationV2<'a, A> {
     account: &'a A,
     inner: RawDeclarationV2,
 }
 
-/// [RawDeclarationV3] but with an account associated.
+/// [`RawDeclarationV3`] but with an account associated.
 #[derive(Debug)]
 pub struct PreparedDeclarationV3<'a, A> {
     account: &'a A,
     inner: RawDeclarationV3,
 }
 
-/// [RawLegacyDeclaration] but with an account associated.
+/// [`RawLegacyDeclaration`] but with an account associated.
 #[derive(Debug)]
 pub struct PreparedLegacyDeclaration<'a, A> {
     account: &'a A,

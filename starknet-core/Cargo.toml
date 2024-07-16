@@ -50,3 +50,6 @@ harness = false
 [[bench]]
 name = "sierra_class_hash"
 harness = false
+
+[lints]
+workspace = true

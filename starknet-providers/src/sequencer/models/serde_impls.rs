@@ -20,7 +20,7 @@ pub(crate) mod u64_hex {
     impl<'de> Visitor<'de> for U64HexVisitor {
         type Value = u64;
 
-        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(formatter, "string")
         }
 
@@ -56,7 +56,7 @@ pub(crate) mod u128_hex {
     impl<'de> Visitor<'de> for U128HexVisitor {
         type Value = u128;
 
-        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(formatter, "string")
         }
 
@@ -95,7 +95,7 @@ pub(crate) mod u64_hex_opt {
     impl<'de> Visitor<'de> for U64HexOptVisitor {
         type Value = Option<u64>;
 
-        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(formatter, "null or string")
         }
 

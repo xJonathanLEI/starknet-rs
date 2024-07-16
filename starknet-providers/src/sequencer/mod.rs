@@ -37,7 +37,7 @@ pub enum GatewayClientError {
     /// JSON serialization/deserialization error
     #[error(transparent)]
     Serde(SerdeJsonError),
-    /// Sequencer error responses not parsable into [StarknetError]
+    /// Sequencer error responses not parsable into [`StarknetError`]
     #[error(transparent)]
     SequencerError(SequencerError),
     /// Method is not supported (only when using as [Provider])
@@ -139,8 +139,8 @@ impl SequencerGatewayProvider {
         )
     }
 
-    /// Consumes the current [SequencerGatewayProvider] instance and returns a new one with the
-    /// header appended. Same as calling [add_header].
+    /// Consumes the current [`SequencerGatewayProvider`] instance and returns a new one with the
+    /// header appended. Same as calling [`add_header`].
     pub fn with_header(self, name: String, value: String) -> Self {
         let mut headers = self.headers;
         headers.push((name, value));
@@ -194,7 +194,7 @@ impl SequencerGatewayProvider {
         trace!("Sending GET request to sequencer API ({})", url);
 
         let mut request = self.client.get(url);
-        for (name, value) in self.headers.iter() {
+        for (name, value) in &self.headers {
             request = request.header(name, value);
         }
 
@@ -228,7 +228,7 @@ impl SequencerGatewayProvider {
             .post(url)
             .header("Content-Type", "application/json")
             .body(request_body);
-        for (name, value) in self.headers.iter() {
+        for (name, value) in &self.headers {
             request = request.header(name, value);
         }
 
@@ -475,29 +475,27 @@ impl From<SequencerError> for ProviderError {
     fn from(value: SequencerError) -> Self {
         let matching_code = match value.code {
             ErrorCode::BlockNotFound => Some(StarknetError::BlockNotFound),
-            ErrorCode::EntryPointNotFoundInContract => None,
-            ErrorCode::InvalidProgram => None,
-            ErrorCode::TransactionFailed => {
+            ErrorCode::EntryPointNotFoundInContract
+            | ErrorCode::InvalidContractClass
+            | ErrorCode::DeprecatedEndpoint
+            | ErrorCode::MalformedRequest
+            | ErrorCode::InvalidProgram => None,
+            ErrorCode::TransactionFailed | ErrorCode::ValidateFailure => {
                 Some(StarknetError::ValidationFailure(value.message.clone()))
             }
-            ErrorCode::TransactionNotFound => Some(StarknetError::ContractNotFound),
-            ErrorCode::UninitializedContract => Some(StarknetError::ContractNotFound),
-            ErrorCode::MalformedRequest => None,
+            ErrorCode::TransactionNotFound | ErrorCode::UninitializedContract => {
+                Some(StarknetError::ContractNotFound)
+            }
             ErrorCode::UndeclaredClass => Some(StarknetError::ClassHashNotFound),
             ErrorCode::InvalidTransactionNonce => Some(StarknetError::InvalidTransactionNonce),
-            ErrorCode::ValidateFailure => {
-                Some(StarknetError::ValidationFailure(value.message.clone()))
-            }
             ErrorCode::ClassAlreadyDeclared => Some(StarknetError::ClassAlreadyDeclared),
             ErrorCode::CompilationFailed => Some(StarknetError::CompilationFailed),
             ErrorCode::InvalidCompiledClassHash => Some(StarknetError::CompiledClassHashMismatch),
             ErrorCode::DuplicatedTransaction => Some(StarknetError::DuplicateTx),
-            ErrorCode::InvalidContractClass => None,
-            ErrorCode::DeprecatedEndpoint => None,
         };
 
         match matching_code {
-            Some(code) => ProviderError::StarknetError(code),
+            Some(code) => Self::StarknetError(code),
             None => GatewayClientError::SequencerError(value).into(),
         }
     }
@@ -539,10 +537,10 @@ where
     {
         let temp_value = serde_json::Value::deserialize(deserializer)?;
         if let Ok(value) = T::deserialize(&temp_value) {
-            return Ok(GatewayResponse::Data(value));
+            return Ok(Self::Data(value));
         }
         if let Ok(value) = SequencerError::deserialize(&temp_value) {
-            return Ok(GatewayResponse::SequencerError(value));
+            return Ok(Self::SequencerError(value));
         }
         Err(serde::de::Error::custom(
             "data did not match any variant of enum GatewayResponse",
@@ -583,9 +581,7 @@ mod tests {
         for raw in [
             include_str!("../../test-data/raw_gateway_responses/get_class_by_hash/1_cairo_0.txt"),
             include_str!("../../test-data/raw_gateway_responses/get_class_by_hash/3_cairo_1.txt"),
-        ]
-        .into_iter()
-        {
+        ] {
             serde_json::from_str::<GatewayResponse<DeployedClass>>(raw).unwrap();
         }
     }
