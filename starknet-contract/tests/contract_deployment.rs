@@ -16,9 +16,8 @@ const CHAIN_ID: Felt = Felt::from_raw([
 
 #[tokio::test]
 async fn can_deploy_contract_to_alpha_sepolia_with_invoke_v1() {
-    #![allow(clippy::or_fun_call)]
     let rpc_url = std::env::var("STARKNET_RPC")
-        .unwrap_or("https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_6".into());
+        .unwrap_or_else(|_| "https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_6".into());
     let provider = JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()));
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
@@ -55,9 +54,8 @@ async fn can_deploy_contract_to_alpha_sepolia_with_invoke_v1() {
 
 #[tokio::test]
 async fn can_deploy_contract_to_alpha_sepolia_with_invoke_v3() {
-    #![allow(clippy::or_fun_call)]
     let rpc_url = std::env::var("STARKNET_RPC")
-        .unwrap_or("https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_6".into());
+        .unwrap_or_else(|_| "https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_6".into());
     let provider = JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()));
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),

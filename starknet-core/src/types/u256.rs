@@ -1,4 +1,3 @@
-#![allow(clippy::missing_const_for_fn)]
 use core::{fmt::Display, str};
 
 use crypto_bigint::{ArrayEncoding, CheckedAdd, CheckedMul, CheckedSub, Zero};
@@ -13,7 +12,7 @@ pub struct U256(crypto_bigint::U256);
 
 impl U256 {
     #[cfg(target_pointer_width = "64")]
-    pub fn from_words(low: u128, high: u128) -> Self {
+    pub const fn from_words(low: u128, high: u128) -> Self {
         Self(crypto_bigint::U256::from_words([
             low as u64,
             (low >> 64) as u64,
@@ -23,7 +22,7 @@ impl U256 {
     }
 
     #[cfg(target_pointer_width = "32")]
-    pub fn from_words(low: u128, high: u128) -> Self {
+    pub const fn from_words(low: u128, high: u128) -> Self {
         Self(crypto_bigint::U256::from_words([
             low as u32,
             (low >> 32) as u32,
@@ -36,12 +35,12 @@ impl U256 {
         ]))
     }
 
-    pub fn low(&self) -> u128 {
+    pub const fn low(&self) -> u128 {
         let words = u256_to_u64_array(&self.0);
         words[0] as u128 + ((words[1] as u128) << 64)
     }
 
-    pub fn high(&self) -> u128 {
+    pub const fn high(&self) -> u128 {
         let words = u256_to_u64_array(&self.0);
         words[2] as u128 + ((words[3] as u128) << 64)
     }
@@ -254,13 +253,13 @@ impl From<Felt> for U256 {
 
 #[cfg(target_pointer_width = "64")]
 #[inline]
-fn u256_to_u64_array(num: &crypto_bigint::U256) -> [u64; 4] {
+const fn u256_to_u64_array(num: &crypto_bigint::U256) -> [u64; 4] {
     num.to_words()
 }
 
 #[cfg(target_pointer_width = "32")]
 #[inline]
-fn u256_to_u64_array(num: &crypto_bigint::U256) -> [u64; 4] {
+const fn u256_to_u64_array(num: &crypto_bigint::U256) -> [u64; 4] {
     unsafe { core::mem::transmute::<[u32; 8], [u64; 4]>(num.to_words()) }
 }
 
