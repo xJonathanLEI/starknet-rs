@@ -78,9 +78,16 @@ impl SerializeAs<Option<Felt>> for UfeHexOption {
     where
         S: Serializer,
     {
-        match value {
-            Some(value) => serializer.serialize_str(&format!("{value:#064x}")),
-            None => serializer.serialize_none(),
+        if serializer.is_human_readable() {
+            match value {
+                Some(value) => serializer.serialize_str(&format!("{value:#064x}")),
+                None => serializer.serialize_none(),
+            }
+        } else {
+            match value {
+                Some(value) => serializer.serialize_bytes(&value.to_bytes_be()),
+                None => serializer.serialize_bytes(&[]),
+            }
         }
     }
 }
@@ -90,7 +97,11 @@ impl<'de> DeserializeAs<'de, Option<Felt>> for UfeHexOption {
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_any(UfeHexOptionVisitor)
+        if deserializer.is_human_readable() {
+            deserializer.deserialize_any(UfeHexOptionVisitor)
+        } else {
+            deserializer.deserialize_bytes(UfeHexOptionVisitor)
+        }
     }
 }
 
@@ -113,6 +124,20 @@ impl<'de> Visitor<'de> for UfeHexOptionVisitor {
             },
         }
     }
+
+    fn visit_bytes<E: serde::de::Error>(self, v: &[u8]) -> Result<Self::Value, E> {
+        if v.is_empty() {
+            return Ok(None);
+        }
+
+        let buf = <[u8; 32]>::try_from(v).map_err(serde::de::Error::custom)?;
+
+        if U256::from_be_slice(&buf) < PRIME {
+            Ok(Some(Felt::from_bytes_be(&buf)))
+        } else {
+            Err(serde::de::Error::custom("field element value out of range"))
+        }
+    }
 }
 
 impl SerializeAs<Option<Felt>> for UfePendingBlockHash {
@@ -120,10 +145,17 @@ impl SerializeAs<Option<Felt>> for UfePendingBlockHash {
     where
         S: Serializer,
     {
-        match value {
-            Some(value) => serializer.serialize_str(&format!("{value:#064x}")),
-            // We don't know if it's `null` or `"pending"`
-            None => serializer.serialize_none(),
+        if serializer.is_human_readable() {
+            match value {
+                Some(value) => serializer.serialize_str(&format!("{value:#064x}")),
+                // We don't know if it's `null` or `"pending"`
+                None => serializer.serialize_none(),
+            }
+        } else {
+            match value {
+                Some(value) => serializer.serialize_bytes(&value.to_bytes_be()),
+                None => serializer.serialize_bytes(&[]),
+            }
         }
     }
 }
@@ -133,7 +165,11 @@ impl<'de> DeserializeAs<'de, Option<Felt>> for UfePendingBlockHash {
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_any(UfePendingBlockHashVisitor)
+        if deserializer.is_human_readable() {
+            deserializer.deserialize_any(UfePendingBlockHashVisitor)
+        } else {
+            deserializer.deserialize_bytes(UfePendingBlockHashVisitor)
+        }
     }
 }
 
@@ -157,6 +193,20 @@ impl<'de> Visitor<'de> for UfePendingBlockHashVisitor {
             }
         }
     }
+
+    fn visit_bytes<E: serde::de::Error>(self, v: &[u8]) -> Result<Self::Value, E> {
+        if v.is_empty() {
+            return Ok(None);
+        }
+
+        let buf = <[u8; 32]>::try_from(v).map_err(serde::de::Error::custom)?;
+
+        if U256::from_be_slice(&buf) < PRIME {
+            Ok(Some(Felt::from_bytes_be(&buf)))
+        } else {
+            Err(serde::de::Error::custom("field element value out of range"))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -172,15 +222,12 @@ mod tests {
     struct TestStruct(#[serde_as(as = "UfeHex")] pub Felt);
 
     #[serde_as]
-    #[derive(Deserialize)]
+    #[derive(Serialize, Deserialize)]
     struct TestOptionStruct(#[serde_as(as = "UfeHexOption")] pub Option<Felt>);
 
-    #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn empty_string_deser() {
-        let r = serde_json::from_str::<TestOptionStruct>("\"\"").unwrap();
-        assert_eq!(r.0, None);
-    }
+    #[serde_as]
+    #[derive(Serialize, Deserialize)]
+    struct TestBlockHashStruct(#[serde_as(as = "UfePendingBlockHash")] pub Option<Felt>);
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
@@ -214,5 +261,47 @@ mod tests {
         {
             panic!("deserialization should fail")
         }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn option_deser_empty_string() {
+        let r = serde_json::from_str::<TestOptionStruct>("\"\"").unwrap();
+        assert_eq!(r.0, None);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn option_bin_ser_none() {
+        let r = bincode::serialize(&TestOptionStruct(None)).unwrap();
+        assert_eq!(r, hex!("0000000000000000"));
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn option_bin_deser_none() {
+        let r = bincode::deserialize::<TestOptionStruct>(&hex!("0000000000000000")).unwrap();
+        assert_eq!(r.0, None);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn pending_block_hash_deser_pending() {
+        let r = serde_json::from_str::<TestBlockHashStruct>("\"pending\"").unwrap();
+        assert_eq!(r.0, None);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn pending_block_hash_bin_ser_none() {
+        let r = bincode::serialize(&TestBlockHashStruct(None)).unwrap();
+        assert_eq!(r, hex!("0000000000000000"));
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn pending_block_hash_bin_deser_none() {
+        let r = bincode::deserialize::<TestBlockHashStruct>(&hex!("0000000000000000")).unwrap();
+        assert_eq!(r.0, None);
     }
 }
