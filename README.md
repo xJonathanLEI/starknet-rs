@@ -106,6 +106,8 @@ Examples can be found in the [examples folder](./examples):
 
 13. [Inspecting a erased provider-specific error type](./examples/downcast_provider_error.rs)
 
+13. [Transferring a ERC20 token and waiting for a transaction receipt](./examples/wait_tx_receipt.rs)
+
 ## License
 
 Licensed under either of
