@@ -1,10 +1,7 @@
 // Code ported from the the implementation from pathfinder here:
 //   https://github.com/eqlabs/pathfinder/blob/00a1a74a90a7b8a7f1d07ac3e616be1cb39cf8f1/crates/stark_poseidon/src/lib.rs
 
-use starknet_crypto_codegen::poseidon_consts;
-use starknet_types_core::felt::Felt;
-
-poseidon_consts!();
+use starknet_types_core::{felt::Felt, hash::Poseidon};
 
 /// A hasher for Starknet Poseidon hash.
 ///
@@ -27,7 +24,7 @@ impl PoseidonHasher {
             Some(previous_message) => {
                 self.state[0] += previous_message;
                 self.state[1] += msg;
-                poseidon_permute_comp(&mut self.state);
+                Poseidon::hades_permutation(&mut self.state);
             }
             None => {
                 self.buffer = Some(msg);
@@ -47,7 +44,7 @@ impl PoseidonHasher {
                 self.state[0] += Felt::ONE;
             }
         }
-        poseidon_permute_comp(&mut self.state);
+        Poseidon::hades_permutation(&mut self.state);
 
         self.state[0]
     }
@@ -56,7 +53,7 @@ impl PoseidonHasher {
 /// Computes the Starknet Poseidon hash of x and y.
 pub fn poseidon_hash(x: Felt, y: Felt) -> Felt {
     let mut state = [x, y, Felt::TWO];
-    poseidon_permute_comp(&mut state);
+    Poseidon::hades_permutation(&mut state);
 
     state[0]
 }
@@ -64,7 +61,7 @@ pub fn poseidon_hash(x: Felt, y: Felt) -> Felt {
 /// Computes the Starknet Poseidon hash of a single [`Felt`].
 pub fn poseidon_hash_single(x: Felt) -> Felt {
     let mut state = [x, Felt::ZERO, Felt::ONE];
-    poseidon_permute_comp(&mut state);
+    Poseidon::hades_permutation(&mut state);
 
     state[0]
 }
@@ -93,63 +90,17 @@ pub fn poseidon_hash_many<'a, I: IntoIterator<Item = &'a Felt>>(msgs: I) -> Felt
             }
         }
 
-        poseidon_permute_comp(&mut state);
+        Poseidon::hades_permutation(&mut state);
     }
-    poseidon_permute_comp(&mut state);
+    Poseidon::hades_permutation(&mut state);
 
     state[0]
 }
 
-/// Poseidon permutation function.
-pub fn poseidon_permute_comp(state: &mut [Felt; 3]) {
-    let mut idx = 0;
-
-    // Full rounds
-    for _ in 0..(FULL_ROUNDS / 2) {
-        round_comp(state, idx, true);
-        idx += 3;
-    }
-
-    // Partial rounds
-    for _ in 0..PARTIAL_ROUNDS {
-        round_comp(state, idx, false);
-        idx += 1;
-    }
-
-    // Full rounds
-    for _ in 0..(FULL_ROUNDS / 2) {
-        round_comp(state, idx, true);
-        idx += 3;
-    }
-}
-
-/// Linear layer for MDS matrix M = ((3,1,1), (1,-1,1), (1,1,2))
-/// Given state vector x, it returns Mx, optimized by precomputing t.
-#[inline(always)]
-fn mix(state: &mut [Felt; 3]) {
-    let t = state[0] + state[1] + state[2];
-    state[0] = t + state[0].double();
-    state[1] = t - state[1].double();
-    state[2] = t - Felt::THREE * state[2];
-}
-
-#[inline]
-fn round_comp(state: &mut [Felt; 3], idx: usize, full: bool) {
-    if full {
-        state[0] += POSEIDON_COMP_CONSTS[idx];
-        state[1] += POSEIDON_COMP_CONSTS[idx + 1];
-        state[2] += POSEIDON_COMP_CONSTS[idx + 2];
-        state[0] = state[0] * state[0] * state[0];
-        state[1] = state[1] * state[1] * state[1];
-    } else {
-        state[2] += POSEIDON_COMP_CONSTS[idx];
-    }
-    state[2] = state[2] * state[2] * state[2];
-    mix(state);
-}
-
 #[cfg(test)]
 mod tests {
+    use starknet_types_core::hash::StarkHash;
+
     use super::*;
 
     #[test]
@@ -176,7 +127,7 @@ mod tests {
         ];
 
         for (x, y, hash) in test_data {
-            assert_eq!(poseidon_hash(x, y), hash);
+            assert_eq!(Poseidon::hash(&x, &y), hash);
         }
     }
 
@@ -200,7 +151,9 @@ mod tests {
         ];
 
         for (x, hash) in test_data {
-            assert_eq!(poseidon_hash_single(x), hash);
+            let mut state = [x, Felt::ZERO, Felt::ONE];
+            Poseidon::hades_permutation(&mut state);
+            assert_eq!(state[0], hash);
         }
     }
 
@@ -253,7 +206,7 @@ mod tests {
 
         for (input, hash) in test_data {
             // Direct function call
-            assert_eq!(poseidon_hash_many(&input), hash);
+            assert_eq!(Poseidon::hash_array(&input), hash);
 
             // With hasher
             let mut hasher = PoseidonHasher::new();
