@@ -9,7 +9,6 @@ mod ecdsa;
 mod error;
 mod fe_utils;
 mod pedersen_hash;
-mod pedersen_points;
 mod poseidon_hash;
 mod rfc6979;
 
