@@ -1,6 +1,8 @@
 use starknet_types_core::curve::AffinePoint;
 use starknet_types_core::felt::Felt;
 
+/// EC order of the STARK curve for ECDSA. Equals to
+/// `0x0800000000000010ffffffffffffffffb781126dcae7b2321e66a241adc64d2f`.
 pub const EC_ORDER: Felt = Felt::from_raw([
     369010039416812937,
     9,
@@ -8,6 +10,14 @@ pub const EC_ORDER: Felt = Felt::from_raw([
     8939893405601011193,
 ]);
 
+/// The alpha parameter of the STARK curve. Equals to
+/// `0x0000000000000000000000000000000000000000000000000000000000000001`.
+///
+/// The alpha parameter is used in the curve definition as:
+///
+/// ```markdown
+/// y^2 = x^3 + alpha * x + beta
+/// ```
 pub const ALPHA: Felt = Felt::from_raw([
     576460752303422960,
     18446744073709551615,
@@ -15,6 +25,14 @@ pub const ALPHA: Felt = Felt::from_raw([
     18446744073709551585,
 ]);
 
+/// The beta parameter of the STARK curve. Equals to
+/// `0x06f21413efbe40de150e596d72f7a8c5609ad26c15c915c1f4cdfcb99cee9e89`.
+///
+/// The beta parameter is used in the curve definition as:
+///
+/// ```markdown
+/// y^2 = x^3 + alpha * x + beta
+/// ```
 pub const BETA: Felt = Felt::from_raw([
     88155977965380735,
     12360725113329547591,
@@ -22,6 +40,12 @@ pub const BETA: Felt = Felt::from_raw([
     3863487492851900874,
 ]);
 
+/// Generator point of the STARK curve.
+///
+/// Coordinates:
+///
+/// - x: `0x01ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca`
+/// - y: `0x005668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f`
 pub const GENERATOR: AffinePoint = AffinePoint::new_unchecked(
     Felt::from_raw([
         232005955912912577,
@@ -37,6 +61,12 @@ pub const GENERATOR: AffinePoint = AffinePoint::new_unchecked(
     ]),
 );
 
+/// Shift point of the STARK curve.
+///
+/// Coordinates:
+///
+/// - x: `0x049ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804`
+/// - y: `0x03ca0cfe4b3bc6ddf346d49d06ea0ed34e621062c0e056c1d0405d266e10268a`
 pub const SHIFT_POINT: AffinePoint = AffinePoint::new_unchecked(
     Felt::from_raw([
         316327189671755572,
@@ -52,6 +82,12 @@ pub const SHIFT_POINT: AffinePoint = AffinePoint::new_unchecked(
     ]),
 );
 
+/// The P0 constant of the STARK curve.
+///
+/// Coordinates:
+///
+/// - x: `0x0234287dcbaffe7f969c748655fca9e58fa8120b6d56eb0c1080d17957ebe47b`
+/// - y: `0x03b056f100f96fb21e889527d41f4e39940135dd7a6c94cc6ed0268ee89e5615`
 pub const PEDERSEN_P0: AffinePoint = AffinePoint::new_unchecked(
     Felt::from_raw([
         241691544791834578,
@@ -67,6 +103,12 @@ pub const PEDERSEN_P0: AffinePoint = AffinePoint::new_unchecked(
     ]),
 );
 
+/// The P1 constant of the STARK curve.
+///
+/// Coordinates:
+///
+/// - x: `0x04fa56f376c83db33f9dab2656558f3399099ec1de5e3018b7a6932dba8aa378`
+/// - y: `0x03fa0984c931c9e38113e0c0e47e4401562761f92a7a23b45168f4e80ff5b54d`
 pub const PEDERSEN_P1: AffinePoint = AffinePoint::new_unchecked(
     Felt::from_raw([
         253000153565733272,
@@ -82,6 +124,12 @@ pub const PEDERSEN_P1: AffinePoint = AffinePoint::new_unchecked(
     ]),
 );
 
+/// The P2 constant of the STARK curve.
+///
+/// Coordinates:
+///
+/// - x: `0x04ba4cc166be8dec764910f75b45f74b40c690c74709e90f3aa372f0bd2d6997`
+/// - y: `0x0040301cf5c1751f4b971e46c4ede85fcac5c59a5ce5ae7c48151f27b24b219c`
 pub const PEDERSEN_P2: AffinePoint = AffinePoint::new_unchecked(
     Felt::from_raw([
         338510149841406402,
@@ -97,6 +145,12 @@ pub const PEDERSEN_P2: AffinePoint = AffinePoint::new_unchecked(
     ]),
 );
 
+/// The P3 constant of the STARK curve.
+///
+/// Coordinates:
+///
+/// - x: `0x054302dcb0e6cc1c6e44cca8f61a63bb2ca65048d53fb325d36ff12c49a58202`
+/// - y: `0x01b77b3e37d13504b348046268d8ae25ce98ad783c25561a879dcc77e99c2426`
 pub const PEDERSEN_P3: AffinePoint = AffinePoint::new_unchecked(
     Felt::from_raw([
         425493972656615276,
