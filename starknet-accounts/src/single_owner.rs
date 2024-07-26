@@ -47,13 +47,13 @@ where
 {
     /// Create a new account controlled by a single signer.
     ///
-    /// ### Arguments
+    /// ### Parameters
     ///
-    /// * `provider`: A `Provider` implementation that provides access to the Starknet network.
-    /// * `signer`: A `Signer` implementation that can generate valid signatures for this account.
-    /// * `address`: Account contract address.
-    /// * `chain_id`: Network chain ID.
-    /// * `encoding`: How `__execute__` calldata should be encoded.
+    /// - `provider`: A `Provider` implementation that provides access to the Starknet network.
+    /// - `signer`: A `Signer` implementation that can generate valid signatures for this account.
+    /// - `address`: Account contract address.
+    /// - `chain_id`: Network chain ID.
+    /// - `encoding`: How `__execute__` calldata should be encoded.
     pub const fn new(
         provider: P,
         signer: S,

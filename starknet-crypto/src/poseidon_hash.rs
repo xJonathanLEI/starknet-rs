@@ -3,7 +3,7 @@
 
 use starknet_types_core::{felt::Felt, hash::Poseidon};
 
-/// A hasher for Starknet Poseidon hash.
+/// A stateful hasher for Starknet Poseidon hash.
 ///
 /// Using this hasher is the same as calling [`poseidon_hash_many`].
 #[derive(Debug, Default)]
