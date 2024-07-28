@@ -12,12 +12,16 @@ use starknet_types_core::felt::Felt;
 const PRIME: U256 =
     U256::from_be_hex("0800000000000011000000000000000000000000000000000000000000000001");
 
+/// Serialize/deserialize [`Felt`] as hex strings. For use with `serde_with`.
 #[derive(Debug)]
 pub struct UfeHex;
 
+/// Serialize/deserialize [`Option<Felt>`] as hex strings. For use with `serde_with`.
 #[derive(Debug)]
 pub struct UfeHexOption;
 
+/// Serialize/deserialize [`Option<Felt>`] as hex strings in a pending block hash context. For use
+/// with `serde_with`.
 #[derive(Debug)]
 pub struct UfePendingBlockHash;
 

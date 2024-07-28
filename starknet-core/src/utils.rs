@@ -29,31 +29,46 @@ const CONTRACT_ADDRESS_PREFIX: Felt = Felt::from_raw([
 /// The uniqueness settings for UDC deployments.
 #[derive(Debug, Clone)]
 pub enum UdcUniqueness {
+    /// Contract deployment is not unique to the deployer, as in any deployer account can deploy to
+    /// this same deployed address given the same settings.
     NotUnique,
+    /// Contract deployment is unique to the deployer, as in the deployer address is used to form
+    /// part of the deployment salt, making it impossible to another deployer account to deploy to
+    /// the same deployed address, even using the same UDC inputs.
     Unique(UdcUniqueSettings),
 }
 
+/// The uniqueness settings when using [`UdcUniqueness::Unique`] for contract deployment.
 #[derive(Debug, Clone)]
 pub struct UdcUniqueSettings {
+    /// Contract address of the deployer account, which is the caller of the UDC.
     pub deployer_address: Felt,
+    /// The UDC address.
     pub udc_contract_address: Felt,
 }
 
 mod errors {
     use core::fmt::{Display, Formatter, Result};
 
+    /// The string provided contains non-ASCII characters.
     #[derive(Debug)]
     pub struct NonAsciiNameError;
 
+    /// Possible errors for encoding a Cairo short string.
     #[derive(Debug)]
     pub enum CairoShortStringToFeltError {
+        /// The string provided contains non-ASCII characters.
         NonAsciiCharacter,
+        /// The string provided is longer than 31 characters.
         StringTooLong,
     }
 
+    /// Possible errors for decoding a Cairo short string.
     #[derive(Debug)]
     pub enum ParseCairoShortStringError {
+        /// The encoded [`Felt`] value is out of range.
         ValueOutOfRange,
+        /// A null terminator (`0x00`) is encountered.
         UnexpectedNullTerminator,
     }
 
@@ -96,7 +111,8 @@ mod errors {
 }
 pub use errors::{CairoShortStringToFeltError, NonAsciiNameError, ParseCairoShortStringError};
 
-/// A variant of eth-keccak that computes a value that fits in a Starknet field element.
+/// A variant of eth-keccak that computes a value that fits in a Starknet field element. It performs
+/// a standard Keccak-256 but with the 6 most significant bits removed.
 pub fn starknet_keccak(data: &[u8]) -> Felt {
     let mut hasher = Keccak256::new();
     hasher.update(data);
@@ -109,6 +125,11 @@ pub fn starknet_keccak(data: &[u8]) -> Felt {
     Felt::from_bytes_be(unsafe { &*(hash[..].as_ptr() as *const [u8; 32]) })
 }
 
+/// Calculates the entrypoint selector from a human-readable function name.
+///
+/// Returns the [Starknet Keccak](fn.starknet_keccak) of the function name in most cases, except for
+/// 2 special built-in default entrypoints of `__default__` and `__l1_default__` for which `0` is
+/// returned instead.
 pub fn get_selector_from_name(func_name: &str) -> Result<Felt, NonAsciiNameError> {
     if func_name == DEFAULT_ENTRY_POINT_NAME || func_name == DEFAULT_L1_ENTRY_POINT_NAME {
         Ok(Felt::ZERO)
@@ -122,6 +143,11 @@ pub fn get_selector_from_name(func_name: &str) -> Result<Felt, NonAsciiNameError
     }
 }
 
+/// Calculates the standard storage slot address of storage variable in a Cairo contract.
+///
+/// The storage address is calculated by taking the [Starknet Keccak](fn.starknet_keccak) of the
+/// storage variable name, and applying [Pedersen hash](fn.pedersen_hash) for any additional keys
+/// in the case of using a `LegacyMap`.
 pub fn get_storage_var_address(var_name: &str, args: &[Felt]) -> Result<Felt, NonAsciiNameError> {
     let var_name_bytes = var_name.as_bytes();
     if var_name_bytes.is_ascii() {
@@ -178,8 +204,13 @@ pub fn parse_cairo_short_string(felt: &Felt) -> Result<String, ParseCairoShortSt
 }
 
 /// Computes the target contract address of a "native" contract deployment. Use
-/// `get_udc_deployed_address` instead if you want to compute the target address for deployments
+/// [`get_udc_deployed_address`] instead if you want to compute the target address for deployments
 /// through the Universal Deployer Contract.
+///
+/// This function can be used to calculate target addresses from `DEPLOY_ACCOUNT` transactions or
+/// invoking the `deploy` syscall. The `deployer_address` parameter should be set to `0` for
+/// `DEPLOY_ACCOUNT` transactions, and in other cases, to the address of the contract where the
+/// `deploy` syscall is invoked.
 pub fn get_contract_address(
     salt: Felt,
     class_hash: Felt,
@@ -218,6 +249,7 @@ pub fn get_udc_deployed_address(
     }
 }
 
+/// Normalizes an address to be in the range of `[0, 2^251 - 256)`.
 pub fn normalize_address(address: Felt) -> Felt {
     address.mod_floor(&ADDR_BOUND)
 }

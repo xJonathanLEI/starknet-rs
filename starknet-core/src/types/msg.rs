@@ -5,12 +5,18 @@ use starknet_types_core::felt::Felt;
 
 use super::{EthAddress, Hash256, MsgToL1};
 
+/// An L1-to-L2 message sent from Ethereum to Starknet.
 #[derive(Debug, Clone)]
 pub struct MsgToL2 {
+    /// The Ethereum address sending the message.
     pub from_address: EthAddress,
+    /// The Starknet contract address that handles the message.
     pub to_address: Felt,
+    /// The entrypoint selector on the handler contract.
     pub selector: Felt,
+    /// The calldata to be used for the handler contract invocation.
     pub payload: Vec<Felt>,
+    /// The nonce on the message for duduplication.
     pub nonce: u64,
 }
 

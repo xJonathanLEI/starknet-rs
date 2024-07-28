@@ -4,11 +4,22 @@ use serde_with::serde_as;
 use crate::serde::unsigned_field_element::UfeHex;
 use starknet_types_core::felt::Felt;
 
-/// A more idiomatic way to access `execution_status` and `revert_reason`.
+/// Block identifier used in [`TransactionReceiptWithBlockInfo`].
+///
+/// Instead of directly exposing the `block_hash` and `block_number` fields as [`Option<Felt>`],
+/// this struct captures the fact that these fields are always [`Some`](Option::Some) or
+/// [`None`](Option::None) toggether, allowing idiomatic access without unnecessary unwraps.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReceiptBlock {
+    /// The receipt is attached to a pending block.
     Pending,
-    Block { block_hash: Felt, block_number: u64 },
+    /// The receipt is attached to a confirmed, non-pending block.
+    Block {
+        /// Block hash.
+        block_hash: Felt,
+        /// Block number (height).
+        block_number: u64,
+    },
 }
 
 impl ReceiptBlock {

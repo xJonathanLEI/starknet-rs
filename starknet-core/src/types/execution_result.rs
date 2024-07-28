@@ -4,14 +4,24 @@ use serde::{Deserialize, Serialize};
 
 use super::TransactionExecutionStatus;
 
-/// A more idiomatic way to access `execution_status` and `revert_reason`.
+/// Execution result of a transaction.
+///
+/// This struct ccorresponds to the `execution_status` and `revert_reason` fields of a transaction
+/// receipt, capturing the fact that the presence of `revert_reason` depends on `execution_status`,
+/// allowing more idiomatic access to `revert_reason`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ExecutionResult {
+    /// The execution succeeded.
     Succeeded,
-    Reverted { reason: String },
+    /// The execution reverted.
+    Reverted {
+        /// The reason that the execution was reverted.    
+        reason: String,
+    },
 }
 
 impl ExecutionResult {
+    /// Gets the [`TransactionExecutionStatus`].
     pub const fn status(&self) -> TransactionExecutionStatus {
         match self {
             Self::Succeeded => TransactionExecutionStatus::Succeeded,

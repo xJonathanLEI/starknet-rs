@@ -41,12 +41,15 @@ pub use codegen::{
     TransactionReceiptWithBlockInfo, TransactionTraceWithHash, TransactionWithReceipt,
 };
 
+/// Module containing the [`U256`] type.
 pub mod u256;
 pub use u256::U256;
 
+/// Module containing the [`EthAddress`] type.
 pub mod eth_address;
 pub use eth_address::EthAddress;
 
+/// Module containing the [`Hash256`] type.
 pub mod hash_256;
 pub use hash_256::Hash256;
 
@@ -60,53 +63,85 @@ mod msg;
 pub use msg::MsgToL2;
 
 // TODO: move generated request code to `starknet-providers`
+/// Module containing JSON-RPC request types.
 pub mod requests;
 
+/// Module containing types related to Starknet contracts/classes.
 pub mod contract;
 pub use contract::ContractArtifact;
 
+/// A block with transaction hashes that may or may not be pending.
+///
+/// A pending block lacks certain information on the block header compared to a non-pending block.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePendingBlockWithTxHashes {
+    /// A confirmed, non-pending block.
     Block(BlockWithTxHashes),
+    /// A pending block.
     PendingBlock(PendingBlockWithTxHashes),
 }
 
+/// A block with full transactions that may or may not be pending.
+///
+/// A pending block lacks certain information on the block header compared to a non-pending block.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePendingBlockWithTxs {
+    /// A confirmed, non-pending block.
     Block(BlockWithTxs),
+    /// A pending block.
     PendingBlock(PendingBlockWithTxs),
 }
 
+/// A block with full transactions and receipts that may or may not be pending.
+///
+/// A pending block lacks certain information on the block header compared to a non-pending block.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePendingBlockWithReceipts {
+    /// A confirmed, non-pending block.
     Block(BlockWithReceipts),
+    /// A pending block.
     PendingBlock(PendingBlockWithReceipts),
 }
 
+/// State update of a block that may or may not be pending.
+///
+/// State update for a pending block lacks certain information compared to that of a non-pending
+/// block.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePendingStateUpdate {
+    /// The state update is for a confirmed, non-pending block.
     Update(StateUpdate),
+    /// The state update is for a pending block.
     PendingUpdate(PendingStateUpdate),
 }
 
+/// The hash and number (height) for a block.
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BlockHashAndNumber {
+    /// The block's hash.
     #[serde_as(as = "UfeHex")]
     pub block_hash: Felt,
+    /// The block's number (height).
     pub block_number: u64,
 }
 
+/// A Starknet client node's synchronization status.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SyncStatusType {
+    /// The node is synchronizing.
     Syncing(SyncStatus),
+    /// The node is not synchronizing.
     NotSyncing,
 }
 
+/// A "page" of events in a cursor-based pagniation system.
+///
+/// This type is usually returned from the `starknet_getEvents` RPC method.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EventsPage {
     /// Matching events
@@ -118,6 +153,7 @@ pub struct EventsPage {
     pub continuation_token: Option<String>,
 }
 
+/// Response for broadcasting an `INVOKE` transaction.
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct InvokeTransactionResult {
@@ -126,6 +162,7 @@ pub struct InvokeTransactionResult {
     pub transaction_hash: Felt,
 }
 
+/// Response for broadcasting a `DECLARE` transaction.
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DeclareTransactionResult {
@@ -137,6 +174,10 @@ pub struct DeclareTransactionResult {
     pub class_hash: Felt,
 }
 
+/// Response for broadcasting a `DEPLOY` transaction.
+///
+/// Note that `DEPLOY` transactions have been deprecated and disabled on all public Starknet
+/// networks.
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DeployTransactionResult {
@@ -148,6 +189,7 @@ pub struct DeployTransactionResult {
     pub contract_address: Felt,
 }
 
+/// Response for broadcasting a `DEPLOY_ACCOUNT` transaction.
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DeployAccountTransactionResult {
@@ -159,18 +201,25 @@ pub struct DeployAccountTransactionResult {
     pub contract_address: Felt,
 }
 
-/// Block hash, number or tag
+/// Block identifier in the form of hash, number or tag.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BlockId {
+    /// Block hash.
     Hash(Felt),
+    /// Block number (height).
     Number(u64),
+    /// Block tag.
     Tag(BlockTag),
 }
 
+/// A "processed" contract class representation that's circulated in the network. This is different
+/// from the class representation of compiler output.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ContractClass {
+    /// A "processed" Sierra (Cairo 1) class.
     Sierra(FlattenedSierraClass),
+    /// A "processed" legacy (Cairo 0) class.
     Legacy(CompressedLegacyContractClass),
 }
 
@@ -209,136 +258,189 @@ impl TransactionStatus {
     }
 }
 
+/// A Starknet transaction.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(tag = "type")]
 pub enum Transaction {
+    /// An `INVOKE` transaction.
     #[serde(rename = "INVOKE")]
     Invoke(InvokeTransaction),
+    /// An `L1_HANDLER` transaction.
     #[serde(rename = "L1_HANDLER")]
     L1Handler(L1HandlerTransaction),
+    /// A `DECLARE` transaction.
     #[serde(rename = "DECLARE")]
     Declare(DeclareTransaction),
+    /// A `DEPLOY` transaction.
     #[serde(rename = "DEPLOY")]
     Deploy(DeployTransaction),
+    /// A `DEPLOY_ACCOUNT` transaction.
     #[serde(rename = "DEPLOY_ACCOUNT")]
     DeployAccount(DeployAccountTransaction),
 }
 
+/// A Starknet transaction in its "mempool" representation that's broadcast by a client.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(tag = "type")]
 pub enum BroadcastedTransaction {
+    /// An `INVOKE` transaction.
     #[serde(rename = "INVOKE")]
     Invoke(BroadcastedInvokeTransaction),
+    /// A `DECLARE` transaction.
     #[serde(rename = "DECLARE")]
     Declare(BroadcastedDeclareTransaction),
+    /// A `DEPLOY_ACCOUNT` transaction.
     #[serde(rename = "DEPLOY_ACCOUNT")]
     DeployAccount(BroadcastedDeployAccountTransaction),
 }
 
+/// An `INVOKE` Starknet transaction.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(tag = "version")]
 pub enum InvokeTransaction {
+    /// Version 0 `INVOKE` transaction.
     #[serde(rename = "0x0")]
     V0(InvokeTransactionV0),
+    /// Version 1 `INVOKE` transaction.
     #[serde(rename = "0x1")]
     V1(InvokeTransactionV1),
+    /// Version 3 `INVOKE` transaction.
     #[serde(rename = "0x3")]
     V3(InvokeTransactionV3),
 }
 
+/// A `DECLARE` Starknet transaction.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(tag = "version")]
 pub enum DeclareTransaction {
+    /// Version 0 `DECLARE` transaction.
     #[serde(rename = "0x0")]
     V0(DeclareTransactionV0),
+    /// Version 1 `DECLARE` transaction.
     #[serde(rename = "0x1")]
     V1(DeclareTransactionV1),
+    /// Version 2 `DECLARE` transaction.
     #[serde(rename = "0x2")]
     V2(DeclareTransactionV2),
+    /// Version 3 `DECLARE` transaction.
     #[serde(rename = "0x3")]
     V3(DeclareTransactionV3),
 }
 
+/// A `DEPLOY_ACCOUNT` Starknet transaction.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(tag = "version")]
 pub enum DeployAccountTransaction {
+    /// Version 1 `DEPLOY_ACCOUNT` transaction.
     #[serde(rename = "0x1")]
     V1(DeployAccountTransactionV1),
+    /// Version 3 `DEPLOY_ACCOUNT` transaction.
     #[serde(rename = "0x3")]
     V3(DeployAccountTransactionV3),
 }
 
+/// An `INVOKE` Starknet transaction in its "mempool" representation.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(untagged)]
 pub enum BroadcastedInvokeTransaction {
+    /// Version 1 `INVOKE` transaction.
     V1(BroadcastedInvokeTransactionV1),
+    /// Version 3 `INVOKE` transaction.
     V3(BroadcastedInvokeTransactionV3),
 }
 
+/// A `DECLARE` Starknet transaction in its "mempool" representation.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(untagged)]
 pub enum BroadcastedDeclareTransaction {
+    /// Version 1 `DECLARE` transaction.
     V1(BroadcastedDeclareTransactionV1),
+    /// Version 2 `DECLARE` transaction.
     V2(BroadcastedDeclareTransactionV2),
+    /// Version 3 `DECLARE` transaction.
     V3(BroadcastedDeclareTransactionV3),
 }
 
+/// A `DEPLOY_ACCOUNT` Starknet transaction in its "mempool" representation.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(untagged)]
 pub enum BroadcastedDeployAccountTransaction {
+    /// Version 1 `DEPLOY_ACCOUNT` transaction.
     V1(BroadcastedDeployAccountTransactionV1),
+    /// Version 3 `DEPLOY_ACCOUNT` transaction.
     V3(BroadcastedDeployAccountTransactionV3),
 }
 
+/// Starknet transaction receipt containing execution results.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(tag = "type")]
 pub enum TransactionReceipt {
+    /// Receipt for an `INVOKE` transaction.
     #[serde(rename = "INVOKE")]
     Invoke(InvokeTransactionReceipt),
+    /// Receipt for an `L1_HANDLER` transaction.
     #[serde(rename = "L1_HANDLER")]
     L1Handler(L1HandlerTransactionReceipt),
+    /// Receipt for a `DECLARE` transaction.
     #[serde(rename = "DECLARE")]
     Declare(DeclareTransactionReceipt),
+    /// Receipt for a `DEPLOY` transaction.
     #[serde(rename = "DEPLOY")]
     Deploy(DeployTransactionReceipt),
+    /// Receipt for a `DEPLOY_ACCOUNT` transaction.
     #[serde(rename = "DEPLOY_ACCOUNT")]
     DeployAccount(DeployAccountTransactionReceipt),
 }
 
+/// ABI entry item for legacy (Cairo 0) contract classes.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum LegacyContractAbiEntry {
+    /// ABI entry representing a Cairo function.
     Function(LegacyFunctionAbiEntry),
+    /// ABI entry representing a Starknet event.
     Event(LegacyEventAbiEntry),
+    /// ABI entry representing a Cairo struct.
     Struct(LegacyStructAbiEntry),
 }
 
+/// Execution trace of a Starknet transaction.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(tag = "type")]
 pub enum TransactionTrace {
+    /// Trace for an `INVOKE` transaction.
     #[serde(rename = "INVOKE")]
     Invoke(InvokeTransactionTrace),
+    /// Trace for a `DEPLOY_ACCOUNT` transaction.
     #[serde(rename = "DEPLOY_ACCOUNT")]
     DeployAccount(DeployAccountTransactionTrace),
+    /// Trace for an `L1_HANDLER` transaction.
     #[serde(rename = "L1_HANDLER")]
     L1Handler(L1HandlerTransactionTrace),
+    /// Trace for a `DECLARE` transaction.
     #[serde(rename = "DECLARE")]
     Declare(DeclareTransactionTrace),
 }
 
+/// The execution result of a function invocation.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(untagged)]
 pub enum ExecuteInvocation {
+    /// Successful invocation.
     Success(FunctionInvocation),
+    /// Failed and reverted invocation.
     Reverted(RevertedInvocation),
 }
 
 mod errors {
     use core::fmt::{Display, Formatter, Result};
 
+    /// Errors parsing an L1-to-L2 message from transaction calldata.
     #[derive(Debug, PartialEq, Eq)]
     pub enum ParseMsgToL2Error {
+        /// The transaction calldata is empty.
         EmptyCalldata,
+        /// The L1 sender address is longer than 20 bytes.
         FromAddressOutOfRange,
     }
 
@@ -364,6 +466,7 @@ mod errors {
 pub use errors::ParseMsgToL2Error;
 
 impl MaybePendingBlockWithTxHashes {
+    /// Gets a reference to the list of transaction hashes.
     pub fn transactions(&self) -> &[Felt] {
         match self {
             Self::Block(block) => &block.transactions,
@@ -371,6 +474,7 @@ impl MaybePendingBlockWithTxHashes {
         }
     }
 
+    /// Gets a reference to the L1 gas price.
     pub const fn l1_gas_price(&self) -> &ResourcePrice {
         match self {
             Self::Block(block) => &block.l1_gas_price,
@@ -380,6 +484,7 @@ impl MaybePendingBlockWithTxHashes {
 }
 
 impl MaybePendingBlockWithTxs {
+    /// Gets a reference to the list of transactions.
     pub fn transactions(&self) -> &[Transaction] {
         match self {
             Self::Block(block) => &block.transactions,
@@ -387,6 +492,7 @@ impl MaybePendingBlockWithTxs {
         }
     }
 
+    /// Gets a reference to the L1 gas price.
     pub const fn l1_gas_price(&self) -> &ResourcePrice {
         match self {
             Self::Block(block) => &block.l1_gas_price,
@@ -396,6 +502,7 @@ impl MaybePendingBlockWithTxs {
 }
 
 impl MaybePendingBlockWithReceipts {
+    /// Gets a reference to the list of transactions with receipts.
     pub fn transactions(&self) -> &[TransactionWithReceipt] {
         match self {
             Self::Block(block) => &block.transactions,
@@ -403,6 +510,7 @@ impl MaybePendingBlockWithReceipts {
         }
     }
 
+    /// Gets a reference to the L1 gas price.
     pub const fn l1_gas_price(&self) -> &ResourcePrice {
         match self {
             Self::Block(block) => &block.l1_gas_price,
@@ -412,6 +520,7 @@ impl MaybePendingBlockWithReceipts {
 }
 
 impl TransactionStatus {
+    /// Gets a reference to the transaction's finality status.
     pub const fn finality_status(&self) -> SequencerTransactionStatus {
         match self {
             Self::Received => SequencerTransactionStatus::Received,
@@ -423,6 +532,7 @@ impl TransactionStatus {
 }
 
 impl Transaction {
+    /// Gets a reference to the transaction's hash.
     pub const fn transaction_hash(&self) -> &Felt {
         match self {
             Self::Invoke(tx) => tx.transaction_hash(),
@@ -435,6 +545,7 @@ impl Transaction {
 }
 
 impl InvokeTransaction {
+    /// Gets a reference to the transaction's hash.
     pub const fn transaction_hash(&self) -> &Felt {
         match self {
             Self::V0(tx) => &tx.transaction_hash,
@@ -445,6 +556,7 @@ impl InvokeTransaction {
 }
 
 impl DeclareTransaction {
+    /// Gets a reference to the transaction's hash.
     pub const fn transaction_hash(&self) -> &Felt {
         match self {
             Self::V0(tx) => &tx.transaction_hash,
@@ -456,6 +568,7 @@ impl DeclareTransaction {
 }
 
 impl DeployAccountTransaction {
+    /// Gets a reference to the transaction's hash.
     pub const fn transaction_hash(&self) -> &Felt {
         match self {
             Self::V1(tx) => &tx.transaction_hash,
@@ -465,6 +578,7 @@ impl DeployAccountTransaction {
 }
 
 impl TransactionReceipt {
+    /// Gets a reference to the transaction's hash.
     pub const fn transaction_hash(&self) -> &Felt {
         match self {
             Self::Invoke(receipt) => &receipt.transaction_hash,
@@ -475,6 +589,7 @@ impl TransactionReceipt {
         }
     }
 
+    /// Gets a reference to the transaction's finality status.
     pub const fn finality_status(&self) -> &TransactionFinalityStatus {
         match self {
             Self::Invoke(receipt) => &receipt.finality_status,
@@ -485,6 +600,7 @@ impl TransactionReceipt {
         }
     }
 
+    /// Gets a reference to the transaction's execution result.
     pub const fn execution_result(&self) -> &ExecutionResult {
         match self {
             Self::Invoke(receipt) => &receipt.execution_result,
@@ -497,6 +613,8 @@ impl TransactionReceipt {
 }
 
 impl L1HandlerTransaction {
+    /// Parses [`MsgToL2`] from the transaction's calldata. This should not never fail on a genuine
+    /// `L1_HANDLER` transaction.
     pub fn parse_msg_to_l2(&self) -> Result<MsgToL2, ParseMsgToL2Error> {
         self.calldata.split_first().map_or(
             Err(ParseMsgToL2Error::EmptyCalldata),

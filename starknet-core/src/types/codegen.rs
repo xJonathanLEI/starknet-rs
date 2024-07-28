@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#fbd3aed2a08d6b29328e87ee0bbfb7e80f7051b0
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#f1278dfb2ae57d319093421c038f6ec7a3dfba2f
 
 // These types are ignored from code generation. Implement them manually:
 // - `RECEIPT_BLOCK`
@@ -24,6 +24,7 @@
 // - `TXN`
 // - `TXN_RECEIPT`
 
+#![allow(missing_docs)]
 #![allow(clippy::doc_markdown)]
 #![allow(clippy::missing_const_for_fn)]
 
