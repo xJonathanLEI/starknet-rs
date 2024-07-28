@@ -247,7 +247,7 @@ pub trait Provider {
     where
         B: AsRef<BlockId> + Send + Sync;
 
-    /// Same as [estimate_fee], but only with one estimate.
+    /// Same as [`estimate_fee`](fn.estimate_fee), but only with one estimate.
     async fn estimate_fee_single<R, S, B>(
         &self,
         request: R,
@@ -271,7 +271,7 @@ pub trait Provider {
         }
     }
 
-    /// Same as [simulate_transactions], but only with one simulation.
+    /// Same as [`simulate_transactions`](fn.simulate_transactions), but only with one simulation.
     async fn simulate_transaction<B, T, S>(
         &self,
         block_id: B,

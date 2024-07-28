@@ -66,7 +66,7 @@ mod errors {
     /// Possible errors for decoding a Cairo short string.
     #[derive(Debug)]
     pub enum ParseCairoShortStringError {
-        /// The encoded [`Felt`] value is out of range.
+        /// The encoded [`Felt`](super::Felt) value is out of range.
         ValueOutOfRange,
         /// A null terminator (`0x00`) is encountered.
         UnexpectedNullTerminator,

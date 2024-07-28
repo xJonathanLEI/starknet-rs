@@ -20,7 +20,7 @@ struct Hash256Visitor;
 mod errors {
     use core::fmt::{Display, Formatter, Result};
 
-    /// Errors parsing [`Hash256`] from a hex string.
+    /// Errors parsing [`Hash256`](super::Hash256) from a hex string.
     #[derive(Debug)]
     pub enum FromHexError {
         /// The hex string is not 64 hexadecimal characters in length without the `0x` prefix.
@@ -29,7 +29,7 @@ mod errors {
         InvalidHexString,
     }
 
-    /// The hash value is out of range for converting into [`Felt`].
+    /// The hash value is out of range for converting into [`Felt`](super::Felt).
     #[derive(Debug)]
     pub struct ToFieldElementError;
 

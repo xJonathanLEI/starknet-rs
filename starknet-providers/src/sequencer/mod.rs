@@ -40,16 +40,18 @@ pub enum GatewayClientError {
     /// Sequencer error responses not parsable into [`StarknetError`]
     #[error(transparent)]
     SequencerError(SequencerError),
-    /// Method is not supported (only when using as [Provider])
+    /// Method is not supported (only when using as [`Provider`](crate::Provider))
     #[error("method not supported")]
     MethodNotSupported,
-    /// Model conversion error (only when using as [Provider])
+    /// Model conversion error (only when using as [`Provider`](crate::Provider))
     #[error("unable to convert gateway models to jsonrpc types")]
     ModelConversionError,
-    /// Simulating multiple transactions is not supported (only when using as [Provider])
+    /// Simulating multiple transactions is not supported (only when using as
+    /// [`Provider`](crate::Provider))
     #[error("simulating multiple transactions not supported")]
     BulkSimulationNotSupported,
-    /// At least one of the simulation flags is not supported (only when using as [Provider])
+    /// At least one of the simulation flags is not supported (only when using as
+    /// [`Provider`](crate::Provider))
     #[error("unsupported simulation flag")]
     UnsupportedSimulationFlag,
 }
@@ -140,7 +142,7 @@ impl SequencerGatewayProvider {
     }
 
     /// Consumes the current [`SequencerGatewayProvider`] instance and returns a new one with the
-    /// header appended. Same as calling [`add_header`].
+    /// header appended. Same as calling [`add_header`](fn.add_header).
     pub fn with_header(self, name: String, value: String) -> Self {
         let mut headers = self.headers;
         headers.push((name, value));
