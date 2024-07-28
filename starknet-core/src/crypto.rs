@@ -6,16 +6,23 @@ use starknet_crypto::{rfc6979_generate_k, sign, verify, SignError, VerifyError};
 mod errors {
     use core::fmt::{Display, Formatter, Result};
 
+    /// Errors when performing ECDSA [`sign`](fn.ecdsa_sign) operations.
     #[derive(Debug)]
     pub enum EcdsaSignError {
+        /// The message hash is not in the range of `[0, 2^251)`.
         MessageHashOutOfRange,
     }
 
     #[derive(Debug)]
+    /// Errors when performing ECDSA [`verify`](fn.ecdsa_verify) operations.
     pub enum EcdsaVerifyError {
+        /// The message hash is not in the range of `[0, 2^251)`.
         MessageHashOutOfRange,
+        /// The public key is not a valid point on the STARK curve.
         InvalidPublicKey,
+        /// The `r` value is not in the range of `[0, 2^251)`.
         SignatureROutOfRange,
+        /// The `s` value is not in the range of `[0, 2^251)`.
         SignatureSOutOfRange,
     }
 
@@ -46,6 +53,16 @@ mod errors {
 }
 pub use errors::{EcdsaSignError, EcdsaVerifyError};
 
+/// Computes the Pedersen hash of a list of [`Felt`].
+///
+/// The hash is computed by starting with `0`, hashing it recursively against all elements in
+/// the list, and finally also hashing against the length of the list.
+///
+/// For example, calling `compute_hash_on_elements([7, 8])` would return:
+///
+/// ```markdown
+/// pedersen_hash(pedersen_hash(pedersen_hash(0, 7)), 8), 2)
+/// ```
 pub fn compute_hash_on_elements<'a, ESI, II>(data: II) -> Felt
 where
     ESI: ExactSizeIterator<Item = &'a Felt>,
@@ -62,6 +79,8 @@ where
     pedersen_hash(&current_hash, &data_len)
 }
 
+/// Signs a hash using deterministic ECDSA on the STARK curve. The signature returned can be used
+/// to recover the public key.
 pub fn ecdsa_sign(
     private_key: &Felt,
     message_hash: &Felt,
@@ -89,6 +108,7 @@ pub fn ecdsa_sign(
     }
 }
 
+/// Verified an ECDSA signature on the STARK curve.
 pub fn ecdsa_verify(
     public_key: &Felt,
     message_hash: &Felt,

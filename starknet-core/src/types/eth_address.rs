@@ -12,6 +12,7 @@ const MAX_L1_ADDRESS: Felt = Felt::from_raw([
     18406070939574861858,
 ]);
 
+/// Ethereum address represented with a 20-byte array.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EthAddress {
     inner: [u8; 20],
@@ -22,15 +23,20 @@ struct EthAddressVisitor;
 mod errors {
     use core::fmt::{Display, Formatter, Result};
 
+    /// Errors parsing [`EthAddress`] from a hex string.
     #[derive(Debug)]
     pub enum FromHexError {
+        /// The hex string is not 40 hexadecimal characters in length without the `0x` prefix.
         UnexpectedLength,
+        /// The string contains non-hexadecimal characters.
         InvalidHexString,
     }
 
+    /// The [`Felt`] value is out of range for converting into [`EthAddress`].
     #[derive(Debug)]
     pub struct FromFieldElementError;
 
+    /// The byte slice is out of range for converting into [`EthAddress`].
     #[derive(Debug)]
     pub struct FromBytesSliceError;
 
@@ -71,18 +77,22 @@ mod errors {
 pub use errors::{FromBytesSliceError, FromFieldElementError, FromHexError};
 
 impl EthAddress {
+    /// Constructs [`EthAddress`] from a byte array.
     pub const fn from_bytes(bytes: [u8; 20]) -> Self {
         Self { inner: bytes }
     }
 
+    /// Parses [`EthAddress`] from a hex string.
     pub fn from_hex(hex: &str) -> Result<Self, FromHexError> {
         hex.parse()
     }
 
+    /// Constructs [`EthAddress`] from a [`Felt`].
     pub fn from_felt(felt: &Felt) -> Result<Self, FromFieldElementError> {
         felt.try_into()
     }
 
+    /// Gets a reference to the underlying byte array.
     pub const fn as_bytes(&self) -> &[u8; 20] {
         &self.inner
     }

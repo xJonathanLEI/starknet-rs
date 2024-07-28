@@ -9,6 +9,7 @@ use starknet_types_core::felt::Felt;
 
 const HASH_256_BYTE_COUNT: usize = 32;
 
+/// A 256-bit cryptographic hash.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Hash256 {
     inner: [u8; HASH_256_BYTE_COUNT],
@@ -19,12 +20,16 @@ struct Hash256Visitor;
 mod errors {
     use core::fmt::{Display, Formatter, Result};
 
+    /// Errors parsing [`Hash256`] from a hex string.
     #[derive(Debug)]
     pub enum FromHexError {
+        /// The hex string is not 64 hexadecimal characters in length without the `0x` prefix.
         UnexpectedLength,
+        /// The string contains non-hexadecimal characters.
         InvalidHexString,
     }
 
+    /// The hash value is out of range for converting into [`Felt`].
     #[derive(Debug)]
     pub struct ToFieldElementError;
 
@@ -56,18 +61,22 @@ mod errors {
 pub use errors::{FromHexError, ToFieldElementError};
 
 impl Hash256 {
+    /// Constructs [`Hash256`] from a byte array.
     pub const fn from_bytes(bytes: [u8; HASH_256_BYTE_COUNT]) -> Self {
         Self { inner: bytes }
     }
 
+    /// Parses [`Hash256`] from a hex string.
     pub fn from_hex(hex: &str) -> Result<Self, FromHexError> {
         hex.parse()
     }
 
+    /// Constructs [`Hash256`] from a [`Felt`].
     pub fn from_felt(felt: &Felt) -> Self {
         felt.into()
     }
 
+    /// Gets a reference to the underlying byte array.
     pub const fn as_bytes(&self) -> &[u8; HASH_256_BYTE_COUNT] {
         &self.inner
     }

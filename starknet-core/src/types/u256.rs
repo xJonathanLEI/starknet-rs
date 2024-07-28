@@ -11,35 +11,41 @@ use crate::types::Felt;
 pub struct U256(crypto_bigint::U256);
 
 impl U256 {
-    #[cfg(target_pointer_width = "64")]
+    /// Constructs a [U256] from the low 128 bits and the high 128 bits, similar to how they're
+    /// represented in Cairo.
     pub const fn from_words(low: u128, high: u128) -> Self {
-        Self(crypto_bigint::U256::from_words([
-            low as u64,
-            (low >> 64) as u64,
-            high as u64,
-            (high >> 64) as u64,
-        ]))
+        #[cfg(target_pointer_width = "64")]
+        {
+            Self(crypto_bigint::U256::from_words([
+                low as u64,
+                (low >> 64) as u64,
+                high as u64,
+                (high >> 64) as u64,
+            ]))
+        }
+
+        #[cfg(target_pointer_width = "32")]
+        {
+            Self(crypto_bigint::U256::from_words([
+                low as u32,
+                (low >> 32) as u32,
+                (low >> 64) as u32,
+                (low >> 96) as u32,
+                high as u32,
+                (high >> 32) as u32,
+                (high >> 64) as u32,
+                (high >> 96) as u32,
+            ]))
+        }
     }
 
-    #[cfg(target_pointer_width = "32")]
-    pub const fn from_words(low: u128, high: u128) -> Self {
-        Self(crypto_bigint::U256::from_words([
-            low as u32,
-            (low >> 32) as u32,
-            (low >> 64) as u32,
-            (low >> 96) as u32,
-            high as u32,
-            (high >> 32) as u32,
-            (high >> 64) as u32,
-            (high >> 96) as u32,
-        ]))
-    }
-
+    /// Gets the lower (least significant) 128 bits as [u128].
     pub const fn low(&self) -> u128 {
         let words = u256_to_u64_array(&self.0);
         words[0] as u128 + ((words[1] as u128) << 64)
     }
 
+    /// Gets the higher (most significant) 128 bits as [u128].
     pub const fn high(&self) -> u128 {
         let words = u256_to_u64_array(&self.0);
         words[2] as u128 + ((words[3] as u128) << 64)
