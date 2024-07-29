@@ -20,6 +20,8 @@ const SELECTOR_DEPLOYCONTRACT: Felt = Felt::from_raw([
     18249998464715511309,
 ]);
 
+/// A contract factory that acts as a blueprint for deploying Starknet smart contracts using the
+/// Universal Deployer Contract.
 #[derive(Debug)]
 pub struct ContractFactory<A> {
     class_hash: Felt,
@@ -62,10 +64,15 @@ pub struct DeploymentV3<'f, A> {
 }
 
 impl<A> ContractFactory<A> {
+    /// Constructs a new [`ContractFactory`] from a class hash and an account.
+    ///
+    /// The [`ContractFactory`] created uses the default address for the Universal Deployer
+    /// Contract. To use a custom UDC deployment, use [`new_with_udc`](fn.new_with_udc) instead.
     pub const fn new(class_hash: Felt, account: A) -> Self {
         Self::new_with_udc(class_hash, account, UDC_ADDRESS)
     }
 
+    /// Constructs a new [`ContractFactory`] with a custom Universal Deployer Contract address.
     pub const fn new_with_udc(class_hash: Felt, account: A, udc_address: Felt) -> Self {
         Self {
             class_hash,
@@ -79,6 +86,8 @@ impl<A> ContractFactory<A>
 where
     A: Account,
 {
+    /// Generates an instance of [`DeploymentV1`] for sending `INVOKE` v1 transactions for the
+    /// contract deployment. Pays transaction fees in `ETH`.
     pub const fn deploy_v1(
         &self,
         constructor_calldata: Vec<Felt>,
@@ -96,6 +105,8 @@ where
         }
     }
 
+    /// Generates an instance of [`DeploymentV3`] for sending `INVOKE` v3 transactions for the
+    /// contract deployment. Pays transaction fees in `STRK`.
     pub const fn deploy_v3(
         &self,
         constructor_calldata: Vec<Felt>,
@@ -115,6 +126,8 @@ where
         }
     }
 
+    /// Generates an instance of [`DeploymentV1`] for sending `INVOKE` v1 transactions for the
+    /// contract deployment. Pays transaction fees in `ETH`.
     #[deprecated = "use version specific variants (`deploy_v1` & `deploy_v3`) instead"]
     pub const fn deploy(
         &self,
@@ -127,6 +140,7 @@ where
 }
 
 impl<'f, A> DeploymentV1<'f, A> {
+    /// Returns a new [`DeploymentV1`] with the `nonce`.
     pub fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
@@ -134,6 +148,7 @@ impl<'f, A> DeploymentV1<'f, A> {
         }
     }
 
+    /// Returns a new [`DeploymentV1`] with the `max_fee`.
     pub fn max_fee(self, max_fee: Felt) -> Self {
         Self {
             max_fee: Some(max_fee),
@@ -141,6 +156,9 @@ impl<'f, A> DeploymentV1<'f, A> {
         }
     }
 
+    /// Returns a new [`DeploymentV1`] with the fee estimate multiplier. The multiplier is used
+    /// when transaction fee is not manually specified and must be fetched from a
+    /// [`Provider`](starknet_providers::Provider) instead.
     pub fn fee_estimate_multiplier(self, fee_estimate_multiplier: f64) -> Self {
         Self {
             fee_estimate_multiplier,
@@ -150,6 +168,7 @@ impl<'f, A> DeploymentV1<'f, A> {
 }
 
 impl<'f, A> DeploymentV3<'f, A> {
+    /// Returns a new [`DeploymentV3`] with the `nonce`.
     pub fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
@@ -157,6 +176,7 @@ impl<'f, A> DeploymentV3<'f, A> {
         }
     }
 
+    /// Returns a new [`DeploymentV3`] with the `gas`.
     pub fn gas(self, gas: u64) -> Self {
         Self {
             gas: Some(gas),
@@ -164,6 +184,7 @@ impl<'f, A> DeploymentV3<'f, A> {
         }
     }
 
+    /// Returns a new [`DeploymentV3`] with the `gas_price`.
     pub fn gas_price(self, gas_price: u128) -> Self {
         Self {
             gas_price: Some(gas_price),
@@ -171,6 +192,9 @@ impl<'f, A> DeploymentV3<'f, A> {
         }
     }
 
+    /// Returns a new [`DeploymentV3`] with the gas amount estimate multiplier.  The multiplier is
+    /// used when the gas amount is not manually specified and must be fetched from a
+    /// [`Provider`](starknet_providers::Provider) instead.
     pub fn gas_estimate_multiplier(self, gas_estimate_multiplier: f64) -> Self {
         Self {
             gas_estimate_multiplier,
@@ -178,6 +202,9 @@ impl<'f, A> DeploymentV3<'f, A> {
         }
     }
 
+    /// Returns a new [`DeploymentV3`] with the gas price estimate multiplier.  The multiplier is
+    /// used when the gas price is not manually specified and must be fetched from a
+    /// [`Provider`](starknet_providers::Provider) instead.
     pub fn gas_price_estimate_multiplier(self, gas_price_estimate_multiplier: f64) -> Self {
         Self {
             gas_price_estimate_multiplier,
@@ -234,11 +261,14 @@ impl<'f, A> DeploymentV1<'f, A>
 where
     A: ConnectedAccount + Sync,
 {
+    /// Estimates transaction fees from a [`Provider`](starknet_providers::Provider).
     pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
         let execution: ExecutionV1<'_, A> = self.into();
         execution.estimate_fee().await
     }
 
+    /// Simulates the transaction from a [`Provider`](starknet_providers::Provider). Transaction
+    /// validation and fee transfer can be skipped.
     pub async fn simulate(
         &self,
         skip_validate: bool,
@@ -248,6 +278,7 @@ where
         execution.simulate(skip_validate, skip_fee_charge).await
     }
 
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
         let execution: ExecutionV1<'_, A> = self.into();
         execution.send().await
@@ -258,11 +289,14 @@ impl<'f, A> DeploymentV3<'f, A>
 where
     A: ConnectedAccount + Sync,
 {
+    /// Estimates transaction fees from a [`Provider`](starknet_providers::Provider).
     pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
         let execution: ExecutionV3<'_, A> = self.into();
         execution.estimate_fee().await
     }
 
+    /// Simulates the transaction from a [`Provider`](starknet_providers::Provider). Transaction
+    /// validation and fee transfer can be skipped.
     pub async fn simulate(
         &self,
         skip_validate: bool,
@@ -272,6 +306,7 @@ where
         execution.simulate(skip_validate, skip_fee_charge).await
     }
 
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
         let execution: ExecutionV3<'_, A> = self.into();
         execution.send().await
