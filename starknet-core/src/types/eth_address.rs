@@ -23,7 +23,7 @@ struct EthAddressVisitor;
 mod errors {
     use core::fmt::{Display, Formatter, Result};
 
-    /// Errors parsing [`EthAddress`] from a hex string.
+    /// Errors parsing [`EthAddress`](super::EthAddress) from a hex string.
     #[derive(Debug)]
     pub enum FromHexError {
         /// The hex string is not 40 hexadecimal characters in length without the `0x` prefix.
@@ -32,11 +32,12 @@ mod errors {
         InvalidHexString,
     }
 
-    /// The [`Felt`] value is out of range for converting into [`EthAddress`].
+    /// The [`Felt`](super::Felt) value is out of range for converting into
+    /// [`EthAddress`](super::EthAddress).
     #[derive(Debug)]
     pub struct FromFieldElementError;
 
-    /// The byte slice is out of range for converting into [`EthAddress`].
+    /// The byte slice is out of range for converting into [`EthAddress`](super::EthAddress).
     #[derive(Debug)]
     pub struct FromBytesSliceError;
 

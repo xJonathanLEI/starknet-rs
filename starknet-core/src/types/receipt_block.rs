@@ -4,7 +4,8 @@ use serde_with::serde_as;
 use crate::serde::unsigned_field_element::UfeHex;
 use starknet_types_core::felt::Felt;
 
-/// Block identifier used in [`TransactionReceiptWithBlockInfo`].
+/// Block identifier used in
+/// [`TransactionReceiptWithBlockInfo`](super::TransactionReceiptWithBlockInfo).
 ///
 /// Instead of directly exposing the `block_hash` and `block_number` fields as [`Option<Felt>`],
 /// this struct captures the fact that these fields are always [`Some`](Option::Some) or
