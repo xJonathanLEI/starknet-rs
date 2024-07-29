@@ -346,8 +346,9 @@ dependencies = [
 
 [[package]]
 name = "coins-ledger"
-version = "0.11.1"
-source = "git+https://github.com/xJonathanLEI/coins?rev=0e3be5db0b18b683433de6b666556b99c726e785#0e3be5db0b18b683433de6b666556b99c726e785"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab9bc0994d0aa0f4ade5f3a9baf4a8d936f250278c85a1124b401860454246ab"
 dependencies = [
  "async-trait",
  "byteorder",

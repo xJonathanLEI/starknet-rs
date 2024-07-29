@@ -21,10 +21,8 @@ thiserror = "1.0.40"
 crypto-bigint = { version = "0.5.1", default-features = false }
 rand = { version = "0.8.5", features = ["std_rng"] }
 coins-bip32 = { version = "0.11.1", optional = true }
+coins-ledger = { version = "0.12.0", default-features = false, optional = true }
 semver = { version = "1.0.23", optional = true }
-
-# Using a fork until https://github.com/summa-tx/coins/issues/137 is fixed
-coins-ledger = { git = "https://github.com/xJonathanLEI/coins", rev = "0e3be5db0b18b683433de6b666556b99c726e785", default-features = false, optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 eth-keystore = { version = "0.5.0", default-features = false }
