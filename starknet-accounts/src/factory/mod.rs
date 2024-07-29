@@ -58,19 +58,26 @@ const ADDR_BOUND: NonZeroFelt = NonZeroFelt::from_raw([
     18446743986131443745,
 ]);
 
-/// This trait enables deploying account contracts using the `DeployAccount` transaction type.
+/// Abstraction over different ways of deploying account contracts using the `DEPLOY_ACCOUNT`
+/// transaction type.
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait AccountFactory: Sized {
+    /// The [`Provider`] type attached to this account factory.
     type Provider: Provider + Sync;
+    /// Possible errors for signing transactions.
     type SignError: Error + Send + Sync;
 
+    /// Gets the class hash of the account contract.
     fn class_hash(&self) -> Felt;
 
+    /// Gets the constructor calldata for the deployment transaction.
     fn calldata(&self) -> Vec<Felt>;
 
+    /// Gets the chain ID of the target network.
     fn chain_id(&self) -> Felt;
 
+    /// Gets a reference to the attached [`Provider`] instance.
     fn provider(&self) -> &Self::Provider;
 
     /// Whether the underlying signer implementation is interactive, such as a hardware wallet.
@@ -86,26 +93,42 @@ pub trait AccountFactory: Sized {
         BlockId::Tag(BlockTag::Latest)
     }
 
+    /// Signs an execution request to authorize an `DEPLOY_ACCOUNT` v1 transaction that pays
+    /// transaction fees in `ETH`.
+    ///
+    /// If `query_only` is `true`, the commitment must be constructed in a way that a real state-
+    /// changing transaction cannot be authenticated. This is to prevent replay attacks.
     async fn sign_deployment_v1(
         &self,
         deployment: &RawAccountDeploymentV1,
         query_only: bool,
     ) -> Result<Vec<Felt>, Self::SignError>;
 
+    /// Signs an execution request to authorize an `DEPLOY_ACCOUNT` v3 transaction that pays
+    /// transaction fees in `STRK`.
+    ///
+    /// If `query_only` is `true`, the commitment must be constructed in a way that a real state-
+    /// changing transaction cannot be authenticated. This is to prevent replay attacks.
     async fn sign_deployment_v3(
         &self,
         deployment: &RawAccountDeploymentV3,
         query_only: bool,
     ) -> Result<Vec<Felt>, Self::SignError>;
 
+    /// Generates an instance of [`AccountDeploymentV1`] for sending `DEPLOY_ACCOUNT` v1
+    /// transactions. Pays transaction fees in `ETH`.
     fn deploy_v1(&self, salt: Felt) -> AccountDeploymentV1<'_, Self> {
         AccountDeploymentV1::new(salt, self)
     }
 
+    /// Generates an instance of [`AccountDeploymentV3`] for sending `DEPLOY_ACCOUNT` v3
+    /// transactions. Pays transaction fees in `STRK`.
     fn deploy_v3(&self, salt: Felt) -> AccountDeploymentV3<'_, Self> {
         AccountDeploymentV3::new(salt, self)
     }
 
+    /// Generates an instance of [`AccountDeploymentV1`] for sending `DEPLOY_ACCOUNT` v1
+    /// transactions. Pays transaction fees in `ETH`.
     #[deprecated = "use version specific variants (`deploy_v1` & `deploy_v3`) instead"]
     fn deploy(&self, salt: Felt) -> AccountDeploymentV1<'_, Self> {
         self.deploy_v1(salt)
@@ -180,17 +203,25 @@ pub struct PreparedAccountDeploymentV3<'f, F> {
     inner: RawAccountDeploymentV3,
 }
 
+/// Errors using Starknet account factories.
 #[derive(Debug, thiserror::Error)]
 pub enum AccountFactoryError<S> {
+    /// An error is encountered when signing a request.
     #[error(transparent)]
     Signing(S),
+    /// An error is encountered with communicating with the network.
     #[error(transparent)]
     Provider(ProviderError),
+    /// Transaction fee calculation overflow.
     #[error("fee calculation overflow")]
     FeeOutOfRange,
 }
 
 impl<'f, F> AccountDeploymentV1<'f, F> {
+    /// Constructs a new [`AccountDeploymentV1`].
+    ///
+    /// Users would typically use [`deploy_v1`](fn.deploy_v1) on an [`AccountFactory`] instead of
+    /// directly calling this method.
     pub const fn new(salt: Felt, factory: &'f F) -> Self {
         Self {
             factory,
@@ -201,6 +232,7 @@ impl<'f, F> AccountDeploymentV1<'f, F> {
         }
     }
 
+    /// Returns a new [`AccountDeploymentV1`] with the `nonce`.
     pub const fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
@@ -208,6 +240,7 @@ impl<'f, F> AccountDeploymentV1<'f, F> {
         }
     }
 
+    /// Returns a new [`AccountDeploymentV1`] with the `max_fee`.
     pub const fn max_fee(self, max_fee: Felt) -> Self {
         Self {
             max_fee: Some(max_fee),
@@ -215,6 +248,9 @@ impl<'f, F> AccountDeploymentV1<'f, F> {
         }
     }
 
+    /// Returns a new [`AccountDeploymentV1`] with the fee estimate multiplier. The multiplier is
+    /// used when transaction fee is not manually specified and must be fetched from a [`Provider`]
+    /// instead.
     pub const fn fee_estimate_multiplier(self, fee_estimate_multiplier: f64) -> Self {
         Self {
             fee_estimate_multiplier,
@@ -241,6 +277,10 @@ impl<'f, F> AccountDeploymentV1<'f, F> {
 }
 
 impl<'f, F> AccountDeploymentV3<'f, F> {
+    /// Constructs a new [`AccountDeploymentV3`].
+    ///
+    /// Users would typically use [`deploy_v3`](fn.deploy_v3) on an [`AccountFactory`] instead of
+    /// directly calling this method.
     pub const fn new(salt: Felt, factory: &'f F) -> Self {
         Self {
             factory,
@@ -253,6 +293,7 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
         }
     }
 
+    /// Returns a new [`AccountDeploymentV3`] with the `nonce`.
     pub const fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
@@ -260,6 +301,7 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
         }
     }
 
+    /// Returns a new [`AccountDeploymentV3`] with the `gas`.
     pub const fn gas(self, gas: u64) -> Self {
         Self {
             gas: Some(gas),
@@ -267,6 +309,7 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
         }
     }
 
+    /// Returns a new [`AccountDeploymentV3`] with the `gas_price`.
     pub const fn gas_price(self, gas_price: u128) -> Self {
         Self {
             gas_price: Some(gas_price),
@@ -274,6 +317,9 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
         }
     }
 
+    /// Returns a new [`AccountDeploymentV3`] with the gas amount estimate multiplier.  The
+    /// multiplier is used when the gas amount is not manually specified and must be fetched from a
+    /// [`Provider`] instead.
     pub const fn gas_estimate_multiplier(self, gas_estimate_multiplier: f64) -> Self {
         Self {
             gas_estimate_multiplier,
@@ -281,6 +327,9 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
         }
     }
 
+    /// Returns a new [`AccountDeploymentV3`] with the gas price estimate multiplier.  The
+    /// multiplier is used when the gas price is not manually specified and must be fetched from a
+    /// [`Provider`] instead.
     pub const fn gas_price_estimate_multiplier(self, gas_price_estimate_multiplier: f64) -> Self {
         Self {
             gas_price_estimate_multiplier,
@@ -321,6 +370,8 @@ where
         )
     }
 
+    /// Fetches the next available nonce from a [`Provider`]. In most cases this would be `0` but
+    /// it can also be non-zero if previous reverted deployment attempts exist.
     pub async fn fetch_nonce(&self) -> Result<Felt, ProviderError> {
         match self
             .factory
@@ -334,6 +385,7 @@ where
         }
     }
 
+    /// Estimates transaction fees from a [`Provider`].
     pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountFactoryError<F::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
@@ -347,6 +399,8 @@ where
         self.estimate_fee_with_nonce(nonce).await
     }
 
+    /// Simulates the transaction from a [`Provider`]. Transaction validation and fee transfer can
+    /// be skipped.
     pub async fn simulate(
         &self,
         skip_validate: bool,
@@ -365,6 +419,7 @@ where
             .await
     }
 
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(
         &self,
     ) -> Result<DeployAccountTransactionResult, AccountFactoryError<F::SignError>> {
@@ -520,6 +575,8 @@ where
         )
     }
 
+    /// Fetches the next available nonce from a [`Provider`]. In most cases this would be `0` but
+    /// it can also be non-zero if previous reverted deployment attempts exist.
     pub async fn fetch_nonce(&self) -> Result<Felt, ProviderError> {
         match self
             .factory
@@ -533,6 +590,7 @@ where
         }
     }
 
+    /// Estimates transaction fees from a [`Provider`].
     pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountFactoryError<F::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
@@ -546,6 +604,8 @@ where
         self.estimate_fee_with_nonce(nonce).await
     }
 
+    /// Simulates the transaction from a [`Provider`]. Transaction validation and fee transfer can
+    /// be skipped.
     pub async fn simulate(
         &self,
         skip_validate: bool,
@@ -564,6 +624,7 @@ where
             .await
     }
 
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(
         &self,
     ) -> Result<DeployAccountTransactionResult, AccountFactoryError<F::SignError>> {
@@ -760,38 +821,47 @@ where
 }
 
 impl RawAccountDeploymentV1 {
+    /// Gets the `salt` of the deployment request.
     pub const fn salt(&self) -> Felt {
         self.salt
     }
 
+    /// Gets the `nonce` of the deployment request.
     pub const fn nonce(&self) -> Felt {
         self.nonce
     }
 
+    /// Gets the `max_fee` of the deployment request.
     pub const fn max_fee(&self) -> Felt {
         self.max_fee
     }
 }
 
 impl RawAccountDeploymentV3 {
+    /// Gets the `salt` of the deployment request.
     pub const fn salt(&self) -> Felt {
         self.salt
     }
 
+    /// Gets the `nonce` of the deployment request.
     pub const fn nonce(&self) -> Felt {
         self.nonce
     }
 
+    /// Gets the `gas` of the deployment request.
     pub const fn gas(&self) -> u64 {
         self.gas
     }
 
+    /// Gets the `gas_price` of the deployment request.
     pub const fn gas_price(&self) -> u128 {
         self.gas_price
     }
 }
 
 impl<'f, F> PreparedAccountDeploymentV1<'f, F> {
+    /// Constructs [`PreparedAccountDeploymentV1`] by attaching a factory to
+    /// [`RawAccountDeploymentV1`].
     pub const fn from_raw(raw_deployment: RawAccountDeploymentV1, factory: &'f F) -> Self {
         Self {
             factory,
@@ -801,6 +871,8 @@ impl<'f, F> PreparedAccountDeploymentV1<'f, F> {
 }
 
 impl<'f, F> PreparedAccountDeploymentV3<'f, F> {
+    /// Constructs [`PreparedAccountDeploymentV3`] by attaching a factory to
+    /// [`RawAccountDeploymentV3`].
     pub const fn from_raw(raw_deployment: RawAccountDeploymentV3, factory: &'f F) -> Self {
         Self {
             factory,
@@ -822,6 +894,7 @@ where
         )
     }
 
+    /// Calculates transaction hash given `query_only`.
     pub fn transaction_hash(&self, query_only: bool) -> Felt {
         let mut calldata_to_hash = vec![self.factory.class_hash(), self.inner.salt];
         calldata_to_hash.append(&mut self.factory.calldata());
@@ -842,6 +915,7 @@ where
         ])
     }
 
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(
         &self,
     ) -> Result<DeployAccountTransactionResult, AccountFactoryError<F::SignError>> {
@@ -892,6 +966,7 @@ where
         )
     }
 
+    /// Calculates transaction hash given `query_only`.
     pub fn transaction_hash(&self, query_only: bool) -> Felt {
         let mut hasher = PoseidonHasher::new();
 
@@ -953,6 +1028,7 @@ where
         hasher.finalize()
     }
 
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(
         &self,
     ) -> Result<DeployAccountTransactionResult, AccountFactoryError<F::SignError>> {

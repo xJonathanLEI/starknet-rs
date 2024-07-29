@@ -8,6 +8,8 @@ use starknet_core::types::{contract::ComputeClassHashError, BlockId, BlockTag, F
 use starknet_providers::Provider;
 use starknet_signers::Signer;
 
+/// A generic [`Account`] implementation for controlling account contracts that only have one signer
+/// using ECDSA the STARK curve.
 #[derive(Debug, Clone)]
 pub struct SingleOwnerAccount<P, S>
 where
@@ -22,10 +24,13 @@ where
     encoding: ExecutionEncoding,
 }
 
+/// Errors signing an execution/declaration request.
 #[derive(Debug, thiserror::Error)]
 pub enum SignError<S> {
+    /// An error encountered by the signer implementation.
     #[error(transparent)]
     Signer(S),
+    /// Failure to compute the class hash of the class being declared.
     #[error(transparent)]
     ClassHash(ComputeClassHashError),
 }
@@ -71,6 +76,7 @@ where
         }
     }
 
+    /// Sets a new block ID to run queries against.
     pub fn set_block_id(&mut self, block_id: BlockId) -> &Self {
         self.block_id = block_id;
         self

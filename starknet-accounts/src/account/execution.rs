@@ -41,6 +41,10 @@ const QUERY_VERSION_THREE: Felt = Felt::from_raw([
 ]);
 
 impl<'a, A> ExecutionV1<'a, A> {
+    /// Constructs a new [`ExecutionV1`].
+    ///
+    /// Users would typically use [`execute_v1`](fn.execute_v1) on an [`Account`] instead of
+    /// directly calling this method.
     pub const fn new(calls: Vec<Call>, account: &'a A) -> Self {
         Self {
             account,
@@ -51,6 +55,7 @@ impl<'a, A> ExecutionV1<'a, A> {
         }
     }
 
+    /// Returns a new [`ExecutionV1`] with the `nonce`.
     pub fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
@@ -58,6 +63,7 @@ impl<'a, A> ExecutionV1<'a, A> {
         }
     }
 
+    /// Returns a new [`ExecutionV1`] with the `max_fee`.
     pub fn max_fee(self, max_fee: Felt) -> Self {
         Self {
             max_fee: Some(max_fee),
@@ -65,6 +71,9 @@ impl<'a, A> ExecutionV1<'a, A> {
         }
     }
 
+    /// Returns a new [`ExecutionV1`] with the fee estimate multiplier. The multiplier is used
+    /// when transaction fee is not manually specified and must be fetched from a [`Provider`]
+    /// instead.
     pub fn fee_estimate_multiplier(self, fee_estimate_multiplier: f64) -> Self {
         Self {
             fee_estimate_multiplier,
@@ -90,6 +99,10 @@ impl<'a, A> ExecutionV1<'a, A> {
 }
 
 impl<'a, A> ExecutionV3<'a, A> {
+    /// Constructs a new [`ExecutionV3`].
+    ///
+    /// Users would typically use [`execute_v3`](fn.execute_v3) on an [`Account`] instead of
+    /// directly calling this method.
     pub const fn new(calls: Vec<Call>, account: &'a A) -> Self {
         Self {
             account,
@@ -102,6 +115,7 @@ impl<'a, A> ExecutionV3<'a, A> {
         }
     }
 
+    /// Returns a new [`ExecutionV3`] with the `nonce`.
     pub fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
@@ -109,6 +123,7 @@ impl<'a, A> ExecutionV3<'a, A> {
         }
     }
 
+    /// Returns a new [`ExecutionV3`] with the `gas`.
     pub fn gas(self, gas: u64) -> Self {
         Self {
             gas: Some(gas),
@@ -116,6 +131,7 @@ impl<'a, A> ExecutionV3<'a, A> {
         }
     }
 
+    /// Returns a new [`ExecutionV3`] with the `gas_price`.
     pub fn gas_price(self, gas_price: u128) -> Self {
         Self {
             gas_price: Some(gas_price),
@@ -123,6 +139,9 @@ impl<'a, A> ExecutionV3<'a, A> {
         }
     }
 
+    /// Returns a new [`ExecutionV3`] with the gas amount estimate multiplier.  The multiplier is
+    /// used when the gas amount is not manually specified and must be fetched from a [`Provider`]
+    /// instead.
     pub fn gas_estimate_multiplier(self, gas_estimate_multiplier: f64) -> Self {
         Self {
             gas_estimate_multiplier,
@@ -130,6 +149,9 @@ impl<'a, A> ExecutionV3<'a, A> {
         }
     }
 
+    /// Returns a new [`ExecutionV3`] with the gas price estimate multiplier.  The multiplier is
+    /// used when the gas price is not manually specified and must be fetched from a [`Provider`]
+    /// instead.
     pub fn gas_price_estimate_multiplier(self, gas_price_estimate_multiplier: f64) -> Self {
         Self {
             gas_price_estimate_multiplier,
@@ -160,6 +182,7 @@ impl<'a, A> ExecutionV1<'a, A>
 where
     A: ConnectedAccount + Sync,
 {
+    /// Estimates transaction fees from a [`Provider`].
     pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
@@ -174,6 +197,8 @@ where
         self.estimate_fee_with_nonce(nonce).await
     }
 
+    /// Simulates the transaction from a [`Provider`]. Transaction validation and fee transfer can
+    /// be skipped.
     pub async fn simulate(
         &self,
         skip_validate: bool,
@@ -193,6 +218,7 @@ where
             .await
     }
 
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
         self.prepare().await?.send().await
     }
@@ -331,6 +357,7 @@ impl<'a, A> ExecutionV3<'a, A>
 where
     A: ConnectedAccount + Sync,
 {
+    /// Estimates transaction fees from a [`Provider`].
     pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
@@ -345,6 +372,8 @@ where
         self.estimate_fee_with_nonce(nonce).await
     }
 
+    /// Simulates the transaction from a [`Provider`]. Transaction validation and fee transfer can
+    /// be skipped.
     pub async fn simulate(
         &self,
         skip_validate: bool,
@@ -364,6 +393,7 @@ where
             .await
     }
 
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
         self.prepare().await?.send().await
     }
@@ -553,6 +583,7 @@ where
 }
 
 impl RawExecutionV1 {
+    /// Calculates transaction hash given `chain_id`, `address`, `query_only`, and `encoder`.
     pub fn transaction_hash<E>(
         &self,
         chain_id: Felt,
@@ -579,20 +610,24 @@ impl RawExecutionV1 {
         ])
     }
 
+    /// Gets a reference to the list of contract calls included in the execution.
     pub fn calls(&self) -> &[Call] {
         &self.calls
     }
 
+    /// Gets the `nonce` of the execution request.
     pub const fn nonce(&self) -> Felt {
         self.nonce
     }
 
+    /// Gets the `max_fee` of the execution request.
     pub const fn max_fee(&self) -> Felt {
         self.max_fee
     }
 }
 
 impl RawExecutionV3 {
+    /// Calculates transaction hash given `chain_id`, `address`, `query_only`, and `encoder`.
     pub fn transaction_hash<E>(
         &self,
         chain_id: Felt,
@@ -663,18 +698,22 @@ impl RawExecutionV3 {
         hasher.finalize()
     }
 
+    /// Gets a reference to the list of contract calls included in the execution.
     pub fn calls(&self) -> &[Call] {
         &self.calls
     }
 
+    /// Gets the `nonce` of the execution request.
     pub const fn nonce(&self) -> Felt {
         self.nonce
     }
 
+    /// Gets the `gas` of the execution request.
     pub const fn gas(&self) -> u64 {
         self.gas
     }
 
+    /// Gets the `gas_price` of the execution request.
     pub const fn gas_price(&self) -> u128 {
         self.gas_price
     }
@@ -716,6 +755,7 @@ impl<'a, A> PreparedExecutionV1<'a, A>
 where
     A: ConnectedAccount,
 {
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
         let tx_request = self
             .get_invoke_request(false, false)
@@ -757,6 +797,7 @@ impl<'a, A> PreparedExecutionV3<'a, A>
 where
     A: ConnectedAccount,
 {
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
         let tx_request = self
             .get_invoke_request(false, false)
