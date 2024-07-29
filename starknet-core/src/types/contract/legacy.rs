@@ -984,6 +984,7 @@ fn should_skip_attributes_for_hinted_hash(value: &Option<Vec<LegacyAttribute>>) 
 
 #[cfg(test)]
 mod tests {
+    use super::super::ContractArtifact;
     use super::*;
 
     #[derive(serde::Deserialize)]
@@ -1004,6 +1005,32 @@ mod tests {
             ),
         ] {
             serde_json::from_str::<LegacyContractClass>(raw_artifact).unwrap();
+        }
+    }
+
+    #[test]
+    #[ignore = "https://github.com/xJonathanLEI/starknet-rs/issues/392"]
+    fn test_legacy_artifact_deser_from_contract_artifact() {
+        for raw_artifact in [
+            include_str!("../../../test-data/contracts/cairo0/artifacts/oz_account.txt"),
+            include_str!("../../../test-data/contracts/cairo0/artifacts/event_example.txt"),
+            include_str!("../../../test-data/contracts/cairo0/artifacts/pre-0.11.0/oz_account.txt"),
+            include_str!(
+                "../../../test-data/contracts/cairo0/artifacts/pre-0.11.0/event_example.txt"
+            ),
+        ] {
+            let direct_deser = serde_json::from_str::<LegacyContractClass>(raw_artifact).unwrap();
+            let deser_via_contract_artifact =
+                match serde_json::from_str::<ContractArtifact>(raw_artifact).unwrap() {
+                    ContractArtifact::LegacyClass(class) => class,
+                    _ => panic!("unexpected artifact type"),
+                };
+
+            // Class should be identical however it's deserialized
+            assert_eq!(
+                direct_deser.class_hash().unwrap(),
+                deser_via_contract_artifact.class_hash().unwrap()
+            );
         }
     }
 
