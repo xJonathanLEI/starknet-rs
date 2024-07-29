@@ -8,6 +8,7 @@ use starknet_core::types::{BlockId, BlockTag, Felt};
 use starknet_providers::Provider;
 use starknet_signers::Signer;
 
+/// [`AccountFactory`] implementation for deploying `Argent X` account contracts.
 #[derive(Debug)]
 pub struct ArgentAccountFactory<S, P> {
     class_hash: Felt,
@@ -23,6 +24,7 @@ impl<S, P> ArgentAccountFactory<S, P>
 where
     S: Signer,
 {
+    /// Constructs a new [`ArgentAccountFactory`].
     pub async fn new(
         class_hash: Felt,
         chain_id: Felt,
@@ -42,6 +44,7 @@ where
         })
     }
 
+    /// Sets a new block ID to run queries against.
     pub fn set_block_id(&mut self, block_id: BlockId) -> &Self {
         self.block_id = block_id;
         self
