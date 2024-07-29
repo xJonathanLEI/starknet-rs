@@ -1023,10 +1023,18 @@ mod tests {
             include_str!("../../../test-data/contracts/cairo2/artifacts/erc20_sierra.txt"),
             include_str!("../../../test-data/contracts/cairo2.6/artifacts/erc20_sierra.txt"),
         ] {
-            match serde_json::from_str::<ContractArtifact>(raw_artifact) {
-                Ok(ContractArtifact::SierraClass(_)) => {}
+            let direct_deser = serde_json::from_str::<SierraClass>(raw_artifact).unwrap();
+            let via_contract_artifact = match serde_json::from_str::<ContractArtifact>(raw_artifact)
+            {
+                Ok(ContractArtifact::SierraClass(class)) => class,
                 _ => panic!("Unexpected result"),
-            }
+            };
+
+            // Class should be identical however it's deserialized
+            assert_eq!(
+                direct_deser.class_hash().unwrap(),
+                via_contract_artifact.class_hash().unwrap()
+            );
         }
     }
 
@@ -1040,10 +1048,18 @@ mod tests {
             include_str!("../../../test-data/contracts/cairo2/artifacts/erc20_compiled.txt"),
             include_str!("../../../test-data/contracts/cairo2.6/artifacts/erc20_compiled.txt"),
         ] {
-            match serde_json::from_str::<ContractArtifact>(raw_artifact) {
-                Ok(ContractArtifact::CompiledClass(_)) => {}
+            let direct_deser = serde_json::from_str::<CompiledClass>(raw_artifact).unwrap();
+            let via_contract_artifact = match serde_json::from_str::<ContractArtifact>(raw_artifact)
+            {
+                Ok(ContractArtifact::CompiledClass(class)) => class,
                 _ => panic!("Unexpected result"),
-            }
+            };
+
+            // Class should be identical however it's deserialized
+            assert_eq!(
+                direct_deser.class_hash().unwrap(),
+                via_contract_artifact.class_hash().unwrap()
+            );
         }
     }
 
