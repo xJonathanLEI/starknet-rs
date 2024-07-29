@@ -6,23 +6,29 @@ use starknet_core::{
 };
 use starknet_crypto::get_public_key;
 
+/// A ECDSA signing (private) key on the STARK curve.
 #[derive(Debug, Clone)]
 pub struct SigningKey {
     secret_scalar: Felt,
 }
 
+/// A ECDSA verifying (public) key on the STARK curve.
 #[derive(Debug, Clone)]
 pub struct VerifyingKey {
     scalar: Felt,
 }
 
+/// Errors using an encrypted JSON keystore.
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug, thiserror::Error)]
 pub enum KeystoreError {
+    /// The file path is invalid.
     #[error("invalid path")]
     InvalidPath,
+    /// The decrypted secret scalar is not a valid private key.
     #[error("invalid decrypted secret scalar")]
     InvalidScalar,
+    /// Upstream `eth-keystore` error propagated.
     #[error(transparent)]
     Inner(eth_keystore::KeystoreError),
 }
@@ -47,6 +53,7 @@ impl SigningKey {
         Self { secret_scalar }
     }
 
+    /// Constructs [`SigningKey`] directly from a secret scalar.
     pub const fn from_secret_scalar(secret_scalar: Felt) -> Self {
         Self { secret_scalar }
     }
@@ -92,28 +99,35 @@ impl SigningKey {
         Ok(())
     }
 
+    /// Gets the secret scalar in the signing key.
     pub const fn secret_scalar(&self) -> Felt {
         self.secret_scalar
     }
 
+    /// Derives the verifying (public) key that corresponds to the signing key.
     pub fn verifying_key(&self) -> VerifyingKey {
         VerifyingKey::from_scalar(get_public_key(&self.secret_scalar))
     }
 
+    /// Signs a raw hash using ECDSA for a signature.
     pub fn sign(&self, hash: &Felt) -> Result<Signature, EcdsaSignError> {
         ecdsa_sign(&self.secret_scalar, hash).map(|sig| sig.into())
     }
 }
 
 impl VerifyingKey {
+    /// Constructs [`VerifyingKey`] directly from a scalar.
     pub const fn from_scalar(scalar: Felt) -> Self {
         Self { scalar }
     }
 
+    /// Gets the scalar in the verifying key.
     pub const fn scalar(&self) -> Felt {
         self.scalar
     }
 
+    /// Verifies that an ECDSA signature is valid for the verifying key against a certain message
+    /// hash.
     pub fn verify(&self, hash: &Felt, signature: &Signature) -> Result<bool, EcdsaVerifyError> {
         ecdsa_verify(&self.scalar, hash, signature)
     }

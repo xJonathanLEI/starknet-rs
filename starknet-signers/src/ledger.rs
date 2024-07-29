@@ -37,18 +37,29 @@ pub struct LedgerStarknetApp {
     transport: Ledger,
 }
 
+/// Errors using the Ledger hardware wallet.
 #[derive(Debug, thiserror::Error)]
 pub enum LedgerError {
+    /// The HD wallet derivation path is malformed or does not conform to EIP-2645.
     #[error("derivation path is empty, not prefixed with m/2645', or is not 6-level long")]
     InvalidDerivationPath,
+    /// Error communicating with the Ledger hardware device.
     #[error(transparent)]
     TransportError(coins_ledger::LedgerError),
+    /// An unknown response code is returned from the device.
     #[error("unknown response code from Ledger: {0}")]
     UnknownResponseCode(u16),
+    /// The response code returned from the device does not indicate success.
     #[error("failed Ledger request: {0}")]
     UnsuccessfulRequest(APDUResponseCodes),
+    /// The response has an unexpected size.
     #[error("unexpected response length - expected: {expected}; actual: {actual}")]
-    UnexpectedResponseLength { expected: usize, actual: usize },
+    UnexpectedResponseLength {
+        /// The expected response size.
+        expected: usize,
+        /// The actual response size.
+        actual: usize,
+    },
 }
 
 /// The `GetPubKey` Ledger command.
