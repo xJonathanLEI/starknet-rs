@@ -42,6 +42,8 @@
 //!
 //! Contains procedural macros useful for this crate.
 
+#![deny(missing_docs)]
+
 #[doc = include_str!("../assets/CORE_README.md")]
 pub mod core {
     pub use starknet_core::*;
