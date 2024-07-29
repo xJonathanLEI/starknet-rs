@@ -5,6 +5,7 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::jsonrpc::{transports::JsonRpcTransport, JsonRpcMethod, JsonRpcResponse};
 
+/// A [`JsonRpcTransport`] implementation that uses HTTP connections.
 #[derive(Debug)]
 pub struct HttpTransport {
     client: Client,
@@ -12,10 +13,13 @@ pub struct HttpTransport {
     headers: Vec<(String, String)>,
 }
 
+/// Errors using [`HttpTransport`].
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
 pub enum HttpTransportError {
+    /// HTTP-related errors.
     Reqwest(reqwest::Error),
+    /// JSON serialization/deserialization errors.
     Json(serde_json::Error),
 }
 
@@ -28,10 +32,15 @@ struct JsonRpcRequest<T> {
 }
 
 impl HttpTransport {
+    /// Constructs [`HttpTransport`] from a JSON-RPC server URL, using default HTTP client settings.
+    ///
+    /// To use custom HTTP settings (e.g. proxy, timeout), use
+    /// [`new_with_client`](fn.new_with_client) instead.
     pub fn new(url: impl Into<Url>) -> Self {
         Self::new_with_client(url, Client::new())
     }
 
+    /// Constructs [`HttpTransport`] from a JSON-RPC server URL and a custom `reqwest` client.
     pub fn new_with_client(url: impl Into<Url>, client: Client) -> Self {
         Self {
             client,

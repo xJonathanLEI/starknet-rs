@@ -24,144 +24,242 @@ use crate::{provider::ProviderImplError, Provider, ProviderError};
 mod transports;
 pub use transports::{HttpTransport, HttpTransportError, JsonRpcTransport};
 
+/// A generic JSON-RPC client with any transport.
+///
+/// A "transport" is any implementation that can send JSON-RPC requests and receive responses. This
+/// most commonly happens over a network via HTTP connections, as with [`HttpTransport`].
 #[derive(Debug)]
 pub struct JsonRpcClient<T> {
     transport: T,
 }
 
+/// All JSON-RPC methods as listed by the official specification.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum JsonRpcMethod {
+    /// The `starknet_specVersion` method.
     #[serde(rename = "starknet_specVersion")]
     SpecVersion,
+    /// The `starknet_getBlockWithTxHashes` method.
     #[serde(rename = "starknet_getBlockWithTxHashes")]
     GetBlockWithTxHashes,
+    /// The `starknet_getBlockWithTxs` method.
     #[serde(rename = "starknet_getBlockWithTxs")]
     GetBlockWithTxs,
+    /// The `starknet_getBlockWithReceipts` method.
     #[serde(rename = "starknet_getBlockWithReceipts")]
     GetBlockWithReceipts,
+    /// The `starknet_getStateUpdate` method.
     #[serde(rename = "starknet_getStateUpdate")]
     GetStateUpdate,
+    /// The `starknet_getStorageAt` method.
     #[serde(rename = "starknet_getStorageAt")]
     GetStorageAt,
+    /// The `starknet_getTransactionStatus` method.
     #[serde(rename = "starknet_getTransactionStatus")]
     GetTransactionStatus,
+    /// The `starknet_getTransactionByHash` method.
     #[serde(rename = "starknet_getTransactionByHash")]
     GetTransactionByHash,
+    /// The `starknet_getTransactionByBlockIdAndIndex` method.
     #[serde(rename = "starknet_getTransactionByBlockIdAndIndex")]
     GetTransactionByBlockIdAndIndex,
+    /// The `starknet_getTransactionReceipt` method.
     #[serde(rename = "starknet_getTransactionReceipt")]
     GetTransactionReceipt,
+    /// The `starknet_getClass` method.
     #[serde(rename = "starknet_getClass")]
     GetClass,
+    /// The `starknet_getClassHashAt` method.
     #[serde(rename = "starknet_getClassHashAt")]
     GetClassHashAt,
+    /// The `starknet_getClassAt` method.
     #[serde(rename = "starknet_getClassAt")]
     GetClassAt,
+    /// The `starknet_getBlockTransactionCount` method.
     #[serde(rename = "starknet_getBlockTransactionCount")]
     GetBlockTransactionCount,
+    /// The `starknet_call` method.
     #[serde(rename = "starknet_call")]
     Call,
+    /// The `starknet_estimateFee` method.
     #[serde(rename = "starknet_estimateFee")]
     EstimateFee,
+    /// The `starknet_estimateMessageFee` method.
     #[serde(rename = "starknet_estimateMessageFee")]
     EstimateMessageFee,
+    /// The `starknet_blockNumber` method.
     #[serde(rename = "starknet_blockNumber")]
     BlockNumber,
+    /// The `starknet_blockHashAndNumber` method.
     #[serde(rename = "starknet_blockHashAndNumber")]
     BlockHashAndNumber,
+    /// The `starknet_chainId` method.
     #[serde(rename = "starknet_chainId")]
     ChainId,
+    /// The `starknet_syncing` method.
     #[serde(rename = "starknet_syncing")]
     Syncing,
+    /// The `starknet_getEvents` method.
     #[serde(rename = "starknet_getEvents")]
     GetEvents,
+    /// The `starknet_getNonce` method.
     #[serde(rename = "starknet_getNonce")]
     GetNonce,
+    /// The `starknet_addInvokeTransaction` method.
     #[serde(rename = "starknet_addInvokeTransaction")]
     AddInvokeTransaction,
+    /// The `starknet_addDeclareTransaction` method.
     #[serde(rename = "starknet_addDeclareTransaction")]
     AddDeclareTransaction,
+    /// The `starknet_addDeployAccountTransaction` method.
     #[serde(rename = "starknet_addDeployAccountTransaction")]
     AddDeployAccountTransaction,
+    /// The `starknet_traceTransaction` method.
     #[serde(rename = "starknet_traceTransaction")]
     TraceTransaction,
+    /// The `starknet_simulateTransactions` method.
     #[serde(rename = "starknet_simulateTransactions")]
     SimulateTransactions,
+    /// The `starknet_traceBlockTransactions` method.
     #[serde(rename = "starknet_traceBlockTransactions")]
     TraceBlockTransactions,
 }
 
+/// JSON-RPC request.
 #[derive(Debug, Clone)]
 pub struct JsonRpcRequest {
+    /// ID of the request. Useful for identifying responses in certain transports like `WebSocket`.
     pub id: u64,
+    /// Data of the requeest.
     pub data: JsonRpcRequestData,
 }
 
+/// Typed request data for Starknet JSON-RPC requests.
 #[derive(Debug, Clone)]
 pub enum JsonRpcRequestData {
+    /// Request data for `starknet_specVersion`.
     SpecVersion(SpecVersionRequest),
+    /// Request data for `starknet_getBlockWithTxHashes`.
     GetBlockWithTxHashes(GetBlockWithTxHashesRequest),
+    /// Request data for `starknet_getBlockWithTxs`.
     GetBlockWithTxs(GetBlockWithTxsRequest),
+    /// Request data for `starknet_getBlockWithReceipts`.
     GetBlockWithReceipts(GetBlockWithReceiptsRequest),
+    /// Request data for `starknet_getStateUpdate`.
     GetStateUpdate(GetStateUpdateRequest),
+    /// Request data for `starknet_getStorageAt`.
     GetStorageAt(GetStorageAtRequest),
+    /// Request data for `starknet_getTransactionStatus`.
     GetTransactionStatus(GetTransactionStatusRequest),
+    /// Request data for `starknet_getTransactionByHash`.
     GetTransactionByHash(GetTransactionByHashRequest),
+    /// Request data for `starknet_getTransactionByBlockIdAndIndex`.
     GetTransactionByBlockIdAndIndex(GetTransactionByBlockIdAndIndexRequest),
+    /// Request data for `starknet_getTransactionReceipt`.
     GetTransactionReceipt(GetTransactionReceiptRequest),
+    /// Request data for `starknet_getClass`.
     GetClass(GetClassRequest),
+    /// Request data for `starknet_getClassHashAt`.
     GetClassHashAt(GetClassHashAtRequest),
+    /// Request data for `starknet_getClassAt`.
     GetClassAt(GetClassAtRequest),
+    /// Request data for `starknet_getBlockTransactionCount`.
     GetBlockTransactionCount(GetBlockTransactionCountRequest),
+    /// Request data for `starknet_call`.
     Call(CallRequest),
+    /// Request data for `starknet_estimateFee`.
     EstimateFee(EstimateFeeRequest),
+    /// Request data for `starknet_estimateMessageFee`.
     EstimateMessageFee(EstimateMessageFeeRequest),
+    /// Request data for `starknet_blockNumber`.
     BlockNumber(BlockNumberRequest),
+    /// Request data for `starknet_blockHashAndNumber`.
     BlockHashAndNumber(BlockHashAndNumberRequest),
+    /// Request data for `starknet_chainId`.
     ChainId(ChainIdRequest),
+    /// Request data for `starknet_syncing`.
     Syncing(SyncingRequest),
+    /// Request data for `starknet_getEvents`.
     GetEvents(GetEventsRequest),
+    /// Request data for `starknet_getNonce`.
     GetNonce(GetNonceRequest),
+    /// Request data for `starknet_addInvokeTransaction`.
     AddInvokeTransaction(AddInvokeTransactionRequest),
+    /// Request data for `starknet_addDeclareTransaction`.
     AddDeclareTransaction(AddDeclareTransactionRequest),
+    /// Request data for `starknet_addDeployAccountTransaction`.
     AddDeployAccountTransaction(AddDeployAccountTransactionRequest),
+    /// Request data for `starknet_traceTransaction`.
     TraceTransaction(TraceTransactionRequest),
+    /// Request data for `starknet_simulateTransactions`.
     SimulateTransactions(SimulateTransactionsRequest),
+    /// Request data for `starknet_traceBlockTransactions`.
     TraceBlockTransactions(TraceBlockTransactionsRequest),
 }
 
+/// Errors from JSON-RPC client.
 #[derive(Debug, thiserror::Error)]
 pub enum JsonRpcClientError<T> {
+    /// JSON serialization/deserialization erors.
     #[error(transparent)]
     JsonError(serde_json::Error),
+    /// Transport-specific errors.
     #[error(transparent)]
     TransportError(T),
+    /// An unsuccessful response returned from the server is encountered.
     #[error(transparent)]
     JsonRpcError(JsonRpcError),
 }
 
+/// An unsuccessful response returned from the server.
 #[derive(Debug, Deserialize)]
 pub struct JsonRpcError {
+    /// Error code.
     pub code: i64,
+    /// Error message.
     pub message: String,
+    /// Additional error data if any.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<serde_json::Value>,
 }
 
+/// JSON-RPC response returned from a server.
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum JsonRpcResponse<T> {
-    Success { id: u64, result: T },
-    Error { id: u64, error: JsonRpcError },
+    /// Successful response.
+    Success {
+        /// Same ID as the corresponding request.
+        id: u64,
+        /// Response data.
+        result: T,
+    },
+    /// Unsuccessful response.
+    Error {
+        /// Same ID as the corresponding request.
+        id: u64,
+        /// Error details.
+        error: JsonRpcError,
+    },
 }
 
 /// Failures trying to parse a [`JsonRpcError`] into [`StarknetError`].
+///
+/// [`StarknetError`] is the standard, provider-agnostic error type that all [`Provider`]
+/// implementations should strive to return in an error case, in a best-effort basis. This allows
+/// for unified error handling logic.
+///
+/// However, not all error cases can be properly converted, and this error type represents the cases
+/// when such failure happens.
 #[derive(Debug, thiserror::Error)]
 pub enum JsonRpcErrorConversionError {
+    /// The error code is outside of the range specified by the specification.
     #[error("unknown error code")]
     UnknownCode,
+    /// Error data is expected but missing.
     #[error("missing data field")]
     MissingData,
+    /// Error data is malformed.
     #[error("unable to parse the data field")]
     DataParsingFailure,
 }
@@ -175,6 +273,7 @@ struct Felt(#[serde_as(as = "UfeHex")] pub FeltPrimitive);
 struct FeltArray(#[serde_as(as = "Vec<UfeHex>")] pub Vec<FeltPrimitive>);
 
 impl<T> JsonRpcClient<T> {
+    /// Constructs a new [`JsonRpcClient`] from a transport.
     pub const fn new(transport: T) -> Self {
         Self { transport }
     }

@@ -26,7 +26,9 @@ use crate::{
 ///       it's still needed anymore.
 #[derive(Debug)]
 pub enum AnyProvider {
+    /// JSON-RPC provider.
     JsonRpcHttp(JsonRpcClient<HttpTransport>),
+    /// Sequencer gateway provider.
     SequencerGateway(SequencerGatewayProvider),
 }
 

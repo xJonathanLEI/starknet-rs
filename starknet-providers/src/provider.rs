@@ -12,14 +12,24 @@ use starknet_core::types::{
 };
 use std::{any::Any, error::Error, fmt::Debug};
 
+/// A generic interface for any type allowing communication with a Starknet network.
+///
+/// Historically, the only official way to access the network is through the sequencer gateway,
+/// implemented by [`SequencerGatewayProvider`](crate::sequencer::SequencerGatewayProvider), which
+/// has since been deprecated. Currently, the recommended way of accessing the network is via the
+/// JSON-RPC specification, implemented with [`JsonRpcClient`](crate::jsonrpc::JsonRpcClient).
+///
+/// The legacy [`SequencerGatewayProvider`](crate::sequencer::SequencerGatewayProvider) still
+/// implements this trait for backward compatibility reasons, but most of its methods no longer work
+/// in practice, as public sequencer servers have generally block access to most methods.
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[auto_impl(&, Box, Arc)]
 pub trait Provider {
-    /// Returns the version of the Starknet JSON-RPC specification being used
+    /// Returns the version of the Starknet JSON-RPC specification being used.
     async fn spec_version(&self) -> Result<String, ProviderError>;
 
-    /// Get block information with transaction hashes given the block id
+    /// Gets block information with transaction hashes given the block id.
     async fn get_block_with_tx_hashes<B>(
         &self,
         block_id: B,
@@ -27,7 +37,7 @@ pub trait Provider {
     where
         B: AsRef<BlockId> + Send + Sync;
 
-    /// Get block information with full transactions given the block id
+    /// Gets block information with full transactions given the block id.
     async fn get_block_with_txs<B>(
         &self,
         block_id: B,
@@ -35,7 +45,7 @@ pub trait Provider {
     where
         B: AsRef<BlockId> + Send + Sync;
 
-    /// Get block information with full transactions and receipts given the block id
+    /// Gets block information with full transactions and receipts given the block id.
     async fn get_block_with_receipts<B>(
         &self,
         block_id: B,
@@ -43,7 +53,7 @@ pub trait Provider {
     where
         B: AsRef<BlockId> + Send + Sync;
 
-    /// Get the information about the result of executing the requested block
+    /// Gets the information about the result of executing the requested block.
     async fn get_state_update<B>(
         &self,
         block_id: B,
@@ -51,7 +61,7 @@ pub trait Provider {
     where
         B: AsRef<BlockId> + Send + Sync;
 
-    /// Get the value of the storage at the given address and key
+    /// Gets the value of the storage at the given address and key.
     async fn get_storage_at<A, K, B>(
         &self,
         contract_address: A,
@@ -63,8 +73,8 @@ pub trait Provider {
         K: AsRef<Felt> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync;
 
-    /// Gets the transaction status (possibly reflecting that the tx is still in
-    /// the mempool, or dropped from it)
+    /// Gets the transaction status (possibly reflecting that the tx is still in the mempool, or
+    /// dropped from it).
     async fn get_transaction_status<H>(
         &self,
         transaction_hash: H,
@@ -72,7 +82,7 @@ pub trait Provider {
     where
         H: AsRef<Felt> + Send + Sync;
 
-    /// Get the details and status of a submitted transaction
+    /// Gets the details and status of a submitted transaction.
     async fn get_transaction_by_hash<H>(
         &self,
         transaction_hash: H,
@@ -80,7 +90,7 @@ pub trait Provider {
     where
         H: AsRef<Felt> + Send + Sync;
 
-    /// Get the details of a transaction by a given block id and index
+    /// Gets the details of a transaction by a given block id and index.
     async fn get_transaction_by_block_id_and_index<B>(
         &self,
         block_id: B,
@@ -89,7 +99,7 @@ pub trait Provider {
     where
         B: AsRef<BlockId> + Send + Sync;
 
-    /// Get the details of a transaction by a given block number and index
+    /// Gets the details of a transaction by a given block number and index.
     async fn get_transaction_receipt<H>(
         &self,
         transaction_hash: H,
@@ -97,7 +107,7 @@ pub trait Provider {
     where
         H: AsRef<Felt> + Send + Sync;
 
-    /// Get the contract class definition in the given block associated with the given hash
+    /// Gets the contract class definition in the given block associated with the given hash.
     async fn get_class<B, H>(
         &self,
         block_id: B,
@@ -107,7 +117,8 @@ pub trait Provider {
         B: AsRef<BlockId> + Send + Sync,
         H: AsRef<Felt> + Send + Sync;
 
-    /// Get the contract class hash in the given block for the contract deployed at the given address
+    /// Gets the contract class hash in the given block for the contract deployed at the given
+    /// address.
     async fn get_class_hash_at<B, A>(
         &self,
         block_id: B,
@@ -117,7 +128,7 @@ pub trait Provider {
         B: AsRef<BlockId> + Send + Sync,
         A: AsRef<Felt> + Send + Sync;
 
-    /// Get the contract class definition in the given block at the given address
+    /// Gets the contract class definition in the given block at the given address.
     async fn get_class_at<B, A>(
         &self,
         block_id: B,
@@ -127,18 +138,18 @@ pub trait Provider {
         B: AsRef<BlockId> + Send + Sync,
         A: AsRef<Felt> + Send + Sync;
 
-    /// Get the number of transactions in a block given a block id
+    /// Gets the number of transactions in a block given a block id.
     async fn get_block_transaction_count<B>(&self, block_id: B) -> Result<u64, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync;
 
-    /// Call a starknet function without creating a Starknet transaction
+    /// Calls a starknet function without creating a Starknet transaction.
     async fn call<R, B>(&self, request: R, block_id: B) -> Result<Vec<Felt>, ProviderError>
     where
         R: AsRef<FunctionCall> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync;
 
-    /// Estimate the fee for a given Starknet transaction
+    /// Estimates the fee for a given Starknet transaction.
     async fn estimate_fee<R, S, B>(
         &self,
         request: R,
@@ -150,6 +161,7 @@ pub trait Provider {
         S: AsRef<[SimulationFlagForEstimateFee]> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync;
 
+    /// Estimates the fee for sending an L1-to-L2 message.
     async fn estimate_message_fee<M, B>(
         &self,
         message: M,
@@ -159,19 +171,19 @@ pub trait Provider {
         M: AsRef<MsgFromL1> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync;
 
-    /// Get the most recent accepted block number
+    /// Gets the most recent accepted block number.
     async fn block_number(&self) -> Result<u64, ProviderError>;
 
-    /// Get the most recent accepted block hash and number
+    /// Gets the most recent accepted block hash and number.
     async fn block_hash_and_number(&self) -> Result<BlockHashAndNumber, ProviderError>;
 
-    /// Return the currently configured Starknet chain id
+    /// Returns the currently configured Starknet chain id.
     async fn chain_id(&self) -> Result<Felt, ProviderError>;
 
-    /// Returns an object about the sync status, or false if the node is not synching
+    /// Returns an object about the sync status, or false if the node is not synching.
     async fn syncing(&self) -> Result<SyncStatusType, ProviderError>;
 
-    /// Returns all events matching the given filter
+    /// Returns all events matching the given filter.
     async fn get_events(
         &self,
         filter: EventFilter,
@@ -179,7 +191,7 @@ pub trait Provider {
         chunk_size: u64,
     ) -> Result<EventsPage, ProviderError>;
 
-    /// Get the nonce associated with the given address in the given block
+    /// Gets the nonce associated with the given address in the given block.
     async fn get_nonce<B, A>(
         &self,
         block_id: B,
@@ -189,7 +201,7 @@ pub trait Provider {
         B: AsRef<BlockId> + Send + Sync,
         A: AsRef<Felt> + Send + Sync;
 
-    /// Submit a new transaction to be added to the chain
+    /// Submits a new transaction to be added to the chain.
     async fn add_invoke_transaction<I>(
         &self,
         invoke_transaction: I,
@@ -197,7 +209,7 @@ pub trait Provider {
     where
         I: AsRef<BroadcastedInvokeTransaction> + Send + Sync;
 
-    /// Submit a new transaction to be added to the chain
+    /// Submits a new transaction to be added to the chain.
     async fn add_declare_transaction<D>(
         &self,
         declare_transaction: D,
@@ -205,7 +217,7 @@ pub trait Provider {
     where
         D: AsRef<BroadcastedDeclareTransaction> + Send + Sync;
 
-    /// Submit a new deploy account transaction
+    /// Submits a new deploy account transaction.
     async fn add_deploy_account_transaction<D>(
         &self,
         deploy_account_transaction: D,
@@ -213,8 +225,8 @@ pub trait Provider {
     where
         D: AsRef<BroadcastedDeployAccountTransaction> + Send + Sync;
 
-    /// For a given executed transaction, return the trace of its execution, including internal
-    /// calls
+    /// For a given executed transaction, returns the trace of its execution, including internal
+    /// calls.
     async fn trace_transaction<H>(
         &self,
         transaction_hash: H,
@@ -222,12 +234,13 @@ pub trait Provider {
     where
         H: AsRef<Felt> + Send + Sync;
 
-    /// Simulate a given sequence of transactions on the requested state, and generate the execution
-    /// traces. Note that some of the transactions may revert, in which case no error is thrown, but
-    /// revert details can be seen on the returned trace object. . Note that some of the
-    /// transactions may revert, this will be reflected by the revert_error property in the trace.
-    /// Other types of failures (e.g. unexpected error or failure in the validation phase) will
-    /// result in TRANSACTION_EXECUTION_ERROR.
+    /// Simulates a given sequence of transactions on the requested state, and generate the
+    /// execution traces. Note that some of the transactions may revert, in which case no error is
+    /// thrown, but revert details can be seen on the returned trace object.
+    ///
+    /// Note that some of the transactions may revert, this will be reflected by the `revert_error`
+    /// property in the trace. Other types of failures (e.g. unexpected error or failure in the
+    /// validation phase) will result in `TRANSACTION_EXECUTION_ERROR`.
     async fn simulate_transactions<B, T, S>(
         &self,
         block_id: B,
@@ -239,7 +252,7 @@ pub trait Provider {
         T: AsRef<[BroadcastedTransaction]> + Send + Sync,
         S: AsRef<[SimulationFlag]> + Send + Sync;
 
-    /// Retrieve traces for all transactions in the given block.
+    /// Retrieves traces for all transactions in the given block.
     async fn trace_block_transactions<B>(
         &self,
         block_id: B,
@@ -311,14 +324,29 @@ pub trait ProviderImplError: Error + Debug + Send + Sync {
     fn as_any(&self) -> &dyn Any;
 }
 
+/// Errors using any [`Provider`] implementation. This type is deliberately not made generic such
+/// that:
+///
+/// - the [`Provider`] trait itself can be boxed;
+/// - error handling is easier.
+///
+/// As a downside, the [`Other`](ProviderError::Other) variant contains a boxed implementation-
+/// specific error. It's generally expected that users of [`Provider`] would not need to care about
+/// these errors, but in the case where they do, it's slightly harder to access than if generics are
+/// used instead.
 #[derive(Debug, thiserror::Error)]
 pub enum ProviderError {
+    /// A Starknet-related error, usually regarding the state or transaction.
     #[error(transparent)]
     StarknetError(StarknetError),
+    /// The request fails as the client is rate-limited.
     #[error("Request rate limited")]
     RateLimited,
+    /// When estimating fees for or simulating a single transaction, the server unexpectedly returns
+    /// data for zero or more than one transactions.
     #[error("Array length mismatch")]
     ArrayLengthMismatch,
+    /// Boxed implementation-specific errors.
     #[error("{0}")]
     Other(Box<dyn ProviderImplError>),
 }
