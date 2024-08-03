@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use auto_impl::auto_impl;
+use serde::Serialize;
 use starknet_core::types::{
     BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
     BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
@@ -22,6 +23,9 @@ use std::{any::Any, error::Error, fmt::Debug};
 /// The legacy [`SequencerGatewayProvider`](crate::sequencer::SequencerGatewayProvider) still
 /// implements this trait for backward compatibility reasons, but most of its methods no longer work
 /// in practice, as public sequencer servers have generally block access to most methods.
+use crate::jsonrpc::JsonRpcMethod;
+
+/// Represents a provider interface for interacting with the Starknet network.
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[auto_impl(&, Box, Arc)]
@@ -311,6 +315,34 @@ pub trait Provider {
             Err(ProviderError::ArrayLengthMismatch)
         }
     }
+
+    /// Executes a batch of JSON-RPC requests concurrently.
+    ///
+    /// This method takes an iterator of requests, where each request is a tuple consisting of a
+    /// JSON-RPC method and its parameters. It returns a vector of results, each encoded as a
+    /// `serde_json::Value`.
+    ///
+    /// # Type Parameters
+    /// - `I`: An iterator type where each item is a tuple containing a `JsonRpcMethod` and parameters `P`.
+    /// - `P`: The type of the parameters to be serialized for the JSON-RPC request.
+    ///
+    /// # Errors
+    /// Returns `ProviderError` if any of the requests fail.
+    async fn batch_requests<I, P>(
+        &self,
+        requests: I,
+    ) -> Result<Vec<serde_json::Value>, ProviderError>
+    where
+        I: IntoIterator<Item = (JsonRpcMethod, P)> + Send + Sync,
+        P: Serialize + Send + Sync;
+
+    /// Retrieves blocks information with transaction hashes for a batch of block IDs.
+    async fn get_block_with_tx_hashes_batch<B>(
+        &self,
+        block_ids: Vec<B>,
+    ) -> Result<Vec<MaybePendingBlockWithTxHashes>, ProviderError>
+    where
+        B: AsRef<BlockId> + Send + Sync;
 }
 
 /// Trait for implementation-specific error type. These errors are irrelevant in most cases,

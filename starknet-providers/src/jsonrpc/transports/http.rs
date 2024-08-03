@@ -110,4 +110,46 @@ impl JsonRpcTransport for HttpTransport {
 
         Ok(parsed_response)
     }
+
+    async fn send_requests<I, P, R>(
+        &self,
+        requests: I,
+    ) -> Result<Vec<JsonRpcResponse<R>>, Self::Error>
+    where
+        I: IntoIterator<Item = (JsonRpcMethod, P)> + Send,
+        P: Serialize + Send,
+        R: DeserializeOwned,
+    {
+        let batch_requests: Vec<_> = requests
+            .into_iter()
+            .enumerate()
+            .map(|(id, (method, params))| JsonRpcRequest {
+                id: id as u64 + 1,
+                jsonrpc: "2.0",
+                method,
+                params,
+            })
+            .collect();
+
+        let serialized_batch = serde_json::to_string(&batch_requests).map_err(Self::Error::Json)?;
+
+        let mut request = self
+            .client
+            .post(self.url.clone())
+            .body(serialized_batch)
+            .header("Content-Type", "application/json");
+
+        for (name, value) in &self.headers {
+            request = request.header(name, value);
+        }
+
+        let response = request.send().await.map_err(Self::Error::Reqwest)?;
+
+        let response_body = response.text().await.map_err(Self::Error::Reqwest)?;
+        trace!("Response from JSON-RPC: {}", response_body);
+
+        let parsed_response = serde_json::from_str(&response_body).map_err(Self::Error::Json)?;
+
+        Ok(parsed_response)
+    }
 }

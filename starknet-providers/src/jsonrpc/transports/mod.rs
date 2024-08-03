@@ -26,4 +26,14 @@ pub trait JsonRpcTransport {
     where
         P: Serialize + Send + Sync,
         R: DeserializeOwned;
+
+    /// Sends multiple JSON-RPC requests and retrieves their responses.
+    async fn send_requests<I, P, R>(
+        &self,
+        requests: I,
+    ) -> Result<Vec<JsonRpcResponse<R>>, Self::Error>
+    where
+        I: IntoIterator<Item = (JsonRpcMethod, P)> + Send + Sync,
+        P: Serialize + Send + Sync,
+        R: DeserializeOwned;
 }
