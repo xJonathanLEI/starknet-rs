@@ -68,6 +68,7 @@ impl<'a, A> DeclarationV2<'a, A> {
             nonce: None,
             max_fee: None,
             fee_estimate_multiplier: 1.1,
+            is_signer_interactive: None,
         }
     }
 
@@ -93,6 +94,14 @@ impl<'a, A> DeclarationV2<'a, A> {
     pub fn fee_estimate_multiplier(self, fee_estimate_multiplier: f64) -> Self {
         Self {
             fee_estimate_multiplier,
+            ..self
+        }
+    }
+
+    /// Returns a new [`DeclarationV2`] with the an interactive signer.
+    pub fn with_interactive_signer(self) -> Self {
+        Self {
+            is_signer_interactive: Some(()),
             ..self
         }
     }
@@ -209,7 +218,7 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
-        let skip_signature = self.account.is_signer_interactive();
+        let skip_signature = self.is_signer_interactive();
 
         let prepared = PreparedDeclarationV2 {
             account: self.account,
@@ -245,7 +254,7 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
-        let skip_signature = if self.account.is_signer_interactive() {
+        let skip_signature = if self.is_signer_interactive() {
             // If signer is interactive, we would try to minimize signing requests. However, if the
             // caller has decided to not skip validation, it's best we still request a real
             // signature, as otherwise the simulation would most likely fail.
@@ -285,6 +294,14 @@ where
             .await
             .map_err(AccountError::Provider)
     }
+
+    fn is_signer_interactive(&self) -> bool {
+        if self.is_signer_interactive.is_some() {
+            true
+        } else {
+            self.account.is_signer_interactive()
+        }
+    }
 }
 
 impl<'a, A> DeclarationV3<'a, A> {
@@ -306,6 +323,7 @@ impl<'a, A> DeclarationV3<'a, A> {
             gas_price: None,
             gas_estimate_multiplier: 1.5,
             gas_price_estimate_multiplier: 1.5,
+            is_signer_interactive: None,
         }
     }
 
@@ -349,6 +367,14 @@ impl<'a, A> DeclarationV3<'a, A> {
     pub fn gas_price_estimate_multiplier(self, gas_price_estimate_multiplier: f64) -> Self {
         Self {
             gas_price_estimate_multiplier,
+            ..self
+        }
+    }
+
+    /// Returns a new [`DeclarationV3`] with the an interactive signer.
+    pub fn with_interactive_signer(self) -> Self {
+        Self {
+            is_signer_interactive: Some(()),
             ..self
         }
     }
@@ -519,7 +545,7 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
-        let skip_signature = self.account.is_signer_interactive();
+        let skip_signature = self.is_signer_interactive();
 
         let prepared = PreparedDeclarationV3 {
             account: self.account,
@@ -556,7 +582,7 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
-        let skip_signature = if self.account.is_signer_interactive() {
+        let skip_signature = if self.is_signer_interactive() {
             // If signer is interactive, we would try to minimize signing requests. However, if the
             // caller has decided to not skip validation, it's best we still request a real
             // signature, as otherwise the simulation would most likely fail.
@@ -597,6 +623,14 @@ where
             .await
             .map_err(AccountError::Provider)
     }
+
+    fn is_signer_interactive(&self) -> bool {
+        if self.is_signer_interactive.is_some() {
+            true
+        } else {
+            self.account.is_signer_interactive()
+        }
+    }
 }
 
 impl<'a, A> LegacyDeclaration<'a, A> {
@@ -611,6 +645,7 @@ impl<'a, A> LegacyDeclaration<'a, A> {
             nonce: None,
             max_fee: None,
             fee_estimate_multiplier: 1.1,
+            is_signer_interactive: None,
         }
     }
 
@@ -636,6 +671,14 @@ impl<'a, A> LegacyDeclaration<'a, A> {
     pub fn fee_estimate_multiplier(self, fee_estimate_multiplier: f64) -> Self {
         Self {
             fee_estimate_multiplier,
+            ..self
+        }
+    }
+
+    /// Returns a new [`LegacyDeclaration`] with the an interactive signer.
+    pub fn with_interactive_signer(self) -> Self {
+        Self {
+            is_signer_interactive: Some(()),
             ..self
         }
     }
@@ -753,7 +796,7 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
-        let skip_signature = self.account.is_signer_interactive();
+        let skip_signature = self.is_signer_interactive();
 
         let prepared = PreparedLegacyDeclaration {
             account: self.account,
@@ -788,7 +831,7 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
-        let skip_signature = if self.account.is_signer_interactive() {
+        let skip_signature = if self.is_signer_interactive() {
             // If signer is interactive, we would try to minimize signing requests. However, if the
             // caller has decided to not skip validation, it's best we still request a real
             // signature, as otherwise the simulation would most likely fail.
@@ -826,6 +869,14 @@ where
             )
             .await
             .map_err(AccountError::Provider)
+    }
+
+    fn is_signer_interactive(&self) -> bool {
+        if self.is_signer_interactive.is_some() {
+            true
+        } else {
+            self.account.is_signer_interactive()
+        }
     }
 }
 

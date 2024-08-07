@@ -242,6 +242,7 @@ pub struct ExecutionV1<'a, A> {
     nonce: Option<Felt>,
     max_fee: Option<Felt>,
     fee_estimate_multiplier: f64,
+    is_signer_interactive: Option<()>,
 }
 
 /// Abstraction over `INVOKE` transactions from accounts for invoking contracts. This struct uses
@@ -260,6 +261,7 @@ pub struct ExecutionV3<'a, A> {
     gas_price: Option<u128>,
     gas_estimate_multiplier: f64,
     gas_price_estimate_multiplier: f64,
+    is_signer_interactive: Option<()>,
 }
 
 /// Abstraction over `DECLARE` transactions from accounts for invoking contracts. This struct uses
@@ -276,6 +278,7 @@ pub struct DeclarationV2<'a, A> {
     nonce: Option<Felt>,
     max_fee: Option<Felt>,
     fee_estimate_multiplier: f64,
+    is_signer_interactive: Option<()>,
 }
 
 /// Abstraction over `DECLARE` transactions from accounts for invoking contracts. This struct uses
@@ -295,6 +298,7 @@ pub struct DeclarationV3<'a, A> {
     gas_price: Option<u128>,
     gas_estimate_multiplier: f64,
     gas_price_estimate_multiplier: f64,
+    is_signer_interactive: Option<()>,
 }
 
 /// An intermediate type allowing users to optionally specify `nonce` and/or `max_fee`.
@@ -306,6 +310,7 @@ pub struct LegacyDeclaration<'a, A> {
     nonce: Option<Felt>,
     max_fee: Option<Felt>,
     fee_estimate_multiplier: f64,
+    is_signer_interactive: Option<()>,
 }
 
 /// [`ExecutionV1`] but with `nonce` and `max_fee` already determined.
