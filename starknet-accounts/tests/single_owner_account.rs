@@ -1,5 +1,5 @@
 use starknet_accounts::{
-    Account, AccountError, Call, ConnectedAccount, ExecutionEncoding, SingleOwnerAccount,
+    Account, AccountError, ConnectedAccount, ExecutionEncoding, SingleOwnerAccount,
 };
 use starknet_core::{
     types::{
@@ -7,7 +7,7 @@ use starknet_core::{
             legacy::{LegacyContractClass, RawLegacyAbiEntry, RawLegacyFunction},
             SierraClass,
         },
-        BlockId, BlockTag, Felt, StarknetError,
+        BlockId, BlockTag, Call, Felt, StarknetError,
     },
     utils::get_selector_from_name,
 };

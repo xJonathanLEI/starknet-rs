@@ -1,6 +1,6 @@
-use starknet_accounts::{Account, AccountError, Call, ConnectedAccount, ExecutionV1, ExecutionV3};
+use starknet_accounts::{Account, AccountError, ConnectedAccount, ExecutionV1, ExecutionV3};
 use starknet_core::{
-    types::{FeeEstimate, Felt, InvokeTransactionResult, SimulatedTransaction},
+    types::{Call, FeeEstimate, Felt, InvokeTransactionResult, SimulatedTransaction},
     utils::{get_udc_deployed_address, UdcUniqueSettings, UdcUniqueness},
 };
 

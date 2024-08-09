@@ -2,7 +2,10 @@ use crate::VerifyingKey;
 
 use async_trait::async_trait;
 use auto_impl::auto_impl;
-use starknet_core::{crypto::Signature, types::Felt};
+use starknet_core::{
+    crypto::Signature,
+    types::{Call, Felt},
+};
 use std::error::Error;
 
 /// Any signer that can provide a public key as [`Felt`], and sign a raw hash for a signature
@@ -38,5 +41,22 @@ pub trait Signer {
     /// non-interactive signers, it's fine to sign multiple times for getting the most accurate
     /// estimation/simulation possible; but with interactive signers, they would accept less
     /// accurate results to minimize signing requests.
-    fn is_interactive(&self) -> bool;
+    fn is_interactive(&self, context: SignerInteractivityContext<'_>) -> bool;
+}
+
+/// Context for helping signer implementations make decisions on whether to act interactively or
+/// not, useful for signers with dynamic interactivity.
+///
+/// This type only exposes execution details as context, with everything else falling under the
+/// `Other` variant, as it's deemed very much pointless to act differently in those scenarios.
+/// When an execution is requested, only the list of calls is exposed.
+#[derive(Debug, Clone, Copy)]
+pub enum SignerInteractivityContext<'a> {
+    /// An execution is being requested.
+    Execution {
+        /// The list of calls being authorized.
+        calls: &'a [Call],
+    },
+    /// A class declaration or account deployment is being requested.
+    Other,
 }

@@ -1,12 +1,11 @@
-use crate::Call;
-
 use async_trait::async_trait;
 use auto_impl::auto_impl;
 use starknet_core::types::{
     contract::{legacy::LegacyContractClass, CompressProgramError, ComputeClassHashError},
-    BlockId, BlockTag, Felt, FlattenedSierraClass,
+    BlockId, BlockTag, Call, Felt, FlattenedSierraClass,
 };
 use starknet_providers::{Provider, ProviderError};
+use starknet_signers::SignerInteractivityContext;
 use std::{error::Error, sync::Arc};
 
 mod declaration;
@@ -89,7 +88,7 @@ pub trait Account: ExecutionEncoder + Sized {
     ///
     /// This affects how an account makes decision on whether to request a real signature for
     /// estimation/simulation purposes.
-    fn is_signer_interactive(&self) -> bool;
+    fn is_signer_interactive(&self, context: SignerInteractivityContext<'_>) -> bool;
 
     /// Generates an instance of [`ExecutionV1`] for sending `INVOKE` v1 transactions. Pays
     /// transaction fees in `ETH`.
@@ -465,8 +464,8 @@ where
             .await
     }
 
-    fn is_signer_interactive(&self) -> bool {
-        (*self).is_signer_interactive()
+    fn is_signer_interactive(&self, context: SignerInteractivityContext<'_>) -> bool {
+        (*self).is_signer_interactive(context)
     }
 }
 
@@ -532,8 +531,8 @@ where
             .await
     }
 
-    fn is_signer_interactive(&self) -> bool {
-        self.as_ref().is_signer_interactive()
+    fn is_signer_interactive(&self, context: SignerInteractivityContext<'_>) -> bool {
+        self.as_ref().is_signer_interactive(context)
     }
 }
 
@@ -599,8 +598,8 @@ where
             .await
     }
 
-    fn is_signer_interactive(&self) -> bool {
-        self.as_ref().is_signer_interactive()
+    fn is_signer_interactive(&self, context: SignerInteractivityContext<'_>) -> bool {
+        self.as_ref().is_signer_interactive(context)
     }
 }
 

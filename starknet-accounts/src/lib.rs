@@ -10,9 +10,6 @@ pub use account::{
     RawDeclarationV3, RawExecutionV1, RawExecutionV3, RawLegacyDeclaration,
 };
 
-mod call;
-pub use call::Call;
-
 mod factory;
 pub use factory::{
     argent::ArgentAccountFactory, open_zeppelin::OpenZeppelinAccountFactory, AccountDeploymentV1,

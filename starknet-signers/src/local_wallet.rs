@@ -1,4 +1,4 @@
-use crate::{Infallible, Signer, SigningKey, VerifyingKey};
+use crate::{Infallible, Signer, SignerInteractivityContext, SigningKey, VerifyingKey};
 
 use async_trait::async_trait;
 use starknet_core::{
@@ -42,7 +42,7 @@ impl Signer for LocalWallet {
         Ok(self.private_key.sign(hash)?)
     }
 
-    fn is_interactive(&self) -> bool {
+    fn is_interactive(&self, _context: SignerInteractivityContext<'_>) -> bool {
         false
     }
 }

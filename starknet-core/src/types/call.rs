@@ -1,4 +1,6 @@
-use starknet_core::types::Felt;
+use alloc::vec::*;
+
+use crate::types::Felt;
 
 /// A contract call as part of a multi-call execution request.
 #[derive(Debug, Clone)]

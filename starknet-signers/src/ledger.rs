@@ -8,7 +8,7 @@ use crypto_bigint::{ArrayEncoding, U256};
 use semver::Version;
 use starknet_core::{crypto::Signature, types::Felt};
 
-use crate::{Signer, VerifyingKey};
+use crate::{Signer, SignerInteractivityContext, VerifyingKey};
 
 pub use coins_bip32::path::DerivationPath;
 
@@ -128,7 +128,7 @@ impl Signer for LedgerSigner {
         self.app.sign_hash(self.derivation_path.clone(), hash).await
     }
 
-    fn is_interactive(&self) -> bool {
+    fn is_interactive(&self, _context: SignerInteractivityContext<'_>) -> bool {
         true
     }
 }
