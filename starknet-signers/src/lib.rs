@@ -9,7 +9,7 @@ pub use key_pair::{SigningKey, VerifyingKey};
 pub use key_pair::KeystoreError;
 
 mod signer;
-pub use signer::Signer;
+pub use signer::{Signer, SignerInteractivityContext};
 
 /// Module containing types related to the use of a simple in-memory signer.
 pub mod local_wallet;

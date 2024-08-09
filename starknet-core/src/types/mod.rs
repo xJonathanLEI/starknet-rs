@@ -62,6 +62,9 @@ pub use receipt_block::ReceiptBlock;
 mod msg;
 pub use msg::MsgToL2;
 
+mod call;
+pub use call::Call;
+
 // TODO: move generated request code to `starknet-providers`
 /// Module containing JSON-RPC request types.
 pub mod requests;

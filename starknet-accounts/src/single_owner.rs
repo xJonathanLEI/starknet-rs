@@ -1,12 +1,12 @@
 use crate::{
-    Account, Call, ConnectedAccount, ExecutionEncoder, RawDeclarationV2, RawDeclarationV3,
+    Account, ConnectedAccount, ExecutionEncoder, RawDeclarationV2, RawDeclarationV3,
     RawExecutionV1, RawExecutionV3, RawLegacyDeclaration,
 };
 
 use async_trait::async_trait;
-use starknet_core::types::{contract::ComputeClassHashError, BlockId, BlockTag, Felt};
+use starknet_core::types::{contract::ComputeClassHashError, BlockId, BlockTag, Call, Felt};
 use starknet_providers::Provider;
-use starknet_signers::Signer;
+use starknet_signers::{Signer, SignerInteractivityContext};
 
 /// A generic [`Account`] implementation for controlling account contracts that only have one signer
 /// using ECDSA the STARK curve.
@@ -177,8 +177,8 @@ where
         Ok(vec![signature.r, signature.s])
     }
 
-    fn is_signer_interactive(&self) -> bool {
-        self.signer.is_interactive()
+    fn is_signer_interactive(&self, context: SignerInteractivityContext<'_>) -> bool {
+        self.signer.is_interactive(context)
     }
 }
 

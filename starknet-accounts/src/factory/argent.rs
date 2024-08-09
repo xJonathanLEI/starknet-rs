@@ -6,7 +6,7 @@ use crate::{
 use async_trait::async_trait;
 use starknet_core::types::{BlockId, BlockTag, Felt};
 use starknet_providers::Provider;
-use starknet_signers::Signer;
+use starknet_signers::{Signer, SignerInteractivityContext};
 
 /// [`AccountFactory`] implementation for deploying `Argent X` account contracts.
 #[derive(Debug)]
@@ -78,7 +78,8 @@ where
     }
 
     fn is_signer_interactive(&self) -> bool {
-        self.signer.is_interactive()
+        self.signer
+            .is_interactive(SignerInteractivityContext::Other)
     }
 
     fn block_id(&self) -> BlockId {

@@ -2,19 +2,20 @@ use super::{
     super::NotPreparedError, Account, AccountError, ConnectedAccount, ExecutionV1, ExecutionV3,
     PreparedExecutionV1, PreparedExecutionV3, RawExecutionV1, RawExecutionV3,
 };
-use crate::{Call, ExecutionEncoder};
+use crate::ExecutionEncoder;
 
 use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
         BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1,
-        BroadcastedInvokeTransactionV3, BroadcastedTransaction, DataAvailabilityMode, FeeEstimate,
-        Felt, InvokeTransactionResult, ResourceBounds, ResourceBoundsMapping, SimulatedTransaction,
-        SimulationFlag, SimulationFlagForEstimateFee,
+        BroadcastedInvokeTransactionV3, BroadcastedTransaction, Call, DataAvailabilityMode,
+        FeeEstimate, Felt, InvokeTransactionResult, ResourceBounds, ResourceBoundsMapping,
+        SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee,
     },
 };
 use starknet_crypto::PoseidonHasher;
 use starknet_providers::Provider;
+use starknet_signers::SignerInteractivityContext;
 
 /// Cairo string for "invoke"
 const PREFIX_INVOKE: Felt = Felt::from_raw([
@@ -271,7 +272,9 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
-        let skip_signature = self.account.is_signer_interactive();
+        let skip_signature = self
+            .account
+            .is_signer_interactive(SignerInteractivityContext::Execution { calls: &self.calls });
 
         let prepared = PreparedExecutionV1 {
             account: self.account,
@@ -309,7 +312,10 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
-        let skip_signature = if self.account.is_signer_interactive() {
+        let skip_signature = if self
+            .account
+            .is_signer_interactive(SignerInteractivityContext::Execution { calls: &self.calls })
+        {
             // If signer is interactive, we would try to minimize signing requests. However, if the
             // caller has decided to not skip validation, it's best we still request a real
             // signature, as otherwise the simulation would most likely fail.
@@ -498,7 +504,9 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
-        let skip_signature = self.account.is_signer_interactive();
+        let skip_signature = self
+            .account
+            .is_signer_interactive(SignerInteractivityContext::Execution { calls: &self.calls });
 
         let prepared = PreparedExecutionV3 {
             account: self.account,
@@ -537,7 +545,10 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
-        let skip_signature = if self.account.is_signer_interactive() {
+        let skip_signature = if self
+            .account
+            .is_signer_interactive(SignerInteractivityContext::Execution { calls: &self.calls })
+        {
             // If signer is interactive, we would try to minimize signing requests. However, if the
             // caller has decided to not skip validation, it's best we still request a real
             // signature, as otherwise the simulation would most likely fail.
