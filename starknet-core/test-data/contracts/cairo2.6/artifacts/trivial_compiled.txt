@@ -1,0 +1,12 @@
+{
+  "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+  "compiler_version": "2.6.2",
+  "bytecode": [],
+  "bytecode_segment_lengths": 0,
+  "hints": [],
+  "entry_points_by_type": {
+    "EXTERNAL": [],
+    "L1_HANDLER": [],
+    "CONSTRUCTOR": []
+  }
+}

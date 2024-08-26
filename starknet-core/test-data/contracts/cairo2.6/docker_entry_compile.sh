@@ -11,3 +11,4 @@ compile () {
 }
 
 compile "/contracts/erc20.cairo" "/artifacts/erc20"
+compile "/contracts/trivial.cairo" "/artifacts/trivial"
