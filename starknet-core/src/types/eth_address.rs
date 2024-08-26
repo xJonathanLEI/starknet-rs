@@ -207,7 +207,7 @@ impl From<[u8; 20]> for EthAddress {
 
 #[cfg(test)]
 mod tests {
-    use super::{EthAddress, Felt, FromBytesSliceError, FromFieldElementError};
+    use super::{EthAddress, Felt};
 
     use alloc::vec::*;
 
@@ -291,11 +291,12 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_eth_address_from_felt_error() {
-        match EthAddress::from_felt(
+        if EthAddress::from_felt(
             &Felt::from_hex("0x10000000000000000000000000000000000000000").unwrap(),
-        ) {
-            Ok(_) => panic!("Expected error, but got Ok"),
-            Err(FromFieldElementError) => {}
+        )
+        .is_ok()
+        {
+            panic!("Expected error, but got Ok");
         }
     }
 
@@ -304,9 +305,8 @@ mod tests {
     fn test_eth_address_from_slice_invalid_slice() {
         let buffer: Vec<u8> = vec![0, 1, 2, 3, 4, 5, 6, 7];
 
-        match EthAddress::try_from(&buffer[0..4]) {
-            Ok(_) => panic!("Expected error, but got Ok"),
-            Err(FromBytesSliceError) => {}
+        if EthAddress::try_from(&buffer[0..4]).is_ok() {
+            panic!("Expected error, but got Ok");
         }
     }
 }
