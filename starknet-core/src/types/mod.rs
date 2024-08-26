@@ -426,6 +426,7 @@ pub enum TransactionTrace {
 }
 
 /// The execution result of a function invocation.
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(untagged)]
 pub enum ExecuteInvocation {
