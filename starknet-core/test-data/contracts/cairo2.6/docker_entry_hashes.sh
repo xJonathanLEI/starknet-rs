@@ -9,3 +9,4 @@ hash () {
 }
 
 hash "/artifacts/erc20"
+hash "/artifacts/trivial"
