@@ -3,7 +3,10 @@ use auto_impl::auto_impl;
 use serde::{de::DeserializeOwned, Serialize};
 use std::error::Error;
 
-use crate::jsonrpc::{JsonRpcMethod, JsonRpcResponse};
+use crate::{
+    jsonrpc::{JsonRpcMethod, JsonRpcResponse},
+    ProviderRequestData,
+};
 
 mod http;
 pub use http::{HttpTransport, HttpTransportError};
@@ -26,4 +29,12 @@ pub trait JsonRpcTransport {
     where
         P: Serialize + Send + Sync,
         R: DeserializeOwned;
+
+    /// Sends multiple JSON-RPC requests in parallel.
+    async fn send_requests<R>(
+        &self,
+        requests: R,
+    ) -> Result<Vec<JsonRpcResponse<serde_json::Value>>, Self::Error>
+    where
+        R: AsRef<[ProviderRequestData]> + Send + Sync;
 }

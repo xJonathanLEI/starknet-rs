@@ -92,19 +92,21 @@ Examples can be found in the [examples folder](./examples):
 
 6. [Query the latest block number with JSON-RPC](./examples/jsonrpc.rs)
 
-7. [Call a contract view function](./examples/erc20_balance.rs)
+7. [Batched JSON-RPC requests](./examples/batch.rs)
 
-8. [Deploy an Argent X account to a pre-funded address](./examples/deploy_argent_account.rs)
+8. [Call a contract view function](./examples/erc20_balance.rs)
 
-9. [Inspect public key with Ledger](./examples/ledger_public_key.rs)
+9. [Deploy an Argent X account to a pre-funded address](./examples/deploy_argent_account.rs)
 
-10. [Deploy an OpenZeppelin account with Ledger](./examples/deploy_account_with_ledger.rs)
+10. [Inspect public key with Ledger](./examples/ledger_public_key.rs)
 
-11. [Transfer ERC20 tokens with Ledger](./examples/transfer_with_ledger.rs)
+11. [Deploy an OpenZeppelin account with Ledger](./examples/deploy_account_with_ledger.rs)
 
-12. [Parsing a JSON-RPC request on the server side](./examples/parse_jsonrpc_request.rs)
+12. [Transfer ERC20 tokens with Ledger](./examples/transfer_with_ledger.rs)
 
-13. [Inspecting a erased provider-specific error type](./examples/downcast_provider_error.rs)
+13. [Parsing a JSON-RPC request on the server side](./examples/parse_jsonrpc_request.rs)
+
+14. [Inspecting a erased provider-specific error type](./examples/downcast_provider_error.rs)
 
 ## License
 

@@ -12,7 +12,7 @@ use starknet_core::types::{
 
 use crate::{
     jsonrpc::{HttpTransport, JsonRpcClient},
-    Provider, ProviderError, SequencerGatewayProvider,
+    Provider, ProviderError, ProviderRequestData, ProviderResponseData, SequencerGatewayProvider,
 };
 
 /// A convenient Box-able type that implements the [Provider] trait. This can be useful when you
@@ -662,6 +662,23 @@ impl Provider for AnyProvider {
             Self::SequencerGateway(inner) => {
                 <SequencerGatewayProvider as Provider>::trace_block_transactions(inner, block_id)
                     .await
+            }
+        }
+    }
+
+    async fn batch_requests<R>(
+        &self,
+        requests: R,
+    ) -> Result<Vec<ProviderResponseData>, ProviderError>
+    where
+        R: AsRef<[ProviderRequestData]> + Send + Sync,
+    {
+        match self {
+            Self::JsonRpcHttp(inner) => {
+                <JsonRpcClient<HttpTransport> as Provider>::batch_requests(inner, requests).await
+            }
+            Self::SequencerGateway(inner) => {
+                <SequencerGatewayProvider as Provider>::batch_requests(inner, requests).await
             }
         }
     }

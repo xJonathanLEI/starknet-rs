@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 use auto_impl::auto_impl;
+use serde::Serialize;
 use starknet_core::types::{
-    BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
+    requests::*, BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
     BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
     ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
     EventsPage, FeeEstimate, Felt, FunctionCall, InvokeTransactionResult,
@@ -260,6 +261,15 @@ pub trait Provider {
     where
         B: AsRef<BlockId> + Send + Sync;
 
+    /// Sends multiple requests in parallel. The function call fails if any of the requests fails.
+    /// Implementations must guarantee that responses follow the exact order as the requests.
+    async fn batch_requests<R>(
+        &self,
+        requests: R,
+    ) -> Result<Vec<ProviderResponseData>, ProviderError>
+    where
+        R: AsRef<[ProviderRequestData]> + Send + Sync;
+
     /// Same as [`estimate_fee`](fn.estimate_fee), but only with one estimate.
     async fn estimate_fee_single<R, S, B>(
         &self,
@@ -349,4 +359,132 @@ pub enum ProviderError {
     /// Boxed implementation-specific errors.
     #[error("{0}")]
     Other(Box<dyn ProviderImplError>),
+}
+
+/// Typed request data for [`Provider`] requests.
+#[derive(Debug, Clone, Serialize)]
+#[serde(untagged)]
+pub enum ProviderRequestData {
+    /// Request data for `starknet_specVersion`.
+    SpecVersion(SpecVersionRequest),
+    /// Request data for `starknet_getBlockWithTxHashes`.
+    GetBlockWithTxHashes(GetBlockWithTxHashesRequest),
+    /// Request data for `starknet_getBlockWithTxs`.
+    GetBlockWithTxs(GetBlockWithTxsRequest),
+    /// Request data for `starknet_getBlockWithReceipts`.
+    GetBlockWithReceipts(GetBlockWithReceiptsRequest),
+    /// Request data for `starknet_getStateUpdate`.
+    GetStateUpdate(GetStateUpdateRequest),
+    /// Request data for `starknet_getStorageAt`.
+    GetStorageAt(GetStorageAtRequest),
+    /// Request data for `starknet_getTransactionStatus`.
+    GetTransactionStatus(GetTransactionStatusRequest),
+    /// Request data for `starknet_getTransactionByHash`.
+    GetTransactionByHash(GetTransactionByHashRequest),
+    /// Request data for `starknet_getTransactionByBlockIdAndIndex`.
+    GetTransactionByBlockIdAndIndex(GetTransactionByBlockIdAndIndexRequest),
+    /// Request data for `starknet_getTransactionReceipt`.
+    GetTransactionReceipt(GetTransactionReceiptRequest),
+    /// Request data for `starknet_getClass`.
+    GetClass(GetClassRequest),
+    /// Request data for `starknet_getClassHashAt`.
+    GetClassHashAt(GetClassHashAtRequest),
+    /// Request data for `starknet_getClassAt`.
+    GetClassAt(GetClassAtRequest),
+    /// Request data for `starknet_getBlockTransactionCount`.
+    GetBlockTransactionCount(GetBlockTransactionCountRequest),
+    /// Request data for `starknet_call`.
+    Call(CallRequest),
+    /// Request data for `starknet_estimateFee`.
+    EstimateFee(EstimateFeeRequest),
+    /// Request data for `starknet_estimateMessageFee`.
+    EstimateMessageFee(EstimateMessageFeeRequest),
+    /// Request data for `starknet_blockNumber`.
+    BlockNumber(BlockNumberRequest),
+    /// Request data for `starknet_blockHashAndNumber`.
+    BlockHashAndNumber(BlockHashAndNumberRequest),
+    /// Request data for `starknet_chainId`.
+    ChainId(ChainIdRequest),
+    /// Request data for `starknet_syncing`.
+    Syncing(SyncingRequest),
+    /// Request data for `starknet_getEvents`.
+    GetEvents(GetEventsRequest),
+    /// Request data for `starknet_getNonce`.
+    GetNonce(GetNonceRequest),
+    /// Request data for `starknet_addInvokeTransaction`.
+    AddInvokeTransaction(AddInvokeTransactionRequest),
+    /// Request data for `starknet_addDeclareTransaction`.
+    AddDeclareTransaction(AddDeclareTransactionRequest),
+    /// Request data for `starknet_addDeployAccountTransaction`.
+    AddDeployAccountTransaction(AddDeployAccountTransactionRequest),
+    /// Request data for `starknet_traceTransaction`.
+    TraceTransaction(TraceTransactionRequest),
+    /// Request data for `starknet_simulateTransactions`.
+    SimulateTransactions(SimulateTransactionsRequest),
+    /// Request data for `starknet_traceBlockTransactions`.
+    TraceBlockTransactions(TraceBlockTransactionsRequest),
+}
+
+/// Typed response data for [`Provider`] responses.
+#[allow(clippy::large_enum_variant)]
+#[derive(Debug, Clone)]
+pub enum ProviderResponseData {
+    /// Response data for `starknet_specVersion`.
+    SpecVersion(String),
+    /// Response data for `starknet_getBlockWithTxHashes`.
+    GetBlockWithTxHashes(MaybePendingBlockWithTxHashes),
+    /// Response data for `starknet_getBlockWithTxs`.
+    GetBlockWithTxs(MaybePendingBlockWithTxs),
+    /// Response data for `starknet_getBlockWithReceipts`.
+    GetBlockWithReceipts(MaybePendingBlockWithReceipts),
+    /// Response data for `starknet_getStateUpdate`.
+    GetStateUpdate(MaybePendingStateUpdate),
+    /// Response data for `starknet_getStorageAt`.
+    GetStorageAt(Felt),
+    /// Response data for `starknet_getTransactionStatus`.
+    GetTransactionStatus(TransactionStatus),
+    /// Response data for `starknet_getTransactionByHash`.
+    GetTransactionByHash(Transaction),
+    /// Response data for `starknet_getTransactionByBlockIdAndIndex`.
+    GetTransactionByBlockIdAndIndex(Transaction),
+    /// Response data for `starknet_getTransactionReceipt`.
+    GetTransactionReceipt(TransactionReceiptWithBlockInfo),
+    /// Response data for `starknet_getClass`.
+    GetClass(ContractClass),
+    /// Response data for `starknet_getClassHashAt`.
+    GetClassHashAt(Felt),
+    /// Response data for `starknet_getClassAt`.
+    GetClassAt(ContractClass),
+    /// Response data for `starknet_getBlockTransactionCount`.
+    GetBlockTransactionCount(u64),
+    /// Response data for `starknet_call`.
+    Call(Vec<Felt>),
+    /// Response data for `starknet_estimateFee`.
+    EstimateFee(Vec<FeeEstimate>),
+    /// Response data for `starknet_estimateMessageFee`.
+    EstimateMessageFee(FeeEstimate),
+    /// Response data for `starknet_blockNumber`.
+    BlockNumber(u64),
+    /// Response data for `starknet_blockHashAndNumber`.
+    BlockHashAndNumber(BlockHashAndNumber),
+    /// Response data for `starknet_chainId`.
+    ChainId(Felt),
+    /// Response data for `starknet_syncing`.
+    Syncing(SyncStatusType),
+    /// Response data for `starknet_getEvents`.
+    GetEvents(EventsPage),
+    /// Response data for `starknet_getNonce`.
+    GetNonce(Felt),
+    /// Response data for `starknet_addInvokeTransaction`.
+    AddInvokeTransaction(InvokeTransactionResult),
+    /// Response data for `starknet_addDeclareTransaction`.
+    AddDeclareTransaction(DeclareTransactionResult),
+    /// Response data for `starknet_addDeployAccountTransaction`.
+    AddDeployAccountTransaction(DeployAccountTransactionResult),
+    /// Response data for `starknet_traceTransaction`.
+    TraceTransaction(TransactionTrace),
+    /// Response data for `starknet_simulateTransactions`.
+    SimulateTransactions(Vec<SimulatedTransaction>),
+    /// Response data for `starknet_traceBlockTransactions`.
+    TraceBlockTransactions(Vec<TransactionTraceWithHash>),
 }

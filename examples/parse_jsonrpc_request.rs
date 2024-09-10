@@ -1,4 +1,4 @@
-use starknet_providers::jsonrpc::{JsonRpcRequest, JsonRpcRequestData};
+use starknet_providers::{jsonrpc::JsonRpcRequest, ProviderRequestData};
 
 fn main() {
     // Let's pretend this is the raw request body coming from HTTP
@@ -17,7 +17,7 @@ fn main() {
     println!("Request received: {:#?}", parsed_request);
 
     match parsed_request.data {
-        JsonRpcRequestData::GetBlockTransactionCount(req) => {
+        ProviderRequestData::GetBlockTransactionCount(req) => {
             println!(
                 "starknet_getBlockTransactionCount request received for block: {:?}",
                 req.block_id
