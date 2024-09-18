@@ -2020,7 +2020,7 @@ dependencies = [
 
 [[package]]
 name = "starknet"
-version = "0.11.0"
+version = "0.12.0"
 dependencies = [
  "serde_json",
  "starknet-accounts",
@@ -2036,7 +2036,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-accounts"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -2053,7 +2053,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-contract"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "rand",
  "serde",
@@ -2070,7 +2070,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-core"
-version = "0.11.1"
+version = "0.12.0"
 dependencies = [
  "base64 0.21.0",
  "bincode",
@@ -2092,7 +2092,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-crypto"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "criterion",
  "crypto-bigint",
@@ -2114,7 +2114,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-curve"
-version = "0.5.0"
+version = "0.5.1"
 dependencies = [
  "starknet-types-core",
 ]
@@ -2131,7 +2131,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-macros"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "starknet-core",
  "syn 2.0.63",
@@ -2139,7 +2139,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-providers"
-version = "0.11.0"
+version = "0.12.0"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -2160,7 +2160,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-signers"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "async-trait",
  "auto_impl",
