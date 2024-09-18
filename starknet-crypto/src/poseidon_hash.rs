@@ -97,6 +97,11 @@ pub fn poseidon_hash_many<'a, I: IntoIterator<Item = &'a Felt>>(msgs: I) -> Felt
     state[0]
 }
 
+/// Poseidon permutation function.                                                            
+pub fn poseidon_permute_comp(state: &mut [Felt; 3]) {
+    Poseidon::hades_permutation(state)
+}
+
 #[cfg(test)]
 mod tests {
     use starknet_types_core::hash::StarkHash;
