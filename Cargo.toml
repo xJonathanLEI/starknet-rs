@@ -1,6 +1,6 @@
 [package]
 name = "starknet"
-version = "0.11.0"
+version = "0.12.0"
 authors = ["Jonathan LEI <me@xjonathan.dev>"]
 license = "MIT OR Apache-2.0"
 edition = "2021"
@@ -32,17 +32,17 @@ members = [
 all-features = true
 
 [dependencies]
-starknet-crypto = { version = "0.7.1", path = "./starknet-crypto" }
-starknet-core = { version = "0.11.1", path = "./starknet-core", default-features = false }
-starknet-providers = { version = "0.11.0", path = "./starknet-providers" }
-starknet-contract = { version = "0.10.0", path = "./starknet-contract" }
-starknet-signers = { version = "0.9.0", path = "./starknet-signers" }
-starknet-accounts = { version = "0.10.0", path = "./starknet-accounts" }
-starknet-macros = { version = "0.2.0", path = "./starknet-macros" }
+starknet-crypto = { version = "0.7.2", path = "./starknet-crypto" }
+starknet-core = { version = "0.12.0", path = "./starknet-core", default-features = false }
+starknet-providers = { version = "0.12.0", path = "./starknet-providers" }
+starknet-contract = { version = "0.11.0", path = "./starknet-contract" }
+starknet-signers = { version = "0.10.0", path = "./starknet-signers" }
+starknet-accounts = { version = "0.11.0", path = "./starknet-accounts" }
+starknet-macros = { version = "0.2.1", path = "./starknet-macros" }
 
 [dev-dependencies]
 serde_json = "1.0.74"
-starknet-signers = { version = "0.9.0", path = "./starknet-signers", features = ["ledger"] }
+starknet-signers = { version = "0.10.0", path = "./starknet-signers", features = ["ledger"] }
 tokio = { version = "1.15.0", features = ["full"] }
 url = "2.2.2"
 
