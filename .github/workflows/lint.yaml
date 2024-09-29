@@ -81,7 +81,7 @@ jobs:
       - name: "Set allowed lints"
         run: |
           if [ "${{ matrix.toolchain }}" == "nightly" ]; then
-            echo "ALLOWED=-A non_local_definitions -A clippy::too_long_first_doc_paragraph" >> $GITHUB_ENV
+            echo "ALLOWED=-A non_local_definitions -A clippy::too_long_first_doc_paragraph -A clippy::needless_return" >> $GITHUB_ENV
           else
             echo "ALLOWED=" >> $GITHUB_ENV
           fi
