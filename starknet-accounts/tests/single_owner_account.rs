@@ -355,7 +355,7 @@ async fn can_execute_eth_transfer_invoke_v3_inner<P: Provider + Send + Sync>(
             calldata: vec![Felt::from_hex("0x1234").unwrap(), Felt::ONE, Felt::ZERO],
         }])
         .gas(100000)
-        .gas_price(800000000000000)
+        .gas_price(900000000000000)
         .send()
         .await
         .unwrap();
@@ -545,7 +545,7 @@ async fn can_declare_cairo1_contract_v3_inner<P: Provider + Send + Sync>(
             Felt::from_hex(&hashes.compiled_class_hash).unwrap(),
         )
         .gas(100000)
-        .gas_price(800000000000000)
+        .gas_price(900000000000000)
         .send()
         .await
         .unwrap();
