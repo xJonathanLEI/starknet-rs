@@ -30,7 +30,7 @@ pub use transports::{HttpTransport, HttpTransportError, JsonRpcTransport};
 ///
 /// A "transport" is any implementation that can send JSON-RPC requests and receive responses. This
 /// most commonly happens over a network via HTTP connections, as with [`HttpTransport`].
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct JsonRpcClient<T> {
     transport: T,
 }
