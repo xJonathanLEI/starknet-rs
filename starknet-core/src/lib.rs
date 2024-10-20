@@ -19,4 +19,7 @@ pub mod utils;
 /// Chain IDs for commonly used public Starknet networks.
 pub mod chain_id;
 
+/// Types for serializing high-level Cairo types into field elements and vice versa.
+pub mod codec;
+
 extern crate alloc;

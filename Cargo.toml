@@ -17,6 +17,7 @@ exclude = [".github/**", "images/**"]
 [workspace]
 members = [
     "starknet-core",
+    "starknet-core-derive",
     "starknet-providers",
     "starknet-contract",
     "starknet-crypto",
@@ -34,6 +35,7 @@ all-features = true
 [dependencies]
 starknet-crypto = { version = "0.7.2", path = "./starknet-crypto" }
 starknet-core = { version = "0.12.0", path = "./starknet-core", default-features = false }
+starknet-core-derive = { version = "0.1.0", path = "./starknet-core-derive", features = ["import_from_starknet"] }
 starknet-providers = { version = "0.12.0", path = "./starknet-providers" }
 starknet-contract = { version = "0.11.0", path = "./starknet-contract" }
 starknet-signers = { version = "0.10.0", path = "./starknet-signers" }
