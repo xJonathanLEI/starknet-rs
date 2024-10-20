@@ -108,7 +108,7 @@ impl<'de> Deserialize<'de> for Hash256 {
     }
 }
 
-impl<'de> Visitor<'de> for Hash256Visitor {
+impl Visitor<'_> for Hash256Visitor {
     type Value = Hash256;
 
     fn expecting(&self, formatter: &mut Formatter<'_>) -> alloc::fmt::Result {

@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#f1278dfb2ae57d319093421c038f6ec7a3dfba2f
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#66aa909a760ed0800232a2ca13ece97b9ea32d24
 
 // These types are ignored from code generation. Implement them manually:
 // - `RECEIPT_BLOCK`
@@ -4595,7 +4595,7 @@ impl Serialize for AddDeclareTransactionRequest {
     }
 }
 
-impl<'a> Serialize for AddDeclareTransactionRequestRef<'a> {
+impl Serialize for AddDeclareTransactionRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -4672,7 +4672,7 @@ impl Serialize for AddDeployAccountTransactionRequest {
     }
 }
 
-impl<'a> Serialize for AddDeployAccountTransactionRequestRef<'a> {
+impl Serialize for AddDeployAccountTransactionRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -4749,7 +4749,7 @@ impl Serialize for AddInvokeTransactionRequest {
     }
 }
 
-impl<'a> Serialize for AddInvokeTransactionRequestRef<'a> {
+impl Serialize for AddInvokeTransactionRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -4873,7 +4873,7 @@ impl Serialize for CallRequest {
     }
 }
 
-impl<'a> Serialize for CallRequestRef<'a> {
+impl Serialize for CallRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -5011,7 +5011,7 @@ impl Serialize for EstimateFeeRequest {
     }
 }
 
-impl<'a> Serialize for EstimateFeeRequestRef<'a> {
+impl Serialize for EstimateFeeRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -5145,7 +5145,7 @@ impl Serialize for EstimateMessageFeeRequest {
     }
 }
 
-impl<'a> Serialize for EstimateMessageFeeRequestRef<'a> {
+impl Serialize for EstimateMessageFeeRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -5246,7 +5246,7 @@ impl Serialize for GetBlockTransactionCountRequest {
     }
 }
 
-impl<'a> Serialize for GetBlockTransactionCountRequestRef<'a> {
+impl Serialize for GetBlockTransactionCountRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -5323,7 +5323,7 @@ impl Serialize for GetBlockWithReceiptsRequest {
     }
 }
 
-impl<'a> Serialize for GetBlockWithReceiptsRequestRef<'a> {
+impl Serialize for GetBlockWithReceiptsRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -5400,7 +5400,7 @@ impl Serialize for GetBlockWithTxHashesRequest {
     }
 }
 
-impl<'a> Serialize for GetBlockWithTxHashesRequestRef<'a> {
+impl Serialize for GetBlockWithTxHashesRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -5477,7 +5477,7 @@ impl Serialize for GetBlockWithTxsRequest {
     }
 }
 
-impl<'a> Serialize for GetBlockWithTxsRequestRef<'a> {
+impl Serialize for GetBlockWithTxsRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -5565,7 +5565,7 @@ impl Serialize for GetClassAtRequest {
     }
 }
 
-impl<'a> Serialize for GetClassAtRequestRef<'a> {
+impl Serialize for GetClassAtRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -5682,7 +5682,7 @@ impl Serialize for GetClassHashAtRequest {
     }
 }
 
-impl<'a> Serialize for GetClassHashAtRequestRef<'a> {
+impl Serialize for GetClassHashAtRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -5799,7 +5799,7 @@ impl Serialize for GetClassRequest {
     }
 }
 
-impl<'a> Serialize for GetClassRequestRef<'a> {
+impl Serialize for GetClassRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -5905,7 +5905,7 @@ impl Serialize for GetEventsRequest {
     }
 }
 
-impl<'a> Serialize for GetEventsRequestRef<'a> {
+impl Serialize for GetEventsRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -5993,7 +5993,7 @@ impl Serialize for GetNonceRequest {
     }
 }
 
-impl<'a> Serialize for GetNonceRequestRef<'a> {
+impl Serialize for GetNonceRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -6099,7 +6099,7 @@ impl Serialize for GetStateUpdateRequest {
     }
 }
 
-impl<'a> Serialize for GetStateUpdateRequestRef<'a> {
+impl Serialize for GetStateUpdateRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -6196,7 +6196,7 @@ impl Serialize for GetStorageAtRequest {
     }
 }
 
-impl<'a> Serialize for GetStorageAtRequestRef<'a> {
+impl Serialize for GetStorageAtRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[serde_as]
         #[derive(Serialize)]
@@ -6336,7 +6336,7 @@ impl Serialize for GetTransactionByBlockIdAndIndexRequest {
     }
 }
 
-impl<'a> Serialize for GetTransactionByBlockIdAndIndexRequestRef<'a> {
+impl Serialize for GetTransactionByBlockIdAndIndexRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -6437,7 +6437,7 @@ impl Serialize for GetTransactionByHashRequest {
     }
 }
 
-impl<'a> Serialize for GetTransactionByHashRequestRef<'a> {
+impl Serialize for GetTransactionByHashRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[serde_as]
         #[derive(Serialize)]
@@ -6521,7 +6521,7 @@ impl Serialize for GetTransactionReceiptRequest {
     }
 }
 
-impl<'a> Serialize for GetTransactionReceiptRequestRef<'a> {
+impl Serialize for GetTransactionReceiptRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[serde_as]
         #[derive(Serialize)]
@@ -6605,7 +6605,7 @@ impl Serialize for GetTransactionStatusRequest {
     }
 }
 
-impl<'a> Serialize for GetTransactionStatusRequestRef<'a> {
+impl Serialize for GetTransactionStatusRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[serde_as]
         #[derive(Serialize)]
@@ -6705,7 +6705,7 @@ impl Serialize for SimulateTransactionsRequest {
     }
 }
 
-impl<'a> Serialize for SimulateTransactionsRequestRef<'a> {
+impl Serialize for SimulateTransactionsRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -6868,7 +6868,7 @@ impl Serialize for TraceBlockTransactionsRequest {
     }
 }
 
-impl<'a> Serialize for TraceBlockTransactionsRequestRef<'a> {
+impl Serialize for TraceBlockTransactionsRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
@@ -6947,7 +6947,7 @@ impl Serialize for TraceTransactionRequest {
     }
 }
 
-impl<'a> Serialize for TraceTransactionRequestRef<'a> {
+impl Serialize for TraceTransactionRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[serde_as]
         #[derive(Serialize)]

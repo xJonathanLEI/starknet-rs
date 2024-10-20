@@ -117,7 +117,7 @@ impl<'de> Deserialize<'de> for EthAddress {
     }
 }
 
-impl<'de> Visitor<'de> for EthAddressVisitor {
+impl Visitor<'_> for EthAddressVisitor {
     type Value = EthAddress;
 
     fn expecting(&self, formatter: &mut Formatter<'_>) -> alloc::fmt::Result {

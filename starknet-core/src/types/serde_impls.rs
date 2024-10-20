@@ -55,7 +55,7 @@ impl<'de> DeserializeAs<'de, u128> for NumAsHex {
     }
 }
 
-impl<'de> Visitor<'de> for NumAsHexVisitorU64 {
+impl Visitor<'_> for NumAsHexVisitorU64 {
     type Value = u64;
 
     fn expecting(&self, formatter: &mut Formatter<'_>) -> alloc::fmt::Result {
@@ -95,7 +95,7 @@ impl<'de> Visitor<'de> for NumAsHexVisitorU64 {
     }
 }
 
-impl<'de> Visitor<'de> for NumAsHexVisitorU128 {
+impl Visitor<'_> for NumAsHexVisitorU128 {
     type Value = u128;
 
     fn expecting(&self, formatter: &mut Formatter<'_>) -> alloc::fmt::Result {
