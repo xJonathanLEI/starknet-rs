@@ -278,7 +278,7 @@ impl<'de> Deserialize<'de> for DataAvailabilityMode {
     }
 }
 
-impl<'de> Visitor<'de> for DataAvailabilityModeVisitor {
+impl Visitor<'_> for DataAvailabilityModeVisitor {
     type Value = DataAvailabilityMode;
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

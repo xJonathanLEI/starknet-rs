@@ -24,7 +24,7 @@ pub mod base64 {
         deserializer.deserialize_any(Base64Visitor)
     }
 
-    impl<'de> Visitor<'de> for Base64Visitor {
+    impl Visitor<'_> for Base64Visitor {
         type Value = Vec<u8>;
 
         fn expecting(&self, formatter: &mut Formatter<'_>) -> alloc::fmt::Result {
