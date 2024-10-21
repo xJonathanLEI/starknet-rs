@@ -9,7 +9,7 @@ use crate::{
 };
 
 /// A [`JsonRpcTransport`] implementation that uses HTTP connections.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct HttpTransport {
     client: Client,
     url: Url,
