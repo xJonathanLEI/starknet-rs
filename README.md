@@ -52,6 +52,7 @@ This workspace contains the following crates:
 - `starknet-accounts`: Types for handling Starknet account abstraction
 - `starknet-curve`: Starknet curve operations
 - `starknet-macros`: Useful macros for using the `starknet` crates
+- `starknet-core-derive`: Derive macros for traits in `starknet-core`
 
 ## WebAssembly
 
@@ -92,21 +93,23 @@ Examples can be found in the [examples folder](./examples):
 
 6. [Query the latest block number with JSON-RPC](./examples/jsonrpc.rs)
 
-7. [Batched JSON-RPC requests](./examples/batch.rs)
+7. [Encoding and decoding Cairo types](./examples/serde.rs)
 
-8. [Call a contract view function](./examples/erc20_balance.rs)
+8. [Batched JSON-RPC requests](./examples/batch.rs)
 
-9. [Deploy an Argent X account to a pre-funded address](./examples/deploy_argent_account.rs)
+9. [Call a contract view function](./examples/erc20_balance.rs)
 
-10. [Inspect public key with Ledger](./examples/ledger_public_key.rs)
+10. [Deploy an Argent X account to a pre-funded address](./examples/deploy_argent_account.rs)
 
-11. [Deploy an OpenZeppelin account with Ledger](./examples/deploy_account_with_ledger.rs)
+11. [Inspect public key with Ledger](./examples/ledger_public_key.rs)
 
-12. [Transfer ERC20 tokens with Ledger](./examples/transfer_with_ledger.rs)
+12. [Deploy an OpenZeppelin account with Ledger](./examples/deploy_account_with_ledger.rs)
 
-13. [Parsing a JSON-RPC request on the server side](./examples/parse_jsonrpc_request.rs)
+13. [Transfer ERC20 tokens with Ledger](./examples/transfer_with_ledger.rs)
 
-14. [Inspecting a erased provider-specific error type](./examples/downcast_provider_error.rs)
+14. [Parsing a JSON-RPC request on the server side](./examples/parse_jsonrpc_request.rs)
+
+15. [Inspecting a erased provider-specific error type](./examples/downcast_provider_error.rs)
 
 ## License
 
