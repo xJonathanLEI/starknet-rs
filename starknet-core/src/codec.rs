@@ -1,5 +1,5 @@
 use alloc::{boxed::Box, fmt::Formatter, format, string::*, vec::*};
-use core::fmt::Display;
+use core::{fmt::Display, mem::MaybeUninit};
 
 use num_traits::ToPrimitive;
 
@@ -139,6 +139,51 @@ where
     }
 }
 
+impl<T> Encode for Vec<T>
+where
+    T: Encode,
+{
+    fn encode<W: FeltWriter>(&self, writer: &mut W) -> Result<(), Error> {
+        writer.write(Felt::from(self.len()));
+
+        for item in self {
+            item.encode(writer)?;
+        }
+
+        Ok(())
+    }
+}
+
+impl<T, const N: usize> Encode for [T; N]
+where
+    T: Encode,
+{
+    fn encode<W: FeltWriter>(&self, writer: &mut W) -> Result<(), Error> {
+        writer.write(Felt::from(N));
+
+        for item in self {
+            item.encode(writer)?;
+        }
+
+        Ok(())
+    }
+}
+
+impl<T> Encode for [T]
+where
+    T: Encode,
+{
+    fn encode<W: FeltWriter>(&self, writer: &mut W) -> Result<(), Error> {
+        writer.write(Felt::from(self.len()));
+
+        for item in self {
+            item.encode(writer)?;
+        }
+
+        Ok(())
+    }
+}
+
 impl<'a> Decode<'a> for Felt {
     fn decode_iter<T>(iter: &mut T) -> Result<Self, Error>
     where
@@ -263,6 +308,56 @@ where
     }
 }
 
+impl<'a, T> Decode<'a> for Vec<T>
+where
+    T: Decode<'a>,
+{
+    fn decode_iter<I>(iter: &mut I) -> Result<Self, Error>
+    where
+        I: Iterator<Item = &'a Felt>,
+    {
+        let length = iter.next().ok_or_else(Error::input_exhausted)?;
+        let length = length
+            .to_usize()
+            .ok_or_else(|| Error::value_out_of_range(length, "usize"))?;
+
+        let mut result = Self::with_capacity(length);
+
+        for _ in 0..length {
+            result.push(T::decode_iter(iter)?);
+        }
+
+        Ok(result)
+    }
+}
+
+impl<'a, T, const N: usize> Decode<'a> for [T; N]
+where
+    T: Decode<'a> + Sized,
+{
+    fn decode_iter<I>(iter: &mut I) -> Result<Self, Error>
+    where
+        I: Iterator<Item = &'a Felt>,
+    {
+        let length = iter.next().ok_or_else(Error::input_exhausted)?;
+        let length = length
+            .to_usize()
+            .ok_or_else(|| Error::value_out_of_range(length, "usize"))?;
+
+        if length != N {
+            return Err(Error::length_mismatch(N, length));
+        }
+
+        let mut result: [MaybeUninit<T>; N] = unsafe { MaybeUninit::uninit().assume_init() };
+
+        for elem in &mut result[..] {
+            *elem = MaybeUninit::new(T::decode_iter(iter)?);
+        }
+
+        Ok(unsafe { core::mem::transmute_copy::<_, [T; N]>(&result) })
+    }
+}
+
 impl Error {
     /// Creates an [`Error`] which indicates that the input stream has ended prematurely.
     pub fn input_exhausted() -> Self {
@@ -270,6 +365,14 @@ impl Error {
             repr: "unexpected end of input stream"
                 .to_string()
                 .into_boxed_str(),
+        }
+    }
+
+    /// Creates an [`Error`] which indicates that the length (likely prefix) is different from the
+    /// expected value.
+    pub fn length_mismatch(expected: usize, actual: usize) -> Self {
+        Self {
+            repr: format!("expecting length `{}` but got `{}`", expected, actual).into_boxed_str(),
         }
     }
 
@@ -424,6 +527,54 @@ mod tests {
         serialized.clear();
         Option::<u32>::None.encode(&mut serialized).unwrap();
         assert_eq!(serialized, vec![Felt::from_str("1").unwrap()]);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_encode_vec() {
+        let mut serialized = Vec::<Felt>::new();
+        vec![Some(10u32), None].encode(&mut serialized).unwrap();
+        assert_eq!(
+            serialized,
+            vec![
+                Felt::from_str("2").unwrap(),
+                Felt::from_str("0").unwrap(),
+                Felt::from_str("10").unwrap(),
+                Felt::from_str("1").unwrap()
+            ]
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_encode_array() {
+        let mut serialized = Vec::<Felt>::new();
+        <[Option<u32>; 2]>::encode(&[Some(10u32), None], &mut serialized).unwrap();
+        assert_eq!(
+            serialized,
+            vec![
+                Felt::from_str("2").unwrap(),
+                Felt::from_str("0").unwrap(),
+                Felt::from_str("10").unwrap(),
+                Felt::from_str("1").unwrap()
+            ]
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_encode_slice() {
+        let mut serialized = Vec::<Felt>::new();
+        <[Option<u32>]>::encode(&[Some(10u32), None], &mut serialized).unwrap();
+        assert_eq!(
+            serialized,
+            vec![
+                Felt::from_str("2").unwrap(),
+                Felt::from_str("0").unwrap(),
+                Felt::from_str("10").unwrap(),
+                Felt::from_str("1").unwrap()
+            ]
+        );
     }
 
     #[test]
@@ -636,6 +787,36 @@ mod tests {
         assert_eq!(
             Option::<u32>::None,
             Option::<u32>::decode(&[Felt::from_str("1").unwrap()]).unwrap()
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_decode_vec() {
+        assert_eq!(
+            vec![Some(10u32), None],
+            Vec::<Option::<u32>>::decode(&[
+                Felt::from_str("2").unwrap(),
+                Felt::from_str("0").unwrap(),
+                Felt::from_str("10").unwrap(),
+                Felt::from_str("1").unwrap()
+            ])
+            .unwrap()
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_decode_array() {
+        assert_eq!(
+            [Some(10u32), None],
+            <[Option<u32>; 2]>::decode(&[
+                Felt::from_str("2").unwrap(),
+                Felt::from_str("0").unwrap(),
+                Felt::from_str("10").unwrap(),
+                Felt::from_str("1").unwrap()
+            ])
+            .unwrap()
         );
     }
 
