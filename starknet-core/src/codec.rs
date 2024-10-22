@@ -20,6 +20,34 @@ pub trait FeltWriter {
 
 /// Any type that can be serialized into a series of [Felt]s. This trait corresponds to the
 /// `serialize` function of the Cairo `Serde` trait.
+///
+/// This trait can be derived as long as all the fields in type implement [`Encode`].
+///
+/// # Example
+///
+/// This example demonstrates deriving the trait and then using it to serialize an instance into
+/// [`Vec<Felt>`].
+///
+/// ```rust
+/// use starknet_core::codec::Encode;
+/// # use starknet_core::types::Felt;
+///
+/// #[derive(Encode)]
+/// # #[starknet(core = "starknet_core")]
+/// struct CairoType {
+///     a: u32,
+///     b: Option<bool>,
+/// }
+///
+/// let instance = CairoType {
+///     a: 3,
+///     b: Some(true),
+/// };
+/// let mut serialized = vec![];
+/// instance.encode(&mut serialized);
+///
+/// assert_eq!(vec![Felt::THREE, Felt::ZERO, Felt::ONE], serialized);
+/// ```
 pub trait Encode {
     /// Converts the type into a list of [`Felt`] and append them into the writer.
     fn encode<W: FeltWriter>(&self, writer: &mut W) -> Result<(), Error>;
@@ -27,6 +55,33 @@ pub trait Encode {
 
 /// Any type that can be deserialized from a series of [Felt]s. This trait corresponds to the
 /// `deserialize` function of the Cairo `Serde` trait.
+///
+/// This trait can be derived as long as all the fields in type implement [`Encode`].
+///
+/// # Example
+///
+/// This example demonstrates deriving the trait and then using it to deserialize an instance from
+/// [`Vec<Felt>`].
+///
+/// ```rust
+/// use starknet_core::codec::Decode;
+/// # use starknet_core::types::Felt;
+///
+/// #[derive(Debug, PartialEq, Eq, Decode)]
+/// # #[starknet(core = "starknet_core")]
+/// struct CairoType {
+///     a: u32,
+///     b: Option<bool>,
+/// }
+///
+/// assert_eq!(
+///     CairoType {
+///         a: 3,
+///         b: Some(true)
+///     },
+///     CairoType::decode(&[Felt::THREE, Felt::ZERO, Felt::ONE]).unwrap()
+/// );
+/// ```
 pub trait Decode<'a>: Sized {
     /// Converts into the type from a list of [`Felt`].
     fn decode<T>(reader: T) -> Result<Self, Error>
