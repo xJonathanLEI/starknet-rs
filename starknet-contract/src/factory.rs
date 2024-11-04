@@ -257,7 +257,7 @@ where
     }
 }
 
-impl<'f, A> DeploymentV1<'f, A>
+impl<A> DeploymentV1<'_, A>
 where
     A: ConnectedAccount + Sync,
 {
@@ -285,7 +285,7 @@ where
     }
 }
 
-impl<'f, A> DeploymentV3<'f, A>
+impl<A> DeploymentV3<'_, A>
 where
     A: ConnectedAccount + Sync,
 {
