@@ -762,7 +762,7 @@ where
     }
 }
 
-impl<'a, A> PreparedExecutionV1<'a, A>
+impl<A> PreparedExecutionV1<'_, A>
 where
     A: ConnectedAccount,
 {
@@ -804,7 +804,7 @@ where
     }
 }
 
-impl<'a, A> PreparedExecutionV3<'a, A>
+impl<A> PreparedExecutionV3<'_, A>
 where
     A: ConnectedAccount,
 {

@@ -1019,7 +1019,7 @@ where
     }
 }
 
-impl<'a, A> PreparedDeclarationV2<'a, A>
+impl<A> PreparedDeclarationV2<'_, A>
 where
     A: ConnectedAccount,
 {
@@ -1069,7 +1069,7 @@ where
     }
 }
 
-impl<'a, A> PreparedDeclarationV3<'a, A>
+impl<A> PreparedDeclarationV3<'_, A>
 where
     A: ConnectedAccount,
 {
@@ -1138,7 +1138,7 @@ where
     }
 }
 
-impl<'a, A> PreparedLegacyDeclaration<'a, A>
+impl<A> PreparedLegacyDeclaration<'_, A>
 where
     A: ConnectedAccount,
 {

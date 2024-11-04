@@ -881,7 +881,7 @@ impl<'f, F> PreparedAccountDeploymentV3<'f, F> {
     }
 }
 
-impl<'f, F> PreparedAccountDeploymentV1<'f, F>
+impl<F> PreparedAccountDeploymentV1<'_, F>
 where
     F: AccountFactory,
 {
@@ -953,7 +953,7 @@ where
     }
 }
 
-impl<'f, F> PreparedAccountDeploymentV3<'f, F>
+impl<F> PreparedAccountDeploymentV3<'_, F>
 where
     F: AccountFactory,
 {
