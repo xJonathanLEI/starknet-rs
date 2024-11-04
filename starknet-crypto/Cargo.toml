@@ -31,6 +31,7 @@ default = ["std", "signature-display"]
 std = ["starknet-types-core/std"]
 alloc = ["hex?/alloc", "starknet-types-core/alloc"]
 signature-display = ["dep:hex", "alloc"]
+pedersen_no_lookup = []
 
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false }
