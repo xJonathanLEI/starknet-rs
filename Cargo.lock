@@ -2117,7 +2117,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-crypto"
-version = "0.7.2"
+version = "0.7.3"
 dependencies = [
  "criterion",
  "crypto-bigint",
