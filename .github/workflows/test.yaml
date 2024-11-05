@@ -25,6 +25,10 @@ jobs:
           profile: minimal
           override: true
 
+      - name: Test starknet-crypto with pedersen_no_lookup
+        run: |
+          cargo test -p starknet-crypto --features pedersen_no_lookup
+
       - name: Run cargo tests
         uses: nick-fields/retry@v2
         with:
@@ -52,6 +56,10 @@ jobs:
           target: ${{ matrix.target }}
           profile: minimal
           override: true
+
+      - name: Test starknet-crypto with pedersen_no_lookup
+        run: |
+          cargo test -p starknet-crypto --features pedersen_no_lookup
 
       - name: Run cargo tests
         uses: nick-fields/retry@v2
