@@ -1,4 +1,5 @@
 #![allow(clippy::unused_unit)]
+#![allow(unexpected_cfgs)]
 
 use starknet_crypto::Felt;
 use wasm_bindgen::prelude::*;

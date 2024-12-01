@@ -614,6 +614,17 @@ impl TransactionReceipt {
             Self::DeployAccount(receipt) => &receipt.execution_result,
         }
     }
+
+    /// Gets a reference to the transaction's emitted events.
+    pub fn events(&self) -> &[Event] {
+        match self {
+            Self::Invoke(receipt) => &receipt.events,
+            Self::L1Handler(receipt) => &receipt.events,
+            Self::Declare(receipt) => &receipt.events,
+            Self::Deploy(receipt) => &receipt.events,
+            Self::DeployAccount(receipt) => &receipt.events,
+        }
+    }
 }
 
 impl L1HandlerTransaction {
