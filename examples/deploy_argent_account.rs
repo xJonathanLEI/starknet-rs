@@ -11,8 +11,8 @@ use starknet::{
 
 #[tokio::main]
 async fn main() {
-    // Latest hash as of 2023-09-15. For demo only.
-    let class_hash = felt!("0x01a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003");
+    // Latest hash as of 2024-12-01. For demo only.
+    let class_hash = felt!("0x036078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f");
 
     // Anything you like here as salt
     let salt = felt!("12345678");
@@ -25,10 +25,9 @@ async fn main() {
         Felt::from_hex("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
     ));
 
-    let factory =
-        ArgentAccountFactory::new(class_hash, chain_id::SEPOLIA, Felt::ZERO, signer, provider)
-            .await
-            .unwrap();
+    let factory = ArgentAccountFactory::new(class_hash, chain_id::SEPOLIA, None, signer, provider)
+        .await
+        .unwrap();
 
     let deployment = factory.deploy_v1(salt);
 

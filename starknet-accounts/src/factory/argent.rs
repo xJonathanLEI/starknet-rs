@@ -4,20 +4,39 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use starknet_core::types::{BlockId, BlockTag, Felt};
+use starknet_core::{
+    codec::Encode,
+    types::{BlockId, BlockTag, Felt},
+};
 use starknet_providers::Provider;
 use starknet_signers::{Signer, SignerInteractivityContext};
 
-/// [`AccountFactory`] implementation for deploying `Argent X` account contracts.
+/// [`AccountFactory`] implementation for deploying `Argent X` account contracts (v0.4.0).
 #[derive(Debug)]
 pub struct ArgentAccountFactory<S, P> {
     class_hash: Felt,
     chain_id: Felt,
     owner_public_key: Felt,
-    guardian_public_key: Felt,
+    guardian_public_key: Option<Felt>,
     signer: S,
     provider: P,
     block_id: BlockId,
+}
+
+/// Constructor parameters for Argent account v0.4.0.
+#[derive(Encode)]
+#[starknet(core = "starknet_core")]
+struct ArgentAccountConstructorParams {
+    owner: ArgentSigner,
+    guardian: Option<ArgentSigner>,
+}
+
+/// A simplified version of `argent::signer::signer_signature::Signer` that only supports the simple
+/// Starknet signer.
+#[derive(Encode)]
+#[starknet(core = "starknet_core")]
+enum ArgentSigner {
+    Starknet(Felt),
 }
 
 impl<S, P> ArgentAccountFactory<S, P>
@@ -28,7 +47,7 @@ where
     pub async fn new(
         class_hash: Felt,
         chain_id: Felt,
-        guardian_public_key: Felt,
+        guardian_public_key: Option<Felt>,
         signer: S,
         provider: P,
     ) -> Result<Self, S::GetPublicKeyError> {
@@ -66,7 +85,17 @@ where
     }
 
     fn calldata(&self) -> Vec<Felt> {
-        vec![self.owner_public_key, self.guardian_public_key]
+        let mut calldata = vec![];
+
+        // Encoding this sturct never fails
+        ArgentAccountConstructorParams {
+            owner: ArgentSigner::Starknet(self.owner_public_key),
+            guardian: self.guardian_public_key.map(ArgentSigner::Starknet),
+        }
+        .encode(&mut calldata)
+        .unwrap();
+
+        calldata
     }
 
     fn chain_id(&self) -> Felt {
