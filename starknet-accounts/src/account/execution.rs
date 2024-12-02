@@ -2,19 +2,20 @@ use super::{
     super::NotPreparedError, Account, AccountError, ConnectedAccount, ExecutionV1, ExecutionV3,
     PreparedExecutionV1, PreparedExecutionV3, RawExecutionV1, RawExecutionV3,
 };
-use crate::{Call, ExecutionEncoder};
+use crate::ExecutionEncoder;
 
 use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
         BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1,
-        BroadcastedInvokeTransactionV3, BroadcastedTransaction, DataAvailabilityMode, FeeEstimate,
-        Felt, InvokeTransactionResult, ResourceBounds, ResourceBoundsMapping, SimulatedTransaction,
-        SimulationFlag,
+        BroadcastedInvokeTransactionV3, BroadcastedTransaction, Call, DataAvailabilityMode,
+        FeeEstimate, Felt, InvokeTransactionResult, ResourceBounds, ResourceBoundsMapping,
+        SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee,
     },
 };
 use starknet_crypto::PoseidonHasher;
 use starknet_providers::Provider;
+use starknet_signers::SignerInteractivityContext;
 
 /// Cairo string for "invoke"
 const PREFIX_INVOKE: Felt = Felt::from_raw([
@@ -41,7 +42,11 @@ const QUERY_VERSION_THREE: Felt = Felt::from_raw([
 ]);
 
 impl<'a, A> ExecutionV1<'a, A> {
-    pub fn new(calls: Vec<Call>, account: &'a A) -> Self {
+    /// Constructs a new [`ExecutionV1`].
+    ///
+    /// Users would typically use [`execute_v1`](fn.execute_v1) on an [`Account`] instead of
+    /// directly calling this method.
+    pub const fn new(calls: Vec<Call>, account: &'a A) -> Self {
         Self {
             account,
             calls,
@@ -51,6 +56,7 @@ impl<'a, A> ExecutionV1<'a, A> {
         }
     }
 
+    /// Returns a new [`ExecutionV1`] with the `nonce`.
     pub fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
@@ -58,6 +64,7 @@ impl<'a, A> ExecutionV1<'a, A> {
         }
     }
 
+    /// Returns a new [`ExecutionV1`] with the `max_fee`.
     pub fn max_fee(self, max_fee: Felt) -> Self {
         Self {
             max_fee: Some(max_fee),
@@ -65,6 +72,9 @@ impl<'a, A> ExecutionV1<'a, A> {
         }
     }
 
+    /// Returns a new [`ExecutionV1`] with the fee estimate multiplier. The multiplier is used
+    /// when transaction fee is not manually specified and must be fetched from a [`Provider`]
+    /// instead.
     pub fn fee_estimate_multiplier(self, fee_estimate_multiplier: f64) -> Self {
         Self {
             fee_estimate_multiplier,
@@ -72,8 +82,8 @@ impl<'a, A> ExecutionV1<'a, A> {
         }
     }
 
-    /// Calling this function after manually specifying `nonce` and `max_fee` turns [ExecutionV1] into
-    /// [PreparedExecutionV1]. Returns `Err` if either field is `None`.
+    /// Calling this function after manually specifying `nonce` and `max_fee` turns [`ExecutionV1`] into
+    /// [`PreparedExecutionV1`]. Returns `Err` if either field is `None`.
     pub fn prepared(self) -> Result<PreparedExecutionV1<'a, A>, NotPreparedError> {
         let nonce = self.nonce.ok_or(NotPreparedError)?;
         let max_fee = self.max_fee.ok_or(NotPreparedError)?;
@@ -90,7 +100,11 @@ impl<'a, A> ExecutionV1<'a, A> {
 }
 
 impl<'a, A> ExecutionV3<'a, A> {
-    pub fn new(calls: Vec<Call>, account: &'a A) -> Self {
+    /// Constructs a new [`ExecutionV3`].
+    ///
+    /// Users would typically use [`execute_v3`](fn.execute_v3) on an [`Account`] instead of
+    /// directly calling this method.
+    pub const fn new(calls: Vec<Call>, account: &'a A) -> Self {
         Self {
             account,
             calls,
@@ -102,6 +116,7 @@ impl<'a, A> ExecutionV3<'a, A> {
         }
     }
 
+    /// Returns a new [`ExecutionV3`] with the `nonce`.
     pub fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
@@ -109,6 +124,7 @@ impl<'a, A> ExecutionV3<'a, A> {
         }
     }
 
+    /// Returns a new [`ExecutionV3`] with the `gas`.
     pub fn gas(self, gas: u64) -> Self {
         Self {
             gas: Some(gas),
@@ -116,6 +132,7 @@ impl<'a, A> ExecutionV3<'a, A> {
         }
     }
 
+    /// Returns a new [`ExecutionV3`] with the `gas_price`.
     pub fn gas_price(self, gas_price: u128) -> Self {
         Self {
             gas_price: Some(gas_price),
@@ -123,6 +140,9 @@ impl<'a, A> ExecutionV3<'a, A> {
         }
     }
 
+    /// Returns a new [`ExecutionV3`] with the gas amount estimate multiplier.  The multiplier is
+    /// used when the gas amount is not manually specified and must be fetched from a [`Provider`]
+    /// instead.
     pub fn gas_estimate_multiplier(self, gas_estimate_multiplier: f64) -> Self {
         Self {
             gas_estimate_multiplier,
@@ -130,6 +150,9 @@ impl<'a, A> ExecutionV3<'a, A> {
         }
     }
 
+    /// Returns a new [`ExecutionV3`] with the gas price estimate multiplier.  The multiplier is
+    /// used when the gas price is not manually specified and must be fetched from a [`Provider`]
+    /// instead.
     pub fn gas_price_estimate_multiplier(self, gas_price_estimate_multiplier: f64) -> Self {
         Self {
             gas_price_estimate_multiplier,
@@ -138,7 +161,7 @@ impl<'a, A> ExecutionV3<'a, A> {
     }
 
     /// Calling this function after manually specifying `nonce`, `gas` and `gas_price` turns
-    /// [ExecutionV3] into [PreparedExecutionV3]. Returns `Err` if any field is `None`.
+    /// [`ExecutionV3`] into [`PreparedExecutionV3`]. Returns `Err` if any field is `None`.
     pub fn prepared(self) -> Result<PreparedExecutionV3<'a, A>, NotPreparedError> {
         let nonce = self.nonce.ok_or(NotPreparedError)?;
         let gas = self.gas.ok_or(NotPreparedError)?;
@@ -160,6 +183,7 @@ impl<'a, A> ExecutionV1<'a, A>
 where
     A: ConnectedAccount + Sync,
 {
+    /// Estimates transaction fees from a [`Provider`].
     pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
@@ -174,6 +198,8 @@ where
         self.estimate_fee_with_nonce(nonce).await
     }
 
+    /// Simulates the transaction from a [`Provider`]. Transaction validation and fee transfer can
+    /// be skipped.
     pub async fn simulate(
         &self,
         skip_validate: bool,
@@ -193,6 +219,7 @@ where
             .await
     }
 
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
         self.prepare().await?.send().await
     }
@@ -245,6 +272,10 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
+        let skip_signature = self
+            .account
+            .is_signer_interactive(SignerInteractivityContext::Execution { calls: &self.calls });
+
         let prepared = PreparedExecutionV1 {
             account: self.account,
             inner: RawExecutionV1 {
@@ -254,7 +285,7 @@ where
             },
         };
         let invoke = prepared
-            .get_invoke_request(true)
+            .get_invoke_request(true, skip_signature)
             .await
             .map_err(AccountError::Signing)?;
 
@@ -262,7 +293,13 @@ where
             .provider()
             .estimate_fee_single(
                 BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction::V1(invoke)),
-                [],
+                if skip_signature {
+                    // Validation would fail since real signature was not requested
+                    vec![SimulationFlagForEstimateFee::SkipValidate]
+                } else {
+                    // With the correct signature in place, run validation for accurate results
+                    vec![]
+                },
                 self.account.block_id(),
             )
             .await
@@ -275,6 +312,19 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
+        let skip_signature = if self
+            .account
+            .is_signer_interactive(SignerInteractivityContext::Execution { calls: &self.calls })
+        {
+            // If signer is interactive, we would try to minimize signing requests. However, if the
+            // caller has decided to not skip validation, it's best we still request a real
+            // signature, as otherwise the simulation would most likely fail.
+            skip_validate
+        } else {
+            // Signing with non-interactive signers is cheap so always request signatures.
+            false
+        };
+
         let prepared = PreparedExecutionV1 {
             account: self.account,
             inner: RawExecutionV1 {
@@ -284,7 +334,7 @@ where
             },
         };
         let invoke = prepared
-            .get_invoke_request(true)
+            .get_invoke_request(true, skip_signature)
             .await
             .map_err(AccountError::Signing)?;
 
@@ -313,6 +363,7 @@ impl<'a, A> ExecutionV3<'a, A>
 where
     A: ConnectedAccount + Sync,
 {
+    /// Estimates transaction fees from a [`Provider`].
     pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
@@ -327,6 +378,8 @@ where
         self.estimate_fee_with_nonce(nonce).await
     }
 
+    /// Simulates the transaction from a [`Provider`]. Transaction validation and fee transfer can
+    /// be skipped.
     pub async fn simulate(
         &self,
         skip_validate: bool,
@@ -346,6 +399,7 @@ where
             .await
     }
 
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
         self.prepare().await?.send().await
     }
@@ -412,8 +466,8 @@ where
                         let gas_price =
                             u64::from_le_bytes(gas_price_bytes[..8].try_into().unwrap());
 
-                        ((((overall_fee + gas_price - 1) / gas_price) as f64)
-                            * self.gas_estimate_multiplier) as u64
+                        ((overall_fee.div_ceil(gas_price) as f64) * self.gas_estimate_multiplier)
+                            as u64
                     }
                 };
 
@@ -450,6 +504,10 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
+        let skip_signature = self
+            .account
+            .is_signer_interactive(SignerInteractivityContext::Execution { calls: &self.calls });
+
         let prepared = PreparedExecutionV3 {
             account: self.account,
             inner: RawExecutionV3 {
@@ -460,7 +518,7 @@ where
             },
         };
         let invoke = prepared
-            .get_invoke_request(true)
+            .get_invoke_request(true, skip_signature)
             .await
             .map_err(AccountError::Signing)?;
 
@@ -468,7 +526,13 @@ where
             .provider()
             .estimate_fee_single(
                 BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction::V3(invoke)),
-                [],
+                if skip_signature {
+                    // Validation would fail since real signature was not requested
+                    vec![SimulationFlagForEstimateFee::SkipValidate]
+                } else {
+                    // With the correct signature in place, run validation for accurate results
+                    vec![]
+                },
                 self.account.block_id(),
             )
             .await
@@ -481,6 +545,19 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
+        let skip_signature = if self
+            .account
+            .is_signer_interactive(SignerInteractivityContext::Execution { calls: &self.calls })
+        {
+            // If signer is interactive, we would try to minimize signing requests. However, if the
+            // caller has decided to not skip validation, it's best we still request a real
+            // signature, as otherwise the simulation would most likely fail.
+            skip_validate
+        } else {
+            // Signing with non-interactive signers is cheap so always request signatures.
+            false
+        };
+
         let prepared = PreparedExecutionV3 {
             account: self.account,
             inner: RawExecutionV3 {
@@ -491,7 +568,7 @@ where
             },
         };
         let invoke = prepared
-            .get_invoke_request(true)
+            .get_invoke_request(true, skip_signature)
             .await
             .map_err(AccountError::Signing)?;
 
@@ -517,6 +594,7 @@ where
 }
 
 impl RawExecutionV1 {
+    /// Calculates transaction hash given `chain_id`, `address`, `query_only`, and `encoder`.
     pub fn transaction_hash<E>(
         &self,
         chain_id: Felt,
@@ -543,20 +621,24 @@ impl RawExecutionV1 {
         ])
     }
 
+    /// Gets a reference to the list of contract calls included in the execution.
     pub fn calls(&self) -> &[Call] {
         &self.calls
     }
 
-    pub fn nonce(&self) -> Felt {
+    /// Gets the `nonce` of the execution request.
+    pub const fn nonce(&self) -> Felt {
         self.nonce
     }
 
-    pub fn max_fee(&self) -> Felt {
+    /// Gets the `max_fee` of the execution request.
+    pub const fn max_fee(&self) -> Felt {
         self.max_fee
     }
 }
 
 impl RawExecutionV3 {
+    /// Calculates transaction hash given `chain_id`, `address`, `query_only`, and `encoder`.
     pub fn transaction_hash<E>(
         &self,
         chain_id: Felt,
@@ -627,24 +709,28 @@ impl RawExecutionV3 {
         hasher.finalize()
     }
 
+    /// Gets a reference to the list of contract calls included in the execution.
     pub fn calls(&self) -> &[Call] {
         &self.calls
     }
 
-    pub fn nonce(&self) -> Felt {
+    /// Gets the `nonce` of the execution request.
+    pub const fn nonce(&self) -> Felt {
         self.nonce
     }
 
-    pub fn gas(&self) -> u64 {
+    /// Gets the `gas` of the execution request.
+    pub const fn gas(&self) -> u64 {
         self.gas
     }
 
-    pub fn gas_price(&self) -> u128 {
+    /// Gets the `gas_price` of the execution request.
+    pub const fn gas_price(&self) -> u128 {
         self.gas_price
     }
 }
 
-impl<'a, A> PreparedExecutionV1<'a, A>
+impl<A> PreparedExecutionV1<'_, A>
 where
     A: Account,
 {
@@ -660,7 +746,7 @@ where
     }
 }
 
-impl<'a, A> PreparedExecutionV3<'a, A>
+impl<A> PreparedExecutionV3<'_, A>
 where
     A: Account,
 {
@@ -676,13 +762,14 @@ where
     }
 }
 
-impl<'a, A> PreparedExecutionV1<'a, A>
+impl<A> PreparedExecutionV1<'_, A>
 where
     A: ConnectedAccount,
 {
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
         let tx_request = self
-            .get_invoke_request(false)
+            .get_invoke_request(false, false)
             .await
             .map_err(AccountError::Signing)?;
         self.account
@@ -695,18 +782,20 @@ where
     // The `simulate` function is temporarily removed until it's supported in [Provider]
     // TODO: add `simulate` back once transaction simulation in supported
 
-    pub async fn get_invoke_request(
+    async fn get_invoke_request(
         &self,
         query_only: bool,
+        skip_signature: bool,
     ) -> Result<BroadcastedInvokeTransactionV1, A::SignError> {
-        let signature = self
-            .account
-            .sign_execution_v1(&self.inner, query_only)
-            .await?;
-
         Ok(BroadcastedInvokeTransactionV1 {
             max_fee: self.inner.max_fee,
-            signature,
+            signature: if skip_signature {
+                vec![]
+            } else {
+                self.account
+                    .sign_execution_v1(&self.inner, query_only)
+                    .await?
+            },
             nonce: self.inner.nonce,
             sender_address: self.account.address(),
             calldata: self.account.encode_calls(&self.inner.calls),
@@ -715,13 +804,14 @@ where
     }
 }
 
-impl<'a, A> PreparedExecutionV3<'a, A>
+impl<A> PreparedExecutionV3<'_, A>
 where
     A: ConnectedAccount,
 {
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
         let tx_request = self
-            .get_invoke_request(false)
+            .get_invoke_request(false, false)
             .await
             .map_err(AccountError::Signing)?;
         self.account
@@ -734,19 +824,21 @@ where
     // The `simulate` function is temporarily removed until it's supported in [Provider]
     // TODO: add `simulate` back once transaction simulation in supported
 
-    pub async fn get_invoke_request(
+    async fn get_invoke_request(
         &self,
         query_only: bool,
+        skip_signature: bool,
     ) -> Result<BroadcastedInvokeTransactionV3, A::SignError> {
-        let signature = self
-            .account
-            .sign_execution_v3(&self.inner, query_only)
-            .await?;
-
         Ok(BroadcastedInvokeTransactionV3 {
             sender_address: self.account.address(),
             calldata: self.account.encode_calls(&self.inner.calls),
-            signature,
+            signature: if skip_signature {
+                vec![]
+            } else {
+                self.account
+                    .sign_execution_v3(&self.inner, query_only)
+                    .await?
+            },
             nonce: self.inner.nonce,
             resource_bounds: ResourceBoundsMapping {
                 l1_gas: ResourceBounds {

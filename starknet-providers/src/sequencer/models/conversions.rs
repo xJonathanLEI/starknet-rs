@@ -604,8 +604,9 @@ impl TryFrom<TransactionFinalityStatus> for core::TransactionFinalityStatus {
 
     fn try_from(value: TransactionFinalityStatus) -> Result<Self, Self::Error> {
         match value {
-            TransactionFinalityStatus::NotReceived => Err(ConversionError),
-            TransactionFinalityStatus::Received => Err(ConversionError),
+            TransactionFinalityStatus::NotReceived | TransactionFinalityStatus::Received => {
+                Err(ConversionError)
+            }
             TransactionFinalityStatus::AcceptedOnL2 => Ok(Self::AcceptedOnL2),
             TransactionFinalityStatus::AcceptedOnL1 => Ok(Self::AcceptedOnL1),
         }
@@ -1209,7 +1210,7 @@ fn convert_execution_result(
     }
 }
 
-fn convert_legacy_entry_point(
+const fn convert_legacy_entry_point(
     value: core::LegacyContractEntryPoint,
 ) -> contract_legacy::RawLegacyEntryPoint {
     // WARNING: this causes pre-0.11.0 contract declaration to fail due to `offset` issue

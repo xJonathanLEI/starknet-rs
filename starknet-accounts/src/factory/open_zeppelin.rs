@@ -6,8 +6,10 @@ use crate::{
 use async_trait::async_trait;
 use starknet_core::types::{BlockId, BlockTag, Felt};
 use starknet_providers::Provider;
-use starknet_signers::Signer;
+use starknet_signers::{Signer, SignerInteractivityContext};
 
+/// [`AccountFactory`] implementation for deploying `OpenZeppelin` account contracts.
+#[derive(Debug)]
 pub struct OpenZeppelinAccountFactory<S, P> {
     class_hash: Felt,
     chain_id: Felt,
@@ -21,6 +23,7 @@ impl<S, P> OpenZeppelinAccountFactory<S, P>
 where
     S: Signer,
 {
+    /// Constructs a new [`OpenZeppelinAccountFactory`].
     pub async fn new(
         class_hash: Felt,
         chain_id: Felt,
@@ -38,6 +41,7 @@ where
         })
     }
 
+    /// Sets a new block ID to run queries against.
     pub fn set_block_id(&mut self, block_id: BlockId) -> &Self {
         self.block_id = block_id;
         self
@@ -68,6 +72,11 @@ where
 
     fn provider(&self) -> &Self::Provider {
         &self.provider
+    }
+
+    fn is_signer_interactive(&self) -> bool {
+        self.signer
+            .is_interactive(SignerInteractivityContext::Other)
     }
 
     fn block_id(&self) -> BlockId {

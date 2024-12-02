@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-11]
+        os: [ubuntu-latest, macos-13, macos-14]
         toolchain: [stable, nightly]
 
     steps:
@@ -24,6 +24,10 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           profile: minimal
           override: true
+
+      - name: Test starknet-crypto with pedersen_no_lookup
+        run: |
+          cargo test -p starknet-crypto --features pedersen_no_lookup
 
       - name: Run cargo tests
         uses: nick-fields/retry@v2
@@ -52,6 +56,10 @@ jobs:
           target: ${{ matrix.target }}
           profile: minimal
           override: true
+
+      - name: Test starknet-crypto with pedersen_no_lookup
+        run: |
+          cargo test -p starknet-crypto --features pedersen_no_lookup
 
       - name: Run cargo tests
         uses: nick-fields/retry@v2

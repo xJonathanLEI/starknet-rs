@@ -12,10 +12,12 @@ use starknet_core::{
         BroadcastedDeclareTransactionV2, BroadcastedDeclareTransactionV3, BroadcastedTransaction,
         DataAvailabilityMode, DeclareTransactionResult, FeeEstimate, Felt, FlattenedSierraClass,
         ResourceBounds, ResourceBoundsMapping, SimulatedTransaction, SimulationFlag,
+        SimulationFlagForEstimateFee,
     },
 };
 use starknet_crypto::PoseidonHasher;
 use starknet_providers::Provider;
+use starknet_signers::SignerInteractivityContext;
 use std::sync::Arc;
 
 /// Cairo string for "declare"
@@ -51,7 +53,11 @@ const QUERY_VERSION_THREE: Felt = Felt::from_raw([
 ]);
 
 impl<'a, A> DeclarationV2<'a, A> {
-    pub fn new(
+    /// Constructs a new [`DeclarationV2`].
+    ///
+    /// Users would typically use [`declare_v2`](fn.declare_v2) on an [`Account`] instead of
+    /// directly calling this method.
+    pub const fn new(
         contract_class: Arc<FlattenedSierraClass>,
         compiled_class_hash: Felt,
         account: &'a A,
@@ -66,6 +72,7 @@ impl<'a, A> DeclarationV2<'a, A> {
         }
     }
 
+    /// Returns a new [`DeclarationV2`] with the `nonce`.
     pub fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
@@ -73,6 +80,7 @@ impl<'a, A> DeclarationV2<'a, A> {
         }
     }
 
+    /// Returns a new [`DeclarationV2`] with the `max_fee`.
     pub fn max_fee(self, max_fee: Felt) -> Self {
         Self {
             max_fee: Some(max_fee),
@@ -80,6 +88,9 @@ impl<'a, A> DeclarationV2<'a, A> {
         }
     }
 
+    /// Returns a new [`DeclarationV2`] with the fee estimate multiplier. The multiplier is used
+    /// when transaction fee is not manually specified and must be fetched from a [`Provider`]
+    /// instead.
     pub fn fee_estimate_multiplier(self, fee_estimate_multiplier: f64) -> Self {
         Self {
             fee_estimate_multiplier,
@@ -87,8 +98,8 @@ impl<'a, A> DeclarationV2<'a, A> {
         }
     }
 
-    /// Calling this function after manually specifying `nonce` and `max_fee` turns [DeclarationV2]
-    /// into [PreparedDeclarationV2]. Returns `Err` if either field is `None`.
+    /// Calling this function after manually specifying `nonce` and `max_fee` turns [`DeclarationV2`]
+    /// into [`PreparedDeclarationV2`]. Returns `Err` if either field is `None`.
     pub fn prepared(self) -> Result<PreparedDeclarationV2<'a, A>, NotPreparedError> {
         let nonce = self.nonce.ok_or(NotPreparedError)?;
         let max_fee = self.max_fee.ok_or(NotPreparedError)?;
@@ -109,6 +120,7 @@ impl<'a, A> DeclarationV2<'a, A>
 where
     A: ConnectedAccount + Sync,
 {
+    /// Estimates transaction fees from a [`Provider`].
     pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
@@ -123,6 +135,8 @@ where
         self.estimate_fee_with_nonce(nonce).await
     }
 
+    /// Simulates the transaction from a [`Provider`]. Transaction validation and fee transfer can
+    /// be skipped.
     pub async fn simulate(
         &self,
         skip_validate: bool,
@@ -142,6 +156,7 @@ where
             .await
     }
 
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(&self) -> Result<DeclareTransactionResult, AccountError<A::SignError>> {
         self.prepare().await?.send().await
     }
@@ -195,6 +210,10 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
+        let skip_signature = self
+            .account
+            .is_signer_interactive(SignerInteractivityContext::Other);
+
         let prepared = PreparedDeclarationV2 {
             account: self.account,
             inner: RawDeclarationV2 {
@@ -204,13 +223,19 @@ where
                 max_fee: Felt::ZERO,
             },
         };
-        let declare = prepared.get_declare_request(true).await?;
+        let declare = prepared.get_declare_request(true, skip_signature).await?;
 
         self.account
             .provider()
             .estimate_fee_single(
                 BroadcastedTransaction::Declare(BroadcastedDeclareTransaction::V2(declare)),
-                [],
+                if skip_signature {
+                    // Validation would fail since real signature was not requested
+                    vec![SimulationFlagForEstimateFee::SkipValidate]
+                } else {
+                    // With the correct signature in place, run validation for accurate results
+                    vec![]
+                },
                 self.account.block_id(),
             )
             .await
@@ -223,6 +248,19 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
+        let skip_signature = if self
+            .account
+            .is_signer_interactive(SignerInteractivityContext::Other)
+        {
+            // If signer is interactive, we would try to minimize signing requests. However, if the
+            // caller has decided to not skip validation, it's best we still request a real
+            // signature, as otherwise the simulation would most likely fail.
+            skip_validate
+        } else {
+            // Signing with non-interactive signers is cheap so always request signatures.
+            false
+        };
+
         let prepared = PreparedDeclarationV2 {
             account: self.account,
             inner: RawDeclarationV2 {
@@ -232,7 +270,7 @@ where
                 max_fee: self.max_fee.unwrap_or_default(),
             },
         };
-        let declare = prepared.get_declare_request(true).await?;
+        let declare = prepared.get_declare_request(true, skip_signature).await?;
 
         let mut flags = vec![];
 
@@ -256,7 +294,11 @@ where
 }
 
 impl<'a, A> DeclarationV3<'a, A> {
-    pub fn new(
+    /// Constructs a new [`DeclarationV3`].
+    ///
+    /// Users would typically use [`declare_v3`](fn.declare_v3) on an [`Account`] instead of
+    /// directly calling this method.
+    pub const fn new(
         contract_class: Arc<FlattenedSierraClass>,
         compiled_class_hash: Felt,
         account: &'a A,
@@ -273,6 +315,7 @@ impl<'a, A> DeclarationV3<'a, A> {
         }
     }
 
+    /// Returns a new [`DeclarationV3`] with the `nonce`.
     pub fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
@@ -280,6 +323,7 @@ impl<'a, A> DeclarationV3<'a, A> {
         }
     }
 
+    /// Returns a new [`DeclarationV3`] with the `gas`.
     pub fn gas(self, gas: u64) -> Self {
         Self {
             gas: Some(gas),
@@ -287,6 +331,7 @@ impl<'a, A> DeclarationV3<'a, A> {
         }
     }
 
+    /// Returns a new [`DeclarationV3`] with the `gas_price`.
     pub fn gas_price(self, gas_price: u128) -> Self {
         Self {
             gas_price: Some(gas_price),
@@ -294,6 +339,9 @@ impl<'a, A> DeclarationV3<'a, A> {
         }
     }
 
+    /// Returns a new [`DeclarationV3`] with the gas amount estimate multiplier.  The multiplier is
+    /// used when the gas amount is not manually specified and must be fetched from a [`Provider`]
+    /// instead.
     pub fn gas_estimate_multiplier(self, gas_estimate_multiplier: f64) -> Self {
         Self {
             gas_estimate_multiplier,
@@ -301,6 +349,9 @@ impl<'a, A> DeclarationV3<'a, A> {
         }
     }
 
+    /// Returns a new [`DeclarationV3`] with the gas price estimate multiplier.  The multiplier is
+    /// used when the gas price is not manually specified and must be fetched from a [`Provider`]
+    /// instead.
     pub fn gas_price_estimate_multiplier(self, gas_price_estimate_multiplier: f64) -> Self {
         Self {
             gas_price_estimate_multiplier,
@@ -309,7 +360,7 @@ impl<'a, A> DeclarationV3<'a, A> {
     }
 
     /// Calling this function after manually specifying `nonce`, `gas` and `gas_price` turns
-    /// [DeclarationV3] into [PreparedDeclarationV3]. Returns `Err` if any field is `None`.
+    /// [`DeclarationV3`] into [`PreparedDeclarationV3`]. Returns `Err` if any field is `None`.
     pub fn prepared(self) -> Result<PreparedDeclarationV3<'a, A>, NotPreparedError> {
         let nonce = self.nonce.ok_or(NotPreparedError)?;
         let gas = self.gas.ok_or(NotPreparedError)?;
@@ -332,6 +383,7 @@ impl<'a, A> DeclarationV3<'a, A>
 where
     A: ConnectedAccount + Sync,
 {
+    /// Estimates transaction fees from a [`Provider`].
     pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
@@ -346,6 +398,8 @@ where
         self.estimate_fee_with_nonce(nonce).await
     }
 
+    /// Simulates the transaction from a [`Provider`]. Transaction validation and fee transfer can
+    /// be skipped.
     pub async fn simulate(
         &self,
         skip_validate: bool,
@@ -365,6 +419,7 @@ where
             .await
     }
 
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(&self) -> Result<DeclareTransactionResult, AccountError<A::SignError>> {
         self.prepare().await?.send().await
     }
@@ -431,8 +486,8 @@ where
                         let gas_price =
                             u64::from_le_bytes(gas_price_bytes[..8].try_into().unwrap());
 
-                        (((overall_fee + gas_price - 1) / gas_price) as f64
-                            * self.gas_estimate_multiplier) as u64
+                        (overall_fee.div_ceil(gas_price) as f64 * self.gas_estimate_multiplier)
+                            as u64
                     }
                 };
 
@@ -470,6 +525,10 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
+        let skip_signature = self
+            .account
+            .is_signer_interactive(SignerInteractivityContext::Other);
+
         let prepared = PreparedDeclarationV3 {
             account: self.account,
             inner: RawDeclarationV3 {
@@ -480,13 +539,19 @@ where
                 gas_price: 0,
             },
         };
-        let declare = prepared.get_declare_request(true).await?;
+        let declare = prepared.get_declare_request(true, skip_signature).await?;
 
         self.account
             .provider()
             .estimate_fee_single(
                 BroadcastedTransaction::Declare(BroadcastedDeclareTransaction::V3(declare)),
-                [],
+                if skip_signature {
+                    // Validation would fail since real signature was not requested
+                    vec![SimulationFlagForEstimateFee::SkipValidate]
+                } else {
+                    // With the correct signature in place, run validation for accurate results
+                    vec![]
+                },
                 self.account.block_id(),
             )
             .await
@@ -499,6 +564,19 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
+        let skip_signature = if self
+            .account
+            .is_signer_interactive(SignerInteractivityContext::Other)
+        {
+            // If signer is interactive, we would try to minimize signing requests. However, if the
+            // caller has decided to not skip validation, it's best we still request a real
+            // signature, as otherwise the simulation would most likely fail.
+            skip_validate
+        } else {
+            // Signing with non-interactive signers is cheap so always request signatures.
+            false
+        };
+
         let prepared = PreparedDeclarationV3 {
             account: self.account,
             inner: RawDeclarationV3 {
@@ -509,7 +587,7 @@ where
                 gas_price: self.gas_price.unwrap_or_default(),
             },
         };
-        let declare = prepared.get_declare_request(true).await?;
+        let declare = prepared.get_declare_request(true, skip_signature).await?;
 
         let mut flags = vec![];
 
@@ -533,7 +611,11 @@ where
 }
 
 impl<'a, A> LegacyDeclaration<'a, A> {
-    pub fn new(contract_class: Arc<LegacyContractClass>, account: &'a A) -> Self {
+    /// Constructs a new [`LegacyDeclaration`].
+    ///
+    /// Users would typically use [`declare_legacy`](fn.declare_legacy) on an [`Account`] instead of
+    /// directly calling this method.
+    pub const fn new(contract_class: Arc<LegacyContractClass>, account: &'a A) -> Self {
         Self {
             account,
             contract_class,
@@ -543,6 +625,7 @@ impl<'a, A> LegacyDeclaration<'a, A> {
         }
     }
 
+    /// Returns a new [`LegacyDeclaration`] with the `nonce`.
     pub fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
@@ -550,6 +633,7 @@ impl<'a, A> LegacyDeclaration<'a, A> {
         }
     }
 
+    /// Returns a new [`LegacyDeclaration`] with the `max_fee`.
     pub fn max_fee(self, max_fee: Felt) -> Self {
         Self {
             max_fee: Some(max_fee),
@@ -557,6 +641,9 @@ impl<'a, A> LegacyDeclaration<'a, A> {
         }
     }
 
+    /// Returns a new [`LegacyDeclaration`] with the fee estimate multiplier. The multiplier is used
+    /// when transaction fee is not manually specified and must be fetched from a [`Provider`]
+    /// instead.
     pub fn fee_estimate_multiplier(self, fee_estimate_multiplier: f64) -> Self {
         Self {
             fee_estimate_multiplier,
@@ -565,7 +652,7 @@ impl<'a, A> LegacyDeclaration<'a, A> {
     }
 
     /// Calling this function after manually specifying `nonce` and `max_fee` turns
-    /// [LegacyDeclaration] into [PreparedLegacyDeclaration]. Returns `Err` if either field is
+    /// [`LegacyDeclaration`] into [`PreparedLegacyDeclaration`]. Returns `Err` if either field is
     /// `None`.
     pub fn prepared(self) -> Result<PreparedLegacyDeclaration<'a, A>, NotPreparedError> {
         let nonce = self.nonce.ok_or(NotPreparedError)?;
@@ -586,6 +673,7 @@ impl<'a, A> LegacyDeclaration<'a, A>
 where
     A: ConnectedAccount + Sync,
 {
+    /// Estimates transaction fees from a [`Provider`].
     pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
@@ -600,6 +688,8 @@ where
         self.estimate_fee_with_nonce(nonce).await
     }
 
+    /// Simulates the transaction from a [`Provider`]. Transaction validation and fee transfer can
+    /// be skipped.
     pub async fn simulate(
         &self,
         skip_validate: bool,
@@ -619,6 +709,7 @@ where
             .await
     }
 
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(&self) -> Result<DeclareTransactionResult, AccountError<A::SignError>> {
         self.prepare().await?.send().await
     }
@@ -673,6 +764,10 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountError<A::SignError>> {
+        let skip_signature = self
+            .account
+            .is_signer_interactive(SignerInteractivityContext::Other);
+
         let prepared = PreparedLegacyDeclaration {
             account: self.account,
             inner: RawLegacyDeclaration {
@@ -681,13 +776,19 @@ where
                 max_fee: Felt::ZERO,
             },
         };
-        let declare = prepared.get_declare_request(true).await?;
+        let declare = prepared.get_declare_request(true, skip_signature).await?;
 
         self.account
             .provider()
             .estimate_fee_single(
                 BroadcastedTransaction::Declare(BroadcastedDeclareTransaction::V1(declare)),
-                [],
+                if skip_signature {
+                    // Validation would fail since real signature was not requested
+                    vec![SimulationFlagForEstimateFee::SkipValidate]
+                } else {
+                    // With the correct signature in place, run validation for accurate results
+                    vec![]
+                },
                 self.account.block_id(),
             )
             .await
@@ -700,6 +801,19 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
+        let skip_signature = if self
+            .account
+            .is_signer_interactive(SignerInteractivityContext::Other)
+        {
+            // If signer is interactive, we would try to minimize signing requests. However, if the
+            // caller has decided to not skip validation, it's best we still request a real
+            // signature, as otherwise the simulation would most likely fail.
+            skip_validate
+        } else {
+            // Signing with non-interactive signers is cheap so always request signatures.
+            false
+        };
+
         let prepared = PreparedLegacyDeclaration {
             account: self.account,
             inner: RawLegacyDeclaration {
@@ -708,7 +822,7 @@ where
                 max_fee: self.max_fee.unwrap_or_default(),
             },
         };
-        let declare = prepared.get_declare_request(true).await?;
+        let declare = prepared.get_declare_request(true, skip_signature).await?;
 
         let mut flags = vec![];
 
@@ -732,6 +846,7 @@ where
 }
 
 impl RawDeclarationV2 {
+    /// Calculates transaction hash given `chain_id`, `address`, and `query_only`.
     pub fn transaction_hash(&self, chain_id: Felt, address: Felt, query_only: bool) -> Felt {
         compute_hash_on_elements(&[
             PREFIX_DECLARE,
@@ -750,24 +865,29 @@ impl RawDeclarationV2 {
         ])
     }
 
+    /// Gets a reference to the flattened Sierra (Cairo 1) class being declared.
     pub fn contract_class(&self) -> &FlattenedSierraClass {
         &self.contract_class
     }
 
-    pub fn compiled_class_hash(&self) -> Felt {
+    /// Gets the CASM class hash corresponding to the Sierra class being declared.
+    pub const fn compiled_class_hash(&self) -> Felt {
         self.compiled_class_hash
     }
 
-    pub fn nonce(&self) -> Felt {
+    /// Gets the `nonce` of the declaration request.
+    pub const fn nonce(&self) -> Felt {
         self.nonce
     }
 
-    pub fn max_fee(&self) -> Felt {
+    /// Gets the `max_fee` of the declaration request.
+    pub const fn max_fee(&self) -> Felt {
         self.max_fee
     }
 }
 
 impl RawDeclarationV3 {
+    /// Calculates transaction hash given `chain_id`, `address`, and `query_only`.
     pub fn transaction_hash(&self, chain_id: Felt, address: Felt, query_only: bool) -> Felt {
         let mut hasher = PoseidonHasher::new();
 
@@ -821,28 +941,34 @@ impl RawDeclarationV3 {
         hasher.finalize()
     }
 
+    /// Gets a reference to the flattened Sierra (Cairo 1) class being declared.
     pub fn contract_class(&self) -> &FlattenedSierraClass {
         &self.contract_class
     }
 
-    pub fn compiled_class_hash(&self) -> Felt {
+    /// Gets the CASM class hash corresponding to the Sierra class being declared.
+    pub const fn compiled_class_hash(&self) -> Felt {
         self.compiled_class_hash
     }
 
-    pub fn nonce(&self) -> Felt {
+    /// Gets the `nonce` of the declaration request.
+    pub const fn nonce(&self) -> Felt {
         self.nonce
     }
 
-    pub fn gas(&self) -> u64 {
+    /// Gets the `gas` of the declaration request.
+    pub const fn gas(&self) -> u64 {
         self.gas
     }
 
-    pub fn gas_price(&self) -> u128 {
+    /// Gets the `gas_price` of the declaration request.
+    pub const fn gas_price(&self) -> u128 {
         self.gas_price
     }
 }
 
 impl RawLegacyDeclaration {
+    /// Calculates transaction hash given `chain_id`, `address`, and `query_only`.
     pub fn transaction_hash(
         &self,
         chain_id: Felt,
@@ -865,20 +991,23 @@ impl RawLegacyDeclaration {
         ]))
     }
 
+    /// Gets a reference to the legacy (Cairo 0) class being declared.
     pub fn contract_class(&self) -> &LegacyContractClass {
         &self.contract_class
     }
 
-    pub fn nonce(&self) -> Felt {
+    /// Gets the `nonce` of the declaration request.
+    pub const fn nonce(&self) -> Felt {
         self.nonce
     }
 
-    pub fn max_fee(&self) -> Felt {
+    /// Gets the `max_fee` of the declaration request.
+    pub const fn max_fee(&self) -> Felt {
         self.max_fee
     }
 }
 
-impl<'a, A> PreparedDeclarationV2<'a, A>
+impl<A> PreparedDeclarationV2<'_, A>
 where
     A: Account,
 {
@@ -890,12 +1019,13 @@ where
     }
 }
 
-impl<'a, A> PreparedDeclarationV2<'a, A>
+impl<A> PreparedDeclarationV2<'_, A>
 where
     A: ConnectedAccount,
 {
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(&self) -> Result<DeclareTransactionResult, AccountError<A::SignError>> {
-        let tx_request = self.get_declare_request(false).await?;
+        let tx_request = self.get_declare_request(false, false).await?;
         self.account
             .provider()
             .add_declare_transaction(BroadcastedDeclareTransaction::V2(tx_request))
@@ -903,19 +1033,21 @@ where
             .map_err(AccountError::Provider)
     }
 
-    pub async fn get_declare_request(
+    async fn get_declare_request(
         &self,
         query_only: bool,
+        skip_signature: bool,
     ) -> Result<BroadcastedDeclareTransactionV2, AccountError<A::SignError>> {
-        let signature = self
-            .account
-            .sign_declaration_v2(&self.inner, query_only)
-            .await
-            .map_err(AccountError::Signing)?;
-
         Ok(BroadcastedDeclareTransactionV2 {
             max_fee: self.inner.max_fee,
-            signature,
+            signature: if skip_signature {
+                vec![]
+            } else {
+                self.account
+                    .sign_declaration_v2(&self.inner, query_only)
+                    .await
+                    .map_err(AccountError::Signing)?
+            },
             nonce: self.inner.nonce,
             contract_class: self.inner.contract_class.clone(),
             compiled_class_hash: self.inner.compiled_class_hash,
@@ -925,7 +1057,7 @@ where
     }
 }
 
-impl<'a, A> PreparedDeclarationV3<'a, A>
+impl<A> PreparedDeclarationV3<'_, A>
 where
     A: Account,
 {
@@ -937,12 +1069,13 @@ where
     }
 }
 
-impl<'a, A> PreparedDeclarationV3<'a, A>
+impl<A> PreparedDeclarationV3<'_, A>
 where
     A: ConnectedAccount,
 {
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(&self) -> Result<DeclareTransactionResult, AccountError<A::SignError>> {
-        let tx_request = self.get_declare_request(false).await?;
+        let tx_request = self.get_declare_request(false, false).await?;
         self.account
             .provider()
             .add_declare_transaction(BroadcastedDeclareTransaction::V3(tx_request))
@@ -950,20 +1083,22 @@ where
             .map_err(AccountError::Provider)
     }
 
-    pub async fn get_declare_request(
+    async fn get_declare_request(
         &self,
         query_only: bool,
+        skip_signature: bool,
     ) -> Result<BroadcastedDeclareTransactionV3, AccountError<A::SignError>> {
-        let signature = self
-            .account
-            .sign_declaration_v3(&self.inner, query_only)
-            .await
-            .map_err(AccountError::Signing)?;
-
         Ok(BroadcastedDeclareTransactionV3 {
             sender_address: self.account.address(),
             compiled_class_hash: self.inner.compiled_class_hash,
-            signature,
+            signature: if skip_signature {
+                vec![]
+            } else {
+                self.account
+                    .sign_declaration_v3(&self.inner, query_only)
+                    .await
+                    .map_err(AccountError::Signing)?
+            },
             nonce: self.inner.nonce,
             contract_class: self.inner.contract_class.clone(),
             resource_bounds: ResourceBoundsMapping {
@@ -991,7 +1126,7 @@ where
     }
 }
 
-impl<'a, A> PreparedLegacyDeclaration<'a, A>
+impl<A> PreparedLegacyDeclaration<'_, A>
 where
     A: Account,
 {
@@ -1003,12 +1138,13 @@ where
     }
 }
 
-impl<'a, A> PreparedLegacyDeclaration<'a, A>
+impl<A> PreparedLegacyDeclaration<'_, A>
 where
     A: ConnectedAccount,
 {
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(&self) -> Result<DeclareTransactionResult, AccountError<A::SignError>> {
-        let tx_request = self.get_declare_request(false).await?;
+        let tx_request = self.get_declare_request(false, false).await?;
         self.account
             .provider()
             .add_declare_transaction(BroadcastedDeclareTransaction::V1(tx_request))
@@ -1016,21 +1152,23 @@ where
             .map_err(AccountError::Provider)
     }
 
-    pub async fn get_declare_request(
+    async fn get_declare_request(
         &self,
         query_only: bool,
+        skip_signature: bool,
     ) -> Result<BroadcastedDeclareTransactionV1, AccountError<A::SignError>> {
-        let signature = self
-            .account
-            .sign_legacy_declaration(&self.inner, query_only)
-            .await
-            .map_err(AccountError::Signing)?;
-
         let compressed_class = self.inner.contract_class.compress().unwrap();
 
         Ok(BroadcastedDeclareTransactionV1 {
             max_fee: self.inner.max_fee,
-            signature,
+            signature: if skip_signature {
+                vec![]
+            } else {
+                self.account
+                    .sign_legacy_declaration(&self.inner, query_only)
+                    .await
+                    .map_err(AccountError::Signing)?
+            },
             nonce: self.inner.nonce,
             contract_class: Arc::new(compressed_class),
             sender_address: self.account.address(),

@@ -1,5 +1,5 @@
 use starknet_accounts::{
-    Account, AccountError, Call, ConnectedAccount, ExecutionEncoding, SingleOwnerAccount,
+    Account, AccountError, ConnectedAccount, ExecutionEncoding, SingleOwnerAccount,
 };
 use starknet_core::{
     types::{
@@ -7,7 +7,7 @@ use starknet_core::{
             legacy::{LegacyContractClass, RawLegacyAbiEntry, RawLegacyFunction},
             SierraClass,
         },
-        BlockId, BlockTag, Felt, StarknetError,
+        BlockId, BlockTag, Call, Felt, StarknetError,
     },
     utils::get_selector_from_name,
 };
@@ -32,7 +32,7 @@ fn create_sequencer_client() -> SequencerGatewayProvider {
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     let rpc_url = std::env::var("STARKNET_RPC")
-        .unwrap_or("https://juno.rpc.sepolia.starknet.rs/rpc/v0_7".into());
+        .unwrap_or_else(|_| "https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_7".into());
     JsonRpcClient::new(HttpTransport::new(url::Url::parse(&rpc_url).unwrap()))
 }
 
@@ -354,8 +354,8 @@ async fn can_execute_eth_transfer_invoke_v3_inner<P: Provider + Send + Sync>(
             selector: get_selector_from_name("transfer").unwrap(),
             calldata: vec![Felt::from_hex("0x1234").unwrap(), Felt::ONE, Felt::ZERO],
         }])
-        .gas(200000)
-        .gas_price(500000000000000)
+        .gas(100000)
+        .gas_price(900000000000000)
         .send()
         .await
         .unwrap();
@@ -544,8 +544,8 @@ async fn can_declare_cairo1_contract_v3_inner<P: Provider + Send + Sync>(
             Arc::new(flattened_class),
             Felt::from_hex(&hashes.compiled_class_hash).unwrap(),
         )
-        .gas(200000)
-        .gas_price(500000000000000)
+        .gas(100000)
+        .gas_price(900000000000000)
         .send()
         .await
         .unwrap();

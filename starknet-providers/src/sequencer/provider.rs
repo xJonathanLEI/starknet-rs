@@ -17,7 +17,7 @@ use starknet_core::types::{
 use crate::{
     provider::ProviderImplError,
     sequencer::{models::conversions::ConversionError, GatewayClientError},
-    Provider, ProviderError, SequencerGatewayProvider,
+    Provider, ProviderError, ProviderRequestData, ProviderResponseData, SequencerGatewayProvider,
 };
 
 use super::models::TransactionFinalityStatus;
@@ -113,7 +113,10 @@ impl Provider for SequencerGatewayProvider {
             .await?;
 
         // `NotReceived` is not a valid status for JSON-RPC. It's an error.
-        if let Some(TransactionFinalityStatus::NotReceived) = &status.finality_status {
+        if matches!(
+            &status.finality_status,
+            Some(TransactionFinalityStatus::NotReceived)
+        ) {
             return Err(ProviderError::StarknetError(
                 StarknetError::TransactionHashNotFound,
             ));
@@ -407,6 +410,20 @@ impl Provider for SequencerGatewayProvider {
         // With JSON-RPC v0.5.0 it's no longer possible to convert feeder traces to JSON-RPC traces. So we simply pretend that it's not supported here.
         //
         // This is fine as the feeder gateway is soon to be removed anyways.
+        Err(ProviderError::Other(Box::new(
+            GatewayClientError::MethodNotSupported,
+        )))
+    }
+
+    async fn batch_requests<R>(
+        &self,
+        requests: R,
+    ) -> Result<Vec<ProviderResponseData>, ProviderError>
+    where
+        R: AsRef<[ProviderRequestData]> + Send + Sync,
+    {
+        // Not implemented for now. It's technically possible to simulate this by running multiple
+        // requests in parallel.
         Err(ProviderError::Other(Box::new(
             GatewayClientError::MethodNotSupported,
         )))

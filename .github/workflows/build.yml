@@ -15,7 +15,6 @@ jobs:
       matrix:
         package:
           - "starknet-curve"
-          - "starknet-crypto-codegen"
           - "starknet-crypto"
           - "starknet-core"
           - "starknet-providers"

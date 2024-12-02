@@ -5,19 +5,25 @@ use starknet_types_core::felt::Felt;
 
 use super::{EthAddress, Hash256, MsgToL1};
 
+/// An L1-to-L2 message sent from Ethereum to Starknet.
 #[derive(Debug, Clone)]
 pub struct MsgToL2 {
+    /// The Ethereum address sending the message.
     pub from_address: EthAddress,
+    /// The Starknet contract address that handles the message.
     pub to_address: Felt,
+    /// The entrypoint selector on the handler contract.
     pub selector: Felt,
+    /// The calldata to be used for the handler contract invocation.
     pub payload: Vec<Felt>,
+    /// The nonce on the message for duduplication.
     pub nonce: u64,
 }
 
 impl MsgToL2 {
     /// Calculates the message hash based on the algorithm documented here:
     ///
-    /// https://docs.starknet.io/documentation/architecture_and_concepts/L1-L2_Communication/messaging-mechanism/
+    /// <https://docs.starknet.io/documentation/architecture_and_concepts/L1-L2_Communication/messaging-mechanism/>
     pub fn hash(&self) -> Hash256 {
         let mut hasher = Keccak256::new();
 
@@ -40,7 +46,7 @@ impl MsgToL2 {
         hasher.update((self.payload.len() as u64).to_be_bytes());
 
         // Payload
-        for item in self.payload.iter() {
+        for item in &self.payload {
             hasher.update(item.to_bytes_be());
         }
 
@@ -54,7 +60,7 @@ impl MsgToL2 {
 impl MsgToL1 {
     /// Calculates the message hash based on the algorithm documented here:
     ///
-    /// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/messaging-mechanism/#structure_and_hashing_l2-l1
+    /// <https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/messaging-mechanism/#structure_and_hashing_l2-l1>
     pub fn hash(&self) -> Hash256 {
         let mut hasher = Keccak256::new();
 
@@ -69,7 +75,7 @@ impl MsgToL1 {
         hasher.update((self.payload.len() as u64).to_be_bytes());
 
         // Payload
-        for item in self.payload.iter() {
+        for item in &self.payload {
             hasher.update(item.to_bytes_be());
         }
 

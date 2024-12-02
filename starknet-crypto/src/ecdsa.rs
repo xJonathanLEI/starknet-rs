@@ -7,6 +7,14 @@ use crate::{
 use starknet_types_core::curve::{AffinePoint, ProjectivePoint};
 use starknet_types_core::felt::Felt;
 
+/// The (exclusive) upper bound on many ECDSA-related elements based on the original C++
+/// implementation from [`crypto-cpp`](https://github.com/starkware-libs/crypto-cpp).
+///
+/// The C++ implementation [imposes](https://github.com/starkware-libs/crypto-cpp/blob/78e3ed8dc7a0901fe6d62f4e99becc6e7936adfd/src/starkware/crypto/ecdsa.cc#L23)
+/// an upper bound of `0x0800000000000000000000000000000000000000000000000000000000000000`.
+///
+/// When a compuated value is greater than or equal to this bound, the modulus is taken to ensure
+/// the resulting value falls under the bound.
 const ELEMENT_UPPER_BOUND: Felt = Felt::from_raw([
     576459263475450960,
     18446744073709255680,
@@ -14,7 +22,7 @@ const ELEMENT_UPPER_BOUND: Felt = Felt::from_raw([
     18446743986131435553,
 ]);
 
-/// Stark ECDSA signature
+/// Stark ECDSA signature.
 #[derive(Debug)]
 pub struct Signature {
     /// The `r` value of a signature
@@ -23,7 +31,7 @@ pub struct Signature {
     pub s: Felt,
 }
 
-/// Stark ECDSA signature with `v`
+/// Stark ECDSA signature with `v`, useful for recovering the public key.
 #[derive(Debug)]
 pub struct ExtendedSignature {
     /// The `r` value of a signature
@@ -45,7 +53,7 @@ impl From<ExtendedSignature> for Signature {
 
 #[cfg(feature = "signature-display")]
 impl core::fmt::Display for Signature {
-    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(
             f,
             "{}{}",
@@ -57,7 +65,7 @@ impl core::fmt::Display for Signature {
 
 #[cfg(feature = "signature-display")]
 impl core::fmt::Display for ExtendedSignature {
-    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(
             f,
             "{}{}{:02x}",
@@ -70,9 +78,9 @@ impl core::fmt::Display for ExtendedSignature {
 
 /// Computes the public key given a Stark private key.
 ///
-/// ### Arguments
+/// ### Parameters
 ///
-/// * `private_key`: The private key
+/// - `private_key`: The private key.
 pub fn get_public_key(private_key: &Felt) -> Felt {
     mul_by_bits(&GENERATOR, private_key)
         .to_affine()
@@ -82,11 +90,11 @@ pub fn get_public_key(private_key: &Felt) -> Felt {
 
 /// Computes ECDSA signature given a Stark private key and message hash.
 ///
-/// ### Arguments
+/// ### Parameters
 ///
-/// * `private_key`: The private key
-/// * `message`: The message hash
-/// * `k`: A random `k` value. You **MUST NOT** use the same `k` on different signatures
+/// - `private_key`: The private key.
+/// - `message`: The message hash.
+/// - `k`: A random `k` value. You **MUST NOT** use the same `k` on different signatures.
 pub fn sign(private_key: &Felt, message: &Felt, k: &Felt) -> Result<ExtendedSignature, SignError> {
     if message >= &ELEMENT_UPPER_BOUND {
         return Err(SignError::InvalidMessageHash);
@@ -120,12 +128,12 @@ pub fn sign(private_key: &Felt, message: &Felt, k: &Felt) -> Result<ExtendedSign
 /// Verifies if a signature is valid over a message hash given a public key. Returns an error
 /// instead of `false` if the public key is invalid.
 ///
-/// ### Arguments
+/// ### Parameters
 ///
-/// * `public_key`: The public key
-/// * `message`: The message hash
-/// * `r`: The `r` value of the signature
-/// * `s`: The `s` value of the signature
+/// - `public_key`: The public key.
+/// - `message`: The message hash.
+/// - `r`: The `r` value of the signature.
+/// - `s`: The `s` value of the signature.
 pub fn verify(public_key: &Felt, message: &Felt, r: &Felt, s: &Felt) -> Result<bool, VerifyError> {
     if message >= &ELEMENT_UPPER_BOUND {
         return Err(VerifyError::InvalidMessageHash);
@@ -162,12 +170,12 @@ pub fn verify(public_key: &Felt, message: &Felt, r: &Felt, s: &Felt) -> Result<b
 
 /// Recovers the public key from a message and (r, s, v) signature parameters
 ///
-/// ### Arguments
+/// ### Parameters
 ///
-/// * `msg_hash`: The message hash
-/// * `r_bytes`: The `r` value of the signature
-/// * `s_bytes`: The `s` value of the signature
-/// * `v_bytes`: The `v` value of the signature
+/// - `msg_hash`: The message hash.
+/// - `r_bytes`: The `r` value of the signature.
+/// - `s_bytes`: The `s` value of the signature.
+/// - `v_bytes`: The `v` value of the signature.
 pub fn recover(message: &Felt, r: &Felt, s: &Felt, v: &Felt) -> Result<Felt, RecoverError> {
     if message >= &ELEMENT_UPPER_BOUND {
         return Err(RecoverError::InvalidMessageHash);
@@ -278,7 +286,7 @@ mod tests {
             serde_json::from_str(json_data).expect("Unable to parse the JSON");
 
         // Iterating over each element in the JSON
-        for (private_key, expected_public_key) in key_map.into_iter() {
+        for (private_key, expected_public_key) in key_map {
             let private_key = if private_key.len() % 2 != 0 {
                 format!("0{}", private_key.trim_start_matches("0x"))
             } else {

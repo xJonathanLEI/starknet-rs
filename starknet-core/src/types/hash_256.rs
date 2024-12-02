@@ -9,6 +9,7 @@ use starknet_types_core::felt::Felt;
 
 const HASH_256_BYTE_COUNT: usize = 32;
 
+/// A 256-bit cryptographic hash.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Hash256 {
     inner: [u8; HASH_256_BYTE_COUNT],
@@ -19,12 +20,16 @@ struct Hash256Visitor;
 mod errors {
     use core::fmt::{Display, Formatter, Result};
 
+    /// Errors parsing [`Hash256`](super::Hash256) from a hex string.
     #[derive(Debug)]
     pub enum FromHexError {
+        /// The hex string is not 64 hexadecimal characters in length without the `0x` prefix.
         UnexpectedLength,
+        /// The string contains non-hexadecimal characters.
         InvalidHexString,
     }
 
+    /// The hash value is out of range for converting into [`Felt`](super::Felt).
     #[derive(Debug)]
     pub struct ToFieldElementError;
 
@@ -56,19 +61,23 @@ mod errors {
 pub use errors::{FromHexError, ToFieldElementError};
 
 impl Hash256 {
+    /// Constructs [`Hash256`] from a byte array.
     pub const fn from_bytes(bytes: [u8; HASH_256_BYTE_COUNT]) -> Self {
         Self { inner: bytes }
     }
 
+    /// Parses [`Hash256`] from a hex string.
     pub fn from_hex(hex: &str) -> Result<Self, FromHexError> {
         hex.parse()
     }
 
+    /// Constructs [`Hash256`] from a [`Felt`].
     pub fn from_felt(felt: &Felt) -> Self {
         felt.into()
     }
 
-    pub fn as_bytes(&self) -> &[u8; HASH_256_BYTE_COUNT] {
+    /// Gets a reference to the underlying byte array.
+    pub const fn as_bytes(&self) -> &[u8; HASH_256_BYTE_COUNT] {
         &self.inner
     }
 }
@@ -78,7 +87,11 @@ impl Serialize for Hash256 {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&format!("0x{}", hex::encode(self.inner)))
+        if serializer.is_human_readable() {
+            serializer.serialize_str(&format!("0x{}", hex::encode(self.inner)))
+        } else {
+            serializer.serialize_bytes(self.as_bytes())
+        }
     }
 }
 
@@ -87,15 +100,19 @@ impl<'de> Deserialize<'de> for Hash256 {
     where
         D: serde::Deserializer<'de>,
     {
-        deserializer.deserialize_any(Hash256Visitor)
+        if deserializer.is_human_readable() {
+            deserializer.deserialize_any(Hash256Visitor)
+        } else {
+            deserializer.deserialize_bytes(Hash256Visitor)
+        }
     }
 }
 
-impl<'de> Visitor<'de> for Hash256Visitor {
+impl Visitor<'_> for Hash256Visitor {
     type Value = Hash256;
 
-    fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
-        write!(formatter, "string")
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> alloc::fmt::Result {
+        write!(formatter, "string, or an array of u8")
     }
 
     fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
@@ -104,6 +121,12 @@ impl<'de> Visitor<'de> for Hash256Visitor {
     {
         v.parse()
             .map_err(|err| serde::de::Error::custom(format!("{}", err)))
+    }
+
+    fn visit_bytes<E: serde::de::Error>(self, v: &[u8]) -> Result<Self::Value, E> {
+        <[u8; HASH_256_BYTE_COUNT]>::try_from(v)
+            .map(Hash256::from_bytes)
+            .map_err(serde::de::Error::custom)
     }
 }
 
@@ -172,7 +195,7 @@ impl TryFrom<&Hash256> for Felt {
     type Error = ToFieldElementError;
 
     fn try_from(value: &Hash256) -> Result<Self, Self::Error> {
-        Ok(Felt::from_bytes_be(&value.inner))
+        Ok(Self::from_bytes_be(&value.inner))
     }
 }
 
@@ -186,6 +209,8 @@ impl From<[u8; HASH_256_BYTE_COUNT]> for Hash256 {
 mod tests {
     use super::{Felt, FromHexError, Hash256, HASH_256_BYTE_COUNT};
 
+    use hex_literal::hex;
+
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_hash_256_from_hex_error_unexpected_length() {
@@ -196,7 +221,7 @@ mod tests {
             "25c5b1592b1743b62d7fabd4373d98219c2ff3750f49ec0608a8355fa3bb060f5",
         ];
 
-        for item in test_data.into_iter() {
+        for item in test_data {
             match Hash256::from_hex(item) {
                 Err(FromHexError::UnexpectedLength) => {}
                 _ => panic!("Unexpected test result"),
@@ -214,7 +239,7 @@ mod tests {
             "0x?5c5b1592b1743b62d7fabd4373d98219c2f63750f49ec0608a8355fa3bb060",
         ];
 
-        for item in test_data.into_iter() {
+        for item in test_data {
             match Hash256::from_hex(item) {
                 Err(FromHexError::InvalidHexString) => {}
                 _ => panic!("Unexpected test result"),
@@ -242,5 +267,33 @@ mod tests {
 
         // Assert that the conversion from the `Felt` to `Hash256` is successful
         assert_eq!(Hash256::from_felt(&felt), hash_256);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn bin_ser() {
+        let r = bincode::serialize(&Hash256::from_bytes(hex!(
+            "1111111111111111111111111111111111111111111111111111111111111111"
+        )))
+        .unwrap();
+        assert_eq!(
+            r,
+            hex!(
+                "2000000000000000 1111111111111111111111111111111111111111111111111111111111111111"
+            )
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn bin_deser() {
+        let r = bincode::deserialize::<Hash256>(&hex!(
+            "2000000000000000 1111111111111111111111111111111111111111111111111111111111111111"
+        ))
+        .unwrap();
+        assert_eq!(
+            r.inner,
+            hex!("1111111111111111111111111111111111111111111111111111111111111111")
+        );
     }
 }

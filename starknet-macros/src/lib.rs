@@ -1,3 +1,8 @@
+//! Procedural macros for the `starknet` crate. This crate provides macros that help make defining
+//! certain compile-time constants easier.
+
+#![deny(missing_docs)]
+
 use proc_macro::TokenStream;
 use starknet_core::{
     types::Felt,
@@ -5,6 +10,7 @@ use starknet_core::{
 };
 use syn::{parse_macro_input, LitStr};
 
+/// Defines a compile-time constant for a entrypoint selector of a Starknet contract.
 #[proc_macro]
 pub fn selector(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as LitStr);
@@ -26,6 +32,7 @@ pub fn selector(input: TokenStream) -> TokenStream {
     .unwrap()
 }
 
+/// Defines a compile-time constant for a Cairo short string encoding from a human-readable string.
 #[proc_macro]
 pub fn short_string(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as LitStr);
@@ -47,6 +54,8 @@ pub fn short_string(input: TokenStream) -> TokenStream {
     .unwrap()
 }
 
+/// Defines a compile-time constant for a field element from its decimal or hexadecimal
+/// representation.
 #[proc_macro]
 pub fn felt(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as LitStr);
@@ -73,6 +82,7 @@ pub fn felt(input: TokenStream) -> TokenStream {
     .unwrap()
 }
 
+/// Defines a compile-time constant for a field element from its decimal representation.
 #[proc_macro]
 pub fn felt_dec(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as LitStr);
@@ -94,6 +104,7 @@ pub fn felt_dec(input: TokenStream) -> TokenStream {
     .unwrap()
 }
 
+/// Defines a compile-time constant for a field element from its hexadecimal representation.
 #[proc_macro]
 pub fn felt_hex(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as LitStr);
@@ -116,11 +127,11 @@ pub fn felt_hex(input: TokenStream) -> TokenStream {
 }
 
 #[cfg(feature = "use_imported_type")]
-fn field_element_path() -> &'static str {
+const fn field_element_path() -> &'static str {
     "Felt"
 }
 
 #[cfg(not(feature = "use_imported_type"))]
-fn field_element_path() -> &'static str {
+const fn field_element_path() -> &'static str {
     "::starknet::core::types::Felt"
 }

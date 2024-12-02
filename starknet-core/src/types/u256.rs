@@ -11,107 +11,113 @@ use crate::types::Felt;
 pub struct U256(crypto_bigint::U256);
 
 impl U256 {
-    #[cfg(target_pointer_width = "64")]
-    pub fn from_words(low: u128, high: u128) -> Self {
-        Self(crypto_bigint::U256::from_words([
-            low as u64,
-            (low >> 64) as u64,
-            high as u64,
-            (high >> 64) as u64,
-        ]))
+    /// Constructs a [U256] from the low 128 bits and the high 128 bits, similar to how they're
+    /// represented in Cairo.
+    pub const fn from_words(low: u128, high: u128) -> Self {
+        #[cfg(target_pointer_width = "64")]
+        {
+            Self(crypto_bigint::U256::from_words([
+                low as u64,
+                (low >> 64) as u64,
+                high as u64,
+                (high >> 64) as u64,
+            ]))
+        }
+
+        #[cfg(target_pointer_width = "32")]
+        {
+            Self(crypto_bigint::U256::from_words([
+                low as u32,
+                (low >> 32) as u32,
+                (low >> 64) as u32,
+                (low >> 96) as u32,
+                high as u32,
+                (high >> 32) as u32,
+                (high >> 64) as u32,
+                (high >> 96) as u32,
+            ]))
+        }
     }
 
-    #[cfg(target_pointer_width = "32")]
-    pub fn from_words(low: u128, high: u128) -> Self {
-        Self(crypto_bigint::U256::from_words([
-            low as u32,
-            (low >> 32) as u32,
-            (low >> 64) as u32,
-            (low >> 96) as u32,
-            high as u32,
-            (high >> 32) as u32,
-            (high >> 64) as u32,
-            (high >> 96) as u32,
-        ]))
-    }
-
-    pub fn low(&self) -> u128 {
+    /// Gets the lower (least significant) 128 bits as [u128].
+    pub const fn low(&self) -> u128 {
         let words = u256_to_u64_array(&self.0);
         words[0] as u128 + ((words[1] as u128) << 64)
     }
 
-    pub fn high(&self) -> u128 {
+    /// Gets the higher (most significant) 128 bits as [u128].
+    pub const fn high(&self) -> u128 {
         let words = u256_to_u64_array(&self.0);
         words[2] as u128 + ((words[3] as u128) << 64)
     }
 }
 
-impl core::ops::Add<U256> for U256 {
-    type Output = U256;
+impl core::ops::Add<Self> for U256 {
+    type Output = Self;
 
-    fn add(self, rhs: U256) -> Self::Output {
+    fn add(self, rhs: Self) -> Self::Output {
         Self(self.0.checked_add(&rhs.0).unwrap())
     }
 }
 
-impl core::ops::AddAssign<U256> for U256 {
-    fn add_assign(&mut self, rhs: U256) {
+impl core::ops::AddAssign<Self> for U256 {
+    fn add_assign(&mut self, rhs: Self) {
         self.0 = self.0.checked_add(&rhs.0).unwrap()
     }
 }
 
-impl core::ops::Sub<U256> for U256 {
-    type Output = U256;
+impl core::ops::Sub<Self> for U256 {
+    type Output = Self;
 
-    fn sub(self, rhs: U256) -> Self::Output {
+    fn sub(self, rhs: Self) -> Self::Output {
         Self(self.0.checked_sub(&rhs.0).unwrap())
     }
 }
 
-impl core::ops::SubAssign<U256> for U256 {
-    fn sub_assign(&mut self, rhs: U256) {
+impl core::ops::SubAssign<Self> for U256 {
+    fn sub_assign(&mut self, rhs: Self) {
         self.0 = self.0.checked_sub(&rhs.0).unwrap()
     }
 }
 
-impl core::ops::Mul<U256> for U256 {
-    type Output = U256;
+impl core::ops::Mul<Self> for U256 {
+    type Output = Self;
 
-    fn mul(self, rhs: U256) -> Self::Output {
+    fn mul(self, rhs: Self) -> Self::Output {
         Self(self.0.checked_mul(&rhs.0).unwrap())
     }
 }
 
-impl core::ops::MulAssign<U256> for U256 {
-    fn mul_assign(&mut self, rhs: U256) {
+impl core::ops::MulAssign<Self> for U256 {
+    fn mul_assign(&mut self, rhs: Self) {
         self.0 = self.0.checked_mul(&rhs.0).unwrap()
     }
 }
 
-impl core::ops::Div<U256> for U256 {
-    type Output = U256;
+impl core::ops::Div<Self> for U256 {
+    type Output = Self;
 
-    fn div(self, rhs: U256) -> Self::Output {
+    fn div(self, rhs: Self) -> Self::Output {
         Self(self.0.checked_div(&rhs.0).unwrap())
     }
 }
 
-impl core::ops::DivAssign<U256> for U256 {
-    fn div_assign(&mut self, rhs: U256) {
+impl core::ops::DivAssign<Self> for U256 {
+    fn div_assign(&mut self, rhs: Self) {
         self.0 = self.0.checked_div(&rhs.0).unwrap()
     }
 }
 
-impl core::ops::Rem<U256> for U256 {
-    type Output = U256;
+impl core::ops::Rem<Self> for U256 {
+    type Output = Self;
 
-    fn rem(self, rhs: U256) -> Self::Output {
+    fn rem(self, rhs: Self) -> Self::Output {
         Self(self.0.checked_rem(&rhs.0).unwrap())
     }
 }
 
-impl core::ops::RemAssign<U256> for U256 {
-    fn rem_assign(&mut self, rhs: U256) {
+impl core::ops::RemAssign<Self> for U256 {
+    fn rem_assign(&mut self, rhs: Self) {
         self.0 = self.0.checked_rem(&rhs.0).unwrap()
     }
 }
@@ -253,13 +259,13 @@ impl From<Felt> for U256 {
 
 #[cfg(target_pointer_width = "64")]
 #[inline]
-fn u256_to_u64_array(num: &crypto_bigint::U256) -> [u64; 4] {
+const fn u256_to_u64_array(num: &crypto_bigint::U256) -> [u64; 4] {
     num.to_words()
 }
 
 #[cfg(target_pointer_width = "32")]
 #[inline]
-fn u256_to_u64_array(num: &crypto_bigint::U256) -> [u64; 4] {
+const fn u256_to_u64_array(num: &crypto_bigint::U256) -> [u64; 4] {
     unsafe { core::mem::transmute::<[u32; 8], [u64; 4]>(num.to_words()) }
 }
 

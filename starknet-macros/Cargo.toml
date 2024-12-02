@@ -1,6 +1,6 @@
 [package]
 name = "starknet-macros"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Jonathan LEI <me@xjonathan.dev>"]
 license = "MIT OR Apache-2.0"
 edition = "2021"
@@ -16,9 +16,12 @@ keywords = ["ethereum", "starknet", "web3"]
 proc-macro = true
 
 [dependencies]
-starknet-core = { version = "0.11.1", path = "../starknet-core" }
+starknet-core = { version = "0.12.0", path = "../starknet-core" }
 syn = "2.0.15"
 
 [features]
 default = []
 use_imported_type = []
+
+[lints]
+workspace = true

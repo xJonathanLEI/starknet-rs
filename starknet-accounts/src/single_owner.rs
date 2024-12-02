@@ -1,13 +1,15 @@
 use crate::{
-    Account, Call, ConnectedAccount, ExecutionEncoder, RawDeclarationV2, RawDeclarationV3,
+    Account, ConnectedAccount, ExecutionEncoder, RawDeclarationV2, RawDeclarationV3,
     RawExecutionV1, RawExecutionV3, RawLegacyDeclaration,
 };
 
 use async_trait::async_trait;
-use starknet_core::types::{contract::ComputeClassHashError, BlockId, BlockTag, Felt};
+use starknet_core::types::{contract::ComputeClassHashError, BlockId, BlockTag, Call, Felt};
 use starknet_providers::Provider;
-use starknet_signers::Signer;
+use starknet_signers::{Signer, SignerInteractivityContext};
 
+/// A generic [`Account`] implementation for controlling account contracts that only have one signer
+/// using ECDSA the STARK curve.
 #[derive(Debug, Clone)]
 pub struct SingleOwnerAccount<P, S>
 where
@@ -22,10 +24,13 @@ where
     encoding: ExecutionEncoding,
 }
 
+/// Errors signing an execution/declaration request.
 #[derive(Debug, thiserror::Error)]
 pub enum SignError<S> {
+    /// An error encountered by the signer implementation.
     #[error(transparent)]
     Signer(S),
+    /// Failure to compute the class hash of the class being declared.
     #[error(transparent)]
     ClassHash(ComputeClassHashError),
 }
@@ -47,14 +52,14 @@ where
 {
     /// Create a new account controlled by a single signer.
     ///
-    /// ### Arguments
+    /// ### Parameters
     ///
-    /// * `provider`: A `Provider` implementation that provides access to the Starknet network.
-    /// * `signer`: A `Signer` implementation that can generate valid signatures for this account.
-    /// * `address`: Account contract address.
-    /// * `chain_id`: Network chain ID.
-    /// * `encoding`: How `__execute__` calldata should be encoded.
-    pub fn new(
+    /// - `provider`: A `Provider` implementation that provides access to the Starknet network.
+    /// - `signer`: A `Signer` implementation that can generate valid signatures for this account.
+    /// - `address`: Account contract address.
+    /// - `chain_id`: Network chain ID.
+    /// - `encoding`: How `__execute__` calldata should be encoded.
+    pub const fn new(
         provider: P,
         signer: S,
         address: Felt,
@@ -71,6 +76,7 @@ where
         }
     }
 
+    /// Sets a new block ID to run queries against.
     pub fn set_block_id(&mut self, block_id: BlockId) -> &Self {
         self.block_id = block_id;
         self
@@ -170,6 +176,10 @@ where
 
         Ok(vec![signature.r, signature.s])
     }
+
+    fn is_signer_interactive(&self, context: SignerInteractivityContext<'_>) -> bool {
+        self.signer.is_interactive(context)
+    }
 }
 
 impl<P, S> ExecutionEncoder for SingleOwnerAccount<P, S>
@@ -183,13 +193,13 @@ where
         match self.encoding {
             ExecutionEncoding::Legacy => {
                 let mut concated_calldata: Vec<Felt> = vec![];
-                for call in calls.iter() {
+                for call in calls {
                     execute_calldata.push(call.to); // to
                     execute_calldata.push(call.selector); // selector
                     execute_calldata.push(concated_calldata.len().into()); // data_offset
                     execute_calldata.push(call.calldata.len().into()); // data_len
 
-                    for item in call.calldata.iter() {
+                    for item in &call.calldata {
                         concated_calldata.push(*item);
                     }
                 }
@@ -198,7 +208,7 @@ where
                 execute_calldata.extend_from_slice(&concated_calldata);
             }
             ExecutionEncoding::New => {
-                for call in calls.iter() {
+                for call in calls {
                     execute_calldata.push(call.to); // to
                     execute_calldata.push(call.selector); // selector
 

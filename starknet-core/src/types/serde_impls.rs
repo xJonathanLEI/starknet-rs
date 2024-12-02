@@ -55,10 +55,10 @@ impl<'de> DeserializeAs<'de, u128> for NumAsHex {
     }
 }
 
-impl<'de> Visitor<'de> for NumAsHexVisitorU64 {
+impl Visitor<'_> for NumAsHexVisitorU64 {
     type Value = u64;
 
-    fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> alloc::fmt::Result {
         write!(formatter, "string or number")
     }
 
@@ -95,10 +95,10 @@ impl<'de> Visitor<'de> for NumAsHexVisitorU64 {
     }
 }
 
-impl<'de> Visitor<'de> for NumAsHexVisitorU128 {
+impl Visitor<'_> for NumAsHexVisitorU128 {
     type Value = u128;
 
-    fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> alloc::fmt::Result {
         write!(formatter, "string or number")
     }
 
@@ -128,8 +128,8 @@ impl Serialize for SyncStatusType {
         S: serde::Serializer,
     {
         match self {
-            SyncStatusType::NotSyncing => serializer.serialize_bool(false),
-            SyncStatusType::Syncing(sync_status) => SyncStatus::serialize(sync_status, serializer),
+            Self::NotSyncing => serializer.serialize_bool(false),
+            Self::Syncing(sync_status) => SyncStatus::serialize(sync_status, serializer),
         }
     }
 }
@@ -145,7 +145,7 @@ impl<'de> Deserialize<'de> for SyncStatusType {
 
                 false => Ok(Self::NotSyncing),
             },
-            SyncStatusTypeDe::SyncStatus(value) => Ok(SyncStatusType::Syncing(value)),
+            SyncStatusTypeDe::SyncStatus(value) => Ok(Self::Syncing(value)),
         }
     }
 }
@@ -233,19 +233,19 @@ mod transaction_status {
             S: Serializer,
         {
             let raw = match self {
-                TransactionStatus::Received => Raw {
+                Self::Received => Raw {
                     finality_status: SequencerTransactionStatus::Received,
                     execution_status: None,
                 },
-                TransactionStatus::Rejected => Raw {
+                Self::Rejected => Raw {
                     finality_status: SequencerTransactionStatus::Rejected,
                     execution_status: None,
                 },
-                TransactionStatus::AcceptedOnL2(exe) => Raw {
+                Self::AcceptedOnL2(exe) => Raw {
                     finality_status: SequencerTransactionStatus::AcceptedOnL2,
                     execution_status: Some(*exe),
                 },
-                TransactionStatus::AcceptedOnL1(exe) => Raw {
+                Self::AcceptedOnL1(exe) => Raw {
                     finality_status: SequencerTransactionStatus::AcceptedOnL1,
                     execution_status: Some(*exe),
                 },
@@ -419,9 +419,7 @@ mod tests {
             (BlockId::Number(1234), "{\"block_number\":1234}"),
             (BlockId::Tag(BlockTag::Latest), "\"latest\""),
             (BlockId::Tag(BlockTag::Pending), "\"pending\""),
-        ]
-        .into_iter()
-        {
+        ] {
             assert_eq!(serde_json::to_string(&block_id).unwrap(), json);
             assert_eq!(serde_json::from_str::<BlockId>(json).unwrap(), block_id);
         }
@@ -434,7 +432,7 @@ mod tests {
         #[derive(Debug, PartialEq, Eq, Deserialize)]
         struct Value(#[serde_as(as = "NumAsHex")] u64);
 
-        for (num, json) in [(Value(100), "\"0x64\""), (Value(100), "100")].into_iter() {
+        for (num, json) in [(Value(100), "\"0x64\""), (Value(100), "100")] {
             assert_eq!(serde_json::from_str::<Value>(json).unwrap(), num);
         }
     }

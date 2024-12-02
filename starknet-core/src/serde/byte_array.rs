@@ -1,3 +1,4 @@
+/// Serializing and deserializing [`Vec<u8>`] with base64 encoding.
 pub mod base64 {
     use alloc::{fmt::Formatter, format, vec::*};
 
@@ -6,6 +7,7 @@ pub mod base64 {
 
     struct Base64Visitor;
 
+    /// Serializes [`Vec<u8>`] as base64 string.
     pub fn serialize<S, T>(value: T, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -14,6 +16,7 @@ pub mod base64 {
         serializer.serialize_str(&STANDARD.encode(value.as_ref()))
     }
 
+    /// Deserializes [`Vec<u8>`] from base64 string.
     pub fn deserialize<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
     where
         D: Deserializer<'de>,
@@ -21,10 +24,10 @@ pub mod base64 {
         deserializer.deserialize_any(Base64Visitor)
     }
 
-    impl<'de> Visitor<'de> for Base64Visitor {
+    impl Visitor<'_> for Base64Visitor {
         type Value = Vec<u8>;
 
-        fn expecting(&self, formatter: &mut Formatter) -> alloc::fmt::Result {
+        fn expecting(&self, formatter: &mut Formatter<'_>) -> alloc::fmt::Result {
             write!(formatter, "string")
         }
 

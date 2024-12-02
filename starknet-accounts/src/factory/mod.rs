@@ -8,7 +8,7 @@ use starknet_core::{
         BroadcastedDeployAccountTransactionV1, BroadcastedDeployAccountTransactionV3,
         BroadcastedTransaction, DataAvailabilityMode, DeployAccountTransactionResult, FeeEstimate,
         Felt, NonZeroFelt, ResourceBounds, ResourceBoundsMapping, SimulatedTransaction,
-        SimulationFlag, StarknetError,
+        SimulationFlag, SimulationFlagForEstimateFee, StarknetError,
     },
 };
 use starknet_crypto::PoseidonHasher;
@@ -18,7 +18,7 @@ use std::error::Error;
 pub mod argent;
 pub mod open_zeppelin;
 
-/// Cairo string for "deploy_account"
+/// Cairo string for `deploy_account`
 const PREFIX_DEPLOY_ACCOUNT: Felt = Felt::from_raw([
     461298303000467581,
     18446744073709551615,
@@ -42,7 +42,7 @@ const QUERY_VERSION_THREE: Felt = Felt::from_raw([
     18446744073700081569,
 ]);
 
-/// Cairo string for "STARKNET_CONTRACT_ADDRESS"
+/// Cairo string for `STARKNET_CONTRACT_ADDRESS`
 const PREFIX_CONTRACT_ADDRESS: Felt = Felt::from_raw([
     533439743893157637,
     8635008616843941496,
@@ -58,55 +58,86 @@ const ADDR_BOUND: NonZeroFelt = NonZeroFelt::from_raw([
     18446743986131443745,
 ]);
 
-/// This trait enables deploying account contracts using the `DeployAccount` transaction type.
+/// Abstraction over different ways of deploying account contracts using the `DEPLOY_ACCOUNT`
+/// transaction type.
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait AccountFactory: Sized {
+    /// The [`Provider`] type attached to this account factory.
     type Provider: Provider + Sync;
+    /// Possible errors for signing transactions.
     type SignError: Error + Send + Sync;
 
+    /// Gets the class hash of the account contract.
     fn class_hash(&self) -> Felt;
 
+    /// Gets the constructor calldata for the deployment transaction.
     fn calldata(&self) -> Vec<Felt>;
 
+    /// Gets the chain ID of the target network.
     fn chain_id(&self) -> Felt;
 
+    /// Gets a reference to the attached [`Provider`] instance.
     fn provider(&self) -> &Self::Provider;
+
+    /// Whether the underlying signer implementation is interactive, such as a hardware wallet.
+    /// Implementations should return `true` if the signing operation is very expensive, even if not
+    /// strictly "interactive" as in requiring human input.
+    ///
+    /// This affects how an account factory makes decision on whether to request a real signature
+    /// for estimation/simulation purposes.
+    fn is_signer_interactive(&self) -> bool;
 
     /// Block ID to use when estimating fees.
     fn block_id(&self) -> BlockId {
         BlockId::Tag(BlockTag::Latest)
     }
 
+    /// Signs an execution request to authorize an `DEPLOY_ACCOUNT` v1 transaction that pays
+    /// transaction fees in `ETH`.
+    ///
+    /// If `query_only` is `true`, the commitment must be constructed in a way that a real state-
+    /// changing transaction cannot be authenticated. This is to prevent replay attacks.
     async fn sign_deployment_v1(
         &self,
         deployment: &RawAccountDeploymentV1,
         query_only: bool,
     ) -> Result<Vec<Felt>, Self::SignError>;
 
+    /// Signs an execution request to authorize an `DEPLOY_ACCOUNT` v3 transaction that pays
+    /// transaction fees in `STRK`.
+    ///
+    /// If `query_only` is `true`, the commitment must be constructed in a way that a real state-
+    /// changing transaction cannot be authenticated. This is to prevent replay attacks.
     async fn sign_deployment_v3(
         &self,
         deployment: &RawAccountDeploymentV3,
         query_only: bool,
     ) -> Result<Vec<Felt>, Self::SignError>;
 
-    fn deploy_v1(&self, salt: Felt) -> AccountDeploymentV1<Self> {
+    /// Generates an instance of [`AccountDeploymentV1`] for sending `DEPLOY_ACCOUNT` v1
+    /// transactions. Pays transaction fees in `ETH`.
+    fn deploy_v1(&self, salt: Felt) -> AccountDeploymentV1<'_, Self> {
         AccountDeploymentV1::new(salt, self)
     }
 
-    fn deploy_v3(&self, salt: Felt) -> AccountDeploymentV3<Self> {
+    /// Generates an instance of [`AccountDeploymentV3`] for sending `DEPLOY_ACCOUNT` v3
+    /// transactions. Pays transaction fees in `STRK`.
+    fn deploy_v3(&self, salt: Felt) -> AccountDeploymentV3<'_, Self> {
         AccountDeploymentV3::new(salt, self)
     }
 
+    /// Generates an instance of [`AccountDeploymentV1`] for sending `DEPLOY_ACCOUNT` v1
+    /// transactions. Pays transaction fees in `ETH`.
     #[deprecated = "use version specific variants (`deploy_v1` & `deploy_v3`) instead"]
-    fn deploy(&self, salt: Felt) -> AccountDeploymentV1<Self> {
+    fn deploy(&self, salt: Felt) -> AccountDeploymentV1<'_, Self> {
         self.deploy_v1(salt)
     }
 }
 
 /// Abstraction over `DEPLOY_ACCOUNT` transactions for account contract deployment. This struct uses
 /// v1 `DEPLOY_ACCOUNT` transactions under the hood, and hence pays transaction fees in ETH. To use
-/// v3 transactions for STRK fee payment, use [AccountDeploymentV3] instead.
+/// v3 transactions for STRK fee payment, use [`AccountDeploymentV3`] instead.
 ///
 /// An intermediate type allowing users to optionally specify `nonce` and/or `max_fee`.
 #[must_use]
@@ -123,7 +154,7 @@ pub struct AccountDeploymentV1<'f, F> {
 
 /// Abstraction over `DEPLOY_ACCOUNT` transactions for account contract deployment. This struct uses
 /// v3 `DEPLOY_ACCOUNT` transactions under the hood, and hence pays transaction fees in STRK. To use
-/// v1 transactions for ETH fee payment, use [AccountDeploymentV1] instead.
+/// v1 transactions for ETH fee payment, use [`AccountDeploymentV1`] instead.
 ///
 /// This is an intermediate type allowing users to optionally specify `nonce`, `gas`, and/or
 /// `gas_price`.
@@ -141,7 +172,7 @@ pub struct AccountDeploymentV3<'f, F> {
     gas_price_estimate_multiplier: f64,
 }
 
-/// [AccountDeploymentV1] but with `nonce` and `max_fee` already determined.
+/// [`AccountDeploymentV1`] but with `nonce` and `max_fee` already determined.
 #[derive(Debug, Clone)]
 pub struct RawAccountDeploymentV1 {
     salt: Felt,
@@ -149,7 +180,7 @@ pub struct RawAccountDeploymentV1 {
     max_fee: Felt,
 }
 
-/// [AccountDeploymentV3] but with `nonce`, `gas` and `gas_price` already determined.
+/// [`AccountDeploymentV3`] but with `nonce`, `gas` and `gas_price` already determined.
 #[derive(Debug, Clone)]
 pub struct RawAccountDeploymentV3 {
     salt: Felt,
@@ -158,32 +189,40 @@ pub struct RawAccountDeploymentV3 {
     gas_price: u128,
 }
 
-/// [RawAccountDeploymentV1] but with a factory associated.
+/// [`RawAccountDeploymentV1`] but with a factory associated.
 #[derive(Debug)]
 pub struct PreparedAccountDeploymentV1<'f, F> {
     factory: &'f F,
     inner: RawAccountDeploymentV1,
 }
 
-/// [RawAccountDeploymentV3] but with a factory associated.
+/// [`RawAccountDeploymentV3`] but with a factory associated.
 #[derive(Debug)]
 pub struct PreparedAccountDeploymentV3<'f, F> {
     factory: &'f F,
     inner: RawAccountDeploymentV3,
 }
 
+/// Errors using Starknet account factories.
 #[derive(Debug, thiserror::Error)]
 pub enum AccountFactoryError<S> {
+    /// An error is encountered when signing a request.
     #[error(transparent)]
     Signing(S),
+    /// An error is encountered with communicating with the network.
     #[error(transparent)]
     Provider(ProviderError),
+    /// Transaction fee calculation overflow.
     #[error("fee calculation overflow")]
     FeeOutOfRange,
 }
 
 impl<'f, F> AccountDeploymentV1<'f, F> {
-    pub fn new(salt: Felt, factory: &'f F) -> Self {
+    /// Constructs a new [`AccountDeploymentV1`].
+    ///
+    /// Users would typically use [`deploy_v1`](fn.deploy_v1) on an [`AccountFactory`] instead of
+    /// directly calling this method.
+    pub const fn new(salt: Felt, factory: &'f F) -> Self {
         Self {
             factory,
             salt,
@@ -193,21 +232,26 @@ impl<'f, F> AccountDeploymentV1<'f, F> {
         }
     }
 
-    pub fn nonce(self, nonce: Felt) -> Self {
+    /// Returns a new [`AccountDeploymentV1`] with the `nonce`.
+    pub const fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
             ..self
         }
     }
 
-    pub fn max_fee(self, max_fee: Felt) -> Self {
+    /// Returns a new [`AccountDeploymentV1`] with the `max_fee`.
+    pub const fn max_fee(self, max_fee: Felt) -> Self {
         Self {
             max_fee: Some(max_fee),
             ..self
         }
     }
 
-    pub fn fee_estimate_multiplier(self, fee_estimate_multiplier: f64) -> Self {
+    /// Returns a new [`AccountDeploymentV1`] with the fee estimate multiplier. The multiplier is
+    /// used when transaction fee is not manually specified and must be fetched from a [`Provider`]
+    /// instead.
+    pub const fn fee_estimate_multiplier(self, fee_estimate_multiplier: f64) -> Self {
         Self {
             fee_estimate_multiplier,
             ..self
@@ -215,7 +259,7 @@ impl<'f, F> AccountDeploymentV1<'f, F> {
     }
 
     /// Calling this function after manually specifying `nonce` and `max_fee` turns
-    /// [AccountDeploymentV1] into [PreparedAccountDeploymentV1]. Returns `Err` if either field is
+    /// [`AccountDeploymentV1`] into [`PreparedAccountDeploymentV1`]. Returns `Err` if either field is
     /// `None`.
     pub fn prepared(self) -> Result<PreparedAccountDeploymentV1<'f, F>, NotPreparedError> {
         let nonce = self.nonce.ok_or(NotPreparedError)?;
@@ -233,7 +277,11 @@ impl<'f, F> AccountDeploymentV1<'f, F> {
 }
 
 impl<'f, F> AccountDeploymentV3<'f, F> {
-    pub fn new(salt: Felt, factory: &'f F) -> Self {
+    /// Constructs a new [`AccountDeploymentV3`].
+    ///
+    /// Users would typically use [`deploy_v3`](fn.deploy_v3) on an [`AccountFactory`] instead of
+    /// directly calling this method.
+    pub const fn new(salt: Felt, factory: &'f F) -> Self {
         Self {
             factory,
             salt,
@@ -245,35 +293,44 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
         }
     }
 
-    pub fn nonce(self, nonce: Felt) -> Self {
+    /// Returns a new [`AccountDeploymentV3`] with the `nonce`.
+    pub const fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
             ..self
         }
     }
 
-    pub fn gas(self, gas: u64) -> Self {
+    /// Returns a new [`AccountDeploymentV3`] with the `gas`.
+    pub const fn gas(self, gas: u64) -> Self {
         Self {
             gas: Some(gas),
             ..self
         }
     }
 
-    pub fn gas_price(self, gas_price: u128) -> Self {
+    /// Returns a new [`AccountDeploymentV3`] with the `gas_price`.
+    pub const fn gas_price(self, gas_price: u128) -> Self {
         Self {
             gas_price: Some(gas_price),
             ..self
         }
     }
 
-    pub fn gas_estimate_multiplier(self, gas_estimate_multiplier: f64) -> Self {
+    /// Returns a new [`AccountDeploymentV3`] with the gas amount estimate multiplier.  The
+    /// multiplier is used when the gas amount is not manually specified and must be fetched from a
+    /// [`Provider`] instead.
+    pub const fn gas_estimate_multiplier(self, gas_estimate_multiplier: f64) -> Self {
         Self {
             gas_estimate_multiplier,
             ..self
         }
     }
 
-    pub fn gas_price_estimate_multiplier(self, gas_price_estimate_multiplier: f64) -> Self {
+    /// Returns a new [`AccountDeploymentV3`] with the gas price estimate multiplier.  The
+    /// multiplier is used when the gas price is not manually specified and must be fetched from a
+    /// [`Provider`] instead.
+    pub const fn gas_price_estimate_multiplier(self, gas_price_estimate_multiplier: f64) -> Self {
         Self {
             gas_price_estimate_multiplier,
             ..self
@@ -281,7 +338,7 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
     }
 
     /// Calling this function after manually specifying `nonce` and `max_fee` turns
-    /// [AccountDeploymentV3] into [PreparedAccountDeploymentV3]. Returns `Err` if either field is
+    /// [`AccountDeploymentV3`] into [`PreparedAccountDeploymentV3`]. Returns `Err` if either field is
     /// `None`.
     pub fn prepared(self) -> Result<PreparedAccountDeploymentV3<'f, F>, NotPreparedError> {
         let nonce = self.nonce.ok_or(NotPreparedError)?;
@@ -313,6 +370,8 @@ where
         )
     }
 
+    /// Fetches the next available nonce from a [`Provider`]. In most cases this would be `0` but
+    /// it can also be non-zero if previous reverted deployment attempts exist.
     pub async fn fetch_nonce(&self) -> Result<Felt, ProviderError> {
         match self
             .factory
@@ -326,6 +385,7 @@ where
         }
     }
 
+    /// Estimates transaction fees from a [`Provider`].
     pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountFactoryError<F::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
@@ -339,6 +399,8 @@ where
         self.estimate_fee_with_nonce(nonce).await
     }
 
+    /// Simulates the transaction from a [`Provider`]. Transaction validation and fee transfer can
+    /// be skipped.
     pub async fn simulate(
         &self,
         skip_validate: bool,
@@ -357,6 +419,7 @@ where
             .await
     }
 
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(
         &self,
     ) -> Result<DeployAccountTransactionResult, AccountFactoryError<F::SignError>> {
@@ -413,6 +476,8 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountFactoryError<F::SignError>> {
+        let skip_signature = self.factory.is_signer_interactive();
+
         let prepared = PreparedAccountDeploymentV1 {
             factory: self.factory,
             inner: RawAccountDeploymentV1 {
@@ -422,7 +487,7 @@ where
             },
         };
         let deploy = prepared
-            .get_deploy_request(true)
+            .get_deploy_request(true, skip_signature)
             .await
             .map_err(AccountFactoryError::Signing)?;
 
@@ -432,7 +497,13 @@ where
                 BroadcastedTransaction::DeployAccount(BroadcastedDeployAccountTransaction::V1(
                     deploy,
                 )),
-                [],
+                if skip_signature {
+                    // Validation would fail since real signature was not requested
+                    vec![SimulationFlagForEstimateFee::SkipValidate]
+                } else {
+                    // With the correct signature in place, run validation for accurate results
+                    vec![]
+                },
                 self.factory.block_id(),
             )
             .await
@@ -445,6 +516,16 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountFactoryError<F::SignError>> {
+        let skip_signature = if self.factory.is_signer_interactive() {
+            // If signer is interactive, we would try to minimize signing requests. However, if the
+            // caller has decided to not skip validation, it's best we still request a real
+            // signature, as otherwise the simulation would most likely fail.
+            skip_validate
+        } else {
+            // Signing with non-interactive signers is cheap so always request signatures.
+            false
+        };
+
         let prepared = PreparedAccountDeploymentV1 {
             factory: self.factory,
             inner: RawAccountDeploymentV1 {
@@ -454,7 +535,7 @@ where
             },
         };
         let deploy = prepared
-            .get_deploy_request(true)
+            .get_deploy_request(true, skip_signature)
             .await
             .map_err(AccountFactoryError::Signing)?;
 
@@ -494,6 +575,8 @@ where
         )
     }
 
+    /// Fetches the next available nonce from a [`Provider`]. In most cases this would be `0` but
+    /// it can also be non-zero if previous reverted deployment attempts exist.
     pub async fn fetch_nonce(&self) -> Result<Felt, ProviderError> {
         match self
             .factory
@@ -507,6 +590,7 @@ where
         }
     }
 
+    /// Estimates transaction fees from a [`Provider`].
     pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountFactoryError<F::SignError>> {
         // Resolves nonce
         let nonce = match self.nonce {
@@ -520,6 +604,8 @@ where
         self.estimate_fee_with_nonce(nonce).await
     }
 
+    /// Simulates the transaction from a [`Provider`]. Transaction validation and fee transfer can
+    /// be skipped.
     pub async fn simulate(
         &self,
         skip_validate: bool,
@@ -538,6 +624,7 @@ where
             .await
     }
 
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(
         &self,
     ) -> Result<DeployAccountTransactionResult, AccountFactoryError<F::SignError>> {
@@ -607,8 +694,8 @@ where
                         let gas_price =
                             u64::from_le_bytes(gas_price_bytes[..8].try_into().unwrap());
 
-                        ((((overall_fee + gas_price - 1) / gas_price) as f64)
-                            * self.gas_estimate_multiplier) as u64
+                        ((overall_fee.div_ceil(gas_price) as f64) * self.gas_estimate_multiplier)
+                            as u64
                     }
                 };
 
@@ -645,6 +732,8 @@ where
         &self,
         nonce: Felt,
     ) -> Result<FeeEstimate, AccountFactoryError<F::SignError>> {
+        let skip_signature = self.factory.is_signer_interactive();
+
         let prepared = PreparedAccountDeploymentV3 {
             factory: self.factory,
             inner: RawAccountDeploymentV3 {
@@ -655,7 +744,7 @@ where
             },
         };
         let deploy = prepared
-            .get_deploy_request(true)
+            .get_deploy_request(true, skip_signature)
             .await
             .map_err(AccountFactoryError::Signing)?;
 
@@ -665,7 +754,13 @@ where
                 BroadcastedTransaction::DeployAccount(BroadcastedDeployAccountTransaction::V3(
                     deploy,
                 )),
-                [],
+                if skip_signature {
+                    // Validation would fail since real signature was not requested
+                    vec![SimulationFlagForEstimateFee::SkipValidate]
+                } else {
+                    // With the correct signature in place, run validation for accurate results
+                    vec![]
+                },
                 self.factory.block_id(),
             )
             .await
@@ -678,6 +773,16 @@ where
         skip_validate: bool,
         skip_fee_charge: bool,
     ) -> Result<SimulatedTransaction, AccountFactoryError<F::SignError>> {
+        let skip_signature = if self.factory.is_signer_interactive() {
+            // If signer is interactive, we would try to minimize signing requests. However, if the
+            // caller has decided to not skip validation, it's best we still request a real
+            // signature, as otherwise the simulation would most likely fail.
+            skip_validate
+        } else {
+            // Signing with non-interactive signers is cheap so always request signatures.
+            false
+        };
+
         let prepared = PreparedAccountDeploymentV3 {
             factory: self.factory,
             inner: RawAccountDeploymentV3 {
@@ -688,7 +793,7 @@ where
             },
         };
         let deploy = prepared
-            .get_deploy_request(true)
+            .get_deploy_request(true, skip_signature)
             .await
             .map_err(AccountFactoryError::Signing)?;
 
@@ -716,39 +821,48 @@ where
 }
 
 impl RawAccountDeploymentV1 {
-    pub fn salt(&self) -> Felt {
+    /// Gets the `salt` of the deployment request.
+    pub const fn salt(&self) -> Felt {
         self.salt
     }
 
-    pub fn nonce(&self) -> Felt {
+    /// Gets the `nonce` of the deployment request.
+    pub const fn nonce(&self) -> Felt {
         self.nonce
     }
 
-    pub fn max_fee(&self) -> Felt {
+    /// Gets the `max_fee` of the deployment request.
+    pub const fn max_fee(&self) -> Felt {
         self.max_fee
     }
 }
 
 impl RawAccountDeploymentV3 {
-    pub fn salt(&self) -> Felt {
+    /// Gets the `salt` of the deployment request.
+    pub const fn salt(&self) -> Felt {
         self.salt
     }
 
-    pub fn nonce(&self) -> Felt {
+    /// Gets the `nonce` of the deployment request.
+    pub const fn nonce(&self) -> Felt {
         self.nonce
     }
 
-    pub fn gas(&self) -> u64 {
+    /// Gets the `gas` of the deployment request.
+    pub const fn gas(&self) -> u64 {
         self.gas
     }
 
-    pub fn gas_price(&self) -> u128 {
+    /// Gets the `gas_price` of the deployment request.
+    pub const fn gas_price(&self) -> u128 {
         self.gas_price
     }
 }
 
 impl<'f, F> PreparedAccountDeploymentV1<'f, F> {
-    pub fn from_raw(raw_deployment: RawAccountDeploymentV1, factory: &'f F) -> Self {
+    /// Constructs [`PreparedAccountDeploymentV1`] by attaching a factory to
+    /// [`RawAccountDeploymentV1`].
+    pub const fn from_raw(raw_deployment: RawAccountDeploymentV1, factory: &'f F) -> Self {
         Self {
             factory,
             inner: raw_deployment,
@@ -757,7 +871,9 @@ impl<'f, F> PreparedAccountDeploymentV1<'f, F> {
 }
 
 impl<'f, F> PreparedAccountDeploymentV3<'f, F> {
-    pub fn from_raw(raw_deployment: RawAccountDeploymentV3, factory: &'f F) -> Self {
+    /// Constructs [`PreparedAccountDeploymentV3`] by attaching a factory to
+    /// [`RawAccountDeploymentV3`].
+    pub const fn from_raw(raw_deployment: RawAccountDeploymentV3, factory: &'f F) -> Self {
         Self {
             factory,
             inner: raw_deployment,
@@ -765,7 +881,7 @@ impl<'f, F> PreparedAccountDeploymentV3<'f, F> {
     }
 }
 
-impl<'f, F> PreparedAccountDeploymentV1<'f, F>
+impl<F> PreparedAccountDeploymentV1<'_, F>
 where
     F: AccountFactory,
 {
@@ -778,6 +894,7 @@ where
         )
     }
 
+    /// Calculates transaction hash given `query_only`.
     pub fn transaction_hash(&self, query_only: bool) -> Felt {
         let mut calldata_to_hash = vec![self.factory.class_hash(), self.inner.salt];
         calldata_to_hash.append(&mut self.factory.calldata());
@@ -798,11 +915,12 @@ where
         ])
     }
 
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(
         &self,
     ) -> Result<DeployAccountTransactionResult, AccountFactoryError<F::SignError>> {
         let tx_request = self
-            .get_deploy_request(false)
+            .get_deploy_request(false, false)
             .await
             .map_err(AccountFactoryError::Signing)?;
         self.factory
@@ -815,15 +933,17 @@ where
     async fn get_deploy_request(
         &self,
         query_only: bool,
+        skip_signature: bool,
     ) -> Result<BroadcastedDeployAccountTransactionV1, F::SignError> {
-        let signature = self
-            .factory
-            .sign_deployment_v1(&self.inner, query_only)
-            .await?;
-
         Ok(BroadcastedDeployAccountTransactionV1 {
             max_fee: self.inner.max_fee,
-            signature,
+            signature: if skip_signature {
+                vec![]
+            } else {
+                self.factory
+                    .sign_deployment_v1(&self.inner, query_only)
+                    .await?
+            },
             nonce: self.inner.nonce,
             contract_address_salt: self.inner.salt,
             constructor_calldata: self.factory.calldata(),
@@ -833,7 +953,7 @@ where
     }
 }
 
-impl<'f, F> PreparedAccountDeploymentV3<'f, F>
+impl<F> PreparedAccountDeploymentV3<'_, F>
 where
     F: AccountFactory,
 {
@@ -846,6 +966,7 @@ where
         )
     }
 
+    /// Calculates transaction hash given `query_only`.
     pub fn transaction_hash(&self, query_only: bool) -> Felt {
         let mut hasher = PoseidonHasher::new();
 
@@ -907,11 +1028,12 @@ where
         hasher.finalize()
     }
 
+    /// Signs and broadcasts the transaction to the network.
     pub async fn send(
         &self,
     ) -> Result<DeployAccountTransactionResult, AccountFactoryError<F::SignError>> {
         let tx_request = self
-            .get_deploy_request(false)
+            .get_deploy_request(false, false)
             .await
             .map_err(AccountFactoryError::Signing)?;
         self.factory
@@ -924,14 +1046,16 @@ where
     async fn get_deploy_request(
         &self,
         query_only: bool,
+        skip_signature: bool,
     ) -> Result<BroadcastedDeployAccountTransactionV3, F::SignError> {
-        let signature = self
-            .factory
-            .sign_deployment_v3(&self.inner, query_only)
-            .await?;
-
         Ok(BroadcastedDeployAccountTransactionV3 {
-            signature,
+            signature: if skip_signature {
+                vec![]
+            } else {
+                self.factory
+                    .sign_deployment_v3(&self.inner, query_only)
+                    .await?
+            },
             nonce: self.inner.nonce,
             contract_address_salt: self.inner.salt,
             constructor_calldata: self.factory.calldata(),

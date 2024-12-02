@@ -1,8 +1,8 @@
 use starknet::{
-    accounts::{Account, Call, ExecutionEncoding, SingleOwnerAccount},
+    accounts::{Account, ExecutionEncoding, SingleOwnerAccount},
     core::{
         chain_id,
-        types::{BlockId, BlockTag, Felt},
+        types::{BlockId, BlockTag, Call, Felt},
         utils::get_selector_from_name,
     },
     providers::{
@@ -51,5 +51,5 @@ async fn main() {
         .await
         .unwrap();
 
-    dbg!(result);
+    println!("Transaction hash: {:#064x}", result.transaction_hash);
 }

@@ -1,4 +1,4 @@
-use crate::{Infallible, Signer, SigningKey, VerifyingKey};
+use crate::{Infallible, Signer, SignerInteractivityContext, SigningKey, VerifyingKey};
 
 use async_trait::async_trait;
 use starknet_core::{
@@ -6,18 +6,23 @@ use starknet_core::{
     types::Felt,
 };
 
+/// A signer that simply holds the signing (private) key in memory for performing cryptographic
+/// operations. It's recommended to use hardware-based signers for use cases involving real value.
 #[derive(Debug, Clone)]
 pub struct LocalWallet {
     private_key: SigningKey,
 }
 
+/// Errors using [`LocalWallet`].
 #[derive(Debug, thiserror::Error)]
 pub enum SignError {
+    /// ECDSA signature error.
     #[error(transparent)]
     EcdsaSignError(EcdsaSignError),
 }
 
 impl LocalWallet {
+    /// Constructs [`LocalWallet`] from a [`SigningKey`].
     pub fn from_signing_key(key: SigningKey) -> Self {
         key.into()
     }
@@ -35,6 +40,10 @@ impl Signer for LocalWallet {
 
     async fn sign_hash(&self, hash: &Felt) -> Result<Signature, Self::SignError> {
         Ok(self.private_key.sign(hash)?)
+    }
+
+    fn is_interactive(&self, _context: SignerInteractivityContext<'_>) -> bool {
+        false
     }
 }
 

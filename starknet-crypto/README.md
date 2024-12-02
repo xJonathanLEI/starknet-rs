@@ -1,6 +1,14 @@
 # Low-level cryptography utilities for Starknet
 
-`starknet-crypto` contains utilities for performing **low-level** cryptographic operations in Starknet.
+`starknet-crypto` contains utilities for performing **low-level** cryptographic operations in Starknet:
+
+- ECDSA operations
+  - Signing hashes
+  - Verifying signatures
+  - Recovering public keys from signatures
+- Pedersen hash
+- Poseidon hash
+- RFC-6979
 
 > _You're advised to use high-level crypto utilities implemented by the `starknet-core` crate (or use it through the `starknet::core` re-export) if you're not familiar with cryptographic primitives. Using these low-level functions incorrectly could result in leaking your private key, for example._
 
@@ -56,6 +64,14 @@ poseidon_hash_single    time:   [20.790 µs 20.813 µs 20.837 µs]
 poseidon_hash_many      time:   [41.878 µs 41.911 µs 41.945 µs]
 rfc6979_generate_k      time:   [11.564 µs 11.566 µs 11.569 µs]
 ```
+
+## Binary size optimization
+
+By default, `starknet-crypto` ships with a Pedersen hash implementation utilizing a lookup table for better performance. To optimize for binary size over performance, the crate offers a `pedersen_no_lookup` feature, which uses a vanilla unoptimized implementation instead.
+
+> [!WARNING]
+>
+> Enabling the `pedersen_no_lookup` feature significantly slows down hashing performance by approximately a factor of `10`. Make sure you understand the impact on your use case before turning it on.
 
 ## Credits
 

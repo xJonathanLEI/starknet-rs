@@ -1,5 +1,6 @@
 use starknet_core::{
     types::{
+        requests::{CallRequest, GetBlockTransactionCountRequest},
         BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1,
         BroadcastedTransaction, ContractClass, DeclareTransaction, DeployAccountTransaction,
         EthAddress, EventFilter, ExecuteInvocation, ExecutionResult, Felt, FunctionCall,
@@ -12,13 +13,13 @@ use starknet_core::{
 };
 use starknet_providers::{
     jsonrpc::{HttpTransport, JsonRpcClient},
-    Provider, ProviderError,
+    Provider, ProviderError, ProviderRequestData, ProviderResponseData,
 };
 use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     let rpc_url = std::env::var("STARKNET_RPC")
-        .unwrap_or("https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_7".into());
+        .unwrap_or_else(|_| "https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_7".into());
     JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()))
 }
 
@@ -870,6 +871,48 @@ async fn jsonrpc_trace_deploy_account() {
     match trace {
         TransactionTrace::DeployAccount(_) => {}
         _ => panic!("unexpected trace type"),
+    }
+}
+
+#[tokio::test]
+async fn jsonrpc_batch() {
+    let rpc_client = create_jsonrpc_client();
+
+    let responses = rpc_client
+        .batch_requests([
+            ProviderRequestData::GetBlockTransactionCount(GetBlockTransactionCountRequest {
+                block_id: BlockId::Number(20_000),
+            }),
+            ProviderRequestData::Call(CallRequest {
+                request: FunctionCall {
+                    contract_address: Felt::from_hex(
+                        "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+                    )
+                    .unwrap(),
+                    entry_point_selector: get_selector_from_name("balanceOf").unwrap(),
+                    calldata: vec![Felt::from_hex(
+                        "03f47d3911396b6d579fd7848cf576286ab6f96dda977915d6c7b10f3dd2315b",
+                    )
+                    .unwrap()],
+                },
+                block_id: BlockId::Tag(BlockTag::Latest),
+            }),
+        ])
+        .await
+        .unwrap();
+
+    match &responses[0] {
+        ProviderResponseData::GetBlockTransactionCount(count) => {
+            assert_eq!(*count, 6);
+        }
+        _ => panic!("unexpected response type"),
+    }
+
+    match &responses[1] {
+        ProviderResponseData::Call(eth_balance) => {
+            assert!(eth_balance[0] > Felt::ZERO);
+        }
+        _ => panic!("unexpected response type"),
     }
 }
 

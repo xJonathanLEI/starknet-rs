@@ -9,11 +9,11 @@ const EC_ORDER: U256 =
 
 /// Deterministically generate ephemeral scalar `k` based on RFC 6979.
 ///
-/// ### Arguments
+/// ### Parameters
 ///
-/// * `message_hash`: message hash
-/// * `private_key`: private key
-/// * `seed`: extra seed for additional entropy
+/// - `message_hash`: Message hash.
+/// - `private_key`: Private key.
+/// - `seed`: Extra seed for additional entropy.
 pub fn generate_k(message_hash: &Felt, private_key: &Felt, seed: Option<&Felt>) -> Felt {
     // The message hash padding as implemented in `cairo-lang` is not needed here. The hash is
     // padded in `cairo-lang` only to make sure the lowest 4 bits won't get truncated, but here it's
@@ -104,9 +104,9 @@ mod tests {
     }
 
     fn test_generate_k_from_json_str(json_str: &'static str) {
-        let test_vectors: Vec<Rfc6979TestVecotr> = serde_json::from_str(json_str).unwrap();
+        let test_vectors: Vec<Rfc6979TestVecotr<'_>> = serde_json::from_str(json_str).unwrap();
 
-        for test_vector in test_vectors.iter() {
+        for test_vector in &test_vectors {
             let msg_hash = field_element_from_be_hex(test_vector.msg_hash);
             let priv_key = field_element_from_be_hex(test_vector.priv_key);
             let seed = field_element_from_be_hex(test_vector.seed);

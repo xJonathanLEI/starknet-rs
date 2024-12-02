@@ -27,5 +27,10 @@ benches=(
 )
 
 for bench in ${benches[@]}; do
-  $RUNTIME run --dir=. $REPO_ROOT/target/bench-wasm/$bench.wasm -- --bench
+  if [[ "$RUNTIME" == "wasmtime" ]]; then
+    # https://github.com/bytecodealliance/wasmtime/issues/7384
+    $RUNTIME run --dir=. -- $REPO_ROOT/target/bench-wasm/$bench.wasm --bench
+  else
+    $RUNTIME run --dir=. $REPO_ROOT/target/bench-wasm/$bench.wasm -- --bench
+  fi
 done

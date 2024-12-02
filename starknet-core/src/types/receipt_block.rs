@@ -4,47 +4,59 @@ use serde_with::serde_as;
 use crate::serde::unsigned_field_element::UfeHex;
 use starknet_types_core::felt::Felt;
 
-/// A more idiomatic way to access `execution_status` and `revert_reason`.
+/// Block identifier used in
+/// [`TransactionReceiptWithBlockInfo`](super::TransactionReceiptWithBlockInfo).
+///
+/// Instead of directly exposing the `block_hash` and `block_number` fields as [`Option<Felt>`],
+/// this struct captures the fact that these fields are always [`Some`](Option::Some) or
+/// [`None`](Option::None) toggether, allowing idiomatic access without unnecessary unwraps.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReceiptBlock {
+    /// The receipt is attached to a pending block.
     Pending,
-    Block { block_hash: Felt, block_number: u64 },
+    /// The receipt is attached to a confirmed, non-pending block.
+    Block {
+        /// Block hash.
+        block_hash: Felt,
+        /// Block number (height).
+        block_number: u64,
+    },
 }
 
 impl ReceiptBlock {
     /// Returns `true` if and only if it's the `Pending` variant.
-    pub fn is_pending(&self) -> bool {
+    pub const fn is_pending(&self) -> bool {
         match self {
-            ReceiptBlock::Pending => true,
-            ReceiptBlock::Block { .. } => false,
+            Self::Pending => true,
+            Self::Block { .. } => false,
         }
     }
 
     /// Returns `true` if and only if it's the `Block` variant.
-    pub fn is_block(&self) -> bool {
+    pub const fn is_block(&self) -> bool {
         match self {
-            ReceiptBlock::Pending => false,
-            ReceiptBlock::Block { .. } => true,
+            Self::Pending => false,
+            Self::Block { .. } => true,
         }
     }
 
     /// Returns `None` if block is not `Block`.
     ///
     /// A more idiomatic way of accessing the block hash is to match the `Block` enum variant.
-    pub fn block_hash(&self) -> Option<Felt> {
+    pub const fn block_hash(&self) -> Option<Felt> {
         match self {
-            ReceiptBlock::Pending => None,
-            ReceiptBlock::Block { block_hash, .. } => Some(*block_hash),
+            Self::Pending => None,
+            Self::Block { block_hash, .. } => Some(*block_hash),
         }
     }
 
     /// Returns `None` if block is not `Block`.
     ///
     /// A more idiomatic way of accessing the block number is to match the `Block` enum variant.
-    pub fn block_number(&self) -> Option<u64> {
+    pub const fn block_number(&self) -> Option<u64> {
         match self {
-            ReceiptBlock::Pending => None,
-            ReceiptBlock::Block { block_number, .. } => Some(*block_number),
+            Self::Pending => None,
+            Self::Block { block_number, .. } => Some(*block_number),
         }
     }
 }
