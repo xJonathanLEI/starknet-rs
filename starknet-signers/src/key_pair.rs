@@ -19,7 +19,7 @@ pub struct VerifyingKey {
 }
 
 /// Errors using an encrypted JSON keystore.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 #[derive(Debug, thiserror::Error)]
 pub enum KeystoreError {
     /// The file path is invalid.
@@ -59,7 +59,7 @@ impl SigningKey {
     }
 
     /// Loads the private key from a Web3 Secret Storage Definition keystore.
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
     pub fn from_keystore<P>(path: P, password: &str) -> Result<Self, KeystoreError>
     where
         P: AsRef<std::path::Path>,
@@ -70,7 +70,7 @@ impl SigningKey {
     }
 
     /// Encrypts and saves the private key to a Web3 Secret Storage Definition JSON file.
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
     pub fn save_as_keystore<P>(&self, path: P, password: &str) -> Result<(), KeystoreError>
     where
         P: AsRef<std::path::Path>,
