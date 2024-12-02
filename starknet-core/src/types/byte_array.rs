@@ -107,13 +107,13 @@ impl TryFrom<ByteArray> for String {
 
 impl From<String> for ByteArray {
     fn from(value: String) -> Self {
-        ByteArray::from_string(&value)
+        Self::from_string(&value)
     }
 }
 
 impl From<&str> for ByteArray {
     fn from(value: &str) -> Self {
-        ByteArray::from_string(value)
+        Self::from_string(value)
     }
 }
 

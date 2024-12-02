@@ -52,7 +52,7 @@ impl Bytes31 {
 
         // Bytes31 always enforce to have the first byte equal to 0 in the felt.
         // That's why we start to 1.
-        for byte in self.0.to_bytes_be()[1 + MAX_BYTES_COUNT - len..].iter() {
+        for byte in &self.0.to_bytes_be()[1 + MAX_BYTES_COUNT - len..] {
             buffer.push(*byte)
         }
 
