@@ -1,5 +1,5 @@
 //! Support for [`String`] compatibility with Cairo `ByteArray`.
-//! [https://github.com/starkware-libs/cairo/blob/f3af4cb8dbe9acecaf71cfbc604df3d1e41fe45a/corelib/src/byte_array.cairo].
+//! <https://github.com/starkware-libs/cairo/blob/0b86ece404b0922b76caca5d07a94ed41407f174/corelib/src/byte_array.cairo>.
 //!
 //! The basic concept of this `ByteArray` is relying on a string being
 //! represented as an array of bytes packed by 31 bytes ([`Bytes31`]) in a [`Felt`].
@@ -16,10 +16,18 @@ use crate::types::{Bytes31, Felt};
 
 const MAX_WORD_LEN: usize = 31;
 
+/// A struct representing a Cairo `ByteArray`.
 #[derive(Debug, Clone, Eq, PartialEq, Default)]
 pub struct ByteArray {
+    /// An array of full "words" of 31 bytes each.
+    /// The first byte of each word in the byte array is the most significant byte in the word.
     pub data: Vec<Bytes31>,
+    /// A `felt252` that actually represents a `bytes31`, with less than 31 bytes.
+    /// It is represented as a `felt252` to improve performance of building the byte array.
+    /// The first byte is the most significant byte among the `pending_word_len` bytes in the word.
     pub pending_word: Bytes31,
+    /// The number of bytes in `pending_word`.
+    /// Its value should be in the range [0, 30].
     pub pending_word_len: usize,
 }
 

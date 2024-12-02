@@ -1,5 +1,5 @@
 //! Support for `Bytes31` Cairo primitive.
-//! [https://github.com/starkware-libs/cairo/blob/main/corelib/src/bytes_31.cairo].
+//! <https://github.com/starkware-libs/cairo/blob/main/corelib/src/bytes_31.cairo>.
 //!
 //! This type is mostly used internally for [`crate::types::ByteArray`] internal logic.
 use alloc::{
@@ -59,6 +59,7 @@ impl Bytes31 {
         String::from_utf8(buffer)
     }
 
+    /// Converts a hex string to a [`Bytes31`].
     pub fn from_hex(hex: &str) -> Result<Self, FromStrError> {
         Ok(Self(Felt::from_hex(hex)?))
     }
