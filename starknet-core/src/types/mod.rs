@@ -59,6 +59,12 @@ pub use execution_result::ExecutionResult;
 mod receipt_block;
 pub use receipt_block::ReceiptBlock;
 
+mod bytes_31;
+pub use bytes_31::Bytes31;
+
+mod byte_array;
+pub use byte_array::ByteArray;
+
 mod msg;
 pub use msg::MsgToL2;
 
