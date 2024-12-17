@@ -65,6 +65,9 @@ pub use msg::MsgToL2;
 mod call;
 pub use call::Call;
 
+mod byte_array;
+pub use byte_array::ByteArray;
+
 // TODO: move generated request code to `starknet-providers`
 /// Module containing JSON-RPC request types.
 pub mod requests;
