@@ -87,7 +87,7 @@ where
     fn calldata(&self) -> Vec<Felt> {
         let mut calldata = vec![];
 
-        // Encoding this sturct never fails
+        // Encoding this struct never fails
         ArgentAccountConstructorParams {
             owner: ArgentSigner::Starknet(self.owner_public_key),
             guardian: self.guardian_public_key.map(ArgentSigner::Starknet),
