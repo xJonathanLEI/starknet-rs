@@ -33,7 +33,7 @@ mod test_utils;
 
 pub use starknet_types_core::felt::Felt;
 
-pub use pedersen_hash::pedersen_hash;
+pub use pedersen_hash::{pedersen_hash, PedersenHasher};
 
 pub use poseidon_hash::{
     poseidon_hash, poseidon_hash_many, poseidon_hash_single, poseidon_permute_comp, PoseidonHasher,
