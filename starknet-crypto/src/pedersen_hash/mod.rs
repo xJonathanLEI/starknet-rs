@@ -1,3 +1,5 @@
+use starknet_types_core::felt::Felt;
+
 #[cfg(not(feature = "pedersen_no_lookup"))]
 mod default;
 #[cfg(not(feature = "pedersen_no_lookup"))]
@@ -7,6 +9,31 @@ pub use default::pedersen_hash;
 mod no_lookup;
 #[cfg(feature = "pedersen_no_lookup")]
 pub use no_lookup::pedersen_hash;
+
+/// A stateful hasher for Starknet Pedersen hash.
+#[derive(Debug, Default)]
+pub struct PedersenHasher {
+    hash: Felt,
+    len: usize,
+}
+
+impl PedersenHasher {
+    /// Creates a new [`PedersenHasher`].
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Absorbs message into the hash.
+    pub fn update(&mut self, msg: Felt) {
+        self.hash = pedersen_hash(&self.hash, &msg);
+        self.len += 1;
+    }
+
+    /// Finishes and returns hash.
+    pub fn finalize(&self) -> Felt {
+        pedersen_hash(&self.hash, &self.len.into())
+    }
+}
 
 #[cfg(test)]
 mod tests {
