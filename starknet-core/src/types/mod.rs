@@ -11,6 +11,10 @@ mod conversions;
 
 mod serde_impls;
 
+/// SNIP-12 typed data.
+pub mod typed_data;
+pub use typed_data::TypedData;
+
 // TODO: better namespacing of exports?
 mod codegen;
 pub use codegen::{
