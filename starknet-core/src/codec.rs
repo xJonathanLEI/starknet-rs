@@ -1,5 +1,6 @@
 use alloc::{boxed::Box, fmt::Formatter, format, string::*, vec::*};
 use core::{fmt::Display, mem::MaybeUninit};
+use starknet_crypto::{PedersenHasher, PoseidonHasher};
 
 use num_traits::ToPrimitive;
 
@@ -117,9 +118,28 @@ pub struct Error {
     repr: Box<str>,
 }
 
+// This implementation is useful for encoding single-felt types.
+impl FeltWriter for Felt {
+    fn write(&mut self, felt: Felt) {
+        *self = felt;
+    }
+}
+
 impl FeltWriter for Vec<Felt> {
     fn write(&mut self, felt: Felt) {
         self.push(felt);
+    }
+}
+
+impl FeltWriter for PedersenHasher {
+    fn write(&mut self, felt: Felt) {
+        self.update(felt);
+    }
+}
+
+impl FeltWriter for PoseidonHasher {
+    fn write(&mut self, felt: Felt) {
+        self.update(felt);
     }
 }
 
