@@ -7,6 +7,11 @@ use crate::types::{Felt, U256};
 
 pub use starknet_core_derive::{Decode, Encode};
 
+const I128_MIN: Felt =
+    Felt::from_hex_unchecked("0x0800000000000010ffffffffffffffff80000000000000000000000000000001");
+const I128_MAX: Felt =
+    Felt::from_hex_unchecked("0x000000000000000000000000000000007fffffffffffffffffffffffffffffff");
+
 /// Any type where [`Felt`]s can be written into. This would typically be [`Vec<Felt>`], but can
 /// also be something like a stateful hasher.
 ///
@@ -171,6 +176,13 @@ impl Encode for U256 {
     fn encode<W: FeltWriter>(&self, writer: &mut W) -> Result<(), Error> {
         self.low().encode(writer)?;
         self.high().encode(writer)?;
+        Ok(())
+    }
+}
+
+impl Encode for i128 {
+    fn encode<W: FeltWriter>(&self, writer: &mut W) -> Result<(), Error> {
+        writer.write((*self).into());
         Ok(())
     }
 }
@@ -340,6 +352,25 @@ impl<'a> Decode<'a> for U256 {
             .ok_or_else(|| Error::value_out_of_range(input_high, "u128"))?;
 
         Ok(Self::from_words(input_low, input_high))
+    }
+}
+
+impl<'a> Decode<'a> for i128 {
+    fn decode_iter<T>(iter: &mut T) -> Result<Self, Error>
+    where
+        T: Iterator<Item = &'a Felt>,
+    {
+        let input = iter.next().ok_or_else(Error::input_exhausted)?;
+
+        if input <= &I128_MAX {
+            // Range checked. Safe to unwrap.
+            Ok(input.to_i128().unwrap())
+        } else if input >= &I128_MIN {
+            // Range checked. Safe to unwrap.
+            Ok(Self::MIN + (input - I128_MIN).to_i128().unwrap())
+        } else {
+            Err(Error::value_out_of_range(input, "i128"))
+        }
     }
 }
 
@@ -551,6 +582,71 @@ mod tests {
             serialized,
             vec![Felt::from_str("123456789000000000000000000000").unwrap()]
         );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_encode_i128() {
+        for (raw, felt) in [
+            (
+                0i128,
+                Felt::from_hex_unchecked(
+                    "0x0000000000000000000000000000000000000000000000000000000000000000",
+                ),
+            ),
+            (
+                -1i128,
+                Felt::from_hex_unchecked(
+                    "0x0800000000000011000000000000000000000000000000000000000000000000",
+                ),
+            ),
+            (
+                1i128,
+                Felt::from_hex_unchecked(
+                    "0x0000000000000000000000000000000000000000000000000000000000000001",
+                ),
+            ),
+            (
+                10000i128,
+                Felt::from_hex_unchecked(
+                    "0x0000000000000000000000000000000000000000000000000000000000002710",
+                ),
+            ),
+            (
+                -10000i128,
+                Felt::from_hex_unchecked(
+                    "0x0800000000000010ffffffffffffffffffffffffffffffffffffffffffffd8f1",
+                ),
+            ),
+            (
+                i128::MIN,
+                Felt::from_hex_unchecked(
+                    "0x0800000000000010ffffffffffffffff80000000000000000000000000000001",
+                ),
+            ),
+            (
+                i128::MIN + 1,
+                Felt::from_hex_unchecked(
+                    "0x0800000000000010ffffffffffffffff80000000000000000000000000000002",
+                ),
+            ),
+            (
+                i128::MAX,
+                Felt::from_hex_unchecked(
+                    "0x000000000000000000000000000000007fffffffffffffffffffffffffffffff",
+                ),
+            ),
+            (
+                i128::MAX - 1,
+                Felt::from_hex_unchecked(
+                    "0x000000000000000000000000000000007ffffffffffffffffffffffffffffffe",
+                ),
+            ),
+        ] {
+            let mut serialized = Vec::<Felt>::new();
+            raw.encode(&mut serialized).unwrap();
+            assert_eq!(serialized, vec![felt]);
+        }
     }
 
     #[test]
@@ -815,6 +911,69 @@ mod tests {
             123456789000000000000000000000u128,
             u128::decode(&[Felt::from_str("123456789000000000000000000000").unwrap()]).unwrap()
         );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_decode_i128() {
+        for (raw, felt) in [
+            (
+                0i128,
+                Felt::from_hex_unchecked(
+                    "0x0000000000000000000000000000000000000000000000000000000000000000",
+                ),
+            ),
+            (
+                -1i128,
+                Felt::from_hex_unchecked(
+                    "0x0800000000000011000000000000000000000000000000000000000000000000",
+                ),
+            ),
+            (
+                1i128,
+                Felt::from_hex_unchecked(
+                    "0x0000000000000000000000000000000000000000000000000000000000000001",
+                ),
+            ),
+            (
+                10000i128,
+                Felt::from_hex_unchecked(
+                    "0x0000000000000000000000000000000000000000000000000000000000002710",
+                ),
+            ),
+            (
+                -10000i128,
+                Felt::from_hex_unchecked(
+                    "0x0800000000000010ffffffffffffffffffffffffffffffffffffffffffffd8f1",
+                ),
+            ),
+            (
+                i128::MIN,
+                Felt::from_hex_unchecked(
+                    "0x0800000000000010ffffffffffffffff80000000000000000000000000000001",
+                ),
+            ),
+            (
+                i128::MIN + 1,
+                Felt::from_hex_unchecked(
+                    "0x0800000000000010ffffffffffffffff80000000000000000000000000000002",
+                ),
+            ),
+            (
+                i128::MAX,
+                Felt::from_hex_unchecked(
+                    "0x000000000000000000000000000000007fffffffffffffffffffffffffffffff",
+                ),
+            ),
+            (
+                i128::MAX - 1,
+                Felt::from_hex_unchecked(
+                    "0x000000000000000000000000000000007ffffffffffffffffffffffffffffffe",
+                ),
+            ),
+        ] {
+            assert_eq!(raw, i128::decode(&[felt]).unwrap());
+        }
     }
 
     #[test]
