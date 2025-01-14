@@ -117,6 +117,7 @@ pub trait AccountFactory: Sized {
 
     /// Generates an instance of [`AccountDeploymentV1`] for sending `DEPLOY_ACCOUNT` v1
     /// transactions. Pays transaction fees in `ETH`.
+    #[deprecated = "pre-v3 transactions are deprecated and will be disabled on Starknet soon; use `deploy_v3` instead"]
     fn deploy_v1(&self, salt: Felt) -> AccountDeploymentV1<'_, Self> {
         AccountDeploymentV1::new(salt, self)
     }
@@ -129,8 +130,9 @@ pub trait AccountFactory: Sized {
 
     /// Generates an instance of [`AccountDeploymentV1`] for sending `DEPLOY_ACCOUNT` v1
     /// transactions. Pays transaction fees in `ETH`.
-    #[deprecated = "use version specific variants (`deploy_v1` & `deploy_v3`) instead"]
+    #[deprecated = "pre-v3 transactions are deprecated and will be disabled on Starknet soon; use `deploy_v3` instead"]
     fn deploy(&self, salt: Felt) -> AccountDeploymentV1<'_, Self> {
+        #[allow(deprecated)]
         self.deploy_v1(salt)
     }
 }

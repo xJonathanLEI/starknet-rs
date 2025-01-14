@@ -14,6 +14,7 @@ const CHAIN_ID: Felt = Felt::from_raw([
     1555806712078248243,
 ]);
 
+#[allow(deprecated)]
 #[tokio::test]
 async fn can_deploy_contract_to_alpha_sepolia_with_invoke_v1() {
     let rpc_url = std::env::var("STARKNET_RPC")

@@ -88,6 +88,7 @@ where
 {
     /// Generates an instance of [`DeploymentV1`] for sending `INVOKE` v1 transactions for the
     /// contract deployment. Pays transaction fees in `ETH`.
+    #[deprecated = "pre-v3 transactions are deprecated and will be disabled on Starknet soon; use `deploy_v3` instead"]
     pub const fn deploy_v1(
         &self,
         constructor_calldata: Vec<Felt>,
@@ -128,13 +129,14 @@ where
 
     /// Generates an instance of [`DeploymentV1`] for sending `INVOKE` v1 transactions for the
     /// contract deployment. Pays transaction fees in `ETH`.
-    #[deprecated = "use version specific variants (`deploy_v1` & `deploy_v3`) instead"]
+    #[deprecated = "pre-v3 transactions are deprecated and will be disabled on Starknet soon; use `deploy_v3` instead"]
     pub const fn deploy(
         &self,
         constructor_calldata: Vec<Felt>,
         salt: Felt,
         unique: bool,
     ) -> DeploymentV1<'_, A> {
+        #[allow(deprecated)]
         self.deploy_v1(constructor_calldata, salt, unique)
     }
 }
@@ -399,6 +401,7 @@ mod tests {
 
     use super::*;
 
+    #[allow(deprecated)]
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_deployed_address_unique() {

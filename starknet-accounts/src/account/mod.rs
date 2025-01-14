@@ -92,6 +92,7 @@ pub trait Account: ExecutionEncoder + Sized {
 
     /// Generates an instance of [`ExecutionV1`] for sending `INVOKE` v1 transactions. Pays
     /// transaction fees in `ETH`.
+    #[deprecated = "pre-v3 transactions are deprecated and will be disabled on Starknet soon; use `execute_v3` instead"]
     fn execute_v1(&self, calls: Vec<Call>) -> ExecutionV1<'_, Self> {
         ExecutionV1::new(calls, self)
     }
@@ -104,8 +105,9 @@ pub trait Account: ExecutionEncoder + Sized {
 
     /// Generates an instance of [`ExecutionV1`] for sending `INVOKE` v1 transactions. Pays
     /// transaction fees in `ETH`.
-    #[deprecated = "use version specific variants (`execute_v1` & `execute_v3`) instead"]
+    #[deprecated = "pre-v3 transactions are deprecated and will be disabled on Starknet soon; use `execute_v3` instead"]
     fn execute(&self, calls: Vec<Call>) -> ExecutionV1<'_, Self> {
+        #[allow(deprecated)]
         self.execute_v1(calls)
     }
 
@@ -124,6 +126,7 @@ pub trait Account: ExecutionEncoder + Sized {
     ///
     /// This method is only used for declaring Sierra (Cairo 1) classes. To declare legacy (Cairo 0)
     /// classes use [`declare_legacy`](fn.declare_legacy) instead.
+    #[deprecated = "pre-v3 transactions are deprecated and will be disabled on Starknet soon; use `declare_v3` instead"]
     fn declare_v2(
         &self,
         contract_class: Arc<FlattenedSierraClass>,
@@ -170,12 +173,13 @@ pub trait Account: ExecutionEncoder + Sized {
     ///
     /// This method is only used for declaring Sierra (Cairo 1) classes. To declare legacy (Cairo 0)
     /// classes use [`declare_legacy`](fn.declare_legacy) instead.
-    #[deprecated = "use version specific variants (`declare_v2` & `declare_v3`) instead"]
+    #[deprecated = "pre-v3 transactions are deprecated and will be disabled on Starknet soon; use `declare_v3` instead"]
     fn declare(
         &self,
         contract_class: Arc<FlattenedSierraClass>,
         compiled_class_hash: Felt,
     ) -> DeclarationV2<'_, Self> {
+        #[allow(deprecated)]
         self.declare_v2(contract_class, compiled_class_hash)
     }
 
