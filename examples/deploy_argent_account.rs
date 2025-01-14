@@ -29,7 +29,7 @@ async fn main() {
         .await
         .unwrap();
 
-    let deployment = factory.deploy_v1(salt);
+    let deployment = factory.deploy_v3(salt);
 
     let est_fee = deployment.estimate_fee().await.unwrap();
 

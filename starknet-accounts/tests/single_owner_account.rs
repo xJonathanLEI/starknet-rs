@@ -202,6 +202,7 @@ async fn can_get_nonce_inner<P: Provider + Send + Sync>(provider: P, address: &s
     assert_ne!(account.get_nonce().await.unwrap(), Felt::ZERO);
 }
 
+#[allow(deprecated)]
 async fn can_estimate_invoke_v1_fee_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(
         Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
@@ -268,7 +269,7 @@ async fn can_parse_fee_estimation_error_inner<P: Provider + Send + Sync>(
     account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     match account
-        .execute_v1(vec![Call {
+        .execute_v3(vec![Call {
             to: eth_token_address,
             selector: get_selector_from_name("transfer").unwrap(),
             calldata: vec![
@@ -290,6 +291,7 @@ async fn can_parse_fee_estimation_error_inner<P: Provider + Send + Sync>(
     }
 }
 
+#[allow(deprecated)]
 async fn can_execute_eth_transfer_invoke_v1_inner<P: Provider + Send + Sync>(
     provider: P,
     address: &str,
@@ -400,6 +402,7 @@ async fn can_execute_eth_transfer_invoke_v3_with_manual_gas_inner<P: Provider + 
     assert!(result.transaction_hash > Felt::ZERO);
 }
 
+#[allow(deprecated)]
 async fn can_declare_cairo1_contract_v2_inner<P: Provider + Send + Sync>(
     provider: P,
     address: &str,
