@@ -570,7 +570,7 @@ impl TypedData {
     where
         H: TypedDataHasher,
     {
-        let mut new_layer = Vec::with_capacity((layer.len() + 1) / 2);
+        let mut new_layer = Vec::with_capacity(layer.len().div_ceil(2));
         for chunk in layer.chunks(2) {
             new_layer.push(if chunk.len() == 2 {
                 if chunk[0] <= chunk[1] {
