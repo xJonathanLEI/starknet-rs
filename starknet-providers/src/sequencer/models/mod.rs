@@ -48,7 +48,4 @@ pub use contract::{CompressedLegacyContractClass, DeployedClass};
 pub mod state_update;
 pub use state_update::{StateUpdate, StateUpdateWithBlock};
 
-pub mod trace;
-pub use trace::{BlockTraces, TransactionTrace};
-
 pub(crate) mod serde_impls;

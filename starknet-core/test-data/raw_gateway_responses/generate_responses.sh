@@ -3,12 +3,10 @@
 set -e
 
 mkdir -p ./get_block/
-mkdir -p ./get_block_traces/
 mkdir -p ./get_class_by_hash/
 mkdir -p ./get_state_update/
 mkdir -p ./get_transaction/
 mkdir -p ./get_transaction_status/
-mkdir -p ./get_transaction_trace/
 
 # ./get_block/1_with_transactions.txt
 curl -o ./get_block/1_with_transactions.txt "https://alpha-sepolia.starknet.io/feeder_gateway/get_block?blockNumber=100"
@@ -133,18 +131,6 @@ curl -o ./get_state_update/6_with_replaced_classes.txt "https://alpha-sepolia.st
 # ./get_state_update/7_with_deployed_contracts.txt
 curl -o ./get_state_update/7_with_deployed_contracts.txt "https://alpha-sepolia.starknet.io/feeder_gateway/get_state_update?blockNumber=7"
 
-# ./get_transaction_trace/1_with_messages.txt
-curl -o ./get_transaction_trace/1_with_messages.txt "https://alpha-sepolia.starknet.io/feeder_gateway/get_transaction_trace?transactionHash=0x3ba5c1e16a9b431b7ccae15f2d377539cf3dcefbfe854dd1a7533b8577fae87"
-
-# ./get_transaction_trace/2_with_events.txt
-curl -o ./get_transaction_trace/2_with_events.txt "https://alpha-sepolia.starknet.io/feeder_gateway/get_transaction_trace?transactionHash=0x3ba5c1e16a9b431b7ccae15f2d377539cf3dcefbfe854dd1a7533b8577fae87"
-
-# ./get_transaction_trace/3_with_call_type.txt
-curl -o ./get_transaction_trace/3_with_call_type.txt "https://alpha-sepolia.starknet.io/feeder_gateway/get_transaction_trace?transactionHash=0x3ba5c1e16a9b431b7ccae15f2d377539cf3dcefbfe854dd1a7533b8577fae87"
-
-# ./get_transaction_trace/4_with_validation.txt
-curl -o ./get_transaction_trace/4_with_validation.txt "https://alpha-sepolia.starknet.io/feeder_gateway/get_transaction_trace?transactionHash=0x3ba5c1e16a9b431b7ccae15f2d377539cf3dcefbfe854dd1a7533b8577fae87"
-
 # ./get_class_by_hash/1_cairo_0.txt
 curl -o ./get_class_by_hash/1_cairo_0.txt "https://alpha-sepolia.starknet.io/feeder_gateway/get_class_by_hash?classHash=0x025ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918"
 
@@ -153,6 +139,3 @@ curl -o ./get_class_by_hash/2_not_declared.txt "https://alpha-sepolia.starknet.i
 
 # ./get_class_by_hash/3_cairo_1.txt
 curl -o ./get_class_by_hash/3_cairo_1.txt "https://alpha-sepolia.starknet.io/feeder_gateway/get_class_by_hash?classHash=0x01a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003"
-
-# ./get_block_traces/1_success.txt
-curl -o ./get_block_traces/1_success.txt "https://alpha-sepolia.starknet.io/feeder_gateway/get_block_traces?blockNumber=100"
