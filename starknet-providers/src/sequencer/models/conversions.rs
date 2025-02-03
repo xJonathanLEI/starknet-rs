@@ -4,10 +4,6 @@ use starknet_core::types::{self as core, contract::legacy as contract_legacy, Fe
 
 use super::{
     state_update::{DeclaredContract, DeployedContract, StateDiff, StorageDiff},
-    trace::{
-        CallType, FunctionInvocation, OrderedEventResponse, OrderedL2ToL1MessageResponse,
-        TransactionTraceWithHash,
-    },
     transaction::{DataAvailabilityMode, ResourceBounds, ResourceBoundsMapping},
     *,
 };
@@ -20,11 +16,6 @@ pub(crate) struct ConfirmedReceiptWithContext {
     pub receipt: ConfirmedTransactionReceipt,
     pub transaction: TransactionType,
     pub finality: BlockStatus,
-}
-
-pub(crate) struct OrderedL2ToL1MessageResponseWithFromAddress {
-    pub message: OrderedL2ToL1MessageResponse,
-    pub from: Felt,
 }
 
 impl From<core::BlockId> for BlockId {
@@ -806,78 +797,12 @@ impl TryFrom<DeployedClass> for core::ContractClass {
     }
 }
 
-impl TryFrom<FunctionInvocation> for core::FunctionInvocation {
-    type Error = ConversionError;
-
-    fn try_from(value: FunctionInvocation) -> Result<Self, Self::Error> {
-        Ok(Self {
-            contract_address: value.contract_address,
-            entry_point_selector: value.selector.ok_or(ConversionError)?,
-            calldata: value.calldata,
-            caller_address: value.caller_address,
-            class_hash: value.class_hash.ok_or(ConversionError)?,
-            entry_point_type: value.entry_point_type.ok_or(ConversionError)?.into(),
-            call_type: value.call_type.ok_or(ConversionError)?.into(),
-            result: value.result,
-            calls: value
-                .internal_calls
-                .into_iter()
-                .map(|call| call.try_into())
-                .collect::<Result<Vec<_>, _>>()?,
-            events: value.events.into_iter().map(|event| event.into()).collect(),
-            messages: value
-                .messages
-                .into_iter()
-                .map(|message| {
-                    OrderedL2ToL1MessageResponseWithFromAddress {
-                        message,
-                        from: value.contract_address,
-                    }
-                    .into()
-                })
-                .collect(),
-            execution_resources: value.execution_resources.into(),
-        })
-    }
-}
-
 impl From<EntryPointType> for core::EntryPointType {
     fn from(value: EntryPointType) -> Self {
         match value {
             EntryPointType::External => Self::External,
             EntryPointType::L1Handler => Self::L1Handler,
             EntryPointType::Constructor => Self::Constructor,
-        }
-    }
-}
-
-impl From<CallType> for core::CallType {
-    fn from(value: CallType) -> Self {
-        match value {
-            CallType::Call => Self::Call,
-            CallType::Delegate => Self::LibraryCall,
-        }
-    }
-}
-
-impl From<OrderedEventResponse> for core::OrderedEvent {
-    fn from(value: OrderedEventResponse) -> Self {
-        Self {
-            keys: value.keys,
-            data: value.data,
-            order: value.order,
-        }
-    }
-}
-
-impl From<OrderedL2ToL1MessageResponseWithFromAddress> for core::OrderedMessage {
-    fn from(value: OrderedL2ToL1MessageResponseWithFromAddress) -> Self {
-        Self {
-            from_address: value.from,
-            // Unwrapping is safe here as H160 is only 20 bytes
-            to_address: Felt::from_bytes_be_slice(&value.message.to_address.to_fixed_bytes()),
-            payload: value.message.payload,
-            order: value.message.order,
         }
     }
 }
