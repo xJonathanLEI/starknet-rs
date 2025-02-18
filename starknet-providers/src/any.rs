@@ -16,7 +16,7 @@ use crate::{
 };
 
 /// A convenient Box-able type that implements the [Provider] trait. This can be useful when you
-/// want to accept any built-in provider implementation from the library in your appliation, since
+/// want to accept any built-in provider implementation from the library in your application, since
 /// the [Provider] trait itself cannot be Box-ed due to the use of associated type.
 ///
 /// A recommended pattern is to make your business logic code (e.g. functions) generic over the
