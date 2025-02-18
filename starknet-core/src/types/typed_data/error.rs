@@ -36,14 +36,14 @@ pub enum TypedDataError {
     },
     /// The number of fields from struct definition is different from the one in value.
     StructFieldCountMismatch {
-        /// The number of fields specificed by the struct definition.
+        /// The number of fields specified by the struct definition.
         expected: usize,
         /// The actual number of fields found in value.
         actual: usize,
     },
     /// The number of elements from enum variant definition is different from the one in value.
     EnumElementCountMismatch {
-        /// The number of elements specificed by the enum variant definition.
+        /// The number of elements specified by the enum variant definition.
         expected: usize,
         /// The actual number of elements found in value.
         actual: usize,
