@@ -17,7 +17,7 @@ exclude = ["test-data/**"]
 starknet-core = { version = "0.12.1", path = "../starknet-core" }
 starknet-crypto = { version = "0.7.4", path = "../starknet-crypto" }
 starknet-providers = { version = "0.12.1", path = "../starknet-providers" }
-starknet-signers = { version = "0.10.1", path = "../starknet-signers" }
+starknet-signers = { version = "0.10.2", path = "../starknet-signers" }
 async-trait = "0.1.68"
 auto_impl = "1.0.1"
 thiserror = "1.0.40"
