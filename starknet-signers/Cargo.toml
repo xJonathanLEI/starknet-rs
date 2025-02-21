@@ -1,6 +1,6 @@
 [package]
 name = "starknet-signers"
-version = "0.10.1"
+version = "0.10.2"
 authors = ["Jonathan LEI <me@xjonathan.dev>"]
 license = "MIT OR Apache-2.0"
 edition = "2021"
