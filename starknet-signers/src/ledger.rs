@@ -238,11 +238,21 @@ impl LedgerStarknetApp {
                 .await?,
         )?;
 
+        // The Ledger app prior to version 2.0.0 expects the input to be left shifted by 4 bits:
+        let app_version = self.get_version().await?;
+        let adjusted_bytes: [u8; 32] = if app_version < Version::new(2, 0, 0) {
+            (U256::from_be_slice(&hash.to_bytes_be()) << 4)
+                .to_be_byte_array()
+                .into()
+        } else {
+            hash.to_bytes_be()
+        };
+
         let response = self
             .transport
             .exchange(
                 &SignHashCommand2 {
-                    hash: hash.to_bytes_be(),
+                    hash: adjusted_bytes,
                 }
                 .into(),
             )
@@ -326,17 +336,12 @@ impl From<SignHashCommand1> for APDUCommand {
 
 impl From<SignHashCommand2> for APDUCommand {
     fn from(value: SignHashCommand2) -> Self {
-        // For some reasons, the Ledger app expects the input to be left shifted by 4 bits...
-        let shifted_bytes: [u8; 32] = (U256::from_be_slice(&value.hash) << 4)
-            .to_be_byte_array()
-            .into();
-
         Self {
             cla: CLA_STARKNET,
             ins: 0x02,
             p1: 0x01,
             p2: 0x00,
-            data: APDUData::new(&shifted_bytes),
+            data: APDUData::new(&value.hash),
             response_len: None,
         }
     }
