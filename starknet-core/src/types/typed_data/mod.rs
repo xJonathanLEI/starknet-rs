@@ -1,7 +1,7 @@
 use alloc::{borrow::ToOwned, format, vec::*};
 use core::str::FromStr;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use starknet_crypto::{PedersenHasher, PoseidonHasher};
 
 use crate::{
@@ -54,13 +54,13 @@ const STARKNET_MESSAGE_PREFIX: Felt = Felt::from_raw([
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TypedData {
     /// Type definitions for the domain separator type and user-defined custom types.
-    types: Types,
+    pub types: Types,
     /// Domain separator.
-    domain: Domain,
+    pub domain: Domain,
     /// Reference to the primary/entrypoint type that the `message` field represents.
-    primary_type: InlineTypeReference,
+    pub primary_type: InlineTypeReference,
     /// The main message data to be signed, structured as per `primary_type`'s definition.
-    message: Value,
+    pub message: Value,
 }
 
 impl TypedData {
@@ -111,7 +111,7 @@ impl TypedData {
     {
         let mut hasher = H::default();
         hasher.update(STARKNET_MESSAGE_PREFIX);
-        hasher.update(self.domain.encoded_hash());
+        hasher.update(self.domain.encoded_hash()?);
         hasher.update(address);
         hasher.update(self.encode_value::<H, _>(&self.primary_type, &self.message)?);
         Ok(hasher.finalize())
@@ -612,6 +612,31 @@ impl<'de> Deserialize<'de> for TypedData {
     }
 }
 
+impl Serialize for TypedData {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        #[derive(Serialize)]
+        struct Raw<'a> {
+            types: &'a Types,
+            #[serde(rename = "primaryType")]
+            primary_type: &'a String,
+            domain: &'a Domain,
+            message: &'a Value,
+        }
+
+        let raw = Raw {
+            types: &self.types,
+            primary_type: &self.primary_type.signature_ref_repr(),
+            domain: &self.domain,
+            message: &self.message,
+        };
+
+        raw.serialize(serializer)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -683,6 +708,41 @@ mod tests {
     }
   }
 }"###;
+
+    #[cfg(test)]
+    mod serialize {
+        use super::*;
+
+        #[test]
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+        fn should_return_serialized_typed_data_when_revision_v0() {
+            // Given
+            let typed_data = serde_json::from_str::<TypedData>(VALID_V0_DATA).unwrap();
+
+            // When
+            let result = serde_json::to_string(&typed_data).unwrap();
+
+            // Then
+            let raw_json: Value = serde_json::from_str(VALID_V0_DATA).unwrap();
+            let result_json: Value = serde_json::from_str(&result).unwrap();
+            assert_eq!(result_json, raw_json);
+        }
+
+        #[test]
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+        fn should_return_serialized_typed_data_when_revision_v1() {
+            // Given
+            let typed_data = serde_json::from_str::<TypedData>(VALID_V1_DATA).unwrap();
+
+            // When
+            let result = serde_json::to_string(&typed_data).unwrap();
+
+            // Then
+            let raw_json: Value = serde_json::from_str(VALID_V1_DATA).unwrap();
+            let result_json: Value = serde_json::from_str(&result).unwrap();
+            assert_eq!(result_json, raw_json);
+        }
+    }
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]

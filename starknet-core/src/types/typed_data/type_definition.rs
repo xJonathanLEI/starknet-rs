@@ -1,14 +1,13 @@
 use alloc::{format, string::*, vec::*};
 use core::str::FromStr;
-
-use serde::{de::Unexpected, Deserialize};
-
-use crate::{types::Felt, utils::starknet_keccak};
+use serde::{de::Unexpected, Deserialize, Serialize, Serializer};
 
 use super::{
     revision::Revision,
     type_reference::{FullTypeReference, InlineTypeReference},
 };
+use crate::types::typed_data::type_reference::TypeReference;
+use crate::{types::Felt, utils::starknet_keccak};
 
 /// Custom SNIP-12 type definition, typically used in the `types` field.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -33,6 +32,16 @@ pub struct FieldDefinition {
     pub name: String,
     /// Type of the field.
     pub r#type: FullTypeReference,
+}
+
+impl FieldDefinition {
+    /// Initializes a new field definition.
+    pub fn new(name: &str, r#type: FullTypeReference) -> Self {
+        Self {
+            name: name.to_string(),
+            r#type,
+        }
+    }
 }
 
 /// Definition of a custom SNIP-12 enum type.
@@ -196,6 +205,46 @@ impl<'de> Deserialize<'de> for TypeDefinition {
                 &"at least 1 field or variant",
             )),
         }
+    }
+}
+
+impl Serialize for TypeDefinition {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        #[derive(Serialize)]
+        struct Type {
+            name: String,
+            r#type: String,
+        }
+        let types: Vec<Type> = match self {
+            Self::Struct(struct_def) => struct_def
+                .fields
+                .iter()
+                .map(|field| Type {
+                    name: field.name.clone(),
+                    r#type: field.r#type.signature_ref_repr(),
+                })
+                .collect(),
+            Self::Enum(enum_def) => enum_def
+                .variants
+                .iter()
+                .map(|variant| Type {
+                    name: variant.name.clone(),
+                    r#type: format!(
+                        "({})",
+                        variant
+                            .tuple_types
+                            .iter()
+                            .map(|t| t.signature_ref_repr())
+                            .collect::<Vec<String>>()
+                            .join(",")
+                    ),
+                })
+                .collect(),
+        };
+        types.serialize(serializer)
     }
 }
 

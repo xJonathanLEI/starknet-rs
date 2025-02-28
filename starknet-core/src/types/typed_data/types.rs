@@ -1,18 +1,17 @@
 use alloc::{borrow::ToOwned, collections::BTreeMap, string::*};
 
 use indexmap::IndexMap;
-use serde::Deserialize;
-
-use crate::{
-    types::{typed_data::CommonTypeReference, Felt},
-    utils::starknet_keccak,
-};
+use serde::{Deserialize, Serialize};
 
 use super::{
     error::TypedDataError,
     revision::Revision,
     type_definition::{PresetType, TypeDefinition},
-    TypeReference,
+    FieldDefinition, FullTypeReference, StructDefinition, TypeReference,
+};
+use crate::{
+    types::{typed_data::CommonTypeReference, Felt},
+    utils::starknet_keccak,
 };
 
 #[cfg(feature = "std")]
@@ -39,6 +38,13 @@ enum SignatureGenerator<'a> {
 }
 
 impl Types {
+    /// Initializes a new instance of `Types`.
+    pub fn new(revision: Revision, types: IndexMap<String, TypeDefinition, RandomState>) -> Self {
+        Self {
+            revision,
+            user_defined_types: types,
+        }
+    }
     /// Gets the revision implied from the definition of the domain type.
     ///
     /// Returns [`Revision::V0`] if and only if only `StarkNetDomain` is defined.
@@ -296,9 +302,62 @@ impl<'de> Deserialize<'de> for Types {
     }
 }
 
+impl Serialize for Types {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let (name, types) = match self.revision {
+            Revision::V0 => (
+                DOMAIN_TYPE_NAME_V0,
+                TypeDefinition::Struct(StructDefinition {
+                    fields: vec![
+                        FieldDefinition::new("name", FullTypeReference::Felt),
+                        FieldDefinition::new("version", FullTypeReference::Felt),
+                        FieldDefinition::new("chainId", FullTypeReference::Felt),
+                    ],
+                }),
+            ),
+            Revision::V1 => (
+                DOMAIN_TYPE_NAME_V1,
+                TypeDefinition::Struct(StructDefinition {
+                    fields: vec![
+                        FieldDefinition::new("name", FullTypeReference::ShortString),
+                        FieldDefinition::new("version", FullTypeReference::ShortString),
+                        FieldDefinition::new("chainId", FullTypeReference::ShortString),
+                        FieldDefinition::new("revision", FullTypeReference::ShortString),
+                    ],
+                }),
+            ),
+        };
+        let mut raw = IndexMap::new();
+        raw.insert(name.to_owned(), types);
+        raw.extend(self.user_defined_types.clone());
+        raw.serialize(serializer)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::Value;
+
+    const VALID_V0_DATA: &str = r###"{
+  "StarkNetDomain": [
+    { "name": "name", "type": "felt" },
+    { "name": "version", "type": "felt" },
+    { "name": "chainId", "type": "felt" }
+  ],
+  "Example Message": [
+    { "name": "Name", "type": "string" },
+    { "name": "Some Array", "type": "u128*" },
+    { "name": "Some Object", "type": "My Object" }
+  ],
+  "My Object": [
+    { "name": "Some Selector", "type": "selector" },
+    { "name": "Some Contract Address", "type": "ContractAddress" }
+  ]
+}"###;
 
     const VALID_V1_DATA: &str = r###"{
   "StarknetDomain": [
@@ -318,37 +377,65 @@ mod tests {
   ]
 }"###;
 
-    #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_revision_0_deser() {
-        let raw = r###"{
-  "StarkNetDomain": [
-    { "name": "name", "type": "felt" },
-    { "name": "version", "type": "felt" },
-    { "name": "chainId", "type": "felt" }
-  ],
-  "Example Message": [
-    { "name": "Name", "type": "string" },
-    { "name": "Some Array", "type": "u128*" },
-    { "name": "Some Object", "type": "My Object" }
-  ],
-  "My Object": [
-    { "name": "Some Selector", "type": "selector" },
-    { "name": "Some Contract Address", "type": "ContractAddress" }
-  ]
-}"###;
+    #[cfg(test)]
+    mod deserialize {
+        use super::*;
+        #[test]
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+        fn should_init_types_when_revision_v0() {
+            // When
+            let types = serde_json::from_str::<Types>(VALID_V0_DATA).unwrap();
 
-        let types = serde_json::from_str::<Types>(raw).unwrap();
-        assert_eq!(types.revision, Revision::V0);
-        assert_eq!(types.user_defined_types.len(), 2);
+            // Then
+            assert_eq!(types.revision, Revision::V0);
+            assert_eq!(types.user_defined_types.len(), 2);
+        }
+
+        #[test]
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+        fn should_init_types_when_revision_v1() {
+            // When
+            let types = serde_json::from_str::<Types>(VALID_V1_DATA).unwrap();
+
+            // Then
+            assert_eq!(types.revision, Revision::V1);
+            assert_eq!(types.user_defined_types.len(), 2);
+        }
     }
 
-    #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_revision_1_deser() {
-        let types = serde_json::from_str::<Types>(VALID_V1_DATA).unwrap();
-        assert_eq!(types.revision, Revision::V1);
-        assert_eq!(types.user_defined_types.len(), 2);
+    #[cfg(test)]
+    mod serialize {
+        use super::*;
+
+        #[test]
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+        fn should_return_serialized_types_when_revision_v0() {
+            // Given
+            let types = serde_json::from_str::<Types>(VALID_V0_DATA).unwrap();
+
+            // When
+            let result = serde_json::to_string(&types).unwrap();
+
+            // Then
+            let raw_json: Value = serde_json::from_str(VALID_V0_DATA).unwrap();
+            let result_json: Value = serde_json::from_str(&result).unwrap();
+            assert_eq!(result_json, raw_json);
+        }
+
+        #[test]
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+        fn should_return_serialized_types_when_revision_v1() {
+            // Given
+            let types = serde_json::from_str::<Types>(VALID_V1_DATA).unwrap();
+
+            // When
+            let result = serde_json::to_string(&types).unwrap();
+
+            // Then
+            let raw_json: Value = serde_json::from_str(VALID_V1_DATA).unwrap();
+            let result_json: Value = serde_json::from_str(&result).unwrap();
+            assert_eq!(result_json, raw_json);
+        }
     }
 
     #[test]

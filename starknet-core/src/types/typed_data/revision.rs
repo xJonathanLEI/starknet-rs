@@ -1,4 +1,4 @@
-use serde::{de::Visitor, Deserialize};
+use serde::{de::Visitor, Deserialize, Serialize};
 
 /// Revision of SNIP-12.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -62,5 +62,17 @@ impl<'de> Deserialize<'de> for Revision {
         D: serde::Deserializer<'de>,
     {
         deserializer.deserialize_any(RevisionVisitor)
+    }
+}
+
+impl Serialize for Revision {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(match self {
+            Revision::V0 => "0",
+            Revision::V1 => "1",
+        })
     }
 }

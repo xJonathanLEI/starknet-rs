@@ -1,9 +1,8 @@
 use alloc::{borrow::ToOwned, format, string::*};
 use core::str::FromStr;
 
-use serde::{de::Visitor, Deserialize};
-
 use super::error::TypedDataError;
+use serde::{de::Visitor, Deserialize};
 
 /// A full type reference is used for defining custom struct fields and enum variants.
 #[derive(Debug, Clone, PartialEq, Eq)]
