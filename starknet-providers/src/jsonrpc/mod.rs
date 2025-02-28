@@ -8,14 +8,15 @@ use starknet_core::{
     types::{
         requests::*, BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
         BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
-        ContractClass, ContractErrorData, DeclareTransactionResult, DeployAccountTransactionResult,
-        EventFilter, EventFilterWithPage, EventsPage, FeeEstimate, Felt as FeltPrimitive,
-        FunctionCall, InvokeTransactionResult, MaybePendingBlockWithReceipts,
-        MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-        MsgFromL1, NoTraceAvailableErrorData, ResultPageRequest, SimulatedTransaction,
-        SimulationFlag, SimulationFlagForEstimateFee, StarknetError, SyncStatusType, Transaction,
-        TransactionExecutionErrorData, TransactionReceiptWithBlockInfo, TransactionStatus,
-        TransactionTrace, TransactionTraceWithHash,
+        ContractClass, ContractErrorData, ContractStorageKeys, DeclareTransactionResult,
+        DeployAccountTransactionResult, EventFilter, EventFilterWithPage, EventsPage, FeeEstimate,
+        Felt as FeltPrimitive, FunctionCall, Hash256, InvokeTransactionResult,
+        MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
+        MaybePendingStateUpdate, MessageWithStatus, MsgFromL1, NoTraceAvailableErrorData,
+        ResultPageRequest, SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee,
+        StarknetError, StorageProof, SyncStatusType, Transaction, TransactionExecutionErrorData,
+        TransactionReceiptWithBlockInfo, TransactionStatus, TransactionTrace,
+        TransactionTraceWithHash,
     },
 };
 
@@ -56,6 +57,9 @@ pub enum JsonRpcMethod {
     /// The `starknet_getStorageAt` method.
     #[serde(rename = "starknet_getStorageAt")]
     GetStorageAt,
+    /// The `starknet_getMessagesStatus` method.
+    #[serde(rename = "starknet_getMessagesStatus")]
+    GetMessagesStatus,
     /// The `starknet_getTransactionStatus` method.
     #[serde(rename = "starknet_getTransactionStatus")]
     GetTransactionStatus,
@@ -107,6 +111,9 @@ pub enum JsonRpcMethod {
     /// The `starknet_getNonce` method.
     #[serde(rename = "starknet_getNonce")]
     GetNonce,
+    /// The `starknet_getStorageProof` method.
+    #[serde(rename = "starknet_getStorageProof")]
+    GetStorageProof,
     /// The `starknet_addInvokeTransaction` method.
     #[serde(rename = "starknet_addInvokeTransaction")]
     AddInvokeTransaction,
@@ -295,6 +302,12 @@ where
                                 .map_err(JsonRpcClientError::<T::Error>::JsonError)?
                                 .0,
                         ),
+                        ProviderRequestData::GetMessagesStatus(_) => {
+                            ProviderResponseData::GetMessagesStatus(
+                                Vec::<MessageWithStatus>::deserialize(result)
+                                    .map_err(JsonRpcClientError::<T::Error>::JsonError)?,
+                            )
+                        }
                         ProviderRequestData::GetTransactionStatus(_) => {
                             ProviderResponseData::GetTransactionStatus(
                                 TransactionStatus::deserialize(result)
@@ -383,6 +396,12 @@ where
                                 .map_err(JsonRpcClientError::<T::Error>::JsonError)?
                                 .0,
                         ),
+                        ProviderRequestData::GetStorageProof(_) => {
+                            ProviderResponseData::GetStorageProof(
+                                StorageProof::deserialize(result)
+                                    .map_err(JsonRpcClientError::<T::Error>::JsonError)?,
+                            )
+                        }
                         ProviderRequestData::AddInvokeTransaction(_) => {
                             ProviderResponseData::AddInvokeTransaction(
                                 InvokeTransactionResult::deserialize(result)
@@ -540,6 +559,21 @@ where
             )
             .await?
             .0)
+    }
+
+    /// Given an l1 tx hash, returns the associated l1_handler tx hashes and statuses for all L1 ->
+    /// L2 messages sent by the l1 transaction, ordered by the l1 tx sending order
+    async fn get_messages_status(
+        &self,
+        transaction_hash: Hash256,
+    ) -> Result<Vec<MessageWithStatus>, ProviderError> {
+        self.send_request(
+            JsonRpcMethod::GetMessagesStatus,
+            GetMessagesStatusRequestRef {
+                transaction_hash: &transaction_hash,
+            },
+        )
+        .await
     }
 
     /// Gets the transaction status (possibly reflecting that the tx is still in
@@ -820,6 +854,34 @@ where
             .0)
     }
 
+    /// Get merkle paths in one of the state tries: global state, classes, individual contract.
+    /// A single request can query for any mix of the three types of storage proofs (classes,
+    /// contracts, and storage).
+    async fn get_storage_proof<B, H, A, K>(
+        &self,
+        block_id: B,
+        class_hashes: H,
+        contract_addresses: A,
+        contracts_storage_keys: K,
+    ) -> Result<StorageProof, ProviderError>
+    where
+        B: AsRef<BlockId> + Send + Sync,
+        H: AsRef<[FeltPrimitive]> + Send + Sync,
+        A: AsRef<[FeltPrimitive]> + Send + Sync,
+        K: AsRef<[ContractStorageKeys]> + Send + Sync,
+    {
+        self.send_request(
+            JsonRpcMethod::GetStorageProof,
+            GetStorageProofRequestRef {
+                block_id: block_id.as_ref(),
+                class_hashes: class_hashes.as_ref(),
+                contract_addresses: contract_addresses.as_ref(),
+                contracts_storage_keys: contracts_storage_keys.as_ref(),
+            },
+        )
+        .await
+    }
+
     /// Submit a new transaction to be added to the chain
     async fn add_invoke_transaction<I>(
         &self,
@@ -954,6 +1016,7 @@ impl ProviderRequestData {
             Self::GetBlockWithReceipts(_) => JsonRpcMethod::GetBlockWithReceipts,
             Self::GetStateUpdate(_) => JsonRpcMethod::GetStateUpdate,
             Self::GetStorageAt(_) => JsonRpcMethod::GetStorageAt,
+            Self::GetMessagesStatus(_) => JsonRpcMethod::GetMessagesStatus,
             Self::GetTransactionStatus(_) => JsonRpcMethod::GetTransactionStatus,
             Self::GetTransactionByHash(_) => JsonRpcMethod::GetTransactionByHash,
             Self::GetTransactionByBlockIdAndIndex(_) => {
@@ -973,6 +1036,7 @@ impl ProviderRequestData {
             Self::Syncing(_) => JsonRpcMethod::Syncing,
             Self::GetEvents(_) => JsonRpcMethod::GetEvents,
             Self::GetNonce(_) => JsonRpcMethod::GetNonce,
+            Self::GetStorageProof(_) => JsonRpcMethod::GetStorageProof,
             Self::AddInvokeTransaction(_) => JsonRpcMethod::AddInvokeTransaction,
             Self::AddDeclareTransaction(_) => JsonRpcMethod::AddDeclareTransaction,
             Self::AddDeployAccountTransaction(_) => JsonRpcMethod::AddDeployAccountTransaction,
@@ -1022,6 +1086,10 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
             ),
             JsonRpcMethod::GetStorageAt => ProviderRequestData::GetStorageAt(
                 serde_json::from_value::<GetStorageAtRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::GetMessagesStatus => ProviderRequestData::GetMessagesStatus(
+                serde_json::from_value::<GetMessagesStatusRequest>(raw_request.params)
                     .map_err(error_mapper)?,
             ),
             JsonRpcMethod::GetTransactionStatus => ProviderRequestData::GetTransactionStatus(
@@ -1095,6 +1163,10 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
             ),
             JsonRpcMethod::GetNonce => ProviderRequestData::GetNonce(
                 serde_json::from_value::<GetNonceRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::GetStorageProof => ProviderRequestData::GetStorageProof(
+                serde_json::from_value::<GetStorageProofRequest>(raw_request.params)
                     .map_err(error_mapper)?,
             ),
             JsonRpcMethod::AddInvokeTransaction => ProviderRequestData::AddInvokeTransaction(

@@ -2,11 +2,12 @@ use starknet_core::{
     types::{
         requests::{CallRequest, GetBlockTransactionCountRequest},
         BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedTransaction, ContractClass,
-        DataAvailabilityMode, DeclareTransaction, DeployAccountTransaction, EthAddress,
-        EventFilter, ExecuteInvocation, ExecutionResult, Felt, FunctionCall, InvokeTransaction,
-        MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
-        MaybePendingStateUpdate, MsgFromL1, ResourceBounds, ResourceBoundsMapping, StarknetError,
-        SyncStatusType, Transaction, TransactionReceipt, TransactionStatus, TransactionTrace,
+        ContractStorageKeys, DataAvailabilityMode, DeclareTransaction, DeployAccountTransaction,
+        EthAddress, EventFilter, ExecuteInvocation, ExecutionResult, Felt, FunctionCall, Hash256,
+        InvokeTransaction, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
+        MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageStatus, MsgFromL1,
+        ResourceBounds, ResourceBoundsMapping, StarknetError, SyncStatusType, Transaction,
+        TransactionReceipt, TransactionStatus, TransactionTrace,
     },
     utils::{get_selector_from_name, get_storage_var_address},
 };
@@ -126,6 +127,22 @@ async fn jsonrpc_get_storage_at() {
 
 // Test case `jsonrpc_get_transaction_status_rejected` was removed as there is no `REJECTED`
 // transaction on the Sepolia network.
+
+#[tokio::test]
+async fn jsonrpc_get_messages_status_accepted() {
+    let rpc_client = create_jsonrpc_client();
+
+    let status = rpc_client
+        .get_messages_status(
+            Hash256::from_hex("0xeb2cf61c65f934c755649adfe6fa3b66579c21da0235f8cd18287c4c34aad167")
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(status.len(), 1);
+    assert!(matches!(status[0].status, MessageStatus::AcceptedOnL1));
+}
 
 #[tokio::test]
 async fn jsonrpc_get_transaction_status_succeeded() {
@@ -787,6 +804,37 @@ async fn jsonrpc_get_nonce() {
         .unwrap();
 
     assert_eq!(nonce, Felt::ONE);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_storage_proof() {
+    let rpc_client = create_jsonrpc_client();
+
+    let proof = rpc_client
+        .get_storage_proof(
+            BlockId::Tag(BlockTag::Latest),
+            [
+                Felt::from_hex("009524a94b41c4440a16fd96d7c1ef6ad6f44c1c013e96662734502cd4ee9b1f")
+                    .unwrap(),
+            ],
+            [
+                Felt::from_hex("04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+                    .unwrap(),
+            ],
+            [ContractStorageKeys {
+                contract_address: Felt::from_hex(
+                    "04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                )
+                .unwrap(),
+                storage_keys: vec![Felt::ONE],
+            }],
+        )
+        .await
+        .unwrap();
+
+    assert!(!proof.classes_proof.is_empty());
+    assert!(!proof.contracts_proof.nodes.is_empty());
+    assert!(!proof.contracts_storage_proofs.is_empty());
 }
 
 #[tokio::test]

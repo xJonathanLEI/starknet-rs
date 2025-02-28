@@ -66,6 +66,9 @@ pub use hash_256::Hash256;
 mod execution_result;
 pub use execution_result::ExecutionResult;
 
+mod message_status;
+pub use message_status::{MessageStatus, MessageWithStatus};
+
 mod receipt_block;
 pub use receipt_block::ReceiptBlock;
 
