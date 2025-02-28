@@ -459,7 +459,9 @@ impl From<SequencerError> for ProviderError {
             ErrorCode::UndeclaredClass => Some(StarknetError::ClassHashNotFound),
             ErrorCode::InvalidTransactionNonce => Some(StarknetError::InvalidTransactionNonce),
             ErrorCode::ClassAlreadyDeclared => Some(StarknetError::ClassAlreadyDeclared),
-            ErrorCode::CompilationFailed => Some(StarknetError::CompilationFailed),
+            ErrorCode::CompilationFailed => {
+                Some(StarknetError::CompilationFailed(value.message.clone()))
+            }
             ErrorCode::InvalidCompiledClassHash => Some(StarknetError::CompiledClassHashMismatch),
             ErrorCode::DuplicatedTransaction => Some(StarknetError::DuplicateTx),
         };

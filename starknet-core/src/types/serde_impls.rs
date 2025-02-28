@@ -1,9 +1,14 @@
+use core::{hash::BuildHasher, marker::PhantomData};
+
 use alloc::{fmt::Formatter, format};
 
-use serde::{de::Visitor, Deserialize, Deserializer, Serialize};
-use serde_with::{DeserializeAs, SerializeAs};
+use indexmap::IndexMap;
+use serde::{de::Visitor, ser::SerializeSeq, Deserialize, Deserializer, Serialize};
+use serde_with::{serde_as, DeserializeAs, SerializeAs};
 
-use super::{SyncStatus, SyncStatusType};
+use super::{
+    codegen::OwnedPtr, ContractExecutionError, Felt, MerkleNode, SyncStatus, SyncStatusType, UfeHex,
+};
 
 pub(crate) struct NumAsHex;
 
@@ -150,6 +155,113 @@ impl<'de> Deserialize<'de> for SyncStatusType {
     }
 }
 
+pub(crate) struct OwnedContractExecutionError;
+
+impl SerializeAs<OwnedPtr<ContractExecutionError>> for OwnedContractExecutionError {
+    fn serialize_as<S>(
+        value: &OwnedPtr<ContractExecutionError>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        ContractExecutionError::serialize(value.as_ref(), serializer)
+    }
+}
+
+impl<'de> DeserializeAs<'de, OwnedPtr<ContractExecutionError>> for OwnedContractExecutionError {
+    fn deserialize_as<D>(deserializer: D) -> Result<OwnedPtr<ContractExecutionError>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        Ok(OwnedPtr::new(ContractExecutionError::deserialize(
+            deserializer,
+        )?))
+    }
+}
+
+pub(crate) struct MerkleNodeMap;
+
+struct MerkleNodeMapVisitor<R> {
+    phantom: PhantomData<R>,
+}
+
+impl<R> SerializeAs<IndexMap<Felt, MerkleNode, R>> for MerkleNodeMap {
+    fn serialize_as<S>(
+        value: &IndexMap<Felt, MerkleNode, R>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        #[derive(Serialize)]
+        struct Raw<'a> {
+            node_hash: &'a Felt,
+            node: &'a MerkleNode,
+        }
+
+        let mut seq = serializer.serialize_seq(Some(value.len()))?;
+        for (key, node) in value {
+            seq.serialize_element(&Raw {
+                node_hash: key,
+                node,
+            })?;
+        }
+        seq.end()
+    }
+}
+
+impl<'de, R> DeserializeAs<'de, IndexMap<Felt, MerkleNode, R>> for MerkleNodeMap
+where
+    R: BuildHasher + Default,
+{
+    fn deserialize_as<D>(deserializer: D) -> Result<IndexMap<Felt, MerkleNode, R>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_seq(MerkleNodeMapVisitor::<R> {
+            phantom: PhantomData,
+        })
+    }
+}
+
+impl<'de, R> Visitor<'de> for MerkleNodeMapVisitor<R>
+where
+    R: BuildHasher + Default,
+{
+    type Value = IndexMap<Felt, MerkleNode, R>;
+
+    fn expecting(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(formatter, "sequence")
+    }
+
+    fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::SeqAccess<'de>,
+    {
+        #[serde_as]
+        #[derive(Deserialize)]
+        struct Raw {
+            #[serde_as(as = "UfeHex")]
+            node_hash: Felt,
+            node: MerkleNode,
+        }
+
+        let mut map = match seq.size_hint() {
+            Some(hint) => {
+                IndexMap::<Felt, MerkleNode, R>::with_capacity_and_hasher(hint, R::default())
+            }
+            None => IndexMap::with_hasher(R::default()),
+        };
+
+        while let Some(element) = seq.next_element::<Raw>()? {
+            map.insert(element.node_hash, element.node);
+        }
+
+        Ok(map)
+    }
+}
+
 mod block_id {
     use crate::serde::unsigned_field_element::UfeHex;
     use serde::{Deserialize, Deserializer, Serialize};
@@ -217,14 +329,28 @@ mod block_id {
 mod transaction_status {
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-    use crate::types::{SequencerTransactionStatus, TransactionExecutionStatus, TransactionStatus};
+    use crate::types::{
+        ExecutionResult, SequencerTransactionStatus, TransactionExecutionStatus, TransactionStatus,
+    };
 
-    #[derive(Serialize, Deserialize)]
+    #[derive(Deserialize)]
     #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
     struct Raw {
         finality_status: SequencerTransactionStatus,
         #[serde(skip_serializing_if = "Option::is_none")]
         execution_status: Option<TransactionExecutionStatus>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        failure_reason: Option<String>,
+    }
+
+    #[derive(Serialize)]
+    #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+    struct RawRef<'a> {
+        finality_status: SequencerTransactionStatus,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        execution_status: Option<TransactionExecutionStatus>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        failure_reason: Option<&'a str>,
     }
 
     impl Serialize for TransactionStatus {
@@ -233,21 +359,31 @@ mod transaction_status {
             S: Serializer,
         {
             let raw = match self {
-                Self::Received => Raw {
+                Self::Received => RawRef {
                     finality_status: SequencerTransactionStatus::Received,
                     execution_status: None,
+                    failure_reason: None,
                 },
-                Self::Rejected => Raw {
+                Self::Rejected => RawRef {
                     finality_status: SequencerTransactionStatus::Rejected,
                     execution_status: None,
+                    failure_reason: None,
                 },
-                Self::AcceptedOnL2(exe) => Raw {
+                Self::AcceptedOnL2(exe) => RawRef {
                     finality_status: SequencerTransactionStatus::AcceptedOnL2,
-                    execution_status: Some(*exe),
+                    execution_status: Some(exe.status()),
+                    failure_reason: match &exe {
+                        ExecutionResult::Succeeded => None,
+                        ExecutionResult::Reverted { reason } => Some(reason),
+                    },
                 },
-                Self::AcceptedOnL1(exe) => Raw {
+                Self::AcceptedOnL1(exe) => RawRef {
                     finality_status: SequencerTransactionStatus::AcceptedOnL1,
-                    execution_status: Some(*exe),
+                    execution_status: Some(exe.status()),
+                    failure_reason: match &exe {
+                        ExecutionResult::Succeeded => None,
+                        ExecutionResult::Reverted { reason } => Some(reason),
+                    },
                 },
             };
 
@@ -262,19 +398,41 @@ mod transaction_status {
         {
             let raw = Raw::deserialize(deserializer)?;
 
-            match (raw.finality_status, raw.execution_status) {
-                (SequencerTransactionStatus::Received, None) => Ok(Self::Received),
-                (SequencerTransactionStatus::Rejected, None) => Ok(Self::Rejected),
-                (SequencerTransactionStatus::AcceptedOnL2, Some(exe)) => {
-                    Ok(Self::AcceptedOnL2(exe))
+            match (
+                raw.finality_status,
+                raw.execution_status,
+                raw.failure_reason,
+            ) {
+                (SequencerTransactionStatus::Received, None, None) => Ok(Self::Received),
+                (SequencerTransactionStatus::Rejected, None, None) => Ok(Self::Rejected),
+                (SequencerTransactionStatus::AcceptedOnL2, Some(exe), reason) => {
+                    Ok(Self::AcceptedOnL2(parse_exe::<D>(exe, reason)?))
                 }
-                (SequencerTransactionStatus::AcceptedOnL1, Some(exe)) => {
-                    Ok(Self::AcceptedOnL1(exe))
+                (SequencerTransactionStatus::AcceptedOnL1, Some(exe), reason) => {
+                    Ok(Self::AcceptedOnL1(parse_exe::<D>(exe, reason)?))
                 }
                 _ => Err(serde::de::Error::custom(
-                    "invalid combination of finality_status and execution_status",
+                    "invalid combination of finality_status, execution_status, and failure_reason",
                 )),
             }
+        }
+    }
+
+    fn parse_exe<'de, D>(
+        exe: TransactionExecutionStatus,
+        reason: Option<String>,
+    ) -> Result<ExecutionResult, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        match (exe, reason) {
+            (TransactionExecutionStatus::Succeeded, None) => Ok(ExecutionResult::Succeeded),
+            (TransactionExecutionStatus::Reverted, Some(reason)) => {
+                Ok(ExecutionResult::Reverted { reason })
+            }
+            _ => Err(serde::de::Error::custom(
+                "inconsistent execution_status and failure_reason",
+            )),
         }
     }
 }
@@ -285,6 +443,18 @@ mod enum_ser_impls {
     use super::super::*;
 
     impl Serialize for Transaction {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            match self {
+                Self::Invoke(variant) => variant.serialize(serializer),
+                Self::L1Handler(variant) => variant.serialize(serializer),
+                Self::Declare(variant) => variant.serialize(serializer),
+                Self::Deploy(variant) => variant.serialize(serializer),
+                Self::DeployAccount(variant) => variant.serialize(serializer),
+            }
+        }
+    }
+
+    impl Serialize for TransactionContent {
         fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
             match self {
                 Self::Invoke(variant) => variant.serialize(serializer),
@@ -316,7 +486,28 @@ mod enum_ser_impls {
         }
     }
 
+    impl Serialize for InvokeTransactionContent {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            match self {
+                Self::V0(variant) => variant.serialize(serializer),
+                Self::V1(variant) => variant.serialize(serializer),
+                Self::V3(variant) => variant.serialize(serializer),
+            }
+        }
+    }
+
     impl Serialize for DeclareTransaction {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            match self {
+                Self::V0(variant) => variant.serialize(serializer),
+                Self::V1(variant) => variant.serialize(serializer),
+                Self::V2(variant) => variant.serialize(serializer),
+                Self::V3(variant) => variant.serialize(serializer),
+            }
+        }
+    }
+
+    impl Serialize for DeclareTransactionContent {
         fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
             match self {
                 Self::V0(variant) => variant.serialize(serializer),
@@ -336,26 +527,7 @@ mod enum_ser_impls {
         }
     }
 
-    impl Serialize for BroadcastedInvokeTransaction {
-        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-            match self {
-                Self::V1(variant) => variant.serialize(serializer),
-                Self::V3(variant) => variant.serialize(serializer),
-            }
-        }
-    }
-
-    impl Serialize for BroadcastedDeclareTransaction {
-        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-            match self {
-                Self::V1(variant) => variant.serialize(serializer),
-                Self::V2(variant) => variant.serialize(serializer),
-                Self::V3(variant) => variant.serialize(serializer),
-            }
-        }
-    }
-
-    impl Serialize for BroadcastedDeployAccountTransaction {
+    impl Serialize for DeployAccountTransactionContent {
         fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
             match self {
                 Self::V1(variant) => variant.serialize(serializer),

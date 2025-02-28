@@ -1165,6 +1165,7 @@ impl TryFrom<&JsonRpcError> for StarknetError {
         match value.code {
             1 => Ok(Self::FailedToReceiveTransaction),
             20 => Ok(Self::ContractNotFound),
+            21 => Ok(Self::EntrypointNotFound),
             24 => Ok(Self::BlockNotFound),
             27 => Ok(Self::InvalidTransactionIndex),
             28 => Ok(Self::ClassHashNotFound),
@@ -1195,7 +1196,7 @@ impl TryFrom<&JsonRpcError> for StarknetError {
             }
             51 => Ok(Self::ClassAlreadyDeclared),
             52 => Ok(Self::InvalidTransactionNonce),
-            53 => Ok(Self::InsufficientMaxFee),
+            53 => Ok(Self::InsufficientResourcesForValidate),
             54 => Ok(Self::InsufficientAccountBalance),
             55 => {
                 let data = String::deserialize(
@@ -1207,7 +1208,16 @@ impl TryFrom<&JsonRpcError> for StarknetError {
                 .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
                 Ok(Self::ValidationFailure(data))
             }
-            56 => Ok(Self::CompilationFailed),
+            56 => {
+                let data = String::deserialize(
+                    value
+                        .data
+                        .as_ref()
+                        .ok_or(JsonRpcErrorConversionError::MissingData)?,
+                )
+                .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
+                Ok(Self::CompilationFailed(data))
+            }
             57 => Ok(Self::ContractClassSizeIsTooLarge),
             58 => Ok(Self::NonAccount),
             59 => Ok(Self::DuplicateTx),

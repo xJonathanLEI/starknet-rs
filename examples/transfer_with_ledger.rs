@@ -16,7 +16,7 @@ use starknet::{
 #[tokio::main]
 async fn main() {
     let provider = JsonRpcClient::new(HttpTransport::new(
-        Url::parse("https://starknet-sepolia.public.blastapi.io/rpc/v0_7").unwrap(),
+        Url::parse("https://starknet-sepolia.public.blastapi.io/rpc/v0_8").unwrap(),
     ));
 
     let signer = LedgerSigner::new(

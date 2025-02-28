@@ -1,13 +1,12 @@
 use starknet_core::{
     types::{
         requests::{CallRequest, GetBlockTransactionCountRequest},
-        BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1,
-        BroadcastedTransaction, ContractClass, DeclareTransaction, DeployAccountTransaction,
-        EthAddress, EventFilter, ExecuteInvocation, ExecutionResult, Felt, FunctionCall,
-        InvokeTransaction, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
-        MaybePendingBlockWithTxs, MaybePendingStateUpdate, MsgFromL1, StarknetError,
-        SyncStatusType, Transaction, TransactionExecutionStatus, TransactionReceipt,
-        TransactionStatus, TransactionTrace,
+        BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedTransaction, ContractClass,
+        DataAvailabilityMode, DeclareTransaction, DeployAccountTransaction, EthAddress,
+        EventFilter, ExecuteInvocation, ExecutionResult, Felt, FunctionCall, InvokeTransaction,
+        MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
+        MaybePendingStateUpdate, MsgFromL1, ResourceBounds, ResourceBoundsMapping, StarknetError,
+        SyncStatusType, Transaction, TransactionReceipt, TransactionStatus, TransactionTrace,
     },
     utils::{get_selector_from_name, get_storage_var_address},
 };
@@ -19,7 +18,7 @@ use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     let rpc_url = std::env::var("STARKNET_RPC")
-        .unwrap_or_else(|_| "https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_7".into());
+        .unwrap_or_else(|_| "https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_8".into());
     JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()))
 }
 
@@ -29,7 +28,7 @@ async fn jsonrpc_spec_version() {
 
     let version = rpc_client.spec_version().await.unwrap();
 
-    assert_eq!(version, "0.7.1");
+    assert_eq!(version, "0.8.0-rc3");
 }
 
 #[tokio::test]
@@ -141,7 +140,7 @@ async fn jsonrpc_get_transaction_status_succeeded() {
         .unwrap();
 
     match status {
-        TransactionStatus::AcceptedOnL1(TransactionExecutionStatus::Succeeded) => {}
+        TransactionStatus::AcceptedOnL1(ExecutionResult::Succeeded) => {}
         _ => panic!("unexpected transaction status"),
     }
 }
@@ -159,7 +158,9 @@ async fn jsonrpc_get_transaction_status_reverted() {
         .unwrap();
 
     match status {
-        TransactionStatus::AcceptedOnL1(TransactionExecutionStatus::Reverted) => {}
+        TransactionStatus::AcceptedOnL1(ExecutionResult::Reverted { reason }) => {
+            assert!(!reason.is_empty());
+        }
         _ => panic!("unexpected transaction status"),
     }
 }
@@ -623,50 +624,66 @@ async fn jsonrpc_estimate_fee() {
 
     let estimate = rpc_client
         .estimate_fee_single(
-            BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction::V1(
-                BroadcastedInvokeTransactionV1 {
-                    max_fee: Felt::ZERO,
-                    signature: vec![
-                        Felt::from_hex(
-                            "0024bd9efc809227bbcdfbd5a38b9255562184f944336c662037865dddda7a98",
-                        )
-                        .unwrap(),
-                        Felt::from_hex(
-                            "0647f552129f367c1053caeb722c3e1d5719032e229c08dbfde988bd87c9cc3e",
-                        )
-                        .unwrap(),
-                    ],
-                    nonce: Felt::ONE,
-                    sender_address: Felt::from_hex(
-                        "047e5089068f45ed6f7e1396157cd2346dfecbf1c77f396c03d45db3b164f5a0",
+            BroadcastedTransaction::Invoke(BroadcastedInvokeTransaction {
+                signature: vec![
+                    Felt::from_hex(
+                        "000e25bc2c344b9a64887c614cebdf50c8c1a8b3e1af7f22e5bd9958ada216a6",
                     )
                     .unwrap(),
-                    calldata: vec![
-                        Felt::from_hex("1").unwrap(),
-                        Felt::from_hex(
-                            "049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-                        )
-                        .unwrap(),
-                        Felt::from_hex(
-                            "0083afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
-                        )
-                        .unwrap(),
-                        Felt::from_hex("3").unwrap(),
-                        Felt::from_hex("1234").unwrap(),
-                        Felt::from_hex("64").unwrap(),
-                        Felt::from_hex("0").unwrap(),
-                    ],
-                    is_query: true,
+                    Felt::from_hex(
+                        "01f676fc74cd4dd50ad0cc7a0131fed16d235f3d0afca51bcb4946dc7855b1ff",
+                    )
+                    .unwrap(),
+                ],
+                nonce: Felt::ONE,
+                sender_address: Felt::from_hex(
+                    "052d6e8f4fcebd83f4f5fdb7244cc917eadebf3a64109d4e8c2af09b7682a190",
+                )
+                .unwrap(),
+                calldata: vec![
+                    Felt::from_hex("1").unwrap(),
+                    Felt::from_hex(
+                        "04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                    )
+                    .unwrap(),
+                    Felt::from_hex(
+                        "0083afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
+                    )
+                    .unwrap(),
+                    Felt::from_hex("3").unwrap(),
+                    Felt::from_hex("1234").unwrap(),
+                    Felt::from_hex("1").unwrap(),
+                    Felt::from_hex("0").unwrap(),
+                ],
+                is_query: true,
+                resource_bounds: ResourceBoundsMapping {
+                    l1_gas: ResourceBounds {
+                        max_amount: 0,
+                        max_price_per_unit: 0,
+                    },
+                    l1_data_gas: ResourceBounds {
+                        max_amount: 0,
+                        max_price_per_unit: 0,
+                    },
+                    l2_gas: ResourceBounds {
+                        max_amount: 0,
+                        max_price_per_unit: 0,
+                    },
                 },
-            )),
+                tip: Default::default(),
+                paymaster_data: Default::default(),
+                account_deployment_data: Default::default(),
+                nonce_data_availability_mode: DataAvailabilityMode::L1,
+                fee_data_availability_mode: DataAvailabilityMode::L1,
+            }),
             [],
             BlockId::Tag(BlockTag::Latest),
         )
         .await
         .unwrap();
 
-    assert!(estimate.gas_consumed > Felt::ZERO);
-    assert!(estimate.gas_price > Felt::ZERO);
+    assert!(estimate.l2_gas_consumed > Felt::ZERO);
+    assert!(estimate.l2_gas_price > Felt::ZERO);
     assert!(estimate.overall_fee > Felt::ZERO);
 }
 
@@ -694,8 +711,8 @@ async fn jsonrpc_estimate_message_fee() {
         .await
         .unwrap();
 
-    assert!(estimate.gas_consumed > Felt::ZERO);
-    assert!(estimate.gas_price > Felt::ZERO);
+    assert!(estimate.l1_gas_consumed > Felt::ZERO);
+    assert!(estimate.l1_gas_price > Felt::ZERO);
     assert!(estimate.overall_fee > Felt::ZERO);
 }
 
@@ -778,7 +795,7 @@ async fn jsonrpc_trace_invoke() {
 
     let trace = rpc_client
         .trace_transaction(
-            Felt::from_hex("03f786ecc4955a2602c91a291328518ef866cb7f3d50e4b16fd42282952623aa")
+            Felt::from_hex("006e02663371638622afe541481561f482b7a7cee4a7ce512080d492bf51616f")
                 .unwrap(),
         )
         .await
@@ -801,7 +818,7 @@ async fn jsonrpc_trace_invoke_reverted() {
 
     let trace = rpc_client
         .trace_transaction(
-            Felt::from_hex("02f00c7f28df2197196440747f97baa63d0851e3b0cfc2efedb6a88a7ef78cb1")
+            Felt::from_hex("034b1713234d9ac35dcd687afa997e7382229a51173de427b893977bae683104")
                 .unwrap(),
         )
         .await
@@ -824,7 +841,7 @@ async fn jsonrpc_trace_l1_handler() {
 
     let trace = rpc_client
         .trace_transaction(
-            Felt::from_hex("0785c2ada3f53fbc66078d47715c27718f92e6e48b96372b36e5197de69b82b5")
+            Felt::from_hex("02ea7560de087494dd76d39bb10281ee51e2f8c590ad4b9848ab149171862a50")
                 .unwrap(),
         )
         .await
@@ -842,7 +859,7 @@ async fn jsonrpc_trace_declare() {
 
     let trace = rpc_client
         .trace_transaction(
-            Felt::from_hex("01936a09e5aaee208fc0f7cc826e126d421c3ac9aca2c789605e1e919e399185")
+            Felt::from_hex("0109156fb80fc5c7b112818e4c95fe44749cdd4d7217a8aa4e99be905cdd7e32")
                 .unwrap(),
         )
         .await
@@ -862,7 +879,7 @@ async fn jsonrpc_trace_deploy_account() {
 
     let trace = rpc_client
         .trace_transaction(
-            Felt::from_hex("024ed6b82e2f6d3a811ec180a25c1ccd0bdc7bdba8ebd709de2ed697a1e82193")
+            Felt::from_hex("07a7dd7e084a762aba238fe5ba27bda822a9f9e456ed49baeeb64a2e2ebc1586")
                 .unwrap(),
         )
         .await

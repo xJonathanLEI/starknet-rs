@@ -24,7 +24,7 @@ async fn main() {
     let class_hash = contract_artifact.class_hash().unwrap();
 
     let provider = JsonRpcClient::new(HttpTransport::new(
-        Url::parse("https://starknet-sepolia.public.blastapi.io/rpc/v0_7").unwrap(),
+        Url::parse("https://starknet-sepolia.public.blastapi.io/rpc/v0_8").unwrap(),
     ));
 
     let signer = LocalWallet::from(SigningKey::from_secret_scalar(

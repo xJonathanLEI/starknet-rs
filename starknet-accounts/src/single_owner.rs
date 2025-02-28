@@ -1,7 +1,4 @@
-use crate::{
-    Account, ConnectedAccount, ExecutionEncoder, RawDeclarationV2, RawDeclarationV3,
-    RawExecutionV1, RawExecutionV3, RawLegacyDeclaration,
-};
+use crate::{Account, ConnectedAccount, ExecutionEncoder, RawDeclarationV3, RawExecutionV3};
 
 use async_trait::async_trait;
 use starknet_core::types::{contract::ComputeClassHashError, BlockId, BlockTag, Call, Felt};
@@ -100,21 +97,6 @@ where
         self.chain_id
     }
 
-    async fn sign_execution_v1(
-        &self,
-        execution: &RawExecutionV1,
-        query_only: bool,
-    ) -> Result<Vec<Felt>, Self::SignError> {
-        let tx_hash = execution.transaction_hash(self.chain_id, self.address, query_only, self);
-        let signature = self
-            .signer
-            .sign_hash(&tx_hash)
-            .await
-            .map_err(SignError::Signer)?;
-
-        Ok(vec![signature.r, signature.s])
-    }
-
     async fn sign_execution_v3(
         &self,
         execution: &RawExecutionV3,
@@ -130,44 +112,12 @@ where
         Ok(vec![signature.r, signature.s])
     }
 
-    async fn sign_declaration_v2(
-        &self,
-        declaration: &RawDeclarationV2,
-        query_only: bool,
-    ) -> Result<Vec<Felt>, Self::SignError> {
-        let tx_hash = declaration.transaction_hash(self.chain_id, self.address, query_only);
-        let signature = self
-            .signer
-            .sign_hash(&tx_hash)
-            .await
-            .map_err(SignError::Signer)?;
-
-        Ok(vec![signature.r, signature.s])
-    }
-
     async fn sign_declaration_v3(
         &self,
         declaration: &RawDeclarationV3,
         query_only: bool,
     ) -> Result<Vec<Felt>, Self::SignError> {
         let tx_hash = declaration.transaction_hash(self.chain_id, self.address, query_only);
-        let signature = self
-            .signer
-            .sign_hash(&tx_hash)
-            .await
-            .map_err(SignError::Signer)?;
-
-        Ok(vec![signature.r, signature.s])
-    }
-
-    async fn sign_legacy_declaration(
-        &self,
-        legacy_declaration: &RawLegacyDeclaration,
-        query_only: bool,
-    ) -> Result<Vec<Felt>, Self::SignError> {
-        let tx_hash = legacy_declaration
-            .transaction_hash(self.chain_id, self.address, query_only)
-            .map_err(SignError::ClassHash)?;
         let signature = self
             .signer
             .sign_hash(&tx_hash)

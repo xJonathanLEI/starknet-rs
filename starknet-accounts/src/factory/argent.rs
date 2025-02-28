@@ -1,7 +1,4 @@
-use crate::{
-    AccountFactory, PreparedAccountDeploymentV1, PreparedAccountDeploymentV3,
-    RawAccountDeploymentV1, RawAccountDeploymentV3,
-};
+use crate::{AccountFactory, PreparedAccountDeploymentV3, RawAccountDeploymentV3};
 
 use async_trait::async_trait;
 use starknet_core::{
@@ -113,18 +110,6 @@ where
 
     fn block_id(&self) -> BlockId {
         self.block_id
-    }
-
-    async fn sign_deployment_v1(
-        &self,
-        deployment: &RawAccountDeploymentV1,
-        query_only: bool,
-    ) -> Result<Vec<Felt>, Self::SignError> {
-        let tx_hash = PreparedAccountDeploymentV1::from_raw(deployment.clone(), self)
-            .transaction_hash(query_only);
-        let signature = self.signer.sign_hash(&tx_hash).await?;
-
-        Ok(vec![signature.r, signature.s])
     }
 
     async fn sign_deployment_v3(

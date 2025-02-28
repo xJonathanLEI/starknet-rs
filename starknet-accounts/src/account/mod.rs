@@ -1,8 +1,7 @@
 use async_trait::async_trait;
 use auto_impl::auto_impl;
 use starknet_core::types::{
-    contract::{legacy::LegacyContractClass, CompressProgramError, ComputeClassHashError},
-    BlockId, BlockTag, Call, Felt, FlattenedSierraClass,
+    contract::ComputeClassHashError, BlockId, BlockTag, Call, Felt, FlattenedSierraClass,
 };
 use starknet_providers::{Provider, ProviderError};
 use starknet_signers::SignerInteractivityContext;
@@ -27,17 +26,6 @@ pub trait Account: ExecutionEncoder + Sized {
     /// Gets the chain ID of the network where the account contract was deployed.
     fn chain_id(&self) -> Felt;
 
-    /// Signs an execution request to authorize an `INVOKE` v1 transaction that pays transaction
-    /// fees in `ETH`.
-    ///
-    /// If `query_only` is `true`, the commitment must be constructed in a way that a real state-
-    /// changing transaction cannot be authenticated. This is to prevent replay attacks.
-    async fn sign_execution_v1(
-        &self,
-        execution: &RawExecutionV1,
-        query_only: bool,
-    ) -> Result<Vec<Felt>, Self::SignError>;
-
     /// Signs an execution request to authorize an `INVOKE` v3 transaction that pays transaction
     /// fees in `STRK`.
     ///
@@ -46,17 +34,6 @@ pub trait Account: ExecutionEncoder + Sized {
     async fn sign_execution_v3(
         &self,
         execution: &RawExecutionV3,
-        query_only: bool,
-    ) -> Result<Vec<Felt>, Self::SignError>;
-
-    /// Signs an execution request to authorize an `DECLARE` v2 transaction that pays transaction
-    /// fees in `ETH` for declaring Cairo 1 classes.
-    ///
-    /// If `query_only` is `true`, the commitment must be constructed in a way that a real state-
-    /// changing transaction cannot be authenticated. This is to prevent replay attacks.
-    async fn sign_declaration_v2(
-        &self,
-        declaration: &RawDeclarationV2,
         query_only: bool,
     ) -> Result<Vec<Felt>, Self::SignError>;
 
@@ -71,17 +48,6 @@ pub trait Account: ExecutionEncoder + Sized {
         query_only: bool,
     ) -> Result<Vec<Felt>, Self::SignError>;
 
-    /// Signs an execution request to authorize an `DECLARE` v1 transaction that pays transaction
-    /// fees in `ETH` for declaring Cairo 0 classes.
-    ///
-    /// If `query_only` is `true`, the commitment must be constructed in a way that a real state-
-    /// changing transaction cannot be authenticated. This is to prevent replay attacks.
-    async fn sign_legacy_declaration(
-        &self,
-        legacy_declaration: &RawLegacyDeclaration,
-        query_only: bool,
-    ) -> Result<Vec<Felt>, Self::SignError>;
-
     /// Whether the underlying signer implementation is interactive, such as a hardware wallet.
     /// Implementations should return `true` if the signing operation is very expensive, even if not
     /// strictly "interactive" as in requiring human input.
@@ -90,49 +56,17 @@ pub trait Account: ExecutionEncoder + Sized {
     /// estimation/simulation purposes.
     fn is_signer_interactive(&self, context: SignerInteractivityContext<'_>) -> bool;
 
-    /// Generates an instance of [`ExecutionV1`] for sending `INVOKE` v1 transactions. Pays
-    /// transaction fees in `ETH`.
-    #[deprecated = "pre-v3 transactions are deprecated and will be disabled on Starknet soon; use `execute_v3` instead"]
-    fn execute_v1(&self, calls: Vec<Call>) -> ExecutionV1<'_, Self> {
-        ExecutionV1::new(calls, self)
-    }
-
     /// Generates an instance of [`ExecutionV3`] for sending `INVOKE` v3 transactions. Pays
     /// transaction fees in `STRK`.
     fn execute_v3(&self, calls: Vec<Call>) -> ExecutionV3<'_, Self> {
         ExecutionV3::new(calls, self)
     }
 
-    /// Generates an instance of [`ExecutionV1`] for sending `INVOKE` v1 transactions. Pays
-    /// transaction fees in `ETH`.
-    #[deprecated = "pre-v3 transactions are deprecated and will be disabled on Starknet soon; use `execute_v3` instead"]
-    fn execute(&self, calls: Vec<Call>) -> ExecutionV1<'_, Self> {
-        #[allow(deprecated)]
-        self.execute_v1(calls)
-    }
-
-    /// Generates an instance of [`DeclarationV2`] for sending `DECLARE` v2 transactions. Pays
-    /// transaction fees in `ETH`.
-    ///
-    /// To declare a Sierra (Cairo 1) class, a `compiled_class_hash` must be provided. This can be
-    /// obtained by compiling the Sierra class to obtain a CASM class, and then hashing it.
-    ///
-    /// The compilation of Sierra to CASM can either be done interactively via the
-    /// `starknet-sierra-compile` command from the Cairo toolchain, or programmatically through the
-    /// Cairo crates.
-    ///
-    /// Hashing the resulting CASM class is supported in the `starknet-core` crate. It can also be
-    /// done interactively via Starkli with its `starkli class-hash` command.
-    ///
-    /// This method is only used for declaring Sierra (Cairo 1) classes. To declare legacy (Cairo 0)
-    /// classes use [`declare_legacy`](fn.declare_legacy) instead.
-    #[deprecated = "pre-v3 transactions are deprecated and will be disabled on Starknet soon; use `declare_v3` instead"]
-    fn declare_v2(
-        &self,
-        contract_class: Arc<FlattenedSierraClass>,
-        compiled_class_hash: Felt,
-    ) -> DeclarationV2<'_, Self> {
-        DeclarationV2::new(contract_class, compiled_class_hash, self)
+    /// Generates an instance of [`ExecutionV3`] for sending `INVOKE` v3 transactions. Pays
+    /// transaction fees in `STRK`.
+    #[deprecated = "transaction version used might change unexpectedly; use `execute_v3` instead"]
+    fn execute(&self, calls: Vec<Call>) -> ExecutionV3<'_, Self> {
+        self.execute_v3(calls)
     }
 
     /// Generates an instance of [`DeclarationV3`] for sending `DECLARE` v3 transactions. Pays
@@ -148,8 +82,8 @@ pub trait Account: ExecutionEncoder + Sized {
     /// Hashing the resulting CASM class is supported in the `starknet-core` crate. It can also be
     /// done interactively via Starkli with its `starkli class-hash` command.
     ///
-    /// This method is only used for declaring Sierra (Cairo 1) classes. To declare legacy (Cairo 0)
-    /// classes use [`declare_legacy`](fn.declare_legacy) instead.
+    /// This method is only used for declaring Sierra (Cairo 1) classes. Declaring legacy (Cairo 0)
+    /// classes is no longer supported.
     fn declare_v3(
         &self,
         contract_class: Arc<FlattenedSierraClass>,
@@ -158,8 +92,8 @@ pub trait Account: ExecutionEncoder + Sized {
         DeclarationV3::new(contract_class, compiled_class_hash, self)
     }
 
-    /// Generates an instance of [`DeclarationV2`] for sending `DECLARE` v2 transactions. Pays
-    /// transaction fees in `ETH`.
+    /// Generates an instance of [`DeclarationV3`] for sending `DECLARE` v3 transactions. Pays
+    /// transaction fees in `STRK`.
     ///
     /// To declare a Sierra (Cairo 1) class, a `compiled_class_hash` must be provided. This can be
     /// obtained by compiling the Sierra class to obtain a CASM class, and then hashing it.
@@ -171,28 +105,15 @@ pub trait Account: ExecutionEncoder + Sized {
     /// Hashing the resulting CASM class is supported in the `starknet-core` crate. It can also be
     /// done interactively via Starkli with its `starkli class-hash` command.
     ///
-    /// This method is only used for declaring Sierra (Cairo 1) classes. To declare legacy (Cairo 0)
-    /// classes use [`declare_legacy`](fn.declare_legacy) instead.
-    #[deprecated = "pre-v3 transactions are deprecated and will be disabled on Starknet soon; use `declare_v3` instead"]
+    /// This method is only used for declaring Sierra (Cairo 1) classes. Declaring legacy (Cairo 0)
+    /// classes is no longer supported.
+    #[deprecated = "transaction version used might change unexpectedly; use `declare_v3` instead"]
     fn declare(
         &self,
         contract_class: Arc<FlattenedSierraClass>,
         compiled_class_hash: Felt,
-    ) -> DeclarationV2<'_, Self> {
-        #[allow(deprecated)]
-        self.declare_v2(contract_class, compiled_class_hash)
-    }
-
-    /// Generates an instance of [`LegacyDeclaration`] for sending `DECLARE` v1 transactions. Pays
-    /// transaction fees in `ETH`.
-    ///
-    /// This method is only used for declaring legacy (Cairo 0) classes. To declare Sierra (Cairo 1)
-    /// classes use [`declare_v2`](fn.declare_v2) or [`declare_v3`](fn.declare_v3) instead.
-    fn declare_legacy(
-        &self,
-        contract_class: Arc<LegacyContractClass>,
-    ) -> LegacyDeclaration<'_, Self> {
-        LegacyDeclaration::new(contract_class, self)
+    ) -> DeclarationV3<'_, Self> {
+        self.declare_v3(contract_class, compiled_class_hash)
     }
 }
 
@@ -233,60 +154,31 @@ pub trait ConnectedAccount: Account {
 }
 
 /// Abstraction over `INVOKE` transactions from accounts for invoking contracts. This struct uses
-/// v1 `INVOKE` transactions under the hood, and hence pays transaction fees in ETH. To use v3
-/// transactions for STRK fee payment, use [`ExecutionV3`] instead.
+/// v3 `INVOKE` transactions under the hood, and hence pays transaction fees in STRK.
 ///
-/// This is an intermediate type allowing users to optionally specify `nonce` and/or `max_fee`.
-#[must_use]
-#[derive(Debug)]
-pub struct ExecutionV1<'a, A> {
-    account: &'a A,
-    calls: Vec<Call>,
-    nonce: Option<Felt>,
-    max_fee: Option<Felt>,
-    fee_estimate_multiplier: f64,
-}
-
-/// Abstraction over `INVOKE` transactions from accounts for invoking contracts. This struct uses
-/// v3 `INVOKE` transactions under the hood, and hence pays transaction fees in STRK. To use v1
-/// transactions for ETH fee payment, use [`ExecutionV1`] instead.
-///
-/// This is an intermediate type allowing users to optionally specify `nonce`, `gas`, and/or
-/// `gas_price`.
+/// This is an intermediate type allowing users to optionally specify `nonce` and transaction fee
+/// options.
 #[must_use]
 #[derive(Debug)]
 pub struct ExecutionV3<'a, A> {
     account: &'a A,
     calls: Vec<Call>,
     nonce: Option<Felt>,
-    gas: Option<u64>,
-    gas_price: Option<u128>,
+    l1_gas: Option<u64>,
+    l1_gas_price: Option<u128>,
+    l2_gas: Option<u64>,
+    l2_gas_price: Option<u128>,
+    l1_data_gas: Option<u64>,
+    l1_data_gas_price: Option<u128>,
     gas_estimate_multiplier: f64,
     gas_price_estimate_multiplier: f64,
 }
 
 /// Abstraction over `DECLARE` transactions from accounts for invoking contracts. This struct uses
-/// v2 `DECLARE` transactions under the hood, and hence pays transaction fees in ETH. To use v3
-/// transactions for STRK fee payment, use [`DeclarationV3`] instead.
+/// v3 `DECLARE` transactions under the hood, and hence pays transaction fees in STRK.
 ///
-/// An intermediate type allowing users to optionally specify `nonce` and/or `max_fee`.
-#[must_use]
-#[derive(Debug)]
-pub struct DeclarationV2<'a, A> {
-    account: &'a A,
-    contract_class: Arc<FlattenedSierraClass>,
-    compiled_class_hash: Felt,
-    nonce: Option<Felt>,
-    max_fee: Option<Felt>,
-    fee_estimate_multiplier: f64,
-}
-
-/// Abstraction over `DECLARE` transactions from accounts for invoking contracts. This struct uses
-/// v3 `DECLARE` transactions under the hood, and hence pays transaction fees in STRK. To use v2
-/// transactions for ETH fee payment, use [`DeclarationV2`] instead.
-///
-/// This is an intermediate type allowing users to optionally specify `nonce`, `gas`, and/or
-/// `gas_price`.
+/// This is an intermediate type allowing users to optionally specify `nonce` and transaction fee
+/// options.
 #[must_use]
 #[derive(Debug)]
 pub struct DeclarationV3<'a, A> {
@@ -294,72 +186,41 @@ pub struct DeclarationV3<'a, A> {
     contract_class: Arc<FlattenedSierraClass>,
     compiled_class_hash: Felt,
     nonce: Option<Felt>,
-    gas: Option<u64>,
-    gas_price: Option<u128>,
+    l1_gas: Option<u64>,
+    l1_gas_price: Option<u128>,
+    l2_gas: Option<u64>,
+    l2_gas_price: Option<u128>,
+    l1_data_gas: Option<u64>,
+    l1_data_gas_price: Option<u128>,
     gas_estimate_multiplier: f64,
     gas_price_estimate_multiplier: f64,
 }
 
-/// An intermediate type allowing users to optionally specify `nonce` and/or `max_fee`.
-#[must_use]
-#[derive(Debug)]
-pub struct LegacyDeclaration<'a, A> {
-    account: &'a A,
-    contract_class: Arc<LegacyContractClass>,
-    nonce: Option<Felt>,
-    max_fee: Option<Felt>,
-    fee_estimate_multiplier: f64,
-}
-
-/// [`ExecutionV1`] but with `nonce` and `max_fee` already determined.
-#[derive(Debug)]
-pub struct RawExecutionV1 {
-    calls: Vec<Call>,
-    nonce: Felt,
-    max_fee: Felt,
-}
-
-/// [`ExecutionV3`] but with `nonce`, `gas` and `gas_price` already determined.
+/// [`ExecutionV3`] but with `nonce` and other transaction fee options already determined.
 #[derive(Debug)]
 pub struct RawExecutionV3 {
     calls: Vec<Call>,
     nonce: Felt,
-    gas: u64,
-    gas_price: u128,
+    l1_gas: u64,
+    l1_gas_price: u128,
+    l2_gas: u64,
+    l2_gas_price: u128,
+    l1_data_gas: u64,
+    l1_data_gas_price: u128,
 }
 
-/// [`DeclarationV2`] but with `nonce` and `max_fee` already determined.
-#[derive(Debug)]
-pub struct RawDeclarationV2 {
-    contract_class: Arc<FlattenedSierraClass>,
-    compiled_class_hash: Felt,
-    nonce: Felt,
-    max_fee: Felt,
-}
-
-/// [`DeclarationV3`] but with `nonce`, `gas` and `gas_price` already determined.
+/// [`DeclarationV3`] but with `nonce` and other transaction fee options already determined.
 #[derive(Debug)]
 pub struct RawDeclarationV3 {
     contract_class: Arc<FlattenedSierraClass>,
     compiled_class_hash: Felt,
     nonce: Felt,
-    gas: u64,
-    gas_price: u128,
-}
-
-/// [`LegacyDeclaration`] but with `nonce` and `max_fee` already determined.
-#[derive(Debug)]
-pub struct RawLegacyDeclaration {
-    contract_class: Arc<LegacyContractClass>,
-    nonce: Felt,
-    max_fee: Felt,
-}
-
-/// [`RawExecutionV1`] but with an account associated.
-#[derive(Debug)]
-pub struct PreparedExecutionV1<'a, A> {
-    account: &'a A,
-    inner: RawExecutionV1,
+    l1_gas: u64,
+    l1_gas_price: u128,
+    l2_gas: u64,
+    l2_gas_price: u128,
+    l1_data_gas: u64,
+    l1_data_gas_price: u128,
 }
 
 /// [`RawExecutionV3`] but with an account associated.
@@ -369,25 +230,11 @@ pub struct PreparedExecutionV3<'a, A> {
     inner: RawExecutionV3,
 }
 
-/// [`RawDeclarationV2`] but with an account associated.
-#[derive(Debug)]
-pub struct PreparedDeclarationV2<'a, A> {
-    account: &'a A,
-    inner: RawDeclarationV2,
-}
-
 /// [`RawDeclarationV3`] but with an account associated.
 #[derive(Debug)]
 pub struct PreparedDeclarationV3<'a, A> {
     account: &'a A,
     inner: RawDeclarationV3,
-}
-
-/// [`RawLegacyDeclaration`] but with an account associated.
-#[derive(Debug)]
-pub struct PreparedLegacyDeclaration<'a, A> {
-    account: &'a A,
-    inner: RawLegacyDeclaration,
 }
 
 /// Errors using Starknet accounts.
@@ -402,9 +249,6 @@ pub enum AccountError<S> {
     /// Unable to calculate the class hash for declaration.
     #[error(transparent)]
     ClassHashCalculation(ComputeClassHashError),
-    /// Unable to compress the legacy (Cairo 0) class for declaration.
-    #[error(transparent)]
-    ClassCompression(CompressProgramError),
     /// Transaction fee calculation overflow.
     #[error("fee calculation overflow")]
     FeeOutOfRange,
@@ -426,14 +270,6 @@ where
         (*self).chain_id()
     }
 
-    async fn sign_execution_v1(
-        &self,
-        execution: &RawExecutionV1,
-        query_only: bool,
-    ) -> Result<Vec<Felt>, Self::SignError> {
-        (*self).sign_execution_v1(execution, query_only).await
-    }
-
     async fn sign_execution_v3(
         &self,
         execution: &RawExecutionV3,
@@ -442,30 +278,12 @@ where
         (*self).sign_execution_v3(execution, query_only).await
     }
 
-    async fn sign_declaration_v2(
-        &self,
-        declaration: &RawDeclarationV2,
-        query_only: bool,
-    ) -> Result<Vec<Felt>, Self::SignError> {
-        (*self).sign_declaration_v2(declaration, query_only).await
-    }
-
     async fn sign_declaration_v3(
         &self,
         declaration: &RawDeclarationV3,
         query_only: bool,
     ) -> Result<Vec<Felt>, Self::SignError> {
         (*self).sign_declaration_v3(declaration, query_only).await
-    }
-
-    async fn sign_legacy_declaration(
-        &self,
-        legacy_declaration: &RawLegacyDeclaration,
-        query_only: bool,
-    ) -> Result<Vec<Felt>, Self::SignError> {
-        (*self)
-            .sign_legacy_declaration(legacy_declaration, query_only)
-            .await
     }
 
     fn is_signer_interactive(&self, context: SignerInteractivityContext<'_>) -> bool {
@@ -489,30 +307,12 @@ where
         self.as_ref().chain_id()
     }
 
-    async fn sign_execution_v1(
-        &self,
-        execution: &RawExecutionV1,
-        query_only: bool,
-    ) -> Result<Vec<Felt>, Self::SignError> {
-        self.as_ref().sign_execution_v1(execution, query_only).await
-    }
-
     async fn sign_execution_v3(
         &self,
         execution: &RawExecutionV3,
         query_only: bool,
     ) -> Result<Vec<Felt>, Self::SignError> {
         self.as_ref().sign_execution_v3(execution, query_only).await
-    }
-
-    async fn sign_declaration_v2(
-        &self,
-        declaration: &RawDeclarationV2,
-        query_only: bool,
-    ) -> Result<Vec<Felt>, Self::SignError> {
-        self.as_ref()
-            .sign_declaration_v2(declaration, query_only)
-            .await
     }
 
     async fn sign_declaration_v3(
@@ -522,16 +322,6 @@ where
     ) -> Result<Vec<Felt>, Self::SignError> {
         self.as_ref()
             .sign_declaration_v3(declaration, query_only)
-            .await
-    }
-
-    async fn sign_legacy_declaration(
-        &self,
-        legacy_declaration: &RawLegacyDeclaration,
-        query_only: bool,
-    ) -> Result<Vec<Felt>, Self::SignError> {
-        self.as_ref()
-            .sign_legacy_declaration(legacy_declaration, query_only)
             .await
     }
 
@@ -556,30 +346,12 @@ where
         self.as_ref().chain_id()
     }
 
-    async fn sign_execution_v1(
-        &self,
-        execution: &RawExecutionV1,
-        query_only: bool,
-    ) -> Result<Vec<Felt>, Self::SignError> {
-        self.as_ref().sign_execution_v1(execution, query_only).await
-    }
-
     async fn sign_execution_v3(
         &self,
         execution: &RawExecutionV3,
         query_only: bool,
     ) -> Result<Vec<Felt>, Self::SignError> {
         self.as_ref().sign_execution_v3(execution, query_only).await
-    }
-
-    async fn sign_declaration_v2(
-        &self,
-        declaration: &RawDeclarationV2,
-        query_only: bool,
-    ) -> Result<Vec<Felt>, Self::SignError> {
-        self.as_ref()
-            .sign_declaration_v2(declaration, query_only)
-            .await
     }
 
     async fn sign_declaration_v3(
@@ -589,16 +361,6 @@ where
     ) -> Result<Vec<Felt>, Self::SignError> {
         self.as_ref()
             .sign_declaration_v3(declaration, query_only)
-            .await
-    }
-
-    async fn sign_legacy_declaration(
-        &self,
-        legacy_declaration: &RawLegacyDeclaration,
-        query_only: bool,
-    ) -> Result<Vec<Felt>, Self::SignError> {
-        self.as_ref()
-            .sign_legacy_declaration(legacy_declaration, query_only)
             .await
     }
 

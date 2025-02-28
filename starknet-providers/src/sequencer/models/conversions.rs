@@ -45,6 +45,7 @@ impl TryFrom<Block> for core::MaybePendingBlockWithTxHashes {
                     timestamp: value.timestamp,
                     sequencer_address: value.sequencer_address.unwrap_or_default(),
                     l1_gas_price: value.l1_gas_price,
+                    l2_gas_price: value.l2_gas_price,
                     l1_data_gas_price: value.l1_data_gas_price,
                     l1_da_mode: value.l1_da_mode,
                     starknet_version: value.starknet_version.ok_or(ConversionError)?,
@@ -66,6 +67,7 @@ impl TryFrom<Block> for core::MaybePendingBlockWithTxHashes {
                 sequencer_address: value.sequencer_address.unwrap_or_default(),
                 parent_hash: value.parent_block_hash,
                 l1_gas_price: value.l1_gas_price,
+                l2_gas_price: value.l2_gas_price,
                 l1_data_gas_price: value.l1_data_gas_price,
                 l1_da_mode: value.l1_da_mode,
                 starknet_version: value.starknet_version.ok_or(ConversionError)?,
@@ -92,6 +94,7 @@ impl TryFrom<Block> for core::MaybePendingBlockWithTxs {
                     timestamp: value.timestamp,
                     sequencer_address: value.sequencer_address.unwrap_or_default(),
                     l1_gas_price: value.l1_gas_price,
+                    l2_gas_price: value.l2_gas_price,
                     l1_data_gas_price: value.l1_data_gas_price,
                     l1_da_mode: value.l1_da_mode,
                     starknet_version: value.starknet_version.ok_or(ConversionError)?,
@@ -113,6 +116,7 @@ impl TryFrom<Block> for core::MaybePendingBlockWithTxs {
                 sequencer_address: value.sequencer_address.unwrap_or_default(),
                 parent_hash: value.parent_block_hash,
                 l1_gas_price: value.l1_gas_price,
+                l2_gas_price: value.l2_gas_price,
                 l1_data_gas_price: value.l1_data_gas_price,
                 l1_da_mode: value.l1_da_mode,
                 starknet_version: value.starknet_version.ok_or(ConversionError)?,
@@ -164,6 +168,7 @@ impl TryFrom<Block> for core::MaybePendingBlockWithReceipts {
                     timestamp: value.timestamp,
                     sequencer_address: value.sequencer_address.unwrap_or_default(),
                     l1_gas_price: value.l1_gas_price,
+                    l2_gas_price: value.l2_gas_price,
                     l1_data_gas_price: value.l1_data_gas_price,
                     l1_da_mode: value.l1_da_mode,
                     starknet_version: value.starknet_version.ok_or(ConversionError)?,
@@ -177,6 +182,7 @@ impl TryFrom<Block> for core::MaybePendingBlockWithReceipts {
                 sequencer_address: value.sequencer_address.unwrap_or_default(),
                 parent_hash: value.parent_block_hash,
                 l1_gas_price: value.l1_gas_price,
+                l2_gas_price: value.l2_gas_price,
                 l1_data_gas_price: value.l1_data_gas_price,
                 l1_da_mode: value.l1_da_mode,
                 starknet_version: value.starknet_version.ok_or(ConversionError)?,
@@ -212,6 +218,15 @@ impl TryFrom<TransactionType> for core::Transaction {
             TransactionType::InvokeFunction(inner) => Ok(Self::Invoke(inner.try_into()?)),
             TransactionType::L1Handler(inner) => Ok(Self::L1Handler(inner.try_into()?)),
         }
+    }
+}
+
+impl TryFrom<TransactionType> for core::TransactionContent {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionType) -> Result<Self, Self::Error> {
+        let tx: core::Transaction = value.try_into()?;
+        Ok(tx.into())
     }
 }
 
@@ -401,6 +416,7 @@ impl From<ResourceBoundsMapping> for core::ResourceBoundsMapping {
     fn from(value: ResourceBoundsMapping) -> Self {
         Self {
             l1_gas: value.l1_gas.into(),
+            l1_data_gas: value.l1_data_gas.into(),
             l2_gas: value.l2_gas.into(),
         }
     }
@@ -410,6 +426,7 @@ impl From<core::ResourceBoundsMapping> for ResourceBoundsMapping {
     fn from(value: core::ResourceBoundsMapping) -> Self {
         Self {
             l1_gas: value.l1_gas.into(),
+            l1_data_gas: value.l1_data_gas.into(),
             l2_gas: value.l2_gas.into(),
         }
     }
@@ -606,23 +623,7 @@ impl TryFrom<TransactionFinalityStatus> for core::TransactionFinalityStatus {
 
 impl From<core::BroadcastedInvokeTransaction> for InvokeFunctionTransactionRequest {
     fn from(value: core::BroadcastedInvokeTransaction) -> Self {
-        match value {
-            core::BroadcastedInvokeTransaction::V1(inner) => Self::V1(inner.into()),
-            core::BroadcastedInvokeTransaction::V3(inner) => Self::V3(inner.into()),
-        }
-    }
-}
-
-impl From<core::BroadcastedInvokeTransactionV1> for InvokeFunctionV1TransactionRequest {
-    fn from(value: core::BroadcastedInvokeTransactionV1) -> Self {
-        Self {
-            sender_address: value.sender_address,
-            calldata: value.calldata,
-            signature: value.signature,
-            max_fee: value.max_fee,
-            nonce: value.nonce,
-            is_query: value.is_query,
-        }
+        Self::V3(value.into())
     }
 }
 
@@ -648,43 +649,7 @@ impl TryFrom<core::BroadcastedDeclareTransaction> for DeclareTransactionRequest 
     type Error = ConversionError;
 
     fn try_from(value: core::BroadcastedDeclareTransaction) -> Result<Self, Self::Error> {
-        match value {
-            core::BroadcastedDeclareTransaction::V1(inner) => Ok(Self::V1(inner.into())),
-            core::BroadcastedDeclareTransaction::V2(inner) => Ok(Self::V2(inner.try_into()?)),
-            core::BroadcastedDeclareTransaction::V3(inner) => Ok(Self::V3(inner.try_into()?)),
-        }
-    }
-}
-
-impl From<core::BroadcastedDeclareTransactionV1> for DeclareV1TransactionRequest {
-    fn from(value: core::BroadcastedDeclareTransactionV1) -> Self {
-        Self {
-            contract_class: Arc::new((*value.contract_class).clone().into()),
-            sender_address: value.sender_address,
-            max_fee: value.max_fee,
-            signature: value.signature,
-            nonce: value.nonce,
-            is_query: value.is_query,
-        }
-    }
-}
-
-impl TryFrom<core::BroadcastedDeclareTransactionV2> for DeclareV2TransactionRequest {
-    type Error = ConversionError;
-
-    fn try_from(value: core::BroadcastedDeclareTransactionV2) -> Result<Self, Self::Error> {
-        Ok(Self {
-            contract_class: Arc::new(
-                contract::CompressedSierraClass::from_flattened(&value.contract_class)
-                    .map_err(|_| ConversionError)?,
-            ),
-            compiled_class_hash: value.compiled_class_hash,
-            sender_address: value.sender_address,
-            max_fee: value.max_fee,
-            signature: value.signature,
-            nonce: value.nonce,
-            is_query: value.is_query,
-        })
+        Ok(Self::V3(value.try_into()?))
     }
 }
 
@@ -714,24 +679,7 @@ impl TryFrom<core::BroadcastedDeclareTransactionV3> for DeclareV3TransactionRequ
 
 impl From<core::BroadcastedDeployAccountTransaction> for DeployAccountTransactionRequest {
     fn from(value: core::BroadcastedDeployAccountTransaction) -> Self {
-        match value {
-            core::BroadcastedDeployAccountTransaction::V1(inner) => Self::V1(inner.into()),
-            core::BroadcastedDeployAccountTransaction::V3(inner) => Self::V3(inner.into()),
-        }
-    }
-}
-
-impl From<core::BroadcastedDeployAccountTransactionV1> for DeployAccountV1TransactionRequest {
-    fn from(value: core::BroadcastedDeployAccountTransactionV1) -> Self {
-        Self {
-            class_hash: value.class_hash,
-            contract_address_salt: value.contract_address_salt,
-            constructor_calldata: value.constructor_calldata,
-            max_fee: value.max_fee,
-            signature: value.signature,
-            nonce: value.nonce,
-            is_query: value.is_query,
-        }
+        Self::V3(value.into())
     }
 }
 
@@ -807,23 +755,6 @@ impl From<EntryPointType> for core::EntryPointType {
     }
 }
 
-impl From<ExecutionResources> for core::ComputationResources {
-    fn from(value: ExecutionResources) -> Self {
-        Self {
-            steps: value.n_steps,
-            memory_holes: Some(value.n_memory_holes),
-            range_check_builtin_applications: value.builtin_instance_counter.range_check_builtin,
-            pedersen_builtin_applications: value.builtin_instance_counter.pedersen_builtin,
-            poseidon_builtin_applications: value.builtin_instance_counter.poseidon_builtin,
-            ec_op_builtin_applications: value.builtin_instance_counter.ec_op_builtin,
-            ecdsa_builtin_applications: value.builtin_instance_counter.ecdsa_builtin,
-            bitwise_builtin_applications: value.builtin_instance_counter.bitwise_builtin,
-            keccak_builtin_applications: value.builtin_instance_counter.keccak_builtin,
-            segment_arena_builtin: value.builtin_instance_counter.segment_arena_builtin,
-        }
-    }
-}
-
 impl TryFrom<TransactionStatusInfo> for core::TransactionStatus {
     type Error = ConversionError;
 
@@ -845,10 +776,40 @@ impl TryFrom<TransactionStatusInfo> for core::TransactionStatus {
         match value.finality_status {
             Some(TransactionFinalityStatus::Received) => Ok(Self::Received),
             Some(TransactionFinalityStatus::AcceptedOnL2) => {
-                Ok(Self::AcceptedOnL2(exec_status.ok_or(ConversionError)?))
+                let exec = match (
+                    exec_status.ok_or(ConversionError)?,
+                    value.transaction_failure_reason,
+                ) {
+                    (core::TransactionExecutionStatus::Succeeded, None) => {
+                        Ok(core::ExecutionResult::Succeeded)
+                    }
+                    (core::TransactionExecutionStatus::Reverted, Some(reason)) => {
+                        Ok(core::ExecutionResult::Reverted {
+                            reason: reason.error_message.unwrap_or(reason.code),
+                        })
+                    }
+                    _ => Err(ConversionError),
+                };
+
+                Ok(Self::AcceptedOnL2(exec?))
             }
             Some(TransactionFinalityStatus::AcceptedOnL1) => {
-                Ok(Self::AcceptedOnL1(exec_status.ok_or(ConversionError)?))
+                let exec = match (
+                    exec_status.ok_or(ConversionError)?,
+                    value.transaction_failure_reason,
+                ) {
+                    (core::TransactionExecutionStatus::Succeeded, None) => {
+                        Ok(core::ExecutionResult::Succeeded)
+                    }
+                    (core::TransactionExecutionStatus::Reverted, Some(reason)) => {
+                        Ok(core::ExecutionResult::Reverted {
+                            reason: reason.error_message.unwrap_or(reason.code),
+                        })
+                    }
+                    _ => Err(ConversionError),
+                };
+
+                Ok(Self::AcceptedOnL1(exec?))
             }
             // `NotReceived` must be handled on the caller before converting
             _ => Err(ConversionError),
@@ -897,7 +858,8 @@ impl TryFrom<ConfirmedReceiptWithContext> for core::DeclareTransactionReceipt {
                 .receipt
                 .execution_resources
                 .ok_or(ConversionError)?
-                .try_into()?,
+                .total_gas_consumed
+                .ok_or(ConversionError)?,
             execution_result: convert_execution_result(
                 value.receipt.execution_status,
                 value.receipt.revert_error,
@@ -937,7 +899,8 @@ impl TryFrom<ConfirmedReceiptWithContext> for core::DeployTransactionReceipt {
                 .receipt
                 .execution_resources
                 .ok_or(ConversionError)?
-                .try_into()?,
+                .total_gas_consumed
+                .ok_or(ConversionError)?,
             execution_result: convert_execution_result(
                 value.receipt.execution_status,
                 value.receipt.revert_error,
@@ -979,7 +942,8 @@ impl TryFrom<ConfirmedReceiptWithContext> for core::DeployAccountTransactionRece
                 .receipt
                 .execution_resources
                 .ok_or(ConversionError)?
-                .try_into()?,
+                .total_gas_consumed
+                .ok_or(ConversionError)?,
             execution_result: convert_execution_result(
                 value.receipt.execution_status,
                 value.receipt.revert_error,
@@ -1015,7 +979,8 @@ impl TryFrom<ConfirmedReceiptWithContext> for core::InvokeTransactionReceipt {
                 .receipt
                 .execution_resources
                 .ok_or(ConversionError)?
-                .try_into()?,
+                .total_gas_consumed
+                .ok_or(ConversionError)?,
             execution_result: convert_execution_result(
                 value.receipt.execution_status,
                 value.receipt.revert_error,
@@ -1060,7 +1025,8 @@ impl TryFrom<ConfirmedReceiptWithContext> for core::L1HandlerTransactionReceipt 
                 .receipt
                 .execution_resources
                 .ok_or(ConversionError)?
-                .try_into()?,
+                .total_gas_consumed
+                .ok_or(ConversionError)?,
             execution_result: convert_execution_result(
                 value.receipt.execution_status,
                 value.receipt.revert_error,
@@ -1080,32 +1046,6 @@ impl TryFrom<BlockStatus> for core::TransactionFinalityStatus {
             BlockStatus::AcceptedOnL1 => Ok(Self::AcceptedOnL1),
             BlockStatus::Aborted | BlockStatus::Reverted => Err(ConversionError),
         }
-    }
-}
-
-impl TryFrom<ExecutionResources> for core::ExecutionResources {
-    type Error = ConversionError;
-
-    fn try_from(value: ExecutionResources) -> Result<Self, Self::Error> {
-        Ok(Self {
-            computation_resources: core::ComputationResources {
-                steps: value.n_steps,
-                memory_holes: Some(value.n_memory_holes),
-                range_check_builtin_applications: value
-                    .builtin_instance_counter
-                    .range_check_builtin,
-                pedersen_builtin_applications: value.builtin_instance_counter.pedersen_builtin,
-                poseidon_builtin_applications: value.builtin_instance_counter.poseidon_builtin,
-                ec_op_builtin_applications: value.builtin_instance_counter.ec_op_builtin,
-                ecdsa_builtin_applications: value.builtin_instance_counter.ecdsa_builtin,
-                bitwise_builtin_applications: value.builtin_instance_counter.bitwise_builtin,
-                keccak_builtin_applications: value.builtin_instance_counter.keccak_builtin,
-                segment_arena_builtin: value.builtin_instance_counter.segment_arena_builtin,
-            },
-            data_resources: core::DataResources {
-                data_availability: value.data_availability.ok_or(ConversionError)?,
-            },
-        })
     }
 }
 
