@@ -23,7 +23,7 @@ pub struct MsgToL2 {
 impl MsgToL2 {
     /// Calculates the message hash based on the algorithm documented here:
     ///
-    /// <https://docs.starknet.io/documentation/architecture_and_concepts/L1-L2_Communication/messaging-mechanism/>
+    /// <https://docs.starknet.io/architecture-and-concepts/network-architecture/messaging-mechanism/>
     pub fn hash(&self) -> Hash256 {
         let mut hasher = Keccak256::new();
 
@@ -60,7 +60,7 @@ impl MsgToL2 {
 impl MsgToL1 {
     /// Calculates the message hash based on the algorithm documented here:
     ///
-    /// <https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/messaging-mechanism/#structure_and_hashing_l2-l1>
+    /// <https://docs.starknet.io/architecture-and-concepts/network-architecture/messaging-mechanism/#hashing_l2-l1>
     pub fn hash(&self) -> Hash256 {
         let mut hasher = Keccak256::new();
 
