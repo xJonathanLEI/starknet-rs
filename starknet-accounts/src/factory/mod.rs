@@ -687,7 +687,7 @@ where
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             ];
             resource_buffer[8..(8 + 8)].copy_from_slice(&self.inner.l1_data_gas.to_be_bytes());
-            resource_buffer[(8 + 8)..].copy_from_slice(&self.inner.l1_data_gas.to_be_bytes());
+            resource_buffer[(8 + 8)..].copy_from_slice(&self.inner.l1_data_gas_price.to_be_bytes());
             fee_hasher.update(Felt::from_bytes_be(&resource_buffer));
 
             fee_hasher.finalize()
