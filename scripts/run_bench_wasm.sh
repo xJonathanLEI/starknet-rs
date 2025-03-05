@@ -26,7 +26,7 @@ benches=(
   rfc6979_generate_k
 )
 
-for bench in ${benches[@]}; do
+for bench in "${benches[@]}"; do
   if [[ "$RUNTIME" == "wasmtime" ]]; then
     # https://github.com/bytecodealliance/wasmtime/issues/7384
     $RUNTIME run --dir=. -- $REPO_ROOT/target/bench-wasm/$bench.wasm --bench
