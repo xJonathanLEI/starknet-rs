@@ -1,7 +1,7 @@
 use alloc::{borrow::ToOwned, string::*, vec::*};
 
 use indexmap::IndexMap;
-use serde::{de::Visitor, Deserialize};
+use serde::{de::Visitor, Deserialize, Serialize, Serializer};
 
 #[cfg(feature = "std")]
 type RandomState = std::hash::RandomState;
@@ -169,9 +169,71 @@ impl core::fmt::Display for ValueKind {
     }
 }
 
+impl Serialize for Value {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            Value::String(s) => serializer.serialize_str(s),
+            Value::UnsignedInteger(u) => serializer.serialize_u128(*u),
+            Value::SignedInteger(i) => serializer.serialize_i128(*i),
+            Value::Boolean(b) => serializer.serialize_bool(*b),
+            Value::Object(o) => o.serialize(serializer),
+            Value::Array(a) => a.serialize(serializer),
+        }
+    }
+}
+
+impl Serialize for ObjectValue {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.fields.serialize(serializer)
+    }
+}
+
+impl Serialize for ArrayValue {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.elements.serialize(serializer)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(test)]
+    mod serialize {
+        use super::*;
+
+        #[test]
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+        fn should_return_serialized_value() {
+            // Given
+            let initial_value = r###"{
+  "Name": "some name",
+  "Some Array": [1, 2, 3, 4],
+  "Some Object": {
+    "Some Selector": "transfer",
+    "Some Contract Address": "0x0123"
+  }
+}"###;
+            let value = serde_json::from_str::<Value>(initial_value).unwrap();
+
+            // When
+            let result = serde_json::to_string(&value).unwrap();
+
+            // Then
+            let expected_json: serde_json::Value = serde_json::from_str(initial_value).unwrap();
+            let result_json: serde_json::Value = serde_json::from_str(&result).unwrap();
+            assert_eq!(result_json, expected_json);
+        }
+    }
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
