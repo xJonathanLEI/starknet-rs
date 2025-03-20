@@ -878,7 +878,52 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_message_hash_v1_with_enum() {
+    fn test_message_hash_v1_with_simple_enum() {
+        let raw = r###"{
+  "types": {
+    "StarknetDomain": [
+      { "name": "name", "type": "shortstring" },
+      { "name": "version", "type": "shortstring" },
+      { "name": "chainId", "type": "shortstring" },
+      { "name": "revision", "type": "shortstring" }
+    ],
+    "Example Message": [
+      { "name": "Value", "type": "enum", "contains": "My Enum" }
+    ],
+    "My Enum": [
+      { "name": "Variant 1", "type": "()" },
+      { "name": "Variant 2", "type": "(string)" },
+      { "name": "Variant 3", "type": "(u128)" }
+    ]
+  },
+  "primaryType": "Example Message",
+  "domain": {
+    "name": "Starknet Example",
+    "version": "1",
+    "chainId": "SN_MAIN",
+    "revision": "1"
+  },
+  "message": {
+    "Value": {
+      "Variant 2": ["tuple element"]
+    }
+  }
+}"###;
+
+        let data = serde_json::from_str::<TypedData>(raw).unwrap();
+
+        assert_eq!(
+            data.message_hash(Felt::from_hex_unchecked("0x1234"))
+                .unwrap(),
+            Felt::from_hex_unchecked(
+                "0x06143075810eaff76810682ad4db8c97ba0fd2c80d5f12d3e7e3a9c127e6f0f3"
+            )
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_message_hash_v1_with_enum_nested() {
         let raw = r###"{
   "types": {
     "StarknetDomain": [
