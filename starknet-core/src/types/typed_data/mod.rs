@@ -161,7 +161,7 @@ impl TypedData {
                             return Err(TypedDataError::UnexpectedEnum(name.to_owned()));
                         }
 
-                        self.encode_enum::<H>(type_hash, enum_def, obj_value)?
+                        self.encode_enum::<H>(enum_def, obj_value)?
                     }
                 }
             }
@@ -482,7 +482,6 @@ impl TypedData {
 
     fn encode_enum<H>(
         &self,
-        type_hash: Felt,
         enum_def: &EnumDefinition,
         value: &ObjectValue,
     ) -> Result<Felt, TypedDataError>
@@ -490,7 +489,13 @@ impl TypedData {
         H: TypedDataHasher,
     {
         let mut hasher = H::default();
-        hasher.update(type_hash);
+
+        // Here we're NOT hashing the enum type hash. This is technically a SNIP-12 violation.
+        // Unfortunately, as the de-facto standard, starknet.js implemented it incorrectly. Despite
+        // the fix being merged (https://github.com/starknet-io/starknet.js/pull/1281) it's expected
+        // to never be released.
+        //
+        // Context: https://github.com/starknet-io/starknet.js/pull/1292
 
         let mut value_field_iter = value.fields.iter();
 
@@ -878,7 +883,56 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_message_hash_v1_with_enum() {
+    fn test_message_hash_v1_with_simple_enum() {
+        let raw = r###"{
+  "types": {
+    "StarknetDomain": [
+      { "name": "name", "type": "shortstring" },
+      { "name": "version", "type": "shortstring" },
+      { "name": "chainId", "type": "shortstring" },
+      { "name": "revision", "type": "shortstring" }
+    ],
+    "Example Message": [
+      { "name": "Value", "type": "enum", "contains": "My Enum" }
+    ],
+    "My Enum": [
+      { "name": "Variant 1", "type": "()" },
+      { "name": "Variant 2", "type": "(string)" },
+      { "name": "Variant 3", "type": "(u128)" }
+    ]
+  },
+  "primaryType": "Example Message",
+  "domain": {
+    "name": "Starknet Example",
+    "version": "1",
+    "chainId": "SN_MAIN",
+    "revision": "1"
+  },
+  "message": {
+    "Value": {
+      "Variant 2": ["tuple element"]
+    }
+  }
+}"###;
+
+        let data = serde_json::from_str::<TypedData>(raw).unwrap();
+
+        assert_eq!(
+            data.message_hash(Felt::from_hex_unchecked("0x1234"))
+                .unwrap(),
+            // This expected hash was generated with starknet.js v6.24.0, due to the expectation
+            // that the following fixes, despite being merged, would never be released:
+            // - https://github.com/starknet-io/starknet.js/pull/1281
+            // - https://github.com/starknet-io/starknet.js/pull/1288
+            Felt::from_hex_unchecked(
+                "0x05cb0569ef378e0c17c07c13cb86bc6e067f824ccffd79fd49d875ecc0296124"
+            )
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_message_hash_v1_with_enum_nested() {
         let raw = r###"{
   "types": {
     "StarknetDomain": [
@@ -931,8 +985,16 @@ mod tests {
         assert_eq!(
             data.message_hash(Felt::from_hex_unchecked("0x1234"))
                 .unwrap(),
+            // This expected hash was generated with starknet.js v6.24.0 patched with:
+            // - https://github.com/starknet-io/starknet.js/pull/1289
+            //
+            // Here a patched version is used as it's expected that the patch would eventually be
+            // released.
+            //
+            // See this thread for more context:
+            // - https://github.com/starknet-io/starknet.js/pull/1292
             Felt::from_hex_unchecked(
-                "0x03745761c0f8ab5f0dbbba52b448f7db6ebfecbf74069073dcbf4fc5a6608125"
+                "0x0470e6107a4d464e16d8f77ff673c06f6fbfe107fef1e496e53b10d3744afd42"
             )
         );
     }

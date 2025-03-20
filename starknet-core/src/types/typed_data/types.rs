@@ -215,6 +215,15 @@ impl SignatureGenerator<'_> {
                 let mut variant_iter = enum_def.variants.iter().peekable();
                 while let Some(variant) = variant_iter.next() {
                     Self::write_escaped_name(&variant.name, signature, revision);
+
+                    // This is technically a SNIP-12 violation. Unfortunately, as the de-facto
+                    // standard, starknet.js implemented it incorrectly. Despite the fix being
+                    // merged (https://github.com/starknet-io/starknet.js/issues/1286) it's expected
+                    // to never be released.
+                    //
+                    // Context: https://github.com/starknet-io/starknet.js/pull/1292
+                    signature.push(':');
+
                     signature.push('(');
 
                     let mut tuple_type_iter = variant.tuple_types.iter().peekable();
