@@ -778,7 +778,7 @@ async fn jsonrpc_trace_invoke() {
 
     let trace = rpc_client
         .trace_transaction(
-            Felt::from_hex("03f786ecc4955a2602c91a291328518ef866cb7f3d50e4b16fd42282952623aa")
+            Felt::from_hex("006e02663371638622afe541481561f482b7a7cee4a7ce512080d492bf51616f")
                 .unwrap(),
         )
         .await
@@ -801,7 +801,7 @@ async fn jsonrpc_trace_invoke_reverted() {
 
     let trace = rpc_client
         .trace_transaction(
-            Felt::from_hex("02f00c7f28df2197196440747f97baa63d0851e3b0cfc2efedb6a88a7ef78cb1")
+            Felt::from_hex("034b1713234d9ac35dcd687afa997e7382229a51173de427b893977bae683104")
                 .unwrap(),
         )
         .await
@@ -824,7 +824,7 @@ async fn jsonrpc_trace_l1_handler() {
 
     let trace = rpc_client
         .trace_transaction(
-            Felt::from_hex("0785c2ada3f53fbc66078d47715c27718f92e6e48b96372b36e5197de69b82b5")
+            Felt::from_hex("02ea7560de087494dd76d39bb10281ee51e2f8c590ad4b9848ab149171862a50")
                 .unwrap(),
         )
         .await
@@ -842,7 +842,7 @@ async fn jsonrpc_trace_declare() {
 
     let trace = rpc_client
         .trace_transaction(
-            Felt::from_hex("01936a09e5aaee208fc0f7cc826e126d421c3ac9aca2c789605e1e919e399185")
+            Felt::from_hex("0109156fb80fc5c7b112818e4c95fe44749cdd4d7217a8aa4e99be905cdd7e32")
                 .unwrap(),
         )
         .await
@@ -862,7 +862,7 @@ async fn jsonrpc_trace_deploy_account() {
 
     let trace = rpc_client
         .trace_transaction(
-            Felt::from_hex("024ed6b82e2f6d3a811ec180a25c1ccd0bdc7bdba8ebd709de2ed697a1e82193")
+            Felt::from_hex("07a7dd7e084a762aba238fe5ba27bda822a9f9e456ed49baeeb64a2e2ebc1586")
                 .unwrap(),
         )
         .await
