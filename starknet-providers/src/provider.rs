@@ -4,12 +4,13 @@ use serde::Serialize;
 use starknet_core::types::{
     requests::*, BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
     BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
-    ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
-    EventsPage, FeeEstimate, Felt, FunctionCall, InvokeTransactionResult,
-    MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
-    MaybePendingStateUpdate, MsgFromL1, SimulatedTransaction, SimulationFlag,
-    SimulationFlagForEstimateFee, StarknetError, SyncStatusType, Transaction,
-    TransactionReceiptWithBlockInfo, TransactionStatus, TransactionTrace, TransactionTraceWithHash,
+    ConfirmedBlockId, ContractClass, ContractStorageKeys, DeclareTransactionResult,
+    DeployAccountTransactionResult, EventFilter, EventsPage, FeeEstimate, Felt, FunctionCall,
+    Hash256, InvokeTransactionResult, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
+    MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageWithStatus, MsgFromL1,
+    SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, StarknetError,
+    StorageProof, SyncStatusType, Transaction, TransactionReceiptWithBlockInfo, TransactionStatus,
+    TransactionTrace, TransactionTraceWithHash,
 };
 use std::{any::Any, error::Error, fmt::Debug};
 
@@ -73,6 +74,13 @@ pub trait Provider {
         A: AsRef<Felt> + Send + Sync,
         K: AsRef<Felt> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync;
+
+    /// Given an l1 tx hash, returns the associated l1_handler tx hashes and statuses for all L1 ->
+    /// L2 messages sent by the l1 transaction, ordered by the l1 tx sending order
+    async fn get_messages_status(
+        &self,
+        transaction_hash: Hash256,
+    ) -> Result<Vec<MessageWithStatus>, ProviderError>;
 
     /// Gets the transaction status (possibly reflecting that the tx is still in the mempool, or
     /// dropped from it).
@@ -201,6 +209,22 @@ pub trait Provider {
     where
         B: AsRef<BlockId> + Send + Sync,
         A: AsRef<Felt> + Send + Sync;
+
+    /// Get merkle paths in one of the state tries: global state, classes, individual contract.
+    /// A single request can query for any mix of the three types of storage proofs (classes,
+    /// contracts, and storage).
+    async fn get_storage_proof<B, H, A, K>(
+        &self,
+        block_id: B,
+        class_hashes: H,
+        contract_addresses: A,
+        contracts_storage_keys: K,
+    ) -> Result<StorageProof, ProviderError>
+    where
+        B: AsRef<ConfirmedBlockId> + Send + Sync,
+        H: AsRef<[Felt]> + Send + Sync,
+        A: AsRef<[Felt]> + Send + Sync,
+        K: AsRef<[ContractStorageKeys]> + Send + Sync;
 
     /// Submits a new transaction to be added to the chain.
     async fn add_invoke_transaction<I>(
@@ -377,6 +401,8 @@ pub enum ProviderRequestData {
     GetStateUpdate(GetStateUpdateRequest),
     /// Request data for `starknet_getStorageAt`.
     GetStorageAt(GetStorageAtRequest),
+    /// Request data for `starknet_getMessagesStatus`.
+    GetMessagesStatus(GetMessagesStatusRequest),
     /// Request data for `starknet_getTransactionStatus`.
     GetTransactionStatus(GetTransactionStatusRequest),
     /// Request data for `starknet_getTransactionByHash`.
@@ -411,6 +437,8 @@ pub enum ProviderRequestData {
     GetEvents(GetEventsRequest),
     /// Request data for `starknet_getNonce`.
     GetNonce(GetNonceRequest),
+    /// Request data for `starknet_getStorageProof`.
+    GetStorageProof(GetStorageProofRequest),
     /// Request data for `starknet_addInvokeTransaction`.
     AddInvokeTransaction(AddInvokeTransactionRequest),
     /// Request data for `starknet_addDeclareTransaction`.
@@ -441,6 +469,8 @@ pub enum ProviderResponseData {
     GetStateUpdate(MaybePendingStateUpdate),
     /// Response data for `starknet_getStorageAt`.
     GetStorageAt(Felt),
+    /// Response data for `starknet_getMessagesStatus`.
+    GetMessagesStatus(Vec<MessageWithStatus>),
     /// Response data for `starknet_getTransactionStatus`.
     GetTransactionStatus(TransactionStatus),
     /// Response data for `starknet_getTransactionByHash`.
@@ -475,6 +505,8 @@ pub enum ProviderResponseData {
     GetEvents(EventsPage),
     /// Response data for `starknet_getNonce`.
     GetNonce(Felt),
+    /// Response data for `starknet_getStorageProof`.
+    GetStorageProof(StorageProof),
     /// Response data for `starknet_addInvokeTransaction`.
     AddInvokeTransaction(InvokeTransactionResult),
     /// Response data for `starknet_addDeclareTransaction`.

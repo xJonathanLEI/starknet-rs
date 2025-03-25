@@ -18,21 +18,26 @@ pub use typed_data::TypedData;
 // TODO: better namespacing of exports?
 mod codegen;
 pub use codegen::{
-    BlockStatus, BlockTag, BlockWithReceipts, BlockWithTxHashes, BlockWithTxs,
-    BroadcastedDeclareTransactionV1, BroadcastedDeclareTransactionV2,
-    BroadcastedDeclareTransactionV3, BroadcastedDeployAccountTransactionV1,
-    BroadcastedDeployAccountTransactionV3, BroadcastedInvokeTransactionV1,
-    BroadcastedInvokeTransactionV3, CallType, CompressedLegacyContractClass, ComputationResources,
-    ContractErrorData, ContractStorageDiffItem, DataAvailabilityMode, DataAvailabilityResources,
-    DataResources, DeclareTransactionReceipt, DeclareTransactionTrace, DeclareTransactionV0,
-    DeclareTransactionV1, DeclareTransactionV2, DeclareTransactionV3, DeclaredClassItem,
-    DeployAccountTransactionReceipt, DeployAccountTransactionTrace, DeployAccountTransactionV1,
-    DeployAccountTransactionV3, DeployTransaction, DeployTransactionReceipt, DeployedContractItem,
-    EmittedEvent, EntryPointType, EntryPointsByType, Event, EventFilter, EventFilterWithPage,
-    EventsChunk, ExecutionResources, FeeEstimate, FeePayment, FlattenedSierraClass, FunctionCall,
-    FunctionInvocation, FunctionStateMutability, InvokeTransactionReceipt, InvokeTransactionTrace,
-    InvokeTransactionV0, InvokeTransactionV1, InvokeTransactionV3, L1DataAvailabilityMode,
-    L1HandlerTransaction, L1HandlerTransactionReceipt, L1HandlerTransactionTrace,
+    BinaryNode, BlockStatus, BlockTag, BlockWithReceipts, BlockWithTxHashes, BlockWithTxs,
+    BroadcastedDeclareTransaction, BroadcastedDeclareTransactionV3,
+    BroadcastedDeployAccountTransaction, BroadcastedDeployAccountTransactionV3,
+    BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV3, CallType,
+    CompressedLegacyContractClass, ContractErrorData, ContractLeafData, ContractStorageDiffItem,
+    ContractStorageKeys, ContractsProof, DataAvailabilityMode, DeclareTransactionReceipt,
+    DeclareTransactionTrace, DeclareTransactionV0, DeclareTransactionV0Content,
+    DeclareTransactionV1, DeclareTransactionV1Content, DeclareTransactionV2,
+    DeclareTransactionV2Content, DeclareTransactionV3, DeclareTransactionV3Content,
+    DeclaredClassItem, DeployAccountTransactionReceipt, DeployAccountTransactionTrace,
+    DeployAccountTransactionV1, DeployAccountTransactionV1Content, DeployAccountTransactionV3,
+    DeployAccountTransactionV3Content, DeployTransaction, DeployTransactionContent,
+    DeployTransactionReceipt, DeployedContractItem, EdgeNode, EmittedEvent, EntryPointType,
+    EntryPointsByType, Event, EventFilter, EventFilterWithPage, EventsChunk, ExecutionResources,
+    FeeEstimate, FeePayment, FlattenedSierraClass, FunctionCall, FunctionInvocation,
+    FunctionStateMutability, GlobalRoots, InnerCallExecutionResources, InnerContractExecutionError,
+    InvokeTransactionReceipt, InvokeTransactionTrace, InvokeTransactionV0,
+    InvokeTransactionV0Content, InvokeTransactionV1, InvokeTransactionV1Content,
+    InvokeTransactionV3, InvokeTransactionV3Content, L1DataAvailabilityMode, L1HandlerTransaction,
+    L1HandlerTransactionContent, L1HandlerTransactionReceipt, L1HandlerTransactionTrace,
     LegacyContractEntryPoint, LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType,
     LegacyFunctionAbiEntry, LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType,
     LegacyStructMember, LegacyTypedParameter, MsgFromL1, MsgToL1, NoTraceAvailableErrorData,
@@ -40,9 +45,10 @@ pub use codegen::{
     PendingBlockWithTxs, PendingStateUpdate, PriceUnit, ReplacedClassItem, ResourceBounds,
     ResourceBoundsMapping, ResourcePrice, ResultPageRequest, RevertedInvocation,
     SequencerTransactionStatus, SierraEntryPoint, SimulatedTransaction, SimulationFlag,
-    SimulationFlagForEstimateFee, StarknetError, StateDiff, StateUpdate, StorageEntry, SyncStatus,
-    TransactionExecutionErrorData, TransactionExecutionStatus, TransactionFinalityStatus,
-    TransactionReceiptWithBlockInfo, TransactionTraceWithHash, TransactionWithReceipt,
+    SimulationFlagForEstimateFee, StarknetError, StateDiff, StateUpdate, StorageEntry,
+    StorageProof, SyncStatus, TransactionExecutionErrorData, TransactionExecutionStatus,
+    TransactionFinalityStatus, TransactionReceiptWithBlockInfo, TransactionTraceWithHash,
+    TransactionWithReceipt,
 };
 
 /// Module containing the [`U256`] type.
@@ -59,6 +65,9 @@ pub use hash_256::Hash256;
 
 mod execution_result;
 pub use execution_result::ExecutionResult;
+
+mod message_status;
+pub use message_status::{MessageStatus, MessageWithStatus};
 
 mod receipt_block;
 pub use receipt_block::ReceiptBlock;
@@ -222,6 +231,17 @@ pub enum BlockId {
     Tag(BlockTag),
 }
 
+/// Block identifier that refers to a confirmed block.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ConfirmedBlockId {
+    /// Block hash.
+    Hash(Felt),
+    /// Block number (height).
+    Number(u64),
+    /// The latest confirmed block.
+    Latest,
+}
+
 /// A "processed" contract class representation that's circulated in the network. This is different
 /// from the class representation of compiler output.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -241,9 +261,9 @@ pub enum TransactionStatus {
     /// Transaction rejected due to validation or other reasons.
     Rejected,
     /// Transaction accepted on Layer 2 with a specific execution status.
-    AcceptedOnL2(TransactionExecutionStatus),
+    AcceptedOnL2(ExecutionResult),
     /// Transaction accepted on Layer 1 with a specific execution status.
-    AcceptedOnL1(TransactionExecutionStatus),
+    AcceptedOnL1(ExecutionResult),
 }
 
 impl TransactionStatus {
@@ -289,6 +309,27 @@ pub enum Transaction {
     DeployAccount(DeployAccountTransaction),
 }
 
+/// Content of a Starknet transaction without an annotated transaction hash.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(tag = "type")]
+pub enum TransactionContent {
+    /// An `INVOKE` transaction.
+    #[serde(rename = "INVOKE")]
+    Invoke(InvokeTransactionContent),
+    /// An `L1_HANDLER` transaction.
+    #[serde(rename = "L1_HANDLER")]
+    L1Handler(L1HandlerTransactionContent),
+    /// A `DECLARE` transaction.
+    #[serde(rename = "DECLARE")]
+    Declare(DeclareTransactionContent),
+    /// A `DEPLOY` transaction.
+    #[serde(rename = "DEPLOY")]
+    Deploy(DeployTransactionContent),
+    /// A `DEPLOY_ACCOUNT` transaction.
+    #[serde(rename = "DEPLOY_ACCOUNT")]
+    DeployAccount(DeployAccountTransactionContent),
+}
+
 /// A Starknet transaction in its "mempool" representation that's broadcast by a client.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(tag = "type")]
@@ -319,6 +360,21 @@ pub enum InvokeTransaction {
     V3(InvokeTransactionV3),
 }
 
+/// Content of an `INVOKE` Starknet transaction.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(tag = "version")]
+pub enum InvokeTransactionContent {
+    /// Version 0 `INVOKE` transaction.
+    #[serde(rename = "0x0")]
+    V0(InvokeTransactionV0Content),
+    /// Version 1 `INVOKE` transaction.
+    #[serde(rename = "0x1")]
+    V1(InvokeTransactionV1Content),
+    /// Version 3 `INVOKE` transaction.
+    #[serde(rename = "0x3")]
+    V3(InvokeTransactionV3Content),
+}
+
 /// A `DECLARE` Starknet transaction.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(tag = "version")]
@@ -337,6 +393,24 @@ pub enum DeclareTransaction {
     V3(DeclareTransactionV3),
 }
 
+/// Content of a `DECLARE` Starknet transaction.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(tag = "version")]
+pub enum DeclareTransactionContent {
+    /// Version 0 `DECLARE` transaction.
+    #[serde(rename = "0x0")]
+    V0(DeclareTransactionV0Content),
+    /// Version 1 `DECLARE` transaction.
+    #[serde(rename = "0x1")]
+    V1(DeclareTransactionV1Content),
+    /// Version 2 `DECLARE` transaction.
+    #[serde(rename = "0x2")]
+    V2(DeclareTransactionV2Content),
+    /// Version 3 `DECLARE` transaction.
+    #[serde(rename = "0x3")]
+    V3(DeclareTransactionV3Content),
+}
+
 /// A `DEPLOY_ACCOUNT` Starknet transaction.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(tag = "version")]
@@ -349,36 +423,16 @@ pub enum DeployAccountTransaction {
     V3(DeployAccountTransactionV3),
 }
 
-/// An `INVOKE` Starknet transaction in its "mempool" representation.
+/// Content of a `DEPLOY_ACCOUNT` Starknet transaction.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
-#[serde(untagged)]
-pub enum BroadcastedInvokeTransaction {
-    /// Version 1 `INVOKE` transaction.
-    V1(BroadcastedInvokeTransactionV1),
-    /// Version 3 `INVOKE` transaction.
-    V3(BroadcastedInvokeTransactionV3),
-}
-
-/// A `DECLARE` Starknet transaction in its "mempool" representation.
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
-#[serde(untagged)]
-pub enum BroadcastedDeclareTransaction {
-    /// Version 1 `DECLARE` transaction.
-    V1(BroadcastedDeclareTransactionV1),
-    /// Version 2 `DECLARE` transaction.
-    V2(BroadcastedDeclareTransactionV2),
-    /// Version 3 `DECLARE` transaction.
-    V3(BroadcastedDeclareTransactionV3),
-}
-
-/// A `DEPLOY_ACCOUNT` Starknet transaction in its "mempool" representation.
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
-#[serde(untagged)]
-pub enum BroadcastedDeployAccountTransaction {
+#[serde(tag = "version")]
+pub enum DeployAccountTransactionContent {
     /// Version 1 `DEPLOY_ACCOUNT` transaction.
-    V1(BroadcastedDeployAccountTransactionV1),
+    #[serde(rename = "0x1")]
+    V1(DeployAccountTransactionV1Content),
     /// Version 3 `DEPLOY_ACCOUNT` transaction.
-    V3(BroadcastedDeployAccountTransactionV3),
+    #[serde(rename = "0x3")]
+    V3(DeployAccountTransactionV3Content),
 }
 
 /// Starknet transaction receipt containing execution results.
@@ -443,6 +497,26 @@ pub enum ExecuteInvocation {
     Reverted(RevertedInvocation),
 }
 
+/// A node in the Merkle-Patricia tree, can be a leaf, binary node, or an edge node.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum MerkleNode {
+    /// Binary/branch node.
+    BinaryNode(BinaryNode),
+    /// Edge/leaf node.
+    EdgeNode(EdgeNode),
+}
+
+/// Structured error that can later be processed by wallets or sdks.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ContractExecutionError {
+    /// Nested contract call stack trace frame.
+    Nested(InnerContractExecutionError),
+    /// Terminal error message.
+    Message(String),
+}
+
 mod errors {
     use core::fmt::{Display, Formatter, Result};
 
@@ -490,6 +564,22 @@ impl MaybePendingBlockWithTxHashes {
         match self {
             Self::Block(block) => &block.l1_gas_price,
             Self::PendingBlock(block) => &block.l1_gas_price,
+        }
+    }
+
+    /// Gets a reference to the L2 gas price.
+    pub const fn l2_gas_price(&self) -> &ResourcePrice {
+        match self {
+            Self::Block(block) => &block.l2_gas_price,
+            Self::PendingBlock(block) => &block.l2_gas_price,
+        }
+    }
+
+    /// Gets a reference to the L1 data gas price.
+    pub const fn l1_data_gas_price(&self) -> &ResourcePrice {
+        match self {
+            Self::Block(block) => &block.l1_data_gas_price,
+            Self::PendingBlock(block) => &block.l1_data_gas_price,
         }
     }
 }
@@ -661,6 +751,12 @@ impl AsRef<Self> for BlockId {
     }
 }
 
+impl AsRef<Self> for ConfirmedBlockId {
+    fn as_ref(&self) -> &Self {
+        self
+    }
+}
+
 impl AsRef<Self> for FunctionCall {
     fn as_ref(&self) -> &Self {
         self
@@ -723,24 +819,6 @@ mod tests {
         assert_eq!(format!("{:010X}", felt), "000001E240");
         assert_eq!(format!("{:#010x}", felt), "0x000001e240");
         assert_eq!(format!("{:#010X}", felt), "0x000001E240");
-    }
-
-    #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_broadcasted_invoke_v1_non_query_deser() {
-        let raw = include_str!("../../test-data/serde/broadcasted_invoke_v1_non_query.json");
-
-        let parsed_object = serde_json::from_str::<BroadcastedInvokeTransactionV1>(raw).unwrap();
-        assert!(!parsed_object.is_query);
-    }
-
-    #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_broadcasted_invoke_v1_query_deser() {
-        let raw = include_str!("../../test-data/serde/broadcasted_invoke_v1_query.json");
-
-        let parsed_object = serde_json::from_str::<BroadcastedInvokeTransactionV1>(raw).unwrap();
-        assert!(parsed_object.is_query);
     }
 
     #[test]

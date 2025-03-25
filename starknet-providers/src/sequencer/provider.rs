@@ -6,12 +6,13 @@ use async_trait::async_trait;
 use starknet_core::types::{
     BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
     BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
-    ContractClass, DeclareTransactionResult, DeployAccountTransactionResult, EventFilter,
-    EventsPage, FeeEstimate, Felt, FunctionCall, InvokeTransactionResult,
-    MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
-    MaybePendingStateUpdate, MsgFromL1, SimulatedTransaction, SimulationFlag,
-    SimulationFlagForEstimateFee, StarknetError, SyncStatusType, Transaction,
-    TransactionReceiptWithBlockInfo, TransactionStatus, TransactionTrace, TransactionTraceWithHash,
+    ConfirmedBlockId, ContractClass, ContractStorageKeys, DeclareTransactionResult,
+    DeployAccountTransactionResult, EventFilter, EventsPage, FeeEstimate, Felt, FunctionCall,
+    Hash256, InvokeTransactionResult, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
+    MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageWithStatus, MsgFromL1,
+    SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, StarknetError,
+    StorageProof, SyncStatusType, Transaction, TransactionReceiptWithBlockInfo, TransactionStatus,
+    TransactionTrace, TransactionTraceWithHash,
 };
 
 use crate::{
@@ -27,7 +28,7 @@ use super::models::TransactionFinalityStatus;
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl Provider for SequencerGatewayProvider {
     async fn spec_version(&self) -> Result<String, ProviderError> {
-        Ok(String::from("0.7.1"))
+        Ok(String::from("0.8.0"))
     }
 
     async fn get_block_with_tx_hashes<B>(
@@ -94,6 +95,17 @@ impl Provider for SequencerGatewayProvider {
         B: AsRef<BlockId> + Send + Sync,
     {
         // Deprecated since Starknet v0.12.3
+        Err(ProviderError::Other(Box::new(
+            GatewayClientError::MethodNotSupported,
+        )))
+    }
+
+    /// Given an l1 tx hash, returns the associated l1_handler tx hashes and statuses for all L1 ->
+    /// L2 messages sent by the l1 transaction, ordered by the l1 tx sending order
+    async fn get_messages_status(
+        &self,
+        transaction_hash: Hash256,
+    ) -> Result<Vec<MessageWithStatus>, ProviderError> {
         Err(ProviderError::Other(Box::new(
             GatewayClientError::MethodNotSupported,
         )))
@@ -305,6 +317,24 @@ impl Provider for SequencerGatewayProvider {
         A: AsRef<Felt> + Send + Sync,
     {
         // Deprecated since Starknet v0.12.3
+        Err(ProviderError::Other(Box::new(
+            GatewayClientError::MethodNotSupported,
+        )))
+    }
+
+    async fn get_storage_proof<B, H, A, K>(
+        &self,
+        block_id: B,
+        class_hashes: H,
+        contract_addresses: A,
+        contracts_storage_keys: K,
+    ) -> Result<StorageProof, ProviderError>
+    where
+        B: AsRef<ConfirmedBlockId> + Send + Sync,
+        H: AsRef<[Felt]> + Send + Sync,
+        A: AsRef<[Felt]> + Send + Sync,
+        K: AsRef<[ContractStorageKeys]> + Send + Sync,
+    {
         Err(ProviderError::Other(Box::new(
             GatewayClientError::MethodNotSupported,
         )))

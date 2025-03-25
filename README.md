@@ -5,8 +5,8 @@
 
 **Complete Starknet library in Rust[™](https://www.reddit.com/r/rust/comments/12e7tdb/rust_trademark_policy_feedback_form/)**
 
-![starknet-version-v0.13.0](https://img.shields.io/badge/Starknet_Version-v0.13.0-2ea44f?logo=ethereum)
-[![jsonrpc-spec-v0.7.1](https://img.shields.io/badge/JSON--RPC-v0.7.1-2ea44f?logo=ethereum)](https://github.com/starkware-libs/starknet-specs/tree/v0.7.1)
+![starknet-version-v0.13.4](https://img.shields.io/badge/Starknet_Version-v0.13.4-2ea44f?logo=ethereum)
+[![jsonrpc-spec-v0.8.0](https://img.shields.io/badge/JSON--RPC-v0.7.1-2ea44f?logo=ethereum)](https://github.com/starkware-libs/starknet-specs/tree/v0.8.0)
 [![linting-badge](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml/badge.svg?branch=master)](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml)
 [![crates-badge](https://img.shields.io/crates/v/starknet.svg)](https://crates.io/crates/starknet)
 
@@ -87,31 +87,27 @@ Examples can be found in the [examples folder](./examples):
 
    Make sure your account has some L2 Sepolia ETH to pay for the transaction fee.
 
-5. [Declare legacy Cairo 0 contract on `alpha-sepolia` testnet](./examples/declare_cairo0_contract.rs)
+5. [Query the latest block number with JSON-RPC](./examples/jsonrpc.rs)
 
-   Make sure your account has some L2 Sepolia ETH to pay for the transaction fee.
+6. [Encoding and decoding Cairo types](./examples/serde.rs)
 
-6. [Query the latest block number with JSON-RPC](./examples/jsonrpc.rs)
+7. [Parse a SNIP-12 message and compute its hash](./examples/snip_12_json.rs)
 
-7. [Encoding and decoding Cairo types](./examples/serde.rs)
+8. [Batched JSON-RPC requests](./examples/batch.rs)
 
-8. [Parse a SNIP-12 message and compute its hash](./examples/snip_12_json.rs)
+9. [Call a contract view function](./examples/erc20_balance.rs)
 
-9. [Batched JSON-RPC requests](./examples/batch.rs)
+10. [Deploy an Argent X account to a pre-funded address](./examples/deploy_argent_account.rs)
 
-10. [Call a contract view function](./examples/erc20_balance.rs)
+11. [Inspect public key with Ledger](./examples/ledger_public_key.rs)
 
-11. [Deploy an Argent X account to a pre-funded address](./examples/deploy_argent_account.rs)
+12. [Deploy an OpenZeppelin account with Ledger](./examples/deploy_account_with_ledger.rs)
 
-12. [Inspect public key with Ledger](./examples/ledger_public_key.rs)
+13. [Transfer ERC20 tokens with Ledger](./examples/transfer_with_ledger.rs)
 
-13. [Deploy an OpenZeppelin account with Ledger](./examples/deploy_account_with_ledger.rs)
+14. [Parsing a JSON-RPC request on the server side](./examples/parse_jsonrpc_request.rs)
 
-14. [Transfer ERC20 tokens with Ledger](./examples/transfer_with_ledger.rs)
-
-15. [Parsing a JSON-RPC request on the server side](./examples/parse_jsonrpc_request.rs)
-
-16. [Inspecting a erased provider-specific error type](./examples/downcast_provider_error.rs)
+15. [Inspecting a erased provider-specific error type](./examples/downcast_provider_error.rs)
 
 ## License
 

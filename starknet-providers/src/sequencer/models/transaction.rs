@@ -224,11 +224,13 @@ pub struct L1HandlerTransaction {
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub struct ResourceBoundsMapping {
+    #[serde(default)]
+    pub l1_data_gas: ResourceBounds,
     pub l1_gas: ResourceBounds,
     pub l2_gas: ResourceBounds,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct ResourceBounds {
     #[serde(with = "u64_hex")]

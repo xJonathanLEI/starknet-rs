@@ -9,4 +9,4 @@
 #![deny(missing_docs)]
 
 mod factory;
-pub use factory::{ContractFactory, DeploymentV1, DeploymentV3};
+pub use factory::{ContractFactory, DeploymentV3};

@@ -4,11 +4,10 @@ use async_trait::async_trait;
 use starknet_core::{
     crypto::compute_hash_on_elements,
     types::{
-        BlockId, BlockTag, BroadcastedDeployAccountTransaction,
-        BroadcastedDeployAccountTransactionV1, BroadcastedDeployAccountTransactionV3,
-        BroadcastedTransaction, DataAvailabilityMode, DeployAccountTransactionResult, FeeEstimate,
-        Felt, NonZeroFelt, ResourceBounds, ResourceBoundsMapping, SimulatedTransaction,
-        SimulationFlag, SimulationFlagForEstimateFee, StarknetError,
+        BlockId, BlockTag, BroadcastedDeployAccountTransactionV3, BroadcastedTransaction,
+        DataAvailabilityMode, DeployAccountTransactionResult, FeeEstimate, Felt, NonZeroFelt,
+        ResourceBounds, ResourceBoundsMapping, SimulatedTransaction, SimulationFlag,
+        SimulationFlagForEstimateFee, StarknetError,
     },
 };
 use starknet_crypto::PoseidonHasher;
@@ -24,14 +23,6 @@ const PREFIX_DEPLOY_ACCOUNT: Felt = Felt::from_raw([
     18446744073709551615,
     18443211694809419988,
     3350261884043292318,
-]);
-
-/// 2 ^ 128 + 1
-const QUERY_VERSION_ONE: Felt = Felt::from_raw([
-    576460752142433776,
-    18446744073709551584,
-    17407,
-    18446744073700081633,
 ]);
 
 /// 2 ^ 128 + 3
@@ -93,17 +84,6 @@ pub trait AccountFactory: Sized {
         BlockId::Tag(BlockTag::Latest)
     }
 
-    /// Signs an execution request to authorize an `DEPLOY_ACCOUNT` v1 transaction that pays
-    /// transaction fees in `ETH`.
-    ///
-    /// If `query_only` is `true`, the commitment must be constructed in a way that a real state-
-    /// changing transaction cannot be authenticated. This is to prevent replay attacks.
-    async fn sign_deployment_v1(
-        &self,
-        deployment: &RawAccountDeploymentV1,
-        query_only: bool,
-    ) -> Result<Vec<Felt>, Self::SignError>;
-
     /// Signs an execution request to authorize an `DEPLOY_ACCOUNT` v3 transaction that pays
     /// transaction fees in `STRK`.
     ///
@@ -115,51 +95,25 @@ pub trait AccountFactory: Sized {
         query_only: bool,
     ) -> Result<Vec<Felt>, Self::SignError>;
 
-    /// Generates an instance of [`AccountDeploymentV1`] for sending `DEPLOY_ACCOUNT` v1
-    /// transactions. Pays transaction fees in `ETH`.
-    #[deprecated = "pre-v3 transactions are deprecated and will be disabled on Starknet soon; use `deploy_v3` instead"]
-    fn deploy_v1(&self, salt: Felt) -> AccountDeploymentV1<'_, Self> {
-        AccountDeploymentV1::new(salt, self)
-    }
-
     /// Generates an instance of [`AccountDeploymentV3`] for sending `DEPLOY_ACCOUNT` v3
     /// transactions. Pays transaction fees in `STRK`.
     fn deploy_v3(&self, salt: Felt) -> AccountDeploymentV3<'_, Self> {
         AccountDeploymentV3::new(salt, self)
     }
 
-    /// Generates an instance of [`AccountDeploymentV1`] for sending `DEPLOY_ACCOUNT` v1
-    /// transactions. Pays transaction fees in `ETH`.
-    #[deprecated = "pre-v3 transactions are deprecated and will be disabled on Starknet soon; use `deploy_v3` instead"]
-    fn deploy(&self, salt: Felt) -> AccountDeploymentV1<'_, Self> {
-        #[allow(deprecated)]
-        self.deploy_v1(salt)
+    /// Generates an instance of [`AccountDeploymentV3`] for sending `DEPLOY_ACCOUNT` v3
+    /// transactions. Pays transaction fees in `STRK`.
+    #[deprecated = "transaction version used might change unexpectedly; use `deploy_v3` instead"]
+    fn deploy(&self, salt: Felt) -> AccountDeploymentV3<'_, Self> {
+        self.deploy_v3(salt)
     }
 }
 
 /// Abstraction over `DEPLOY_ACCOUNT` transactions for account contract deployment. This struct uses
-/// v1 `DEPLOY_ACCOUNT` transactions under the hood, and hence pays transaction fees in ETH. To use
-/// v3 transactions for STRK fee payment, use [`AccountDeploymentV3`] instead.
+/// v3 `DEPLOY_ACCOUNT` transactions under the hood, and hence pays transaction fees in STRK.
 ///
-/// An intermediate type allowing users to optionally specify `nonce` and/or `max_fee`.
-#[must_use]
-#[derive(Debug)]
-pub struct AccountDeploymentV1<'f, F> {
-    factory: &'f F,
-    salt: Felt,
-    // We need to allow setting nonce here as `DeployAccount` transactions may have non-zero nonces
-    /// after failed transactions can be included in blocks.
-    nonce: Option<Felt>,
-    max_fee: Option<Felt>,
-    fee_estimate_multiplier: f64,
-}
-
-/// Abstraction over `DEPLOY_ACCOUNT` transactions for account contract deployment. This struct uses
-/// v3 `DEPLOY_ACCOUNT` transactions under the hood, and hence pays transaction fees in STRK. To use
-/// v1 transactions for ETH fee payment, use [`AccountDeploymentV1`] instead.
-///
-/// This is an intermediate type allowing users to optionally specify `nonce`, `gas`, and/or
-/// `gas_price`.
+/// This is an intermediate type allowing users to optionally specify `nonce` and transaction fee
+/// options.
 #[must_use]
 #[derive(Debug)]
 pub struct AccountDeploymentV3<'f, F> {
@@ -168,34 +122,27 @@ pub struct AccountDeploymentV3<'f, F> {
     // We need to allow setting nonce here as `DeployAccount` transactions may have non-zero nonces
     /// after failed transactions can be included in blocks.
     nonce: Option<Felt>,
-    gas: Option<u64>,
-    gas_price: Option<u128>,
+    l1_gas: Option<u64>,
+    l1_gas_price: Option<u128>,
+    l2_gas: Option<u64>,
+    l2_gas_price: Option<u128>,
+    l1_data_gas: Option<u64>,
+    l1_data_gas_price: Option<u128>,
     gas_estimate_multiplier: f64,
     gas_price_estimate_multiplier: f64,
 }
 
-/// [`AccountDeploymentV1`] but with `nonce` and `max_fee` already determined.
-#[derive(Debug, Clone)]
-pub struct RawAccountDeploymentV1 {
-    salt: Felt,
-    nonce: Felt,
-    max_fee: Felt,
-}
-
-/// [`AccountDeploymentV3`] but with `nonce`, `gas` and `gas_price` already determined.
+/// [`AccountDeploymentV3`] but with `nonce` and other transaction fee options already determined.
 #[derive(Debug, Clone)]
 pub struct RawAccountDeploymentV3 {
     salt: Felt,
     nonce: Felt,
-    gas: u64,
-    gas_price: u128,
-}
-
-/// [`RawAccountDeploymentV1`] but with a factory associated.
-#[derive(Debug)]
-pub struct PreparedAccountDeploymentV1<'f, F> {
-    factory: &'f F,
-    inner: RawAccountDeploymentV1,
+    l1_gas: u64,
+    l1_gas_price: u128,
+    l2_gas: u64,
+    l2_gas_price: u128,
+    l1_data_gas: u64,
+    l1_data_gas_price: u128,
 }
 
 /// [`RawAccountDeploymentV3`] but with a factory associated.
@@ -219,65 +166,6 @@ pub enum AccountFactoryError<S> {
     FeeOutOfRange,
 }
 
-impl<'f, F> AccountDeploymentV1<'f, F> {
-    /// Constructs a new [`AccountDeploymentV1`].
-    ///
-    /// Users would typically use [`deploy_v1`](fn.deploy_v1) on an [`AccountFactory`] instead of
-    /// directly calling this method.
-    pub const fn new(salt: Felt, factory: &'f F) -> Self {
-        Self {
-            factory,
-            salt,
-            nonce: None,
-            max_fee: None,
-            fee_estimate_multiplier: 1.1,
-        }
-    }
-
-    /// Returns a new [`AccountDeploymentV1`] with the `nonce`.
-    pub const fn nonce(self, nonce: Felt) -> Self {
-        Self {
-            nonce: Some(nonce),
-            ..self
-        }
-    }
-
-    /// Returns a new [`AccountDeploymentV1`] with the `max_fee`.
-    pub const fn max_fee(self, max_fee: Felt) -> Self {
-        Self {
-            max_fee: Some(max_fee),
-            ..self
-        }
-    }
-
-    /// Returns a new [`AccountDeploymentV1`] with the fee estimate multiplier. The multiplier is
-    /// used when transaction fee is not manually specified and must be fetched from a [`Provider`]
-    /// instead.
-    pub const fn fee_estimate_multiplier(self, fee_estimate_multiplier: f64) -> Self {
-        Self {
-            fee_estimate_multiplier,
-            ..self
-        }
-    }
-
-    /// Calling this function after manually specifying `nonce` and `max_fee` turns
-    /// [`AccountDeploymentV1`] into [`PreparedAccountDeploymentV1`]. Returns `Err` if either field is
-    /// `None`.
-    pub fn prepared(self) -> Result<PreparedAccountDeploymentV1<'f, F>, NotPreparedError> {
-        let nonce = self.nonce.ok_or(NotPreparedError)?;
-        let max_fee = self.max_fee.ok_or(NotPreparedError)?;
-
-        Ok(PreparedAccountDeploymentV1 {
-            factory: self.factory,
-            inner: RawAccountDeploymentV1 {
-                salt: self.salt,
-                nonce,
-                max_fee,
-            },
-        })
-    }
-}
-
 impl<'f, F> AccountDeploymentV3<'f, F> {
     /// Constructs a new [`AccountDeploymentV3`].
     ///
@@ -288,8 +176,12 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
             factory,
             salt,
             nonce: None,
-            gas: None,
-            gas_price: None,
+            l1_gas: None,
+            l1_gas_price: None,
+            l2_gas: None,
+            l2_gas_price: None,
+            l1_data_gas: None,
+            l1_data_gas_price: None,
             gas_estimate_multiplier: 1.5,
             gas_price_estimate_multiplier: 1.5,
         }
@@ -303,18 +195,50 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
         }
     }
 
-    /// Returns a new [`AccountDeploymentV3`] with the `gas`.
-    pub const fn gas(self, gas: u64) -> Self {
+    /// Returns a new [`AccountDeploymentV3`] with the `l1_gas`.
+    pub const fn l1_gas(self, l1_gas: u64) -> Self {
         Self {
-            gas: Some(gas),
+            l1_gas: Some(l1_gas),
             ..self
         }
     }
 
-    /// Returns a new [`AccountDeploymentV3`] with the `gas_price`.
-    pub const fn gas_price(self, gas_price: u128) -> Self {
+    /// Returns a new [`AccountDeploymentV3`] with the `l1_gas_price`.
+    pub const fn l1_gas_price(self, l1_gas_price: u128) -> Self {
         Self {
-            gas_price: Some(gas_price),
+            l1_gas_price: Some(l1_gas_price),
+            ..self
+        }
+    }
+
+    /// Returns a new [`AccountDeploymentV3`] with the `l2_gas`.
+    pub const fn l2_gas(self, l2_gas: u64) -> Self {
+        Self {
+            l2_gas: Some(l2_gas),
+            ..self
+        }
+    }
+
+    /// Returns a new [`AccountDeploymentV3`] with the `l2_gas_price`.
+    pub const fn l2_gas_price(self, l2_gas_price: u128) -> Self {
+        Self {
+            l2_gas_price: Some(l2_gas_price),
+            ..self
+        }
+    }
+
+    /// Returns a new [`AccountDeploymentV3`] with the `l1_data_gas`.
+    pub const fn l1_data_gas(self, l1_data_gas: u64) -> Self {
+        Self {
+            l1_data_gas: Some(l1_data_gas),
+            ..self
+        }
+    }
+
+    /// Returns a new [`AccountDeploymentV3`] with the `l1_data_gas_price`.
+    pub const fn l1_data_gas_price(self, l1_data_gas_price: u128) -> Self {
+        Self {
+            l1_data_gas_price: Some(l1_data_gas_price),
             ..self
         }
     }
@@ -344,223 +268,26 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
     /// `None`.
     pub fn prepared(self) -> Result<PreparedAccountDeploymentV3<'f, F>, NotPreparedError> {
         let nonce = self.nonce.ok_or(NotPreparedError)?;
-        let gas = self.gas.ok_or(NotPreparedError)?;
-        let gas_price = self.gas_price.ok_or(NotPreparedError)?;
+        let l1_gas = self.l1_gas.ok_or(NotPreparedError)?;
+        let l1_gas_price = self.l1_gas_price.ok_or(NotPreparedError)?;
+        let l2_gas = self.l2_gas.ok_or(NotPreparedError)?;
+        let l2_gas_price = self.l2_gas_price.ok_or(NotPreparedError)?;
+        let l1_data_gas = self.l1_data_gas.ok_or(NotPreparedError)?;
+        let l1_data_gas_price = self.l1_data_gas_price.ok_or(NotPreparedError)?;
 
         Ok(PreparedAccountDeploymentV3 {
             factory: self.factory,
             inner: RawAccountDeploymentV3 {
                 salt: self.salt,
                 nonce,
-                gas,
-                gas_price,
+                l1_gas,
+                l1_gas_price,
+                l2_gas,
+                l2_gas_price,
+                l1_data_gas,
+                l1_data_gas_price,
             },
         })
-    }
-}
-
-impl<'f, F> AccountDeploymentV1<'f, F>
-where
-    F: AccountFactory + Sync,
-{
-    /// Locally calculates the target deployment address.
-    pub fn address(&self) -> Felt {
-        calculate_contract_address(
-            self.salt,
-            self.factory.class_hash(),
-            &self.factory.calldata(),
-        )
-    }
-
-    /// Fetches the next available nonce from a [`Provider`]. In most cases this would be `0` but
-    /// it can also be non-zero if previous reverted deployment attempts exist.
-    pub async fn fetch_nonce(&self) -> Result<Felt, ProviderError> {
-        match self
-            .factory
-            .provider()
-            .get_nonce(self.factory.block_id(), self.address())
-            .await
-        {
-            Ok(nonce) => Ok(nonce),
-            Err(ProviderError::StarknetError(StarknetError::ContractNotFound)) => Ok(Felt::ZERO),
-            Err(err) => Err(err),
-        }
-    }
-
-    /// Estimates transaction fees from a [`Provider`].
-    pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountFactoryError<F::SignError>> {
-        // Resolves nonce
-        let nonce = match self.nonce {
-            Some(value) => value,
-            None => self
-                .fetch_nonce()
-                .await
-                .map_err(AccountFactoryError::Provider)?,
-        };
-
-        self.estimate_fee_with_nonce(nonce).await
-    }
-
-    /// Simulates the transaction from a [`Provider`]. Transaction validation and fee transfer can
-    /// be skipped.
-    pub async fn simulate(
-        &self,
-        skip_validate: bool,
-        skip_fee_charge: bool,
-    ) -> Result<SimulatedTransaction, AccountFactoryError<F::SignError>> {
-        // Resolves nonce
-        let nonce = match self.nonce {
-            Some(value) => value,
-            None => self
-                .fetch_nonce()
-                .await
-                .map_err(AccountFactoryError::Provider)?,
-        };
-
-        self.simulate_with_nonce(nonce, skip_validate, skip_fee_charge)
-            .await
-    }
-
-    /// Signs and broadcasts the transaction to the network.
-    pub async fn send(
-        &self,
-    ) -> Result<DeployAccountTransactionResult, AccountFactoryError<F::SignError>> {
-        self.prepare().await?.send().await
-    }
-
-    async fn prepare(
-        &self,
-    ) -> Result<PreparedAccountDeploymentV1<'f, F>, AccountFactoryError<F::SignError>> {
-        // Resolves nonce
-        let nonce = match self.nonce {
-            Some(value) => value,
-            None => self
-                .fetch_nonce()
-                .await
-                .map_err(AccountFactoryError::Provider)?,
-        };
-
-        // Resolves max_fee
-        let max_fee = match self.max_fee {
-            Some(value) => value,
-            None => {
-                // TODO: remove this when a proper u64 conversion is implemented for `Felt`
-                // Obtain the fee estimate
-                let fee_estimate = self.estimate_fee_with_nonce(nonce).await?;
-                // Convert the overall fee to little-endian bytes
-                let overall_fee_bytes = fee_estimate.overall_fee.to_bytes_le();
-
-                // Check if the remaining bytes after the first 8 are all zeros
-                if overall_fee_bytes.iter().skip(8).any(|&x| x != 0) {
-                    return Err(AccountFactoryError::FeeOutOfRange);
-                }
-
-                // Convert the first 8 bytes to u64
-                let overall_fee_u64 =
-                    u64::from_le_bytes(overall_fee_bytes[..8].try_into().unwrap());
-
-                // Perform necessary operations on overall_fee_u64 and convert to f64 then to u64
-                (((overall_fee_u64 as f64) * self.fee_estimate_multiplier) as u64).into()
-            }
-        };
-
-        Ok(PreparedAccountDeploymentV1 {
-            factory: self.factory,
-            inner: RawAccountDeploymentV1 {
-                salt: self.salt,
-                nonce,
-                max_fee,
-            },
-        })
-    }
-
-    async fn estimate_fee_with_nonce(
-        &self,
-        nonce: Felt,
-    ) -> Result<FeeEstimate, AccountFactoryError<F::SignError>> {
-        let skip_signature = self.factory.is_signer_interactive();
-
-        let prepared = PreparedAccountDeploymentV1 {
-            factory: self.factory,
-            inner: RawAccountDeploymentV1 {
-                salt: self.salt,
-                nonce,
-                max_fee: Felt::ZERO,
-            },
-        };
-        let deploy = prepared
-            .get_deploy_request(true, skip_signature)
-            .await
-            .map_err(AccountFactoryError::Signing)?;
-
-        self.factory
-            .provider()
-            .estimate_fee_single(
-                BroadcastedTransaction::DeployAccount(BroadcastedDeployAccountTransaction::V1(
-                    deploy,
-                )),
-                if skip_signature {
-                    // Validation would fail since real signature was not requested
-                    vec![SimulationFlagForEstimateFee::SkipValidate]
-                } else {
-                    // With the correct signature in place, run validation for accurate results
-                    vec![]
-                },
-                self.factory.block_id(),
-            )
-            .await
-            .map_err(AccountFactoryError::Provider)
-    }
-
-    async fn simulate_with_nonce(
-        &self,
-        nonce: Felt,
-        skip_validate: bool,
-        skip_fee_charge: bool,
-    ) -> Result<SimulatedTransaction, AccountFactoryError<F::SignError>> {
-        let skip_signature = if self.factory.is_signer_interactive() {
-            // If signer is interactive, we would try to minimize signing requests. However, if the
-            // caller has decided to not skip validation, it's best we still request a real
-            // signature, as otherwise the simulation would most likely fail.
-            skip_validate
-        } else {
-            // Signing with non-interactive signers is cheap so always request signatures.
-            false
-        };
-
-        let prepared = PreparedAccountDeploymentV1 {
-            factory: self.factory,
-            inner: RawAccountDeploymentV1 {
-                salt: self.salt,
-                nonce,
-                max_fee: self.max_fee.unwrap_or_default(),
-            },
-        };
-        let deploy = prepared
-            .get_deploy_request(true, skip_signature)
-            .await
-            .map_err(AccountFactoryError::Signing)?;
-
-        let mut flags = vec![];
-
-        if skip_validate {
-            flags.push(SimulationFlag::SkipValidate);
-        }
-        if skip_fee_charge {
-            flags.push(SimulationFlag::SkipFeeCharge);
-        }
-
-        self.factory
-            .provider()
-            .simulate_transaction(
-                self.factory.block_id(),
-                BroadcastedTransaction::DeployAccount(BroadcastedDeployAccountTransaction::V1(
-                    deploy,
-                )),
-                &flags,
-            )
-            .await
-            .map_err(AccountFactoryError::Provider)
     }
 }
 
@@ -646,76 +373,101 @@ where
         };
 
         // Resolves fee settings
-        let (gas, gas_price) = match (self.gas, self.gas_price) {
-            (Some(gas), Some(gas_price)) => (gas, gas_price),
-            (Some(gas), _) => {
-                // When `gas` is specified, we only need the L1 gas price in FRI. By specifying a
-                // a `gas` value, the user might be trying to avoid a full fee estimation (e.g.
-                // flaky dependencies), so it's in appropriate to call `estimate_fee` here.
+        let (l1_gas, l1_gas_price, l2_gas, l2_gas_price, l1_data_gas, l1_data_gas_price) = match (
+            self.l1_gas,
+            self.l1_gas_price,
+            self.l2_gas,
+            self.l2_gas_price,
+            self.l1_data_gas,
+            self.l1_data_gas_price,
+        ) {
+            (
+                Some(l1_gas),
+                Some(l1_gas_price),
+                Some(l2_gas),
+                Some(l2_gas_price),
+                Some(l1_data_gas),
+                Some(l1_data_gas_price),
+            ) => (
+                l1_gas,
+                l1_gas_price,
+                l2_gas,
+                l2_gas_price,
+                l1_data_gas,
+                l1_data_gas_price,
+            ),
+            (Some(l1_gas), _, Some(l2_gas), _, Some(l1_data_gas), _) => {
+                // When all `gas` fields are specified, we only need the gas prices in FRI. By
+                // specifying all gas values, the user might be trying to avoid a full fee
+                // estimation (e.g. flaky dependencies), so it's inappropriate to call
+                // `estimate_fee` here.
 
                 // This is the lightest-weight block we can get
-                let block_l1_gas_price = self
+                let block = self
                     .factory
                     .provider()
                     .get_block_with_tx_hashes(self.factory.block_id())
                     .await
-                    .map_err(AccountFactoryError::Provider)?
-                    .l1_gas_price()
-                    .price_in_fri;
+                    .map_err(AccountFactoryError::Provider)?;
+                let block_l1_gas_price = block.l1_gas_price().price_in_fri;
+                let block_l2_gas_price = block.l2_gas_price().price_in_fri;
+                let block_l1_data_gas_price = block.l1_data_gas_price().price_in_fri;
 
-                let block_l1_gas_price_bytes = block_l1_gas_price.to_bytes_le();
-                if block_l1_gas_price_bytes.iter().skip(8).any(|&x| x != 0) {
-                    return Err(AccountFactoryError::FeeOutOfRange);
-                }
-                let block_l1_gas_price =
-                    u64::from_le_bytes(block_l1_gas_price_bytes[..8].try_into().unwrap());
+                let adjusted_l1_gas_price = ((TryInto::<u64>::try_into(block_l1_gas_price)
+                    .map_err(|_| AccountFactoryError::FeeOutOfRange)?
+                    as f64)
+                    * self.gas_price_estimate_multiplier)
+                    as u128;
+                let adjusted_l2_gas_price = ((TryInto::<u64>::try_into(block_l2_gas_price)
+                    .map_err(|_| AccountFactoryError::FeeOutOfRange)?
+                    as f64)
+                    * self.gas_price_estimate_multiplier)
+                    as u128;
+                let adjusted_l1_data_gas_price = ((TryInto::<u64>::try_into(block_l1_data_gas_price)
+                    .map_err(|_| AccountFactoryError::FeeOutOfRange)?
+                    as f64)
+                    * self.gas_price_estimate_multiplier)
+                    as u128;
 
-                let gas_price =
-                    ((block_l1_gas_price as f64) * self.gas_price_estimate_multiplier) as u128;
-
-                (gas, gas_price)
+                (
+                    l1_gas,
+                    adjusted_l1_gas_price,
+                    l2_gas,
+                    adjusted_l2_gas_price,
+                    l1_data_gas,
+                    adjusted_l1_data_gas_price,
+                )
             }
             // We have to perform fee estimation as long as gas is not specified
             _ => {
                 let fee_estimate = self.estimate_fee_with_nonce(nonce).await?;
 
-                let gas = match self.gas {
-                    Some(gas) => gas,
-                    None => {
-                        let overall_fee_bytes = fee_estimate.overall_fee.to_bytes_le();
-                        if overall_fee_bytes.iter().skip(8).any(|&x| x != 0) {
-                            return Err(AccountFactoryError::FeeOutOfRange);
-                        }
-                        let overall_fee =
-                            u64::from_le_bytes(overall_fee_bytes[..8].try_into().unwrap());
-
-                        let gas_price_bytes = fee_estimate.gas_price.to_bytes_le();
-                        if gas_price_bytes.iter().skip(8).any(|&x| x != 0) {
-                            return Err(AccountFactoryError::FeeOutOfRange);
-                        }
-                        let gas_price =
-                            u64::from_le_bytes(gas_price_bytes[..8].try_into().unwrap());
-
-                        ((overall_fee.div_ceil(gas_price) as f64) * self.gas_estimate_multiplier)
-                            as u64
-                    }
-                };
-
-                let gas_price = match self.gas_price {
-                    Some(gas_price) => gas_price,
-                    None => {
-                        let gas_price_bytes = fee_estimate.gas_price.to_bytes_le();
-                        if gas_price_bytes.iter().skip(8).any(|&x| x != 0) {
-                            return Err(AccountFactoryError::FeeOutOfRange);
-                        }
-                        let gas_price =
-                            u64::from_le_bytes(gas_price_bytes[..8].try_into().unwrap());
-
-                        ((gas_price as f64) * self.gas_price_estimate_multiplier) as u128
-                    }
-                };
-
-                (gas, gas_price)
+                (
+                    ((TryInto::<u64>::try_into(fee_estimate.l1_gas_consumed)
+                        .map_err(|_| AccountFactoryError::FeeOutOfRange)?
+                        as f64)
+                        * self.gas_estimate_multiplier) as u64,
+                    ((TryInto::<u64>::try_into(fee_estimate.l1_gas_price)
+                        .map_err(|_| AccountFactoryError::FeeOutOfRange)?
+                        as f64)
+                        * self.gas_price_estimate_multiplier) as u128,
+                    ((TryInto::<u64>::try_into(fee_estimate.l2_gas_consumed)
+                        .map_err(|_| AccountFactoryError::FeeOutOfRange)?
+                        as f64)
+                        * self.gas_estimate_multiplier) as u64,
+                    ((TryInto::<u64>::try_into(fee_estimate.l2_gas_price)
+                        .map_err(|_| AccountFactoryError::FeeOutOfRange)?
+                        as f64)
+                        * self.gas_price_estimate_multiplier) as u128,
+                    ((TryInto::<u64>::try_into(fee_estimate.l1_data_gas_consumed)
+                        .map_err(|_| AccountFactoryError::FeeOutOfRange)?
+                        as f64)
+                        * self.gas_estimate_multiplier) as u64,
+                    ((TryInto::<u64>::try_into(fee_estimate.l1_data_gas_price)
+                        .map_err(|_| AccountFactoryError::FeeOutOfRange)?
+                        as f64)
+                        * self.gas_price_estimate_multiplier) as u128,
+                )
             }
         };
 
@@ -724,8 +476,12 @@ where
             inner: RawAccountDeploymentV3 {
                 salt: self.salt,
                 nonce,
-                gas,
-                gas_price,
+                l1_gas,
+                l1_gas_price,
+                l2_gas,
+                l2_gas_price,
+                l1_data_gas,
+                l1_data_gas_price,
             },
         })
     }
@@ -741,8 +497,12 @@ where
             inner: RawAccountDeploymentV3 {
                 salt: self.salt,
                 nonce,
-                gas: 0,
-                gas_price: 0,
+                l1_gas: 0,
+                l1_gas_price: 0,
+                l2_gas: 0,
+                l2_gas_price: 0,
+                l1_data_gas: 0,
+                l1_data_gas_price: 0,
             },
         };
         let deploy = prepared
@@ -753,9 +513,7 @@ where
         self.factory
             .provider()
             .estimate_fee_single(
-                BroadcastedTransaction::DeployAccount(BroadcastedDeployAccountTransaction::V3(
-                    deploy,
-                )),
+                BroadcastedTransaction::DeployAccount(deploy),
                 if skip_signature {
                     // Validation would fail since real signature was not requested
                     vec![SimulationFlagForEstimateFee::SkipValidate]
@@ -790,8 +548,12 @@ where
             inner: RawAccountDeploymentV3 {
                 salt: self.salt,
                 nonce,
-                gas: self.gas.unwrap_or_default(),
-                gas_price: self.gas_price.unwrap_or_default(),
+                l1_gas: self.l1_gas.unwrap_or_default(),
+                l1_gas_price: self.l1_gas_price.unwrap_or_default(),
+                l2_gas: self.l2_gas.unwrap_or_default(),
+                l2_gas_price: self.l2_gas_price.unwrap_or_default(),
+                l1_data_gas: self.l1_data_gas.unwrap_or_default(),
+                l1_data_gas_price: self.l1_data_gas_price.unwrap_or_default(),
             },
         };
         let deploy = prepared
@@ -812,30 +574,11 @@ where
             .provider()
             .simulate_transaction(
                 self.factory.block_id(),
-                BroadcastedTransaction::DeployAccount(BroadcastedDeployAccountTransaction::V3(
-                    deploy,
-                )),
+                BroadcastedTransaction::DeployAccount(deploy),
                 &flags,
             )
             .await
             .map_err(AccountFactoryError::Provider)
-    }
-}
-
-impl RawAccountDeploymentV1 {
-    /// Gets the `salt` of the deployment request.
-    pub const fn salt(&self) -> Felt {
-        self.salt
-    }
-
-    /// Gets the `nonce` of the deployment request.
-    pub const fn nonce(&self) -> Felt {
-        self.nonce
-    }
-
-    /// Gets the `max_fee` of the deployment request.
-    pub const fn max_fee(&self) -> Felt {
-        self.max_fee
     }
 }
 
@@ -850,25 +593,34 @@ impl RawAccountDeploymentV3 {
         self.nonce
     }
 
-    /// Gets the `gas` of the deployment request.
-    pub const fn gas(&self) -> u64 {
-        self.gas
+    /// Gets the `l1_gas` of the deployment request.
+    pub const fn l1_gas(&self) -> u64 {
+        self.l1_gas
     }
 
-    /// Gets the `gas_price` of the deployment request.
-    pub const fn gas_price(&self) -> u128 {
-        self.gas_price
+    /// Gets the `l1_gas_price` of the deployment request.
+    pub const fn l1_gas_price(&self) -> u128 {
+        self.l1_gas_price
     }
-}
 
-impl<'f, F> PreparedAccountDeploymentV1<'f, F> {
-    /// Constructs [`PreparedAccountDeploymentV1`] by attaching a factory to
-    /// [`RawAccountDeploymentV1`].
-    pub const fn from_raw(raw_deployment: RawAccountDeploymentV1, factory: &'f F) -> Self {
-        Self {
-            factory,
-            inner: raw_deployment,
-        }
+    /// Gets the `l2_gas` of the deployment request.
+    pub const fn l2_gas(&self) -> u64 {
+        self.l2_gas
+    }
+
+    /// Gets the `l2_gas_price` of the deployment request.
+    pub const fn l2_gas_price(&self) -> u128 {
+        self.l2_gas_price
+    }
+
+    /// Gets the `l1_data_gas` of the deployment request.
+    pub const fn l1_data_gas(&self) -> u64 {
+        self.l1_data_gas
+    }
+
+    /// Gets the `l1_data_gas_price` of the deployment request.
+    pub const fn l1_data_gas_price(&self) -> u128 {
+        self.l1_data_gas_price
     }
 }
 
@@ -880,78 +632,6 @@ impl<'f, F> PreparedAccountDeploymentV3<'f, F> {
             factory,
             inner: raw_deployment,
         }
-    }
-}
-
-impl<F> PreparedAccountDeploymentV1<'_, F>
-where
-    F: AccountFactory,
-{
-    /// Locally calculates the target deployment address.
-    pub fn address(&self) -> Felt {
-        calculate_contract_address(
-            self.inner.salt,
-            self.factory.class_hash(),
-            &self.factory.calldata(),
-        )
-    }
-
-    /// Calculates transaction hash given `query_only`.
-    pub fn transaction_hash(&self, query_only: bool) -> Felt {
-        let mut calldata_to_hash = vec![self.factory.class_hash(), self.inner.salt];
-        calldata_to_hash.append(&mut self.factory.calldata());
-
-        compute_hash_on_elements(&[
-            PREFIX_DEPLOY_ACCOUNT,
-            if query_only {
-                QUERY_VERSION_ONE
-            } else {
-                Felt::ONE
-            }, // version
-            self.address(),
-            Felt::ZERO, // entry_point_selector
-            compute_hash_on_elements(&calldata_to_hash),
-            self.inner.max_fee,
-            self.factory.chain_id(),
-            self.inner.nonce,
-        ])
-    }
-
-    /// Signs and broadcasts the transaction to the network.
-    pub async fn send(
-        &self,
-    ) -> Result<DeployAccountTransactionResult, AccountFactoryError<F::SignError>> {
-        let tx_request = self
-            .get_deploy_request(false, false)
-            .await
-            .map_err(AccountFactoryError::Signing)?;
-        self.factory
-            .provider()
-            .add_deploy_account_transaction(BroadcastedDeployAccountTransaction::V1(tx_request))
-            .await
-            .map_err(AccountFactoryError::Provider)
-    }
-
-    async fn get_deploy_request(
-        &self,
-        query_only: bool,
-        skip_signature: bool,
-    ) -> Result<BroadcastedDeployAccountTransactionV1, F::SignError> {
-        Ok(BroadcastedDeployAccountTransactionV1 {
-            max_fee: self.inner.max_fee,
-            signature: if skip_signature {
-                vec![]
-            } else {
-                self.factory
-                    .sign_deployment_v1(&self.inner, query_only)
-                    .await?
-            },
-            nonce: self.inner.nonce,
-            contract_address_salt: self.inner.salt,
-            constructor_calldata: self.factory.calldata(),
-            class_hash: self.factory.class_hash(),
-            is_query: query_only,
-        })
     }
 }
 
@@ -990,15 +670,24 @@ where
                 0, 0, b'L', b'1', b'_', b'G', b'A', b'S', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             ];
-            resource_buffer[8..(8 + 8)].copy_from_slice(&self.inner.gas.to_be_bytes());
-            resource_buffer[(8 + 8)..].copy_from_slice(&self.inner.gas_price.to_be_bytes());
+            resource_buffer[8..(8 + 8)].copy_from_slice(&self.inner.l1_gas.to_be_bytes());
+            resource_buffer[(8 + 8)..].copy_from_slice(&self.inner.l1_gas_price.to_be_bytes());
             fee_hasher.update(Felt::from_bytes_be(&resource_buffer));
 
-            // L2 resources are hard-coded to 0
-            let resource_buffer = [
+            let mut resource_buffer = [
                 0, 0, b'L', b'2', b'_', b'G', b'A', b'S', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             ];
+            resource_buffer[8..(8 + 8)].copy_from_slice(&self.inner.l2_gas.to_be_bytes());
+            resource_buffer[(8 + 8)..].copy_from_slice(&self.inner.l2_gas_price.to_be_bytes());
+            fee_hasher.update(Felt::from_bytes_be(&resource_buffer));
+
+            let mut resource_buffer = [
+                0, b'L', b'1', b'_', b'D', b'A', b'T', b'A', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            ];
+            resource_buffer[8..(8 + 8)].copy_from_slice(&self.inner.l1_data_gas.to_be_bytes());
+            resource_buffer[(8 + 8)..].copy_from_slice(&self.inner.l1_data_gas_price.to_be_bytes());
             fee_hasher.update(Felt::from_bytes_be(&resource_buffer));
 
             fee_hasher.finalize()
@@ -1040,7 +729,7 @@ where
             .map_err(AccountFactoryError::Signing)?;
         self.factory
             .provider()
-            .add_deploy_account_transaction(BroadcastedDeployAccountTransaction::V3(tx_request))
+            .add_deploy_account_transaction(tx_request)
             .await
             .map_err(AccountFactoryError::Provider)
     }
@@ -1064,13 +753,16 @@ where
             class_hash: self.factory.class_hash(),
             resource_bounds: ResourceBoundsMapping {
                 l1_gas: ResourceBounds {
-                    max_amount: self.inner.gas,
-                    max_price_per_unit: self.inner.gas_price,
+                    max_amount: self.inner.l1_gas,
+                    max_price_per_unit: self.inner.l1_gas_price,
                 },
-                // L2 resources are hard-coded to 0
+                l1_data_gas: ResourceBounds {
+                    max_amount: self.inner.l1_data_gas,
+                    max_price_per_unit: self.inner.l1_data_gas_price,
+                },
                 l2_gas: ResourceBounds {
-                    max_amount: 0,
-                    max_price_per_unit: 0,
+                    max_amount: self.inner.l2_gas,
+                    max_price_per_unit: self.inner.l2_gas_price,
                 },
             },
             // Fee market has not been been activated yet so it's hard-coded to be 0

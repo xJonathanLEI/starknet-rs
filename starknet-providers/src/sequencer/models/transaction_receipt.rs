@@ -3,7 +3,7 @@ use serde_with::serde_as;
 
 use starknet_core::{
     serde::unsigned_field_element::{UfeHex, UfePendingBlockHash},
-    types::{DataAvailabilityResources, Felt},
+    types::{ExecutionResources, Felt},
 };
 
 use super::{L1Address, TransactionFailureReason};
@@ -22,7 +22,7 @@ pub struct ConfirmedReceipt {
     #[serde(default)]
     pub revert_error: Option<String>,
     #[serde(default)]
-    pub execution_resources: Option<ExecutionResources>,
+    pub execution_resources: Option<DetailedExecutionResources>,
     pub l1_to_l2_consumed_message: Option<L1ToL2Message>,
     pub l2_to_l1_messages: Vec<L2ToL1Message>,
     pub events: Vec<Event>,
@@ -108,11 +108,12 @@ pub enum TransactionFinalityStatus {
 
 #[derive(Debug, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct ExecutionResources {
+pub struct DetailedExecutionResources {
     pub n_steps: u64,
     pub n_memory_holes: u64,
     pub builtin_instance_counter: BuiltinInstanceCounter,
-    pub data_availability: Option<DataAvailabilityResources>,
+    pub data_availability: Option<ExecutionResources>,
+    pub total_gas_consumed: Option<ExecutionResources>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -127,6 +128,9 @@ pub struct BuiltinInstanceCounter {
     pub poseidon_builtin: Option<u64>,
     pub keccak_builtin: Option<u64>,
     pub segment_arena_builtin: Option<u64>,
+    pub add_mod: Option<u64>,
+    pub mul_mod: Option<u64>,
+    pub range_check96: Option<u64>,
 }
 
 #[serde_as]

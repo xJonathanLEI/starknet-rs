@@ -1,4 +1,4 @@
-use starknet_accounts::{Account, AccountError, ConnectedAccount, ExecutionV1, ExecutionV3};
+use starknet_accounts::{Account, AccountError, ConnectedAccount, ExecutionV3};
 use starknet_core::{
     types::{Call, FeeEstimate, Felt, InvokeTransactionResult, SimulatedTransaction},
     utils::{get_udc_deployed_address, UdcUniqueSettings, UdcUniqueness},
@@ -29,25 +29,8 @@ pub struct ContractFactory<A> {
     account: A,
 }
 
-/// Abstraction over contract deployment via the UDC. This type uses `INVOKE` v1 transactions under
-/// the hood, and hence pays transaction fees in ETH. To use v3 transactions for STRK fee payment,
-/// use [`DeploymentV3`] instead.
-#[must_use]
-#[derive(Debug)]
-pub struct DeploymentV1<'f, A> {
-    factory: &'f ContractFactory<A>,
-    constructor_calldata: Vec<Felt>,
-    salt: Felt,
-    unique: bool,
-    // The following fields allow us to mimic an `Execution` API.
-    nonce: Option<Felt>,
-    max_fee: Option<Felt>,
-    fee_estimate_multiplier: f64,
-}
-
 /// Abstraction over contract deployment via the UDC. This type uses `INVOKE` v3 transactions under
-/// the hood, and hence pays transaction fees in STRK. To use v1 transactions for ETH fee payment,
-/// use [`DeploymentV1`] instead.
+/// the hood, and hence pays transaction fees in STRK.
 #[must_use]
 #[derive(Debug)]
 pub struct DeploymentV3<'f, A> {
@@ -57,8 +40,12 @@ pub struct DeploymentV3<'f, A> {
     unique: bool,
     // The following fields allow us to mimic an `Execution` API.
     nonce: Option<Felt>,
-    gas: Option<u64>,
-    gas_price: Option<u128>,
+    l1_gas: Option<u64>,
+    l1_gas_price: Option<u128>,
+    l2_gas: Option<u64>,
+    l2_gas_price: Option<u128>,
+    l1_data_gas: Option<u64>,
+    l1_data_gas_price: Option<u128>,
     gas_estimate_multiplier: f64,
     gas_price_estimate_multiplier: f64,
 }
@@ -86,26 +73,6 @@ impl<A> ContractFactory<A>
 where
     A: Account,
 {
-    /// Generates an instance of [`DeploymentV1`] for sending `INVOKE` v1 transactions for the
-    /// contract deployment. Pays transaction fees in `ETH`.
-    #[deprecated = "pre-v3 transactions are deprecated and will be disabled on Starknet soon; use `deploy_v3` instead"]
-    pub const fn deploy_v1(
-        &self,
-        constructor_calldata: Vec<Felt>,
-        salt: Felt,
-        unique: bool,
-    ) -> DeploymentV1<'_, A> {
-        DeploymentV1 {
-            factory: self,
-            constructor_calldata,
-            salt,
-            unique,
-            nonce: None,
-            max_fee: None,
-            fee_estimate_multiplier: 1.1,
-        }
-    }
-
     /// Generates an instance of [`DeploymentV3`] for sending `INVOKE` v3 transactions for the
     /// contract deployment. Pays transaction fees in `STRK`.
     pub const fn deploy_v3(
@@ -120,52 +87,27 @@ where
             salt,
             unique,
             nonce: None,
-            gas: None,
-            gas_price: None,
+            l1_gas: None,
+            l1_gas_price: None,
+            l2_gas: None,
+            l2_gas_price: None,
+            l1_data_gas: None,
+            l1_data_gas_price: None,
             gas_estimate_multiplier: 1.5,
             gas_price_estimate_multiplier: 1.5,
         }
     }
 
-    /// Generates an instance of [`DeploymentV1`] for sending `INVOKE` v1 transactions for the
-    /// contract deployment. Pays transaction fees in `ETH`.
-    #[deprecated = "pre-v3 transactions are deprecated and will be disabled on Starknet soon; use `deploy_v3` instead"]
+    /// Generates an instance of [`DeploymentV3`] for sending `INVOKE` v3 transactions for the
+    /// contract deployment. Pays transaction fees in `STRK`.
+    #[deprecated = "transaction version used might change unexpectedly; use `deploy_v3` instead"]
     pub const fn deploy(
         &self,
         constructor_calldata: Vec<Felt>,
         salt: Felt,
         unique: bool,
-    ) -> DeploymentV1<'_, A> {
-        #[allow(deprecated)]
-        self.deploy_v1(constructor_calldata, salt, unique)
-    }
-}
-
-impl<A> DeploymentV1<'_, A> {
-    /// Returns a new [`DeploymentV1`] with the `nonce`.
-    pub fn nonce(self, nonce: Felt) -> Self {
-        Self {
-            nonce: Some(nonce),
-            ..self
-        }
-    }
-
-    /// Returns a new [`DeploymentV1`] with the `max_fee`.
-    pub fn max_fee(self, max_fee: Felt) -> Self {
-        Self {
-            max_fee: Some(max_fee),
-            ..self
-        }
-    }
-
-    /// Returns a new [`DeploymentV1`] with the fee estimate multiplier. The multiplier is used
-    /// when transaction fee is not manually specified and must be fetched from a
-    /// [`Provider`](starknet_providers::Provider) instead.
-    pub fn fee_estimate_multiplier(self, fee_estimate_multiplier: f64) -> Self {
-        Self {
-            fee_estimate_multiplier,
-            ..self
-        }
+    ) -> DeploymentV3<'_, A> {
+        self.deploy_v3(constructor_calldata, salt, unique)
     }
 }
 
@@ -178,18 +120,50 @@ impl<A> DeploymentV3<'_, A> {
         }
     }
 
-    /// Returns a new [`DeploymentV3`] with the `gas`.
-    pub fn gas(self, gas: u64) -> Self {
+    /// Returns a new [`DeploymentV3`] with the `l1_gas`.
+    pub fn l1_gas(self, l1_gas: u64) -> Self {
         Self {
-            gas: Some(gas),
+            l1_gas: Some(l1_gas),
             ..self
         }
     }
 
-    /// Returns a new [`DeploymentV3`] with the `gas_price`.
-    pub fn gas_price(self, gas_price: u128) -> Self {
+    /// Returns a new [`DeploymentV3`] with the `l1_gas_price`.
+    pub fn l1_gas_price(self, l1_gas_price: u128) -> Self {
         Self {
-            gas_price: Some(gas_price),
+            l1_gas_price: Some(l1_gas_price),
+            ..self
+        }
+    }
+
+    /// Returns a new [`DeploymentV3`] with the `l2_gas`.
+    pub fn l2_gas(self, l2_gas: u64) -> Self {
+        Self {
+            l2_gas: Some(l2_gas),
+            ..self
+        }
+    }
+
+    /// Returns a new [`DeploymentV3`] with the `l2_gas_price`.
+    pub fn l2_gas_price(self, l2_gas_price: u128) -> Self {
+        Self {
+            l2_gas_price: Some(l2_gas_price),
+            ..self
+        }
+    }
+
+    /// Returns a new [`DeploymentV3`] with the `l1_data_gas`.
+    pub fn l1_data_gas(self, l1_data_gas: u64) -> Self {
+        Self {
+            l1_data_gas: Some(l1_data_gas),
+            ..self
+        }
+    }
+
+    /// Returns a new [`DeploymentV3`] with the `l1_data_gas_price`.
+    pub fn l1_data_gas_price(self, l1_data_gas_price: u128) -> Self {
+        Self {
+            l1_data_gas_price: Some(l1_data_gas_price),
             ..self
         }
     }
@@ -215,28 +189,6 @@ impl<A> DeploymentV3<'_, A> {
     }
 }
 
-impl<A> DeploymentV1<'_, A>
-where
-    A: Account,
-{
-    /// Calculate the resulting contract address without sending a transaction.
-    pub fn deployed_address(&self) -> Felt {
-        get_udc_deployed_address(
-            self.salt,
-            self.factory.class_hash,
-            &if self.unique {
-                UdcUniqueness::Unique(UdcUniqueSettings {
-                    deployer_address: self.factory.account.address(),
-                    udc_contract_address: self.factory.udc_address,
-                })
-            } else {
-                UdcUniqueness::NotUnique
-            },
-            &self.constructor_calldata,
-        )
-    }
-}
-
 impl<A> DeploymentV3<'_, A>
 where
     A: Account,
@@ -256,34 +208,6 @@ where
             },
             &self.constructor_calldata,
         )
-    }
-}
-
-impl<A> DeploymentV1<'_, A>
-where
-    A: ConnectedAccount + Sync,
-{
-    /// Estimates transaction fees from a [`Provider`](starknet_providers::Provider).
-    pub async fn estimate_fee(&self) -> Result<FeeEstimate, AccountError<A::SignError>> {
-        let execution: ExecutionV1<'_, A> = self.into();
-        execution.estimate_fee().await
-    }
-
-    /// Simulates the transaction from a [`Provider`](starknet_providers::Provider). Transaction
-    /// validation and fee transfer can be skipped.
-    pub async fn simulate(
-        &self,
-        skip_validate: bool,
-        skip_fee_charge: bool,
-    ) -> Result<SimulatedTransaction, AccountError<A::SignError>> {
-        let execution: ExecutionV1<'_, A> = self.into();
-        execution.simulate(skip_validate, skip_fee_charge).await
-    }
-
-    /// Signs and broadcasts the transaction to the network.
-    pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
-        let execution: ExecutionV1<'_, A> = self.into();
-        execution.send().await
     }
 }
 
@@ -312,41 +236,6 @@ where
     pub async fn send(&self) -> Result<InvokeTransactionResult, AccountError<A::SignError>> {
         let execution: ExecutionV3<'_, A> = self.into();
         execution.send().await
-    }
-}
-
-impl<'f, A> From<&DeploymentV1<'f, A>> for ExecutionV1<'f, A> {
-    fn from(value: &DeploymentV1<'f, A>) -> Self {
-        let mut calldata = vec![
-            value.factory.class_hash,
-            value.salt,
-            if value.unique { Felt::ONE } else { Felt::ZERO },
-            value.constructor_calldata.len().into(),
-        ];
-        calldata.extend_from_slice(&value.constructor_calldata);
-
-        let execution = Self::new(
-            vec![Call {
-                to: value.factory.udc_address,
-                selector: SELECTOR_DEPLOYCONTRACT,
-                calldata,
-            }],
-            &value.factory.account,
-        );
-
-        let execution = if let Some(nonce) = value.nonce {
-            execution.nonce(nonce)
-        } else {
-            execution
-        };
-
-        let execution = if let Some(max_fee) = value.max_fee {
-            execution.max_fee(max_fee)
-        } else {
-            execution
-        };
-
-        execution.fee_estimate_multiplier(value.fee_estimate_multiplier)
     }
 }
 
@@ -375,14 +264,38 @@ impl<'f, A> From<&DeploymentV3<'f, A>> for ExecutionV3<'f, A> {
             execution
         };
 
-        let execution = if let Some(gas) = value.gas {
-            execution.gas(gas)
+        let execution = if let Some(l1_gas) = value.l1_gas {
+            execution.l1_gas(l1_gas)
         } else {
             execution
         };
 
-        let execution = if let Some(gas_price) = value.gas_price {
-            execution.gas_price(gas_price)
+        let execution = if let Some(l1_gas_price) = value.l1_gas_price {
+            execution.l1_gas_price(l1_gas_price)
+        } else {
+            execution
+        };
+
+        let execution = if let Some(l2_gas) = value.l2_gas {
+            execution.l2_gas(l2_gas)
+        } else {
+            execution
+        };
+
+        let execution = if let Some(l2_gas_price) = value.l2_gas_price {
+            execution.l2_gas_price(l2_gas_price)
+        } else {
+            execution
+        };
+
+        let execution = if let Some(l1_data_gas) = value.l1_data_gas {
+            execution.l1_data_gas(l1_data_gas)
+        } else {
+            execution
+        };
+
+        let execution = if let Some(l1_data_gas_price) = value.l1_data_gas_price {
+            execution.l1_data_gas_price(l1_data_gas_price)
         } else {
             execution
         };
@@ -418,13 +331,6 @@ mod tests {
             ),
         );
 
-        let unique_address_v1 = factory
-            .deploy_v1(
-                vec![Felt::from_hex("0x1234").unwrap()],
-                Felt::from_hex("0x3456").unwrap(),
-                true,
-            )
-            .deployed_address();
         let unique_address_v3 = factory
             .deploy_v3(
                 vec![Felt::from_hex("0x1234").unwrap()],
@@ -433,13 +339,6 @@ mod tests {
             )
             .deployed_address();
 
-        let not_unique_address_v1 = factory
-            .deploy_v1(
-                vec![Felt::from_hex("0x1234").unwrap()],
-                Felt::from_hex("0x3456").unwrap(),
-                false,
-            )
-            .deployed_address();
         let not_unique_address_v3 = factory
             .deploy_v3(
                 vec![Felt::from_hex("0x1234").unwrap()],
@@ -449,21 +348,11 @@ mod tests {
             .deployed_address();
 
         assert_eq!(
-            unique_address_v1,
-            Felt::from_hex("0x36e05bcd41191387bc2f04ed9cad4776a75df3b748b0246a5d217a988474181")
-                .unwrap()
-        );
-        assert_eq!(
             unique_address_v3,
             Felt::from_hex("0x36e05bcd41191387bc2f04ed9cad4776a75df3b748b0246a5d217a988474181")
                 .unwrap()
         );
 
-        assert_eq!(
-            not_unique_address_v1,
-            Felt::from_hex("0x3a320b6aa0b451b22fba90b5d75b943932649137c09a86a5cf4853031be70c1")
-                .unwrap()
-        );
         assert_eq!(
             not_unique_address_v3,
             Felt::from_hex("0x3a320b6aa0b451b22fba90b5d75b943932649137c09a86a5cf4853031be70c1")

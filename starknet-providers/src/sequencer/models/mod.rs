@@ -19,8 +19,8 @@ pub use transaction::{
 
 mod transaction_receipt;
 pub use transaction_receipt::{
-    BuiltinInstanceCounter, ConfirmedReceipt as ConfirmedTransactionReceipt, Event,
-    ExecutionResources, L1ToL2Message, L2ToL1Message, TransactionExecutionStatus,
+    BuiltinInstanceCounter, ConfirmedReceipt as ConfirmedTransactionReceipt,
+    DetailedExecutionResources, Event, L1ToL2Message, L2ToL1Message, TransactionExecutionStatus,
     TransactionFinalityStatus, TransactionStatus,
 };
 
