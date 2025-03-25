@@ -365,6 +365,8 @@ mod block_id {
 }
 
 mod transaction_status {
+    use alloc::string::String;
+
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
     use crate::types::{
