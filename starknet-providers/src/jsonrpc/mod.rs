@@ -8,15 +8,15 @@ use starknet_core::{
     types::{
         requests::*, BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
         BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
-        ContractClass, ContractErrorData, ContractStorageKeys, DeclareTransactionResult,
-        DeployAccountTransactionResult, EventFilter, EventFilterWithPage, EventsPage, FeeEstimate,
-        Felt as FeltPrimitive, FunctionCall, Hash256, InvokeTransactionResult,
-        MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
-        MaybePendingStateUpdate, MessageWithStatus, MsgFromL1, NoTraceAvailableErrorData,
-        ResultPageRequest, SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee,
-        StarknetError, StorageProof, SyncStatusType, Transaction, TransactionExecutionErrorData,
-        TransactionReceiptWithBlockInfo, TransactionStatus, TransactionTrace,
-        TransactionTraceWithHash,
+        ConfirmedBlockId, ContractClass, ContractErrorData, ContractStorageKeys,
+        DeclareTransactionResult, DeployAccountTransactionResult, EventFilter, EventFilterWithPage,
+        EventsPage, FeeEstimate, Felt as FeltPrimitive, FunctionCall, Hash256,
+        InvokeTransactionResult, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
+        MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageWithStatus, MsgFromL1,
+        NoTraceAvailableErrorData, ResultPageRequest, SimulatedTransaction, SimulationFlag,
+        SimulationFlagForEstimateFee, StarknetError, StorageProof, SyncStatusType, Transaction,
+        TransactionExecutionErrorData, TransactionReceiptWithBlockInfo, TransactionStatus,
+        TransactionTrace, TransactionTraceWithHash,
     },
 };
 
@@ -865,7 +865,7 @@ where
         contracts_storage_keys: K,
     ) -> Result<StorageProof, ProviderError>
     where
-        B: AsRef<BlockId> + Send + Sync,
+        B: AsRef<ConfirmedBlockId> + Send + Sync,
         H: AsRef<[FeltPrimitive]> + Send + Sync,
         A: AsRef<[FeltPrimitive]> + Send + Sync,
         K: AsRef<[ContractStorageKeys]> + Send + Sync,

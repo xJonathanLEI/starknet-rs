@@ -231,6 +231,17 @@ pub enum BlockId {
     Tag(BlockTag),
 }
 
+/// Block identifier that refers to a confirmed block.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ConfirmedBlockId {
+    /// Block hash.
+    Hash(Felt),
+    /// Block number (height).
+    Number(u64),
+    /// The latest confirmed block.
+    Latest,
+}
+
 /// A "processed" contract class representation that's circulated in the network. This is different
 /// from the class representation of compiler output.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -735,6 +746,12 @@ impl L1HandlerTransaction {
 }
 
 impl AsRef<Self> for BlockId {
+    fn as_ref(&self) -> &Self {
+        self
+    }
+}
+
+impl AsRef<Self> for ConfirmedBlockId {
     fn as_ref(&self) -> &Self {
         self
     }

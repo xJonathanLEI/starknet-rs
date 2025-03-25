@@ -1,13 +1,13 @@
 use starknet_core::{
     types::{
         requests::{CallRequest, GetBlockTransactionCountRequest},
-        BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedTransaction, ContractClass,
-        ContractStorageKeys, DataAvailabilityMode, DeclareTransaction, DeployAccountTransaction,
-        EthAddress, EventFilter, ExecuteInvocation, ExecutionResult, Felt, FunctionCall, Hash256,
-        InvokeTransaction, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
-        MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageStatus, MsgFromL1,
-        ResourceBounds, ResourceBoundsMapping, StarknetError, SyncStatusType, Transaction,
-        TransactionReceipt, TransactionStatus, TransactionTrace,
+        BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedTransaction, ConfirmedBlockId,
+        ContractClass, ContractStorageKeys, DataAvailabilityMode, DeclareTransaction,
+        DeployAccountTransaction, EthAddress, EventFilter, ExecuteInvocation, ExecutionResult,
+        Felt, FunctionCall, Hash256, InvokeTransaction, MaybePendingBlockWithReceipts,
+        MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
+        MessageStatus, MsgFromL1, ResourceBounds, ResourceBoundsMapping, StarknetError,
+        SyncStatusType, Transaction, TransactionReceipt, TransactionStatus, TransactionTrace,
     },
     utils::{get_selector_from_name, get_storage_var_address},
 };
@@ -24,12 +24,13 @@ fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
 }
 
 #[tokio::test]
+#[ignore = "latest pathfinder release (v0.16.2) still serves 0.8.0-rc3"]
 async fn jsonrpc_spec_version() {
     let rpc_client = create_jsonrpc_client();
 
     let version = rpc_client.spec_version().await.unwrap();
 
-    assert_eq!(version, "0.8.0-rc3");
+    assert_eq!(version, "0.8.0");
 }
 
 #[tokio::test]
@@ -812,7 +813,7 @@ async fn jsonrpc_get_storage_proof() {
 
     let proof = rpc_client
         .get_storage_proof(
-            BlockId::Tag(BlockTag::Latest),
+            ConfirmedBlockId::Latest,
             [
                 Felt::from_hex("009524a94b41c4440a16fd96d7c1ef6ad6f44c1c013e96662734502cd4ee9b1f")
                     .unwrap(),

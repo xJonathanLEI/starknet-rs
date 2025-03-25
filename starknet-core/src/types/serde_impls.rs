@@ -268,7 +268,7 @@ mod block_id {
     use serde_with::serde_as;
     use starknet_types_core::felt::Felt;
 
-    use crate::types::{BlockId, BlockTag};
+    use crate::types::{BlockId, BlockTag, ConfirmedBlockId};
 
     #[derive(Deserialize)]
     #[serde(untagged)]
@@ -321,6 +321,44 @@ mod block_id {
                 BlockIdDe::Hash(hash) => Self::Hash(hash.block_hash),
                 BlockIdDe::Number(number) => Self::Number(number.block_number),
                 BlockIdDe::Tag(tag) => Self::Tag(tag),
+            })
+        }
+    }
+
+    impl Serialize for ConfirmedBlockId {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer,
+        {
+            match self {
+                Self::Hash(hash) => {
+                    BlockHash::serialize(&BlockHash { block_hash: *hash }, serializer)
+                }
+                Self::Number(number) => BlockNumber::serialize(
+                    &BlockNumber {
+                        block_number: *number,
+                    },
+                    serializer,
+                ),
+                Self::Latest => BlockTag::serialize(&BlockTag::Latest, serializer),
+            }
+        }
+    }
+
+    impl<'de> Deserialize<'de> for ConfirmedBlockId {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            Ok(match BlockIdDe::deserialize(deserializer)? {
+                BlockIdDe::Hash(hash) => Self::Hash(hash.block_hash),
+                BlockIdDe::Number(number) => Self::Number(number.block_number),
+                BlockIdDe::Tag(BlockTag::Latest) => Self::Latest,
+                BlockIdDe::Tag(BlockTag::Pending) => {
+                    return Err(serde::de::Error::custom(
+                        "confirmed block id must not be `pending`",
+                    ))
+                }
             })
         }
     }
@@ -576,7 +614,7 @@ mod tests {
     use starknet_types_core::felt::Felt;
 
     use super::{
-        super::{BlockId, BlockTag},
+        super::{BlockId, BlockTag, ConfirmedBlockId},
         NumAsHex,
     };
 
@@ -594,6 +632,25 @@ mod tests {
         ] {
             assert_eq!(serde_json::to_string(&block_id).unwrap(), json);
             assert_eq!(serde_json::from_str::<BlockId>(json).unwrap(), block_id);
+        }
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_confirmed_blockid_serde() {
+        for (block_id, json) in [
+            (
+                ConfirmedBlockId::Hash(Felt::from_hex("0x1234").unwrap()),
+                "{\"block_hash\":\"0x1234\"}",
+            ),
+            (ConfirmedBlockId::Number(1234), "{\"block_number\":1234}"),
+            (ConfirmedBlockId::Latest, "\"latest\""),
+        ] {
+            assert_eq!(serde_json::to_string(&block_id).unwrap(), json);
+            assert_eq!(
+                serde_json::from_str::<ConfirmedBlockId>(json).unwrap(),
+                block_id
+            );
         }
     }
 

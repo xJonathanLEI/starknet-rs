@@ -4,12 +4,13 @@ use serde::Serialize;
 use starknet_core::types::{
     requests::*, BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
     BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
-    ContractClass, ContractStorageKeys, DeclareTransactionResult, DeployAccountTransactionResult,
-    EventFilter, EventsPage, FeeEstimate, Felt, FunctionCall, Hash256, InvokeTransactionResult,
-    MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
-    MaybePendingStateUpdate, MessageWithStatus, MsgFromL1, SimulatedTransaction, SimulationFlag,
-    SimulationFlagForEstimateFee, StarknetError, StorageProof, SyncStatusType, Transaction,
-    TransactionReceiptWithBlockInfo, TransactionStatus, TransactionTrace, TransactionTraceWithHash,
+    ConfirmedBlockId, ContractClass, ContractStorageKeys, DeclareTransactionResult,
+    DeployAccountTransactionResult, EventFilter, EventsPage, FeeEstimate, Felt, FunctionCall,
+    Hash256, InvokeTransactionResult, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
+    MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageWithStatus, MsgFromL1,
+    SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, StarknetError,
+    StorageProof, SyncStatusType, Transaction, TransactionReceiptWithBlockInfo, TransactionStatus,
+    TransactionTrace, TransactionTraceWithHash,
 };
 use std::{any::Any, error::Error, fmt::Debug};
 
@@ -220,7 +221,7 @@ pub trait Provider {
         contracts_storage_keys: K,
     ) -> Result<StorageProof, ProviderError>
     where
-        B: AsRef<BlockId> + Send + Sync,
+        B: AsRef<ConfirmedBlockId> + Send + Sync,
         H: AsRef<[Felt]> + Send + Sync,
         A: AsRef<[Felt]> + Send + Sync,
         K: AsRef<[ContractStorageKeys]> + Send + Sync;

@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#7f7f425bd0d93090f9dd551ce2ce88b452ad69f8
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#17da525c2033c87a36894291873a18814ba8081c
 
 // These types are ignored from code generation. Implement them manually:
 // - `RECEIPT_BLOCK`
@@ -12,6 +12,7 @@
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
 // - `BROADCASTED_TXN`
+// - `CONFIRMED_BLOCK_ID`
 // - `CONTRACT_ABI_ENTRY`
 // - `CONTRACT_CLASS`
 // - `CONTRACT_EXECUTION_ERROR`
@@ -1849,7 +1850,8 @@ pub enum StarknetError {
     InvalidTransactionNonce,
     /// The transaction's resources don't cover validation or the minimal transaction fee
     InsufficientResourcesForValidate,
-    /// Account balance is smaller than the transaction's max_fee
+    /// Account balance is smaller than the transaction's maximal fee (calculated as the sum of each
+    /// resource's limit x max price)
     InsufficientAccountBalance,
     /// Account validation failed
     ValidationFailure(String),
@@ -1938,7 +1940,7 @@ impl StarknetError {
                 "The transaction's resources don't cover validation or the minimal transaction fee"
             }
             Self::InsufficientAccountBalance => {
-                "Account balance is smaller than the transaction's max_fee"
+                "Account balance is smaller than the transaction's maximal fee (calculated as the sum of each resource's limit x max price)"
             }
             Self::ValidationFailure(_) => "Account validation failed",
             Self::CompilationFailed(_) => "Compilation failed",
@@ -2384,7 +2386,7 @@ pub struct GetStorageAtRequestRef<'a> {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetStorageProofRequest {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
-    pub block_id: BlockId,
+    pub block_id: ConfirmedBlockId,
     /// a list of the class hashes for which we want to prove membership in the classes trie
     pub class_hashes: Vec<Felt>,
     /// a list of contracts for which we want to prove membership in the global state trie
@@ -2396,7 +2398,7 @@ pub struct GetStorageProofRequest {
 /// Reference version of [GetStorageProofRequest].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetStorageProofRequestRef<'a> {
-    pub block_id: &'a BlockId,
+    pub block_id: &'a ConfirmedBlockId,
     pub class_hashes: &'a [Felt],
     pub contract_addresses: &'a [Felt],
     pub contracts_storage_keys: &'a [ContractStorageKeys],
@@ -7275,7 +7277,7 @@ impl Serialize for GetStorageProofRequest {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub block_id: &'a BlockId,
+            pub block_id: &'a ConfirmedBlockId,
         }
 
         #[serde_as]
@@ -7329,7 +7331,7 @@ impl Serialize for GetStorageProofRequestRef<'_> {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub block_id: &'a BlockId,
+            pub block_id: &'a ConfirmedBlockId,
         }
 
         #[serde_as]
@@ -7383,7 +7385,7 @@ impl<'de> Deserialize<'de> for GetStorageProofRequest {
         #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
-            pub block_id: BlockId,
+            pub block_id: ConfirmedBlockId,
             #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "Vec<UfeHex>")]
             pub class_hashes: Vec<Felt>,
@@ -7397,7 +7399,7 @@ impl<'de> Deserialize<'de> for GetStorageProofRequest {
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
-            pub block_id: BlockId,
+            pub block_id: ConfirmedBlockId,
         }
 
         #[serde_as]

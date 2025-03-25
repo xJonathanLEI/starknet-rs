@@ -2,12 +2,13 @@ use async_trait::async_trait;
 use starknet_core::types::{
     BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
     BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
-    ContractClass, ContractStorageKeys, DeclareTransactionResult, DeployAccountTransactionResult,
-    EventFilter, EventsPage, FeeEstimate, Felt, FunctionCall, Hash256, InvokeTransactionResult,
-    MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs,
-    MaybePendingStateUpdate, MessageWithStatus, MsgFromL1, SimulatedTransaction, SimulationFlag,
-    SimulationFlagForEstimateFee, StorageProof, SyncStatusType, Transaction,
-    TransactionReceiptWithBlockInfo, TransactionStatus, TransactionTrace, TransactionTraceWithHash,
+    ConfirmedBlockId, ContractClass, ContractStorageKeys, DeclareTransactionResult,
+    DeployAccountTransactionResult, EventFilter, EventsPage, FeeEstimate, Felt, FunctionCall,
+    Hash256, InvokeTransactionResult, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
+    MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageWithStatus, MsgFromL1,
+    SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, StorageProof,
+    SyncStatusType, Transaction, TransactionReceiptWithBlockInfo, TransactionStatus,
+    TransactionTrace, TransactionTraceWithHash,
 };
 
 use crate::{
@@ -542,7 +543,7 @@ impl Provider for AnyProvider {
         contracts_storage_keys: K,
     ) -> Result<StorageProof, ProviderError>
     where
-        B: AsRef<BlockId> + Send + Sync,
+        B: AsRef<ConfirmedBlockId> + Send + Sync,
         H: AsRef<[Felt]> + Send + Sync,
         A: AsRef<[Felt]> + Send + Sync,
         K: AsRef<[ContractStorageKeys]> + Send + Sync,
