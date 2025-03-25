@@ -2039,7 +2039,7 @@ dependencies = [
 
 [[package]]
 name = "starknet"
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
  "serde_json",
  "starknet-accounts",
@@ -2056,7 +2056,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-accounts"
-version = "0.12.0"
+version = "0.13.0"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -2073,7 +2073,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-contract"
-version = "0.12.0"
+version = "0.13.0"
 dependencies = [
  "rand",
  "serde",
@@ -2090,7 +2090,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-core"
-version = "0.12.2"
+version = "0.13.0"
 dependencies = [
  "base64 0.21.7",
  "bincode",
@@ -2164,7 +2164,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-macros"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "starknet-core",
  "syn 2.0.77",
@@ -2172,7 +2172,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-providers"
-version = "0.12.1"
+version = "0.13.0"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -2193,7 +2193,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-signers"
-version = "0.10.2"
+version = "0.11.0"
 dependencies = [
  "async-trait",
  "auto_impl",
