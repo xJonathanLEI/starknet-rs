@@ -45,7 +45,8 @@ async fn main() {
         deployment.address()
     );
     println!("Press ENTER after account is funded to continue deployment...");
-    std::io::stdin().read_line(&mut String::new()).unwrap();
+    let mut input = String::new();
+    std::io::stdin().read_line(&mut input).unwrap();
 
     let result = deployment.send().await;
     match result {
