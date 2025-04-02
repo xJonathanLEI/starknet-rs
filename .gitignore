@@ -1,3 +1,5 @@
 /examples/starknet-cxx/build/
 /target/
 /.idea
+
+.DS_Store
