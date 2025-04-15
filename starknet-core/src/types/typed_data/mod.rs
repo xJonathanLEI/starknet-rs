@@ -920,7 +920,7 @@ mod tests {
         assert_eq!(
             data.message_hash(Felt::from_hex_unchecked("0x1234"))
                 .unwrap(),
-            // This expected hash was generated with starknet.js v6.24.0, due to the expectation
+            // This expected hash was generated with starknet.js v6.24.1, due to the expectation
             // that the following fixes, despite being merged, would never be released:
             // - https://github.com/starknet-io/starknet.js/pull/1281
             // - https://github.com/starknet-io/starknet.js/pull/1288
@@ -985,14 +985,7 @@ mod tests {
         assert_eq!(
             data.message_hash(Felt::from_hex_unchecked("0x1234"))
                 .unwrap(),
-            // This expected hash was generated with starknet.js v6.24.0 patched with:
-            // - https://github.com/starknet-io/starknet.js/pull/1289
-            //
-            // Here a patched version is used as it's expected that the patch would eventually be
-            // released.
-            //
-            // See this thread for more context:
-            // - https://github.com/starknet-io/starknet.js/pull/1292
+            // This expected hash was generated with starknet.js v6.24.1
             Felt::from_hex_unchecked(
                 "0x0470e6107a4d464e16d8f77ff673c06f6fbfe107fef1e496e53b10d3744afd42"
             )
