@@ -20,7 +20,7 @@ all-features = true
 starknet-crypto = { version = "0.7.4", path = "../starknet-crypto", default-features = false, features = ["alloc"] }
 starknet-core-derive = { version = "0.1.0", path = "../starknet-core-derive" }
 base64 = { version = "0.21.0", default-features = false, features = ["alloc"] }
-crypto-bigint = { version = "0.5.1", default-features = false }
+crypto-bigint = { version = "0.5.1", default-features = false, features = ["generic-array"] }
 flate2 = { version = "1.0.25", optional = true }
 foldhash = { version = "0.1.4", default-features = false }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
