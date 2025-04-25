@@ -24,13 +24,12 @@ fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
 }
 
 #[tokio::test]
-#[ignore = "latest pathfinder release (v0.16.2) still serves 0.8.0-rc3"]
 async fn jsonrpc_spec_version() {
     let rpc_client = create_jsonrpc_client();
 
     let version = rpc_client.spec_version().await.unwrap();
 
-    assert_eq!(version, "0.8.0");
+    assert_eq!(version, "0.8.1");
 }
 
 #[tokio::test]
@@ -700,9 +699,9 @@ async fn jsonrpc_estimate_fee() {
         .await
         .unwrap();
 
-    assert!(estimate.l2_gas_consumed > Felt::ZERO);
-    assert!(estimate.l2_gas_price > Felt::ZERO);
-    assert!(estimate.overall_fee > Felt::ZERO);
+    assert!(estimate.l2_gas_consumed > 0);
+    assert!(estimate.l2_gas_price > 0);
+    assert!(estimate.overall_fee > 0);
 }
 
 #[tokio::test]
@@ -729,9 +728,9 @@ async fn jsonrpc_estimate_message_fee() {
         .await
         .unwrap();
 
-    assert!(estimate.l1_gas_consumed > Felt::ZERO);
-    assert!(estimate.l1_gas_price > Felt::ZERO);
-    assert!(estimate.overall_fee > Felt::ZERO);
+    assert!(estimate.l1_gas_consumed > 0);
+    assert!(estimate.l1_gas_price > 0);
+    assert!(estimate.overall_fee > 0);
 }
 
 #[tokio::test]

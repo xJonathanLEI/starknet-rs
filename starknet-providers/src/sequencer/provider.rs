@@ -28,7 +28,7 @@ use super::models::TransactionFinalityStatus;
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl Provider for SequencerGatewayProvider {
     async fn spec_version(&self) -> Result<String, ProviderError> {
-        Ok(String::from("0.8.0"))
+        Ok(String::from("0.8.1"))
     }
 
     async fn get_block_with_tx_hashes<B>(
