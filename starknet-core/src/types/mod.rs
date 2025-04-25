@@ -803,7 +803,7 @@ impl TryFrom<&L1HandlerTransaction> for MsgToL2 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{requests::*, *};
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
@@ -917,6 +917,27 @@ mod tests {
         assert_eq!(
             result.unwrap_err(),
             ParseMsgToL2Error::FromAddressOutOfRange
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_parse_get_block_transaction_count_request() {
+        let as_object = r#"{"block_id":{"block_number":200}}"#;
+        let as_array = r#"[{"block_number":200}]"#;
+
+        assert_eq!(
+            GetBlockTransactionCountRequest {
+                block_id: BlockId::Number(200)
+            },
+            serde_json::from_str(as_object).unwrap(),
+        );
+
+        assert_eq!(
+            GetBlockTransactionCountRequest {
+                block_id: BlockId::Number(200)
+            },
+            serde_json::from_str(as_array).unwrap(),
         );
     }
 }
