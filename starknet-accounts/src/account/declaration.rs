@@ -283,21 +283,16 @@ where
                 let fee_estimate = self.estimate_fee_with_nonce(nonce).await?;
 
                 (
-                    ((TryInto::<u64>::try_into(fee_estimate.l1_gas_consumed)
-                        .map_err(|_| AccountError::FeeOutOfRange)? as f64)
-                        * self.gas_estimate_multiplier) as u64,
+                    ((fee_estimate.l1_gas_consumed as f64) * self.gas_estimate_multiplier) as u64,
                     ((TryInto::<u64>::try_into(fee_estimate.l1_gas_price)
                         .map_err(|_| AccountError::FeeOutOfRange)? as f64)
                         * self.gas_price_estimate_multiplier) as u128,
-                    ((TryInto::<u64>::try_into(fee_estimate.l2_gas_consumed)
-                        .map_err(|_| AccountError::FeeOutOfRange)? as f64)
-                        * self.gas_estimate_multiplier) as u64,
+                    ((fee_estimate.l2_gas_consumed as f64) * self.gas_estimate_multiplier) as u64,
                     ((TryInto::<u64>::try_into(fee_estimate.l2_gas_price)
                         .map_err(|_| AccountError::FeeOutOfRange)? as f64)
                         * self.gas_price_estimate_multiplier) as u128,
-                    ((TryInto::<u64>::try_into(fee_estimate.l1_data_gas_consumed)
-                        .map_err(|_| AccountError::FeeOutOfRange)? as f64)
-                        * self.gas_estimate_multiplier) as u64,
+                    ((fee_estimate.l1_data_gas_consumed as f64) * self.gas_estimate_multiplier)
+                        as u64,
                     ((TryInto::<u64>::try_into(fee_estimate.l1_data_gas_price)
                         .map_err(|_| AccountError::FeeOutOfRange)? as f64)
                         * self.gas_price_estimate_multiplier) as u128,

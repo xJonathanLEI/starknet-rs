@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#17da525c2033c87a36894291873a18814ba8081c
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#ca6ecb0f701919598ca35188a9220511b5c5bf10
 
 // These types are ignored from code generation. Implement them manually:
 // - `RECEIPT_BLOCK`
@@ -954,30 +954,31 @@ pub struct ExecutionResources {
 pub struct FeeEstimate {
     /// The Ethereum gas consumption of the transaction, charged for L1->L2 messages and, depending
     /// on the block's da_mode, state diffs
-    #[serde_as(as = "UfeHex")]
-    pub l1_gas_consumed: Felt,
+    #[serde_as(as = "NumAsHex")]
+    pub l1_gas_consumed: u64,
     /// The gas price (in wei or fri, depending on the tx version) that was used in the cost
     /// estimation
-    #[serde_as(as = "UfeHex")]
-    pub l1_gas_price: Felt,
+    #[serde_as(as = "NumAsHex")]
+    pub l1_gas_price: u128,
     /// The L2 gas consumption of the transaction
-    #[serde_as(as = "UfeHex")]
-    pub l2_gas_consumed: Felt,
+    #[serde_as(as = "NumAsHex")]
+    pub l2_gas_consumed: u64,
     /// The L2 gas price (in wei or fri, depending on the tx version) that was used in the cost
     /// estimation
-    #[serde_as(as = "UfeHex")]
-    pub l2_gas_price: Felt,
+    #[serde_as(as = "NumAsHex")]
+    pub l2_gas_price: u128,
     /// The Ethereum data gas consumption of the transaction
-    #[serde_as(as = "UfeHex")]
-    pub l1_data_gas_consumed: Felt,
+    #[serde_as(as = "NumAsHex")]
+    pub l1_data_gas_consumed: u64,
     /// The data gas price (in wei or fri, depending on the tx version) that was used in the cost
     /// estimation
-    #[serde_as(as = "UfeHex")]
-    pub l1_data_gas_price: Felt,
+    #[serde_as(as = "NumAsHex")]
+    pub l1_data_gas_price: u128,
     /// The estimated fee for the transaction (in wei or fri, depending on the tx version), equals
-    /// to gas_consumed*gas_price + data_gas_consumed*data_gas_price
-    #[serde_as(as = "UfeHex")]
-    pub overall_fee: Felt,
+    /// to l1_gas_consumed*l1_gas_price + l1_data_gas_consumed*l1_data_gas_price +
+    /// l2_gas_consumed*l2_gas_price
+    #[serde_as(as = "NumAsHex")]
+    pub overall_fee: u128,
     /// Units in which the fee is given
     pub unit: PriceUnit,
 }

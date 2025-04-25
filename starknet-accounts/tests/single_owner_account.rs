@@ -143,7 +143,7 @@ async fn can_estimate_invoke_v3_fee_inner<P: Provider + Send + Sync>(provider: P
         .await
         .unwrap();
 
-    assert!(fee_estimate.overall_fee > Felt::ZERO);
+    assert!(fee_estimate.overall_fee > 0);
 }
 
 async fn can_parse_fee_estimation_error_inner<P: Provider + Send + Sync>(
@@ -307,7 +307,7 @@ async fn can_estimate_declare_v3_fee_inner<P: Provider + Send + Sync>(provider: 
         .await
         .unwrap();
 
-    assert!(result.overall_fee > Felt::ZERO);
+    assert!(result.overall_fee > 0);
 }
 
 async fn can_declare_cairo1_contract_v3_inner<P: Provider + Send + Sync>(
