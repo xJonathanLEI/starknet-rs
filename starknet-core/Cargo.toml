@@ -40,7 +40,7 @@ hex-literal = "0.4.1"
 starknet-core = { path = ".", features = ["no_unknown_fields"] }
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
-wasm-bindgen-test = "0.3.34"
+wasm-bindgen-test = "0.3.50"
 
 [features]
 default = ["std"]

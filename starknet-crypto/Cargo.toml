@@ -42,7 +42,7 @@ serde_json = "1.0.96"
 starknet-types-core = { version = "0.1.7", default-features = false, features = ["alloc"] }
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
-wasm-bindgen-test = "0.3.34"
+wasm-bindgen-test = "0.3.50"
 
 [[bench]]
 name = "pedersen_hash"
