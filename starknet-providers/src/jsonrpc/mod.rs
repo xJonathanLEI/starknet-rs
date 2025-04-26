@@ -874,9 +874,9 @@ where
             JsonRpcMethod::GetStorageProof,
             GetStorageProofRequestRef {
                 block_id: block_id.as_ref(),
-                class_hashes: class_hashes.as_ref(),
-                contract_addresses: contract_addresses.as_ref(),
-                contracts_storage_keys: contracts_storage_keys.as_ref(),
+                class_hashes: Some(class_hashes.as_ref()),
+                contract_addresses: Some(contract_addresses.as_ref()),
+                contracts_storage_keys: Some(contracts_storage_keys.as_ref()),
             },
         )
         .await

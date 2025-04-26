@@ -940,4 +940,31 @@ mod tests {
             serde_json::from_str(as_array).unwrap(),
         );
     }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_parse_get_storage_proof_request() {
+        let as_object = r#"{"block_id":{"block_number":200},"class_hashes":["0x123"]}"#;
+        let as_array = r#"[{"block_number":200},["0x123"]]"#;
+
+        assert_eq!(
+            GetStorageProofRequest {
+                block_id: ConfirmedBlockId::Number(200),
+                class_hashes: Some(vec![Felt::from_hex_unchecked("0x123")]),
+                contract_addresses: None,
+                contracts_storage_keys: None
+            },
+            serde_json::from_str(as_object).unwrap(),
+        );
+
+        assert_eq!(
+            GetStorageProofRequest {
+                block_id: ConfirmedBlockId::Number(200),
+                class_hashes: Some(vec![Felt::from_hex_unchecked("0x123")]),
+                contract_addresses: None,
+                contracts_storage_keys: None
+            },
+            serde_json::from_str(as_array).unwrap(),
+        );
+    }
 }

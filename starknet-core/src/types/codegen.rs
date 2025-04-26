@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#5163c128f3758f0a08c60bc6eab44931709e2d1c
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#d1f1b94c9a0ac0084555882183554ebfb47a916d
 
 // These types are ignored from code generation. Implement them manually:
 // - `RECEIPT_BLOCK`
@@ -2389,20 +2389,20 @@ pub struct GetStorageProofRequest {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: ConfirmedBlockId,
     /// a list of the class hashes for which we want to prove membership in the classes trie
-    pub class_hashes: Vec<Felt>,
+    pub class_hashes: Option<Vec<Felt>>,
     /// a list of contracts for which we want to prove membership in the global state trie
-    pub contract_addresses: Vec<Felt>,
+    pub contract_addresses: Option<Vec<Felt>>,
     /// a list of (contract_address, storage_keys) pairs
-    pub contracts_storage_keys: Vec<ContractStorageKeys>,
+    pub contracts_storage_keys: Option<Vec<ContractStorageKeys>>,
 }
 
 /// Reference version of [GetStorageProofRequest].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GetStorageProofRequestRef<'a> {
     pub block_id: &'a ConfirmedBlockId,
-    pub class_hashes: &'a [Felt],
-    pub contract_addresses: &'a [Felt],
-    pub contracts_storage_keys: &'a [ContractStorageKeys],
+    pub class_hashes: Option<&'a [Felt]>,
+    pub contract_addresses: Option<&'a [Felt]>,
+    pub contracts_storage_keys: Option<&'a [ContractStorageKeys]>,
 }
 
 /// Request for method starknet_getTransactionByBlockIdAndIndex
@@ -5512,7 +5512,6 @@ impl Serialize for AddDeclareTransactionRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for AddDeclareTransactionRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             declare_transaction: Field0,
@@ -5597,7 +5596,6 @@ impl Serialize for AddDeployAccountTransactionRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for AddDeployAccountTransactionRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             deploy_account_transaction: Field0,
@@ -5682,7 +5680,6 @@ impl Serialize for AddInvokeTransactionRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for AddInvokeTransactionRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             invoke_transaction: Field0,
@@ -5825,7 +5822,6 @@ impl Serialize for CallRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for CallRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             request: Field0,
@@ -5984,7 +5980,6 @@ impl Serialize for EstimateFeeRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for EstimateFeeRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             request: Field0,
@@ -6119,7 +6114,6 @@ impl Serialize for EstimateMessageFeeRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for EstimateMessageFeeRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             message: Field0,
@@ -6219,7 +6213,6 @@ impl Serialize for GetBlockTransactionCountRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for GetBlockTransactionCountRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             block_id: Field0,
@@ -6304,7 +6297,6 @@ impl Serialize for GetBlockWithReceiptsRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for GetBlockWithReceiptsRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             block_id: Field0,
@@ -6389,7 +6381,6 @@ impl Serialize for GetBlockWithTxHashesRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for GetBlockWithTxHashesRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             block_id: Field0,
@@ -6474,7 +6465,6 @@ impl Serialize for GetBlockWithTxsRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for GetBlockWithTxsRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             block_id: Field0,
@@ -6583,7 +6573,6 @@ impl Serialize for GetClassAtRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for GetClassAtRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             block_id: Field0,
@@ -6709,7 +6698,6 @@ impl Serialize for GetClassHashAtRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for GetClassHashAtRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             block_id: Field0,
@@ -6835,7 +6823,6 @@ impl Serialize for GetClassRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for GetClassRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             block_id: Field0,
@@ -6935,7 +6922,6 @@ impl Serialize for GetEventsRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for GetEventsRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             filter: Field0,
@@ -7020,7 +7006,6 @@ impl Serialize for GetMessagesStatusRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for GetMessagesStatusRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             transaction_hash: Field0,
@@ -7129,7 +7114,6 @@ impl Serialize for GetNonceRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for GetNonceRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             block_id: Field0,
@@ -7231,7 +7215,6 @@ impl Serialize for GetStateUpdateRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for GetStateUpdateRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             block_id: Field0,
@@ -7360,7 +7343,6 @@ impl Serialize for GetStorageAtRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for GetStorageAtRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             contract_address: Field0,
@@ -7434,9 +7416,12 @@ impl Serialize for GetStorageProofRequest {
         #[derive(Serialize)]
         struct AsObject<'a> {
             block_id: Field0<'a>,
-            class_hashes: Field1<'a>,
-            contract_addresses: Field2<'a>,
-            contracts_storage_keys: Field3<'a>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            class_hashes: Option<Field1<'a>>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            contract_addresses: Option<Field2<'a>>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            contracts_storage_keys: Option<Field3<'a>>,
         }
 
         #[derive(Serialize)]
@@ -7449,7 +7434,6 @@ impl Serialize for GetStorageProofRequest {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
-            #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "[UfeHex]")]
             pub value: &'a [Felt],
         }
@@ -7458,7 +7442,6 @@ impl Serialize for GetStorageProofRequest {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field2<'a> {
-            #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "[UfeHex]")]
             pub value: &'a [Felt],
         }
@@ -7466,7 +7449,6 @@ impl Serialize for GetStorageProofRequest {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field3<'a> {
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub value: &'a [ContractStorageKeys],
         }
 
@@ -7475,15 +7457,15 @@ impl Serialize for GetStorageProofRequest {
                 block_id: Field0 {
                     value: &self.block_id,
                 },
-                class_hashes: Field1 {
-                    value: &self.class_hashes,
-                },
-                contract_addresses: Field2 {
-                    value: &self.contract_addresses,
-                },
-                contracts_storage_keys: Field3 {
-                    value: &self.contracts_storage_keys,
-                },
+                class_hashes: self.class_hashes.as_ref().map(|f| Field1 { value: f }),
+                contract_addresses: self
+                    .contract_addresses
+                    .as_ref()
+                    .map(|f| Field2 { value: f }),
+                contracts_storage_keys: self
+                    .contracts_storage_keys
+                    .as_ref()
+                    .map(|f| Field3 { value: f }),
             },
             serializer,
         )
@@ -7495,9 +7477,12 @@ impl Serialize for GetStorageProofRequestRef<'_> {
         #[derive(Serialize)]
         struct AsObject<'a> {
             block_id: Field0<'a>,
-            class_hashes: Field1<'a>,
-            contract_addresses: Field2<'a>,
-            contracts_storage_keys: Field3<'a>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            class_hashes: Option<Field1<'a>>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            contract_addresses: Option<Field2<'a>>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            contracts_storage_keys: Option<Field3<'a>>,
         }
 
         #[derive(Serialize)]
@@ -7510,7 +7495,6 @@ impl Serialize for GetStorageProofRequestRef<'_> {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
-            #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "[UfeHex]")]
             pub value: &'a [Felt],
         }
@@ -7519,7 +7503,6 @@ impl Serialize for GetStorageProofRequestRef<'_> {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field2<'a> {
-            #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "[UfeHex]")]
             pub value: &'a [Felt],
         }
@@ -7527,7 +7510,6 @@ impl Serialize for GetStorageProofRequestRef<'_> {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field3<'a> {
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub value: &'a [ContractStorageKeys],
         }
 
@@ -7536,15 +7518,15 @@ impl Serialize for GetStorageProofRequestRef<'_> {
                 block_id: Field0 {
                     value: self.block_id,
                 },
-                class_hashes: Field1 {
-                    value: self.class_hashes,
-                },
-                contract_addresses: Field2 {
-                    value: self.contract_addresses,
-                },
-                contracts_storage_keys: Field3 {
-                    value: self.contracts_storage_keys,
-                },
+                class_hashes: self.class_hashes.as_ref().map(|f| Field1 { value: f }),
+                contract_addresses: self
+                    .contract_addresses
+                    .as_ref()
+                    .map(|f| Field2 { value: f }),
+                contracts_storage_keys: self
+                    .contracts_storage_keys
+                    .as_ref()
+                    .map(|f| Field3 { value: f }),
             },
             serializer,
         )
@@ -7553,13 +7535,15 @@ impl Serialize for GetStorageProofRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for GetStorageProofRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             block_id: Field0,
-            class_hashes: Field1,
-            contract_addresses: Field2,
-            contracts_storage_keys: Field3,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            class_hashes: Option<Field1>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            contract_addresses: Option<Field2>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            contracts_storage_keys: Option<Field3>,
         }
 
         #[derive(Deserialize)]
@@ -7572,7 +7556,6 @@ impl<'de> Deserialize<'de> for GetStorageProofRequest {
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field1 {
-            #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "Vec<UfeHex>")]
             pub value: Vec<Felt>,
         }
@@ -7581,7 +7564,6 @@ impl<'de> Deserialize<'de> for GetStorageProofRequest {
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field2 {
-            #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "Vec<UfeHex>")]
             pub value: Vec<Felt>,
         }
@@ -7589,31 +7571,41 @@ impl<'de> Deserialize<'de> for GetStorageProofRequest {
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field3 {
-            #[serde(skip_serializing_if = "Option::is_none")]
             pub value: Vec<ContractStorageKeys>,
         }
 
         let temp = serde_json::Value::deserialize(deserializer)?;
 
         if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
-            let field3 = serde_json::from_value::<Field3>(
-                elements
-                    .pop()
-                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-            )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
-            let field2 = serde_json::from_value::<Field2>(
-                elements
-                    .pop()
-                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-            )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
-            let field1 = serde_json::from_value::<Field1>(
-                elements
-                    .pop()
-                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
-            )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            let element_count = elements.len();
+
+            let field3 = if element_count > 3 {
+                Some(
+                    serde_json::from_value::<Field3>(elements.pop().unwrap()).map_err(|err| {
+                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                    })?,
+                )
+            } else {
+                None
+            };
+            let field2 = if element_count > 2 {
+                Some(
+                    serde_json::from_value::<Field2>(elements.pop().unwrap()).map_err(|err| {
+                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                    })?,
+                )
+            } else {
+                None
+            };
+            let field1 = if element_count > 1 {
+                Some(
+                    serde_json::from_value::<Field1>(elements.pop().unwrap()).map_err(|err| {
+                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                    })?,
+                )
+            } else {
+                None
+            };
             let field0 = serde_json::from_value::<Field0>(
                 elements
                     .pop()
@@ -7623,16 +7615,16 @@ impl<'de> Deserialize<'de> for GetStorageProofRequest {
 
             Ok(Self {
                 block_id: field0.value,
-                class_hashes: field1.value,
-                contract_addresses: field2.value,
-                contracts_storage_keys: field3.value,
+                class_hashes: field1.map(|f| f.value),
+                contract_addresses: field2.map(|f| f.value),
+                contracts_storage_keys: field3.map(|f| f.value),
             })
         } else if let Ok(object) = AsObject::deserialize(&temp) {
             Ok(Self {
                 block_id: object.block_id.value,
-                class_hashes: object.class_hashes.value,
-                contract_addresses: object.contract_addresses.value,
-                contracts_storage_keys: object.contracts_storage_keys.value,
+                class_hashes: object.class_hashes.map(|f| f.value),
+                contract_addresses: object.contract_addresses.map(|f| f.value),
+                contracts_storage_keys: object.contracts_storage_keys.map(|f| f.value),
             })
         } else {
             Err(serde::de::Error::custom("invalid sequence length"))
@@ -7706,7 +7698,6 @@ impl Serialize for GetTransactionByBlockIdAndIndexRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for GetTransactionByBlockIdAndIndexRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             block_id: Field0,
@@ -7810,7 +7801,6 @@ impl Serialize for GetTransactionByHashRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for GetTransactionByHashRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             transaction_hash: Field0,
@@ -7901,7 +7891,6 @@ impl Serialize for GetTransactionReceiptRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for GetTransactionReceiptRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             transaction_hash: Field0,
@@ -7992,7 +7981,6 @@ impl Serialize for GetTransactionStatusRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for GetTransactionStatusRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             transaction_hash: Field0,
@@ -8119,7 +8107,6 @@ impl Serialize for SimulateTransactionsRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for SimulateTransactionsRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             block_id: Field0,
@@ -8272,7 +8259,6 @@ impl Serialize for TraceBlockTransactionsRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for TraceBlockTransactionsRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             block_id: Field0,
@@ -8361,7 +8347,6 @@ impl Serialize for TraceTransactionRequestRef<'_> {
 
 impl<'de> Deserialize<'de> for TraceTransactionRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[serde_as]
         #[derive(Deserialize)]
         struct AsObject {
             transaction_hash: Field0,
