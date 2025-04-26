@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#7a3a8e4c3f0be9457b5e3e632b39d556f8ace93c
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#5163c128f3758f0a08c60bc6eab44931709e2d1c
 
 // These types are ignored from code generation. Implement them manually:
 // - `RECEIPT_BLOCK`
@@ -5465,40 +5465,48 @@ impl<'de> Deserialize<'de> for L1HandlerTransactionTrace {
 impl Serialize for AddDeclareTransactionRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub declare_transaction: &'a BroadcastedDeclareTransaction,
+        struct AsObject<'a> {
+            declare_transaction: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BroadcastedDeclareTransaction,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            declare_transaction: &self.declare_transaction,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                declare_transaction: Field0 {
+                    value: &self.declare_transaction,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for AddDeclareTransactionRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub declare_transaction: &'a BroadcastedDeclareTransaction,
+        struct AsObject<'a> {
+            declare_transaction: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BroadcastedDeclareTransaction,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            declare_transaction: self.declare_transaction,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                declare_transaction: Field0 {
+                    value: self.declare_transaction,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -5542,40 +5550,48 @@ impl<'de> Deserialize<'de> for AddDeclareTransactionRequest {
 impl Serialize for AddDeployAccountTransactionRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub deploy_account_transaction: &'a BroadcastedDeployAccountTransaction,
+        struct AsObject<'a> {
+            deploy_account_transaction: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BroadcastedDeployAccountTransaction,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            deploy_account_transaction: &self.deploy_account_transaction,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                deploy_account_transaction: Field0 {
+                    value: &self.deploy_account_transaction,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for AddDeployAccountTransactionRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub deploy_account_transaction: &'a BroadcastedDeployAccountTransaction,
+        struct AsObject<'a> {
+            deploy_account_transaction: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BroadcastedDeployAccountTransaction,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            deploy_account_transaction: self.deploy_account_transaction,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                deploy_account_transaction: Field0 {
+                    value: self.deploy_account_transaction,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -5619,40 +5635,48 @@ impl<'de> Deserialize<'de> for AddDeployAccountTransactionRequest {
 impl Serialize for AddInvokeTransactionRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub invoke_transaction: &'a BroadcastedInvokeTransaction,
+        struct AsObject<'a> {
+            invoke_transaction: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BroadcastedInvokeTransaction,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            invoke_transaction: &self.invoke_transaction,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                invoke_transaction: Field0 {
+                    value: &self.invoke_transaction,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for AddInvokeTransactionRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub invoke_transaction: &'a BroadcastedInvokeTransaction,
+        struct AsObject<'a> {
+            invoke_transaction: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BroadcastedInvokeTransaction,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            invoke_transaction: self.invoke_transaction,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                invoke_transaction: Field0 {
+                    value: self.invoke_transaction,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -5734,58 +5758,68 @@ impl<'de> Deserialize<'de> for BlockNumberRequest {
 impl Serialize for CallRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            request: Field0<'a>,
+            block_id: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub request: &'a FunctionCall,
+            pub value: &'a FunctionCall,
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            request: &self.request,
-        })?;
-        seq.serialize_element(&Field1 {
-            block_id: &self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                request: Field0 {
+                    value: &self.request,
+                },
+                block_id: Field1 {
+                    value: &self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for CallRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            request: Field0<'a>,
+            block_id: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub request: &'a FunctionCall,
+            pub value: &'a FunctionCall,
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            request: self.request,
-        })?;
-        seq.serialize_element(&Field1 {
-            block_id: self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                request: Field0 {
+                    value: self.request,
+                },
+                block_id: Field1 {
+                    value: self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -5863,76 +5897,88 @@ impl<'de> Deserialize<'de> for ChainIdRequest {
 impl Serialize for EstimateFeeRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            request: Field0<'a>,
+            simulation_flags: Field1<'a>,
+            block_id: Field2<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub request: &'a [BroadcastedTransaction],
+            pub value: &'a [BroadcastedTransaction],
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
-            pub simulation_flags: &'a [SimulationFlagForEstimateFee],
+            pub value: &'a [SimulationFlagForEstimateFee],
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field2<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            request: &self.request,
-        })?;
-        seq.serialize_element(&Field1 {
-            simulation_flags: &self.simulation_flags,
-        })?;
-        seq.serialize_element(&Field2 {
-            block_id: &self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                request: Field0 {
+                    value: &self.request,
+                },
+                simulation_flags: Field1 {
+                    value: &self.simulation_flags,
+                },
+                block_id: Field2 {
+                    value: &self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for EstimateFeeRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            request: Field0<'a>,
+            simulation_flags: Field1<'a>,
+            block_id: Field2<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub request: &'a [BroadcastedTransaction],
+            pub value: &'a [BroadcastedTransaction],
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
-            pub simulation_flags: &'a [SimulationFlagForEstimateFee],
+            pub value: &'a [SimulationFlagForEstimateFee],
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field2<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            request: self.request,
-        })?;
-        seq.serialize_element(&Field1 {
-            simulation_flags: self.simulation_flags,
-        })?;
-        seq.serialize_element(&Field2 {
-            block_id: self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                request: Field0 {
+                    value: self.request,
+                },
+                simulation_flags: Field1 {
+                    value: self.simulation_flags,
+                },
+                block_id: Field2 {
+                    value: self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -6006,58 +6052,68 @@ impl<'de> Deserialize<'de> for EstimateFeeRequest {
 impl Serialize for EstimateMessageFeeRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            message: Field0<'a>,
+            block_id: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub message: &'a MsgFromL1,
+            pub value: &'a MsgFromL1,
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            message: &self.message,
-        })?;
-        seq.serialize_element(&Field1 {
-            block_id: &self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                message: Field0 {
+                    value: &self.message,
+                },
+                block_id: Field1 {
+                    value: &self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for EstimateMessageFeeRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            message: Field0<'a>,
+            block_id: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub message: &'a MsgFromL1,
+            pub value: &'a MsgFromL1,
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            message: self.message,
-        })?;
-        seq.serialize_element(&Field1 {
-            block_id: self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                message: Field0 {
+                    value: self.message,
+                },
+                block_id: Field1 {
+                    value: self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -6116,40 +6172,48 @@ impl<'de> Deserialize<'de> for EstimateMessageFeeRequest {
 impl Serialize for GetBlockTransactionCountRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub block_id: &'a BlockId,
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BlockId,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: &self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: &self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for GetBlockTransactionCountRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub block_id: &'a BlockId,
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BlockId,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -6193,40 +6257,48 @@ impl<'de> Deserialize<'de> for GetBlockTransactionCountRequest {
 impl Serialize for GetBlockWithReceiptsRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub block_id: &'a BlockId,
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BlockId,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: &self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: &self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for GetBlockWithReceiptsRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub block_id: &'a BlockId,
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BlockId,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -6270,40 +6342,48 @@ impl<'de> Deserialize<'de> for GetBlockWithReceiptsRequest {
 impl Serialize for GetBlockWithTxHashesRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub block_id: &'a BlockId,
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BlockId,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: &self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: &self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for GetBlockWithTxHashesRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub block_id: &'a BlockId,
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BlockId,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -6347,40 +6427,48 @@ impl<'de> Deserialize<'de> for GetBlockWithTxHashesRequest {
 impl Serialize for GetBlockWithTxsRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub block_id: &'a BlockId,
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BlockId,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: &self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: &self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for GetBlockWithTxsRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub block_id: &'a BlockId,
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BlockId,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -6424,9 +6512,15 @@ impl<'de> Deserialize<'de> for GetBlockWithTxsRequest {
 impl Serialize for GetClassAtRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
+            contract_address: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
         #[serde_as]
@@ -6434,30 +6528,35 @@ impl Serialize for GetClassAtRequest {
         #[serde(transparent)]
         struct Field1<'a> {
             #[serde_as(as = "UfeHex")]
-            pub contract_address: &'a Felt,
+            pub value: &'a Felt,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: &self.block_id,
-        })?;
-        seq.serialize_element(&Field1 {
-            contract_address: &self.contract_address,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: &self.block_id,
+                },
+                contract_address: Field1 {
+                    value: &self.contract_address,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for GetClassAtRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
+            contract_address: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
         #[serde_as]
@@ -6465,21 +6564,20 @@ impl Serialize for GetClassAtRequestRef<'_> {
         #[serde(transparent)]
         struct Field1<'a> {
             #[serde_as(as = "UfeHex")]
-            pub contract_address: &'a Felt,
+            pub value: &'a Felt,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: self.block_id,
-        })?;
-        seq.serialize_element(&Field1 {
-            contract_address: self.contract_address,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: self.block_id,
+                },
+                contract_address: Field1 {
+                    value: self.contract_address,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -6540,9 +6638,15 @@ impl<'de> Deserialize<'de> for GetClassAtRequest {
 impl Serialize for GetClassHashAtRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
+            contract_address: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
         #[serde_as]
@@ -6550,30 +6654,35 @@ impl Serialize for GetClassHashAtRequest {
         #[serde(transparent)]
         struct Field1<'a> {
             #[serde_as(as = "UfeHex")]
-            pub contract_address: &'a Felt,
+            pub value: &'a Felt,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: &self.block_id,
-        })?;
-        seq.serialize_element(&Field1 {
-            contract_address: &self.contract_address,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: &self.block_id,
+                },
+                contract_address: Field1 {
+                    value: &self.contract_address,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for GetClassHashAtRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
+            contract_address: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
         #[serde_as]
@@ -6581,21 +6690,20 @@ impl Serialize for GetClassHashAtRequestRef<'_> {
         #[serde(transparent)]
         struct Field1<'a> {
             #[serde_as(as = "UfeHex")]
-            pub contract_address: &'a Felt,
+            pub value: &'a Felt,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: self.block_id,
-        })?;
-        seq.serialize_element(&Field1 {
-            contract_address: self.contract_address,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: self.block_id,
+                },
+                contract_address: Field1 {
+                    value: self.contract_address,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -6656,9 +6764,15 @@ impl<'de> Deserialize<'de> for GetClassHashAtRequest {
 impl Serialize for GetClassRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
+            class_hash: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
         #[serde_as]
@@ -6666,30 +6780,35 @@ impl Serialize for GetClassRequest {
         #[serde(transparent)]
         struct Field1<'a> {
             #[serde_as(as = "UfeHex")]
-            pub class_hash: &'a Felt,
+            pub value: &'a Felt,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: &self.block_id,
-        })?;
-        seq.serialize_element(&Field1 {
-            class_hash: &self.class_hash,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: &self.block_id,
+                },
+                class_hash: Field1 {
+                    value: &self.class_hash,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for GetClassRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
+            class_hash: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
         #[serde_as]
@@ -6697,21 +6816,20 @@ impl Serialize for GetClassRequestRef<'_> {
         #[serde(transparent)]
         struct Field1<'a> {
             #[serde_as(as = "UfeHex")]
-            pub class_hash: &'a Felt,
+            pub value: &'a Felt,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: self.block_id,
-        })?;
-        seq.serialize_element(&Field1 {
-            class_hash: self.class_hash,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: self.block_id,
+                },
+                class_hash: Field1 {
+                    value: self.class_hash,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -6772,40 +6890,46 @@ impl<'de> Deserialize<'de> for GetClassRequest {
 impl Serialize for GetEventsRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub filter: &'a EventFilterWithPage,
+        struct AsObject<'a> {
+            filter: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a EventFilterWithPage,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            filter: &self.filter,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                filter: Field0 {
+                    value: &self.filter,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for GetEventsRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub filter: &'a EventFilterWithPage,
+        struct AsObject<'a> {
+            filter: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a EventFilterWithPage,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            filter: self.filter,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                filter: Field0 { value: self.filter },
+            },
+            serializer,
+        )
     }
 }
 
@@ -6849,40 +6973,48 @@ impl<'de> Deserialize<'de> for GetEventsRequest {
 impl Serialize for GetMessagesStatusRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub transaction_hash: &'a Hash256,
+        struct AsObject<'a> {
+            transaction_hash: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a Hash256,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            transaction_hash: &self.transaction_hash,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                transaction_hash: Field0 {
+                    value: &self.transaction_hash,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for GetMessagesStatusRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub transaction_hash: &'a Hash256,
+        struct AsObject<'a> {
+            transaction_hash: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a Hash256,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            transaction_hash: self.transaction_hash,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                transaction_hash: Field0 {
+                    value: self.transaction_hash,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -6926,9 +7058,15 @@ impl<'de> Deserialize<'de> for GetMessagesStatusRequest {
 impl Serialize for GetNonceRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
+            contract_address: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
         #[serde_as]
@@ -6936,30 +7074,35 @@ impl Serialize for GetNonceRequest {
         #[serde(transparent)]
         struct Field1<'a> {
             #[serde_as(as = "UfeHex")]
-            pub contract_address: &'a Felt,
+            pub value: &'a Felt,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: &self.block_id,
-        })?;
-        seq.serialize_element(&Field1 {
-            contract_address: &self.contract_address,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: &self.block_id,
+                },
+                contract_address: Field1 {
+                    value: &self.contract_address,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for GetNonceRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
+            contract_address: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
         #[serde_as]
@@ -6967,21 +7110,20 @@ impl Serialize for GetNonceRequestRef<'_> {
         #[serde(transparent)]
         struct Field1<'a> {
             #[serde_as(as = "UfeHex")]
-            pub contract_address: &'a Felt,
+            pub value: &'a Felt,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: self.block_id,
-        })?;
-        seq.serialize_element(&Field1 {
-            contract_address: self.contract_address,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: self.block_id,
+                },
+                contract_address: Field1 {
+                    value: self.contract_address,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -7042,40 +7184,48 @@ impl<'de> Deserialize<'de> for GetNonceRequest {
 impl Serialize for GetStateUpdateRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub block_id: &'a BlockId,
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BlockId,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: &self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: &self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for GetStateUpdateRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub block_id: &'a BlockId,
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BlockId,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -7118,12 +7268,19 @@ impl<'de> Deserialize<'de> for GetStateUpdateRequest {
 
 impl Serialize for GetStorageAtRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            contract_address: Field0<'a>,
+            key: Field1<'a>,
+            block_id: Field2<'a>,
+        }
+
         #[serde_as]
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
             #[serde_as(as = "UfeHex")]
-            pub contract_address: &'a Felt,
+            pub value: &'a Felt,
         }
 
         #[serde_as]
@@ -7131,39 +7288,45 @@ impl Serialize for GetStorageAtRequest {
         #[serde(transparent)]
         struct Field1<'a> {
             #[serde_as(as = "UfeHex")]
-            pub key: &'a Felt,
+            pub value: &'a Felt,
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field2<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            contract_address: &self.contract_address,
-        })?;
-        seq.serialize_element(&Field1 { key: &self.key })?;
-        seq.serialize_element(&Field2 {
-            block_id: &self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                contract_address: Field0 {
+                    value: &self.contract_address,
+                },
+                key: Field1 { value: &self.key },
+                block_id: Field2 {
+                    value: &self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for GetStorageAtRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            contract_address: Field0<'a>,
+            key: Field1<'a>,
+            block_id: Field2<'a>,
+        }
+
         #[serde_as]
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
             #[serde_as(as = "UfeHex")]
-            pub contract_address: &'a Felt,
+            pub value: &'a Felt,
         }
 
         #[serde_as]
@@ -7171,28 +7334,27 @@ impl Serialize for GetStorageAtRequestRef<'_> {
         #[serde(transparent)]
         struct Field1<'a> {
             #[serde_as(as = "UfeHex")]
-            pub key: &'a Felt,
+            pub value: &'a Felt,
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field2<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            contract_address: self.contract_address,
-        })?;
-        seq.serialize_element(&Field1 { key: self.key })?;
-        seq.serialize_element(&Field2 {
-            block_id: self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                contract_address: Field0 {
+                    value: self.contract_address,
+                },
+                key: Field1 { value: self.key },
+                block_id: Field2 {
+                    value: self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -7270,9 +7432,17 @@ impl<'de> Deserialize<'de> for GetStorageAtRequest {
 impl Serialize for GetStorageProofRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
+            class_hashes: Field1<'a>,
+            contract_addresses: Field2<'a>,
+            contracts_storage_keys: Field3<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub block_id: &'a ConfirmedBlockId,
+            pub value: &'a ConfirmedBlockId,
         }
 
         #[serde_as]
@@ -7281,7 +7451,7 @@ impl Serialize for GetStorageProofRequest {
         struct Field1<'a> {
             #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "[UfeHex]")]
-            pub class_hashes: &'a [Felt],
+            pub value: &'a [Felt],
         }
 
         #[serde_as]
@@ -7290,43 +7460,50 @@ impl Serialize for GetStorageProofRequest {
         struct Field2<'a> {
             #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "[UfeHex]")]
-            pub contract_addresses: &'a [Felt],
+            pub value: &'a [Felt],
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field3<'a> {
             #[serde(skip_serializing_if = "Option::is_none")]
-            pub contracts_storage_keys: &'a [ContractStorageKeys],
+            pub value: &'a [ContractStorageKeys],
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: &self.block_id,
-        })?;
-        seq.serialize_element(&Field1 {
-            class_hashes: &self.class_hashes,
-        })?;
-        seq.serialize_element(&Field2 {
-            contract_addresses: &self.contract_addresses,
-        })?;
-        seq.serialize_element(&Field3 {
-            contracts_storage_keys: &self.contracts_storage_keys,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: &self.block_id,
+                },
+                class_hashes: Field1 {
+                    value: &self.class_hashes,
+                },
+                contract_addresses: Field2 {
+                    value: &self.contract_addresses,
+                },
+                contracts_storage_keys: Field3 {
+                    value: &self.contracts_storage_keys,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for GetStorageProofRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
+            class_hashes: Field1<'a>,
+            contract_addresses: Field2<'a>,
+            contracts_storage_keys: Field3<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub block_id: &'a ConfirmedBlockId,
+            pub value: &'a ConfirmedBlockId,
         }
 
         #[serde_as]
@@ -7335,7 +7512,7 @@ impl Serialize for GetStorageProofRequestRef<'_> {
         struct Field1<'a> {
             #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "[UfeHex]")]
-            pub class_hashes: &'a [Felt],
+            pub value: &'a [Felt],
         }
 
         #[serde_as]
@@ -7344,34 +7521,33 @@ impl Serialize for GetStorageProofRequestRef<'_> {
         struct Field2<'a> {
             #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "[UfeHex]")]
-            pub contract_addresses: &'a [Felt],
+            pub value: &'a [Felt],
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field3<'a> {
             #[serde(skip_serializing_if = "Option::is_none")]
-            pub contracts_storage_keys: &'a [ContractStorageKeys],
+            pub value: &'a [ContractStorageKeys],
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: self.block_id,
-        })?;
-        seq.serialize_element(&Field1 {
-            class_hashes: self.class_hashes,
-        })?;
-        seq.serialize_element(&Field2 {
-            contract_addresses: self.contract_addresses,
-        })?;
-        seq.serialize_element(&Field3 {
-            contracts_storage_keys: self.contracts_storage_keys,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: self.block_id,
+                },
+                class_hashes: Field1 {
+                    value: self.class_hashes,
+                },
+                contract_addresses: Field2 {
+                    value: self.contract_addresses,
+                },
+                contracts_storage_keys: Field3 {
+                    value: self.contracts_storage_keys,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -7467,54 +7643,64 @@ impl<'de> Deserialize<'de> for GetStorageProofRequest {
 impl Serialize for GetTransactionByBlockIdAndIndexRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
+            index: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
-            pub index: &'a u64,
+            pub value: &'a u64,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: &self.block_id,
-        })?;
-        seq.serialize_element(&Field1 { index: &self.index })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: &self.block_id,
+                },
+                index: Field1 { value: &self.index },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for GetTransactionByBlockIdAndIndexRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
+            index: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
-            pub index: &'a u64,
+            pub value: &'a u64,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: self.block_id,
-        })?;
-        seq.serialize_element(&Field1 { index: self.index })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: self.block_id,
+                },
+                index: Field1 { value: self.index },
+            },
+            serializer,
+        )
     }
 }
 
@@ -7572,45 +7758,53 @@ impl<'de> Deserialize<'de> for GetTransactionByBlockIdAndIndexRequest {
 
 impl Serialize for GetTransactionByHashRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            transaction_hash: Field0<'a>,
+        }
+
         #[serde_as]
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
             #[serde_as(as = "UfeHex")]
-            pub transaction_hash: &'a Felt,
+            pub value: &'a Felt,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            transaction_hash: &self.transaction_hash,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                transaction_hash: Field0 {
+                    value: &self.transaction_hash,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for GetTransactionByHashRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            transaction_hash: Field0<'a>,
+        }
+
         #[serde_as]
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
             #[serde_as(as = "UfeHex")]
-            pub transaction_hash: &'a Felt,
+            pub value: &'a Felt,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            transaction_hash: self.transaction_hash,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                transaction_hash: Field0 {
+                    value: self.transaction_hash,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -7655,45 +7849,53 @@ impl<'de> Deserialize<'de> for GetTransactionByHashRequest {
 
 impl Serialize for GetTransactionReceiptRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            transaction_hash: Field0<'a>,
+        }
+
         #[serde_as]
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
             #[serde_as(as = "UfeHex")]
-            pub transaction_hash: &'a Felt,
+            pub value: &'a Felt,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            transaction_hash: &self.transaction_hash,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                transaction_hash: Field0 {
+                    value: &self.transaction_hash,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for GetTransactionReceiptRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            transaction_hash: Field0<'a>,
+        }
+
         #[serde_as]
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
             #[serde_as(as = "UfeHex")]
-            pub transaction_hash: &'a Felt,
+            pub value: &'a Felt,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            transaction_hash: self.transaction_hash,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                transaction_hash: Field0 {
+                    value: self.transaction_hash,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -7738,45 +7940,53 @@ impl<'de> Deserialize<'de> for GetTransactionReceiptRequest {
 
 impl Serialize for GetTransactionStatusRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            transaction_hash: Field0<'a>,
+        }
+
         #[serde_as]
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
             #[serde_as(as = "UfeHex")]
-            pub transaction_hash: &'a Felt,
+            pub value: &'a Felt,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            transaction_hash: &self.transaction_hash,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                transaction_hash: Field0 {
+                    value: &self.transaction_hash,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for GetTransactionStatusRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            transaction_hash: Field0<'a>,
+        }
+
         #[serde_as]
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
             #[serde_as(as = "UfeHex")]
-            pub transaction_hash: &'a Felt,
+            pub value: &'a Felt,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            transaction_hash: self.transaction_hash,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                transaction_hash: Field0 {
+                    value: self.transaction_hash,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -7822,76 +8032,88 @@ impl<'de> Deserialize<'de> for GetTransactionStatusRequest {
 impl Serialize for SimulateTransactionsRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
+            transactions: Field1<'a>,
+            simulation_flags: Field2<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
-            pub transactions: &'a [BroadcastedTransaction],
+            pub value: &'a [BroadcastedTransaction],
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field2<'a> {
-            pub simulation_flags: &'a [SimulationFlag],
+            pub value: &'a [SimulationFlag],
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: &self.block_id,
-        })?;
-        seq.serialize_element(&Field1 {
-            transactions: &self.transactions,
-        })?;
-        seq.serialize_element(&Field2 {
-            simulation_flags: &self.simulation_flags,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: &self.block_id,
+                },
+                transactions: Field1 {
+                    value: &self.transactions,
+                },
+                simulation_flags: Field2 {
+                    value: &self.simulation_flags,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for SimulateTransactionsRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
+            transactions: Field1<'a>,
+            simulation_flags: Field2<'a>,
+        }
+
+        #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub block_id: &'a BlockId,
+            pub value: &'a BlockId,
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
-            pub transactions: &'a [BroadcastedTransaction],
+            pub value: &'a [BroadcastedTransaction],
         }
 
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field2<'a> {
-            pub simulation_flags: &'a [SimulationFlag],
+            pub value: &'a [SimulationFlag],
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: self.block_id,
-        })?;
-        seq.serialize_element(&Field1 {
-            transactions: self.transactions,
-        })?;
-        seq.serialize_element(&Field2 {
-            simulation_flags: self.simulation_flags,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: self.block_id,
+                },
+                transactions: Field1 {
+                    value: self.transactions,
+                },
+                simulation_flags: Field2 {
+                    value: self.simulation_flags,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -8003,40 +8225,48 @@ impl<'de> Deserialize<'de> for SyncingRequest {
 impl Serialize for TraceBlockTransactionsRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub block_id: &'a BlockId,
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BlockId,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: &self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: &self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for TraceBlockTransactionsRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
-        #[serde(transparent)]
-        struct Field0<'a> {
-            pub block_id: &'a BlockId,
+        struct AsObject<'a> {
+            block_id: Field0<'a>,
         }
 
-        use serde::ser::SerializeSeq;
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a BlockId,
+        }
 
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            block_id: self.block_id,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                block_id: Field0 {
+                    value: self.block_id,
+                },
+            },
+            serializer,
+        )
     }
 }
 
@@ -8079,45 +8309,53 @@ impl<'de> Deserialize<'de> for TraceBlockTransactionsRequest {
 
 impl Serialize for TraceTransactionRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            transaction_hash: Field0<'a>,
+        }
+
         #[serde_as]
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
             #[serde_as(as = "UfeHex")]
-            pub transaction_hash: &'a Felt,
+            pub value: &'a Felt,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            transaction_hash: &self.transaction_hash,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                transaction_hash: Field0 {
+                    value: &self.transaction_hash,
+                },
+            },
+            serializer,
+        )
     }
 }
 
 impl Serialize for TraceTransactionRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            transaction_hash: Field0<'a>,
+        }
+
         #[serde_as]
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
             #[serde_as(as = "UfeHex")]
-            pub transaction_hash: &'a Felt,
+            pub value: &'a Felt,
         }
 
-        use serde::ser::SerializeSeq;
-
-        let mut seq = serializer.serialize_seq(None)?;
-
-        seq.serialize_element(&Field0 {
-            transaction_hash: self.transaction_hash,
-        })?;
-
-        seq.end()
+        AsObject::serialize(
+            &AsObject {
+                transaction_hash: Field0 {
+                    value: self.transaction_hash,
+                },
+            },
+            serializer,
+        )
     }
 }
 
