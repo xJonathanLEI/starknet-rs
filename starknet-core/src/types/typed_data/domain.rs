@@ -1,4 +1,5 @@
-use serde::Deserialize;
+use alloc::{string::String, vec::Vec};
+use serde::{Deserialize, Serialize};
 use starknet_crypto::poseidon_hash_many;
 
 use crate::{crypto::compute_hash_on_elements, types::Felt};
@@ -34,16 +35,27 @@ const DOMAIN_TYPE_HASH_V1: Felt = Felt::from_raw([
 ]);
 
 /// SNIP-12 typed data domain separator.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Domain {
     /// Domain name.
-    #[serde(deserialize_with = "shortstring::deserialize")]
+    #[serde(
+        serialize_with = "shortstring::serialize",
+        deserialize_with = "shortstring::deserialize",
+    )]
     pub name: Felt,
     /// Domain version.
-    #[serde(deserialize_with = "shortstring::deserialize")]
+    #[serde(
+        serialize_with = "shortstring::serialize",
+        deserialize_with = "shortstring::deserialize",
+    )]
     pub version: Felt,
     /// Domain chain ID.
-    #[serde(deserialize_with = "shortstring::deserialize", rename = "chainId")]
+    #[serde(
+        serialize_with = "shortstring::serialize",
+        deserialize_with = "shortstring::deserialize",
+        rename = "chainId"
+    )]
     pub chain_id: Felt,
     /// Domain revision.
     #[serde(default = "default_revision")]

@@ -11,7 +11,7 @@
 
 use serde::de::Visitor;
 
-use crate::{types::Felt, utils::cairo_short_string_to_felt};
+use crate::{types::Felt, utils::{cairo_short_string_to_felt, parse_cairo_short_string}};
 
 struct ShortStringVisitor;
 
@@ -75,4 +75,15 @@ where
     D: serde::Deserializer<'de>,
 {
     deserializer.deserialize_any(ShortStringVisitor)
+}
+
+pub fn serialize<S>(value: &Felt, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    serializer.serialize_str(
+        parse_cairo_short_string(&value)
+            .map_err(|e| serde::ser::Error::custom(e.to_string()))?
+            .as_str(),
+    )
 }

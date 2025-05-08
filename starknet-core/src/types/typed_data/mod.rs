@@ -1,7 +1,7 @@
 use alloc::{borrow::ToOwned, format, vec::*};
 use core::str::FromStr;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use starknet_crypto::{PedersenHasher, PoseidonHasher};
 
 use crate::{
@@ -617,6 +617,30 @@ impl<'de> Deserialize<'de> for TypedData {
     }
 }
 
+impl Serialize for TypedData {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        #[derive(Serialize)]
+        struct Raw {
+            types: Types,
+            domain: Domain,
+            #[serde(rename = "primaryType")]
+            primary_type: InlineTypeReference,
+            message: Value,
+        }
+
+        let raw = Raw {
+            types: self.types.clone(),
+            domain: self.domain.clone(),
+            primary_type: self.primary_type.clone(),
+            message: self.message.clone(),
+        };
+
+        raw.serialize(serializer)
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;
