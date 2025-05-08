@@ -1,9 +1,9 @@
 use alloc::{format, string::*, vec::*};
 use core::str::FromStr;
 
-use serde::{de::Unexpected, Deserialize};
+use serde::{de::Unexpected, Deserialize, Serialize};
 
-use crate::{types::Felt, utils::starknet_keccak};
+use crate::{types::{typed_data::type_reference::TypeReference, Felt}, utils::starknet_keccak};
 
 use super::{
     revision::Revision,
@@ -275,6 +275,35 @@ impl<'de> Deserialize<'de> for FieldOrVariantDefinition {
     }
 }
 
+impl Serialize for FieldOrVariantDefinition {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        #[derive(Serialize)]
+        struct Raw {
+            name: String,
+            r#type: String,
+            contains: Option<String>,
+        }
+
+        let raw = match self {
+            Self::Field(field) => Raw {
+                name: field.name.clone(),
+                r#type: field.r#type.signature_ref_repr(),
+                contains: None,
+            },
+            Self::Variant(variant) => Raw {
+                name: variant.name.clone(),
+                r#type: format!("({})", variant.tuple_types.iter().map(|t| t.to_string()).collect::<Vec<_>>().join(",")),
+                contains: None,
+            },
+        };
+
+        raw.serialize(serializer)
+        
+    }
+}
 impl CompositeType for StructDefinition {
     fn field_iter(&self) -> impl Iterator<Item = (&str, &FullTypeReference)> {
         self.fields

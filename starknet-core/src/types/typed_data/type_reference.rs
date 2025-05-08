@@ -1,7 +1,7 @@
 use alloc::{borrow::ToOwned, format, string::*};
-use core::str::FromStr;
+use core::{fmt, str::FromStr};
 
-use serde::{de::Visitor, Deserialize};
+use serde::{de::Visitor, Deserialize, Serialize};
 
 use super::error::TypedDataError;
 
@@ -385,6 +385,13 @@ impl FromStr for InlineTypeReference {
     }
 }
 
+impl fmt::Display for InlineTypeReference {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.signature_ref_repr())
+    }
+}
+
+
 impl FromStr for ElementTypeReference {
     type Err = TypedDataError;
 
@@ -409,6 +416,15 @@ impl FromStr for ElementTypeReference {
                 return Err(TypedDataError::InvalidTypeName(type_name.to_owned()));
             }
         })
+    }
+}
+
+impl fmt::Display for ElementTypeReference {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Custom(name) => write!(f, "{}", name),
+            _ => write!(f, "{}", self.signature_ref_repr()),
+        }
     }
 }
 
@@ -437,6 +453,15 @@ impl<'de> Deserialize<'de> for InlineTypeReference {
         D: serde::Deserializer<'de>,
     {
         deserializer.deserialize_str(InlineTypeReferenceVisitor)
+    }
+}
+
+impl Serialize for InlineTypeReference {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
     }
 }
 
