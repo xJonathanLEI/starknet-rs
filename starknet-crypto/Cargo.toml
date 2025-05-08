@@ -34,7 +34,7 @@ signature-display = ["dep:hex", "alloc"]
 pedersen_no_lookup = []
 
 [dev-dependencies]
-criterion = { version = "0.4.0", default-features = false }
+criterion = { version = "0.5.0", default-features = false }
 hex = "0.4.3"
 hex-literal = "0.4.1"
 serde = { version = "1.0.160", features = ["derive"] }
