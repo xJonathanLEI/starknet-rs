@@ -45,7 +45,7 @@ async fn can_deploy_contract_to_alpha_sepolia_with_invoke_v3() {
         .l1_gas(0)
         .l1_gas_price(1000000000000000)
         .l2_gas(1000000)
-        .l2_gas_price(5000000000)
+        .l2_gas_price(10000000000)
         .l1_data_gas(1000)
         .l1_data_gas_price(100000000000000)
         .send()
