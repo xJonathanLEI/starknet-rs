@@ -14,14 +14,15 @@ use starknet_core::{
         InvokeTransactionResult, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
         MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageWithStatus, MsgFromL1,
         NoTraceAvailableErrorData, ResultPageRequest, SimulatedTransaction, SimulationFlag,
-        SimulationFlagForEstimateFee, StarknetError, StorageProof, SyncStatusType, Transaction,
-        TransactionExecutionErrorData, TransactionReceiptWithBlockInfo, TransactionStatus,
-        TransactionTrace, TransactionTraceWithHash,
+        SimulationFlagForEstimateFee, StarknetError, StorageProof, SubscriptionId, SyncStatusType,
+        Transaction, TransactionExecutionErrorData, TransactionReceiptWithBlockInfo,
+        TransactionStatus, TransactionTrace, TransactionTraceWithHash,
     },
 };
 
 use crate::{
-    provider::ProviderImplError, Provider, ProviderError, ProviderRequestData, ProviderResponseData,
+    provider::ProviderImplError, Provider, ProviderError, ProviderRequestData,
+    ProviderResponseData, StreamUpdateData,
 };
 
 mod transports;
@@ -132,6 +133,36 @@ pub enum JsonRpcMethod {
     /// The `starknet_traceBlockTransactions` method.
     #[serde(rename = "starknet_traceBlockTransactions")]
     TraceBlockTransactions,
+    /// The `starknet_subscribeNewHeads` method.
+    #[serde(rename = "starknet_subscribeNewHeads")]
+    SubscribeNewHeads,
+    /// The `starknet_subscriptionNewHeads` method.
+    #[serde(rename = "starknet_subscriptionNewHeads")]
+    SubscriptionNewHeads,
+    /// The `starknet_subscribeEvents` method.
+    #[serde(rename = "starknet_subscribeEvents")]
+    SubscribeEvents,
+    /// The `starknet_subscriptionEvents` method.
+    #[serde(rename = "starknet_subscriptionEvents")]
+    SubscriptionEvents,
+    /// The `starknet_subscribeTransactionStatus` method.
+    #[serde(rename = "starknet_subscribeTransactionStatus")]
+    SubscribeTransactionStatus,
+    /// The `starknet_subscriptionTransactionStatus` method.
+    #[serde(rename = "starknet_subscriptionTransactionStatus")]
+    SubscriptionTransactionStatus,
+    /// The `starknet_subscribePendingTransactions` method.
+    #[serde(rename = "starknet_subscribePendingTransactions")]
+    SubscribePendingTransactions,
+    /// The `starknet_subscriptionPendingTransactions` method.
+    #[serde(rename = "starknet_subscriptionPendingTransactions")]
+    SubscriptionPendingTransactions,
+    /// The `starknet_subscriptionReorg` method.
+    #[serde(rename = "starknet_subscriptionReorg")]
+    SubscriptionReorg,
+    /// The `starknet_unsubscribe` method.
+    #[serde(rename = "starknet_unsubscribe")]
+    Unsubscribe,
 }
 
 /// JSON-RPC request.
@@ -141,6 +172,13 @@ pub struct JsonRpcRequest {
     pub id: u64,
     /// Data of the requeest.
     pub data: ProviderRequestData,
+}
+
+/// JSON-RPC stream update.
+#[derive(Debug, Clone)]
+pub struct JsonRpcStreamUpdate {
+    /// Data of the requeest.
+    pub data: StreamUpdateData,
 }
 
 /// Errors from JSON-RPC client.
@@ -438,6 +476,34 @@ where
                                     .map_err(JsonRpcClientError::<T::Error>::JsonError)?,
                             )
                         }
+                        ProviderRequestData::SubscribeNewHeads(_) => {
+                            ProviderResponseData::SubscribeNewHeads(
+                                SubscriptionId::deserialize(result)
+                                    .map_err(JsonRpcClientError::<T::Error>::JsonError)?,
+                            )
+                        }
+                        ProviderRequestData::SubscribeEvents(_) => {
+                            ProviderResponseData::SubscribeEvents(
+                                SubscriptionId::deserialize(result)
+                                    .map_err(JsonRpcClientError::<T::Error>::JsonError)?,
+                            )
+                        }
+                        ProviderRequestData::SubscribeTransactionStatus(_) => {
+                            ProviderResponseData::SubscribeTransactionStatus(
+                                SubscriptionId::deserialize(result)
+                                    .map_err(JsonRpcClientError::<T::Error>::JsonError)?,
+                            )
+                        }
+                        ProviderRequestData::SubscribePendingTransactions(_) => {
+                            ProviderResponseData::SubscribePendingTransactions(
+                                SubscriptionId::deserialize(result)
+                                    .map_err(JsonRpcClientError::<T::Error>::JsonError)?,
+                            )
+                        }
+                        ProviderRequestData::Unsubscribe(_) => ProviderResponseData::Unsubscribe(
+                            bool::deserialize(result)
+                                .map_err(JsonRpcClientError::<T::Error>::JsonError)?,
+                        ),
                     };
 
                     results.push(result);
@@ -1043,7 +1109,51 @@ impl ProviderRequestData {
             Self::TraceTransaction(_) => JsonRpcMethod::TraceTransaction,
             Self::SimulateTransactions(_) => JsonRpcMethod::SimulateTransactions,
             Self::TraceBlockTransactions(_) => JsonRpcMethod::TraceBlockTransactions,
+            Self::SubscribeNewHeads(_) => JsonRpcMethod::SubscribeNewHeads,
+            Self::SubscribeEvents(_) => JsonRpcMethod::SubscribeEvents,
+            Self::SubscribeTransactionStatus(_) => JsonRpcMethod::SubscribeTransactionStatus,
+            Self::SubscribePendingTransactions(_) => JsonRpcMethod::SubscribePendingTransactions,
+            Self::Unsubscribe(_) => JsonRpcMethod::Unsubscribe,
         }
+    }
+}
+
+impl StreamUpdateData {
+    const fn jsonrpc_method(&self) -> JsonRpcMethod {
+        match self {
+            Self::SubscriptionNewHeads(_) => JsonRpcMethod::SubscriptionNewHeads,
+            Self::SubscriptionEvents(_) => JsonRpcMethod::SubscriptionEvents,
+            Self::SubscriptionTransactionStatus(_) => JsonRpcMethod::SubscriptionTransactionStatus,
+            Self::SubscriptionPendingTransactions(_) => {
+                JsonRpcMethod::SubscriptionPendingTransactions
+            }
+            Self::SubscriptionReorg(_) => JsonRpcMethod::SubscriptionReorg,
+        }
+    }
+}
+
+impl Serialize for JsonRpcRequest {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        #[derive(Serialize)]
+        struct RawRequest<'a> {
+            jsonrpc: &'static str,
+            id: u64,
+            method: JsonRpcMethod,
+            params: &'a ProviderRequestData,
+        }
+
+        RawRequest::serialize(
+            &RawRequest {
+                jsonrpc: "2.0",
+                id: self.id,
+                method: self.data.jsonrpc_method(),
+                params: &self.data,
+            },
+            serializer,
+        )
     }
 }
 
@@ -1197,12 +1307,162 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
                 serde_json::from_value::<TraceBlockTransactionsRequest>(raw_request.params)
                     .map_err(error_mapper)?,
             ),
+            JsonRpcMethod::SubscribeNewHeads => ProviderRequestData::SubscribeNewHeads(
+                serde_json::from_value::<SubscribeNewHeadsRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::SubscribeEvents => ProviderRequestData::SubscribeEvents(
+                serde_json::from_value::<SubscribeEventsRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::SubscribeTransactionStatus => {
+                ProviderRequestData::SubscribeTransactionStatus(
+                    serde_json::from_value::<SubscribeTransactionStatusRequest>(raw_request.params)
+                        .map_err(error_mapper)?,
+                )
+            }
+            JsonRpcMethod::SubscribePendingTransactions => {
+                ProviderRequestData::SubscribePendingTransactions(
+                    serde_json::from_value::<SubscribePendingTransactionsRequest>(
+                        raw_request.params,
+                    )
+                    .map_err(error_mapper)?,
+                )
+            }
+            JsonRpcMethod::Unsubscribe => ProviderRequestData::Unsubscribe(
+                serde_json::from_value::<UnsubscribeRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::SubscriptionNewHeads
+            | JsonRpcMethod::SubscriptionEvents
+            | JsonRpcMethod::SubscriptionTransactionStatus
+            | JsonRpcMethod::SubscriptionPendingTransactions
+            | JsonRpcMethod::SubscriptionReorg => {
+                return Err(serde::de::Error::custom(format!(
+                    "unsupported request method: {:?}",
+                    raw_request.method
+                )))
+            }
         };
 
         Ok(Self {
             id: raw_request.id,
             data: request_data,
         })
+    }
+}
+
+impl Serialize for JsonRpcStreamUpdate {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        #[derive(Serialize)]
+        struct RawRequest<'a> {
+            jsonrpc: &'static str,
+            method: JsonRpcMethod,
+            params: &'a StreamUpdateData,
+        }
+
+        RawRequest::serialize(
+            &RawRequest {
+                jsonrpc: "2.0",
+                method: self.data.jsonrpc_method(),
+                params: &self.data,
+            },
+            serializer,
+        )
+    }
+}
+
+impl<'de> Deserialize<'de> for JsonRpcStreamUpdate {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct RawRequest {
+            method: JsonRpcMethod,
+            params: serde_json::Value,
+        }
+
+        let error_mapper =
+            |err| serde::de::Error::custom(format!("unable to decode params: {}", err));
+
+        let raw_request = RawRequest::deserialize(deserializer)?;
+        let request_data = match raw_request.method {
+            JsonRpcMethod::SubscriptionNewHeads => StreamUpdateData::SubscriptionNewHeads(
+                serde_json::from_value::<SubscriptionNewHeadsRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::SubscriptionEvents => StreamUpdateData::SubscriptionEvents(
+                serde_json::from_value::<SubscriptionEventsRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::SubscriptionTransactionStatus => {
+                StreamUpdateData::SubscriptionTransactionStatus(
+                    serde_json::from_value::<SubscriptionTransactionStatusRequest>(
+                        raw_request.params,
+                    )
+                    .map_err(error_mapper)?,
+                )
+            }
+            JsonRpcMethod::SubscriptionPendingTransactions => {
+                StreamUpdateData::SubscriptionPendingTransactions(
+                    serde_json::from_value::<SubscriptionPendingTransactionsRequest>(
+                        raw_request.params,
+                    )
+                    .map_err(error_mapper)?,
+                )
+            }
+            JsonRpcMethod::SubscriptionReorg => StreamUpdateData::SubscriptionReorg(
+                serde_json::from_value::<SubscriptionReorgRequest>(raw_request.params)
+                    .map_err(error_mapper)?,
+            ),
+            JsonRpcMethod::SpecVersion
+            | JsonRpcMethod::GetBlockWithTxHashes
+            | JsonRpcMethod::GetBlockWithTxs
+            | JsonRpcMethod::GetBlockWithReceipts
+            | JsonRpcMethod::GetStateUpdate
+            | JsonRpcMethod::GetStorageAt
+            | JsonRpcMethod::GetMessagesStatus
+            | JsonRpcMethod::GetTransactionStatus
+            | JsonRpcMethod::GetTransactionByHash
+            | JsonRpcMethod::GetTransactionByBlockIdAndIndex
+            | JsonRpcMethod::GetTransactionReceipt
+            | JsonRpcMethod::GetClass
+            | JsonRpcMethod::GetClassHashAt
+            | JsonRpcMethod::GetClassAt
+            | JsonRpcMethod::GetBlockTransactionCount
+            | JsonRpcMethod::Call
+            | JsonRpcMethod::EstimateFee
+            | JsonRpcMethod::EstimateMessageFee
+            | JsonRpcMethod::BlockNumber
+            | JsonRpcMethod::BlockHashAndNumber
+            | JsonRpcMethod::ChainId
+            | JsonRpcMethod::Syncing
+            | JsonRpcMethod::GetEvents
+            | JsonRpcMethod::GetNonce
+            | JsonRpcMethod::GetStorageProof
+            | JsonRpcMethod::AddInvokeTransaction
+            | JsonRpcMethod::AddDeclareTransaction
+            | JsonRpcMethod::AddDeployAccountTransaction
+            | JsonRpcMethod::TraceTransaction
+            | JsonRpcMethod::SimulateTransactions
+            | JsonRpcMethod::TraceBlockTransactions
+            | JsonRpcMethod::SubscribeNewHeads
+            | JsonRpcMethod::SubscribeEvents
+            | JsonRpcMethod::SubscribeTransactionStatus
+            | JsonRpcMethod::SubscribePendingTransactions
+            | JsonRpcMethod::Unsubscribe => {
+                return Err(serde::de::Error::custom(format!(
+                    "unsupported request method: {:?}",
+                    raw_request.method
+                )))
+            }
+        };
+
+        Ok(Self { data: request_data })
     }
 }
 
@@ -1306,6 +1566,9 @@ impl TryFrom<&JsonRpcError> for StarknetError {
                 .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
                 Ok(Self::UnexpectedError(data))
             }
+            66 => Ok(Self::InvalidSubscriptionId),
+            67 => Ok(Self::TooManyAddressesInFilter),
+            68 => Ok(Self::TooManyBlocksBack),
             10 => {
                 let data = NoTraceAvailableErrorData::deserialize(
                     value

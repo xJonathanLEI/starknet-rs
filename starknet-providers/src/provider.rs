@@ -9,8 +9,8 @@ use starknet_core::types::{
     Hash256, InvokeTransactionResult, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
     MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageWithStatus, MsgFromL1,
     SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, StarknetError,
-    StorageProof, SyncStatusType, Transaction, TransactionReceiptWithBlockInfo, TransactionStatus,
-    TransactionTrace, TransactionTraceWithHash,
+    StorageProof, SubscriptionId, SyncStatusType, Transaction, TransactionReceiptWithBlockInfo,
+    TransactionStatus, TransactionTrace, TransactionTraceWithHash,
 };
 use std::{any::Any, error::Error, fmt::Debug};
 
@@ -451,6 +451,16 @@ pub enum ProviderRequestData {
     SimulateTransactions(SimulateTransactionsRequest),
     /// Request data for `starknet_traceBlockTransactions`.
     TraceBlockTransactions(TraceBlockTransactionsRequest),
+    /// Request data for `starknet_subscribeNewHeads`.
+    SubscribeNewHeads(SubscribeNewHeadsRequest),
+    /// Request data for `starknet_subscribeEvents`.
+    SubscribeEvents(SubscribeEventsRequest),
+    /// Request data for `starknet_subscribeTransactionStatus`.
+    SubscribeTransactionStatus(SubscribeTransactionStatusRequest),
+    /// Request data for `starknet_subscribePendingTransactions`.
+    SubscribePendingTransactions(SubscribePendingTransactionsRequest),
+    /// Request data for `starknet_unsubscribe`.
+    Unsubscribe(UnsubscribeRequest),
 }
 
 /// Typed response data for [`Provider`] responses.
@@ -519,4 +529,44 @@ pub enum ProviderResponseData {
     SimulateTransactions(Vec<SimulatedTransaction>),
     /// Response data for `starknet_traceBlockTransactions`.
     TraceBlockTransactions(Vec<TransactionTraceWithHash>),
+    /// Response data for `starknet_subscribeNewHeads`.
+    SubscribeNewHeads(SubscriptionId),
+    /// Response data for `starknet_subscribeEvents`.
+    SubscribeEvents(SubscriptionId),
+    /// Response data for `starknet_subscribeTransactionStatus`.
+    SubscribeTransactionStatus(SubscriptionId),
+    /// Response data for `starknet_subscribePendingTransactions`.
+    SubscribePendingTransactions(SubscriptionId),
+    /// Response data for `starknet_unsubscribe`.
+    Unsubscribe(bool),
+}
+
+/// Typed data for stream updates.
+#[allow(clippy::enum_variant_names)]
+#[derive(Debug, Clone, Serialize)]
+#[serde(untagged)]
+pub enum StreamUpdateData {
+    /// Stream data for `starknet_subscriptionNewHeads`.
+    SubscriptionNewHeads(SubscriptionNewHeadsRequest),
+    /// Stream data for `starknet_subscriptionEvents`.
+    SubscriptionEvents(SubscriptionEventsRequest),
+    /// Stream data for `starknet_subscriptionTransactionStatus`.
+    SubscriptionTransactionStatus(SubscriptionTransactionStatusRequest),
+    /// Stream data for `starknet_subscriptionPendingTransactions`.
+    SubscriptionPendingTransactions(SubscriptionPendingTransactionsRequest),
+    /// Stream data for `starknet_subscriptionReorg`.
+    SubscriptionReorg(SubscriptionReorgRequest),
+}
+
+impl StreamUpdateData {
+    /// Gets a reference to the subscription ID the update corresponds to.
+    pub fn subscription_id(&self) -> &SubscriptionId {
+        match self {
+            Self::SubscriptionNewHeads(update) => &update.subscription_id,
+            Self::SubscriptionEvents(update) => &update.subscription_id,
+            Self::SubscriptionTransactionStatus(update) => &update.subscription_id,
+            Self::SubscriptionPendingTransactions(update) => &update.subscription_id,
+            Self::SubscriptionReorg(update) => &update.subscription_id,
+        }
+    }
 }

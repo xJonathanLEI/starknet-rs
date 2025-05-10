@@ -18,8 +18,8 @@ pub use typed_data::TypedData;
 // TODO: better namespacing of exports?
 mod codegen;
 pub use codegen::{
-    BinaryNode, BlockStatus, BlockTag, BlockWithReceipts, BlockWithTxHashes, BlockWithTxs,
-    BroadcastedDeclareTransaction, BroadcastedDeclareTransactionV3,
+    BinaryNode, BlockHeader, BlockStatus, BlockTag, BlockWithReceipts, BlockWithTxHashes,
+    BlockWithTxs, BroadcastedDeclareTransaction, BroadcastedDeclareTransactionV3,
     BroadcastedDeployAccountTransaction, BroadcastedDeployAccountTransactionV3,
     BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV3, CallType,
     CompressedLegacyContractClass, ContractErrorData, ContractLeafData, ContractStorageDiffItem,
@@ -40,15 +40,15 @@ pub use codegen::{
     L1HandlerTransactionContent, L1HandlerTransactionReceipt, L1HandlerTransactionTrace,
     LegacyContractEntryPoint, LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType,
     LegacyFunctionAbiEntry, LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType,
-    LegacyStructMember, LegacyTypedParameter, MsgFromL1, MsgToL1, NoTraceAvailableErrorData,
-    NonceUpdate, OrderedEvent, OrderedMessage, PendingBlockWithReceipts, PendingBlockWithTxHashes,
-    PendingBlockWithTxs, PendingStateUpdate, PriceUnit, ReplacedClassItem, ResourceBounds,
-    ResourceBoundsMapping, ResourcePrice, ResultPageRequest, RevertedInvocation,
-    SequencerTransactionStatus, SierraEntryPoint, SimulatedTransaction, SimulationFlag,
-    SimulationFlagForEstimateFee, StarknetError, StateDiff, StateUpdate, StorageEntry,
-    StorageProof, SyncStatus, TransactionExecutionErrorData, TransactionExecutionStatus,
-    TransactionFinalityStatus, TransactionReceiptWithBlockInfo, TransactionTraceWithHash,
-    TransactionWithReceipt,
+    LegacyStructMember, LegacyTypedParameter, MsgFromL1, MsgToL1, NewTransactionStatus,
+    NoTraceAvailableErrorData, NonceUpdate, OrderedEvent, OrderedMessage, PendingBlockWithReceipts,
+    PendingBlockWithTxHashes, PendingBlockWithTxs, PendingStateUpdate, PriceUnit, ReorgData,
+    ReplacedClassItem, ResourceBounds, ResourceBoundsMapping, ResourcePrice, ResultPageRequest,
+    RevertedInvocation, SequencerTransactionStatus, SierraEntryPoint, SimulatedTransaction,
+    SimulationFlag, SimulationFlagForEstimateFee, StarknetError, StateDiff, StateUpdate,
+    StorageEntry, StorageProof, SubscriptionId, SyncStatus, TransactionExecutionErrorData,
+    TransactionExecutionStatus, TransactionFinalityStatus, TransactionReceiptWithBlockInfo,
+    TransactionTraceWithHash, TransactionWithReceipt,
 };
 
 /// Module containing the [`U256`] type.
@@ -286,6 +286,17 @@ impl TransactionStatus {
     pub const fn is_accepted_on_l1(&self) -> bool {
         matches!(self, Self::AcceptedOnL1(_))
     }
+}
+
+/// A Starknet transaction or just its hash.
+#[allow(clippy::large_enum_variant)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum TransactionOrHash {
+    /// The full transaction.
+    Transaction(Transaction),
+    /// The transaction hash only.
+    Hash(Felt),
 }
 
 /// A Starknet transaction.

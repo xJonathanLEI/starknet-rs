@@ -34,6 +34,8 @@ starknet = { git = "https://github.com/xJonathanLEI/starknet-rs" }
 
 - [x] Sequencer gateway / feeder gateway client
 - [x] Full node JSON-RPC API client
+  - [x] HTTP transport
+  - [x] WebSocket transport (subscriptions only)
 - [x] Smart contract deployment
 - [x] Signer for using [IAccount](https://github.com/OpenZeppelin/cairo-contracts/blob/release-v0.6.1/src/openzeppelin/account/IAccount.cairo) account contracts
 - [ ] Strongly-typed smart contract binding code generation from ABI
@@ -53,6 +55,7 @@ This workspace contains the following crates:
 - `starknet-curve`: Starknet curve operations
 - `starknet-macros`: Useful macros for using the `starknet` crates
 - `starknet-core-derive`: Derive macros for traits in `starknet-core`
+- `starknet-tokio-tungstenite`: WebSocket subscription client with `tokio-tungstenite`
 
 ## WebAssembly
 
@@ -97,17 +100,19 @@ Examples can be found in the [examples folder](./examples):
 
 9. [Call a contract view function](./examples/erc20_balance.rs)
 
-10. [Deploy an Argent X account to a pre-funded address](./examples/deploy_argent_account.rs)
+10. [WebSocket subscription](./examples/websocket.rs)
 
-11. [Inspect public key with Ledger](./examples/ledger_public_key.rs)
+11. [Deploy an Argent X account to a pre-funded address](./examples/deploy_argent_account.rs)
 
-12. [Deploy an OpenZeppelin account with Ledger](./examples/deploy_account_with_ledger.rs)
+12. [Inspect public key with Ledger](./examples/ledger_public_key.rs)
 
-13. [Transfer ERC20 tokens with Ledger](./examples/transfer_with_ledger.rs)
+13. [Deploy an OpenZeppelin account with Ledger](./examples/deploy_account_with_ledger.rs)
 
-14. [Parsing a JSON-RPC request on the server side](./examples/parse_jsonrpc_request.rs)
+14. [Transfer ERC20 tokens with Ledger](./examples/transfer_with_ledger.rs)
 
-15. [Inspecting a erased provider-specific error type](./examples/downcast_provider_error.rs)
+15. [Parsing a JSON-RPC request on the server side](./examples/parse_jsonrpc_request.rs)
+
+16. [Inspecting a erased provider-specific error type](./examples/downcast_provider_error.rs)
 
 ## License
 

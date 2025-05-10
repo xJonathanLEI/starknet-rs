@@ -7,7 +7,9 @@
 #![deny(missing_docs)]
 
 mod provider;
-pub use provider::{Provider, ProviderError, ProviderRequestData, ProviderResponseData};
+pub use provider::{
+    Provider, ProviderError, ProviderRequestData, ProviderResponseData, StreamUpdateData,
+};
 
 // Sequencer-related functionalities are mostly deprecated so we skip the docs.
 /// Module containing types related to the (now deprecated) sequencer gateway client.
