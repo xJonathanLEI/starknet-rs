@@ -90,7 +90,9 @@ jobs:
 
       - name: Build project
         run: |
-          cargo build --all --target wasm32-unknown-unknown --exclude starknet-cxx
+          cargo build --all --target wasm32-unknown-unknown \
+            --exclude starknet-cxx \
+            --exclude starknet-tokio-tungstenite
 
       - name: Install wasm-pack
         uses: actions-rs/cargo@v1
