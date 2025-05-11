@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#febe5fff7720c71e82c9ac0a4d428f0f959c5b9b
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#8cc23b8c0e8ae0a4c6c5ba50a20d274bc0fc9c2a
 
 // These types are ignored from code generation. Implement them manually:
 // - `RECEIPT_BLOCK`
@@ -1963,23 +1963,23 @@ impl core::fmt::Display for StarknetError {
             Self::NoBlocks => write!(f, "NoBlocks"),
             Self::InvalidContinuationToken => write!(f, "InvalidContinuationToken"),
             Self::TooManyKeysInFilter => write!(f, "TooManyKeysInFilter"),
-            Self::ContractError(_) => write!(f, "ContractError"),
-            Self::TransactionExecutionError(_) => write!(f, "TransactionExecutionError"),
+            Self::ContractError(e) => write!(f, "ContractError: {e:?}"),
+            Self::TransactionExecutionError(e) => write!(f, "TransactionExecutionError: {e:?}"),
             Self::StorageProofNotSupported => write!(f, "StorageProofNotSupported"),
             Self::ClassAlreadyDeclared => write!(f, "ClassAlreadyDeclared"),
             Self::InvalidTransactionNonce => write!(f, "InvalidTransactionNonce"),
             Self::InsufficientResourcesForValidate => write!(f, "InsufficientResourcesForValidate"),
             Self::InsufficientAccountBalance => write!(f, "InsufficientAccountBalance"),
-            Self::ValidationFailure(_) => write!(f, "ValidationFailure"),
-            Self::CompilationFailed(_) => write!(f, "CompilationFailed"),
+            Self::ValidationFailure(e) => write!(f, "ValidationFailure: {e:?}"),
+            Self::CompilationFailed(e) => write!(f, "CompilationFailed: {e:?}"),
             Self::ContractClassSizeIsTooLarge => write!(f, "ContractClassSizeIsTooLarge"),
             Self::NonAccount => write!(f, "NonAccount"),
             Self::DuplicateTx => write!(f, "DuplicateTx"),
             Self::CompiledClassHashMismatch => write!(f, "CompiledClassHashMismatch"),
             Self::UnsupportedTxVersion => write!(f, "UnsupportedTxVersion"),
             Self::UnsupportedContractClassVersion => write!(f, "UnsupportedContractClassVersion"),
-            Self::UnexpectedError(_) => write!(f, "UnexpectedError"),
-            Self::NoTraceAvailable(_) => write!(f, "NoTraceAvailable"),
+            Self::UnexpectedError(e) => write!(f, "UnexpectedError: {e:?}"),
+            Self::NoTraceAvailable(e) => write!(f, "NoTraceAvailable: {e:?}"),
             Self::InvalidSubscriptionId => write!(f, "InvalidSubscriptionId"),
             Self::TooManyAddressesInFilter => write!(f, "TooManyAddressesInFilter"),
             Self::TooManyBlocksBack => write!(f, "TooManyBlocksBack"),
