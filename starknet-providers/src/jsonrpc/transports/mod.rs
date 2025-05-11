@@ -11,6 +11,11 @@ use crate::{
 mod http;
 pub use http::{HttpTransport, HttpTransportError};
 
+#[cfg(feature = "worker")]
+mod worker;
+#[cfg(feature = "worker")]
+pub use worker::{WorkersTransport, WorkersTransportError};
+
 /// Any type that is capable of producing JSON-RPC responses when given JSON-RPC requests. An
 /// implementation does not necessarily use the network, but typically does.
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
