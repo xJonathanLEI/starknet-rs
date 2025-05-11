@@ -1,7 +1,7 @@
 use rand::{rngs::StdRng, RngCore, SeedableRng};
 use starknet_accounts::{ExecutionEncoding, SingleOwnerAccount};
 use starknet_contract::ContractFactory;
-use starknet_core::types::{contract::legacy::LegacyContractClass, BlockId, BlockTag, Felt};
+use starknet_core::types::{contract::legacy::LegacyContractClass, Felt};
 use starknet_providers::{jsonrpc::HttpTransport, JsonRpcClient};
 use starknet_signers::{LocalWallet, SigningKey};
 use url::Url;
@@ -25,9 +25,8 @@ async fn can_deploy_contract_to_alpha_sepolia_with_invoke_v3() {
     let address =
         Felt::from_hex("0x034dd51aa591d174b60d1cb45e46dfcae47946fae1c5e62933bbf48effedde4d")
             .unwrap();
-    let mut account =
+    let account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
-    account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let artifact = serde_json::from_str::<LegacyContractClass>(include_str!(
         "../test-data/cairo0/artifacts/oz_account.txt"
