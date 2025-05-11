@@ -2429,7 +2429,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-providers"
-version = "0.14.0"
+version = "0.14.1"
 dependencies = [
  "async-trait",
  "auto_impl",
