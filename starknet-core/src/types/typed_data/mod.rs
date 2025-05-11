@@ -50,17 +50,32 @@ const STARKNET_MESSAGE_PREFIX: Felt = Felt::from_raw([
     16156019428408348868,
 ]);
 
+/// SNIP-12 typed data hashes.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TypedDataHashes {
+    /// The final hash of the entire message.
+    pub hash: Felt,
+    /// Hash of the `domain` component.
+    pub domain_hash: Felt,
+    /// Hash of the `primary_type` component.
+    pub type_hash: Felt,
+    /// Hash of the `message` component.
+    pub message_hash: Felt,
+    /// Encoded object fields.
+    pub fields_hashes: Vec<Felt>,
+}
+
 /// SNIP-12 typed data for off-chain signatures.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TypedData {
     /// Type definitions for the domain separator type and user-defined custom types.
-    types: Types,
+    pub types: Types,
     /// Domain separator.
-    domain: Domain,
+    pub domain: Domain,
     /// Reference to the primary/entrypoint type that the `message` field represents.
-    primary_type: InlineTypeReference,
+    pub primary_type: InlineTypeReference,
     /// The main message data to be signed, structured as per `primary_type`'s definition.
-    message: Value,
+    pub message: Value,
 }
 
 impl TypedData {
@@ -117,7 +132,54 @@ impl TypedData {
         Ok(hasher.finalize())
     }
 
+    /// Computes and returns the finalized SNIP-12 typed data hash along with the set of hashes for the message.
+    pub fn hashes<H>(&self, address: Felt) -> Result<TypedDataHashes, TypedDataError>
+    where
+        H: TypedDataHasher,
+    {
+        let mut hasher = H::default();
+        hasher.update(STARKNET_MESSAGE_PREFIX);
+
+        let domain_hash = self.domain.encoded_hash();
+        hasher.update(domain_hash);
+
+        hasher.update(address);
+
+        let type_hash = self
+            .types
+            .get_type_hash(&self.primary_type.signature_ref_repr())?;
+
+        let mut fields_hashes = Vec::new();
+        let message_hash = self.encode_value_with_introspect::<H, _>(
+            &self.primary_type,
+            &self.message,
+            Some(&mut fields_hashes),
+        )?;
+        hasher.update(message_hash);
+
+        Ok(TypedDataHashes {
+            hash: hasher.finalize(),
+            domain_hash,
+            type_hash,
+            message_hash,
+            fields_hashes,
+        })
+    }
+
     fn encode_value<H, R>(&self, type_ref: &R, value: &Value) -> Result<Felt, TypedDataError>
+    where
+        H: TypedDataHasher,
+        R: TypeReference,
+    {
+        self.encode_value_with_introspect::<H, R>(type_ref, value, None)
+    }
+
+    fn encode_value_with_introspect<H, R>(
+        &self,
+        type_ref: &R,
+        value: &Value,
+        fields_hashes: Option<&mut Vec<Felt>>,
+    ) -> Result<Felt, TypedDataError>
     where
         H: TypedDataHasher,
         R: TypeReference,
@@ -154,7 +216,12 @@ impl TypedData {
                             return Err(TypedDataError::UnexpectedStruct(name.to_owned()));
                         }
 
-                        self.encode_composite::<H, _>(type_hash, struct_def, obj_value)?
+                        self.encode_composite_with_introspect::<H, _>(
+                            type_hash,
+                            struct_def,
+                            obj_value,
+                            fields_hashes,
+                        )?
                     }
                     TypeDefinition::Enum(enum_def) => {
                         if type_ref.must_be_struct() {
@@ -459,6 +526,20 @@ impl TypedData {
         H: TypedDataHasher,
         T: CompositeType,
     {
+        self.encode_composite_with_introspect::<H, T>(type_hash, struct_def, value, None)
+    }
+
+    fn encode_composite_with_introspect<H, T>(
+        &self,
+        type_hash: Felt,
+        struct_def: &T,
+        value: &ObjectValue,
+        mut fields_hashes: Option<&mut Vec<Felt>>,
+    ) -> Result<Felt, TypedDataError>
+    where
+        H: TypedDataHasher,
+        T: CompositeType,
+    {
         let mut hasher = H::default();
         hasher.update(type_hash);
 
@@ -474,7 +555,11 @@ impl TypedData {
                 .fields
                 .get(field_name)
                 .ok_or_else(|| TypedDataError::FieldNotFound(field_name.to_owned()))?;
-            hasher.update(self.encode_value::<H, _>(field_type, value)?);
+            let field_hash = self.encode_value_with_introspect::<H, _>(field_type, value, None)?;
+            hasher.update(field_hash);
+            if let Some(hashes) = fields_hashes.as_mut() {
+                hashes.push(field_hash);
+            }
         }
 
         Ok(hasher.finalize())
