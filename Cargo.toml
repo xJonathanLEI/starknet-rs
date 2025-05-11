@@ -57,6 +57,8 @@ no_unknown_fields = [
     "starknet-core/no_unknown_fields",
     "starknet-providers/no_unknown_fields",
 ]
+# Cloudflare Workers provider support
+worker = ["starknet-providers/worker"]
 
 [workspace.lints]
 rust.missing_debug_implementations = "warn"

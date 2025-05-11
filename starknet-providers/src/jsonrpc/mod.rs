@@ -27,6 +27,8 @@ use crate::{
 
 mod transports;
 pub use transports::{HttpTransport, HttpTransportError, JsonRpcTransport};
+#[cfg(feature = "worker")]
+pub use transports::{WorkersTransport, WorkersTransportError};
 
 /// A generic JSON-RPC client with any transport.
 ///
