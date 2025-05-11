@@ -37,7 +37,7 @@ all-features = true
 starknet-crypto = { version = "0.7.4", path = "./starknet-crypto" }
 starknet-core = { version = "0.14.0", path = "./starknet-core", default-features = false }
 starknet-core-derive = { version = "0.1.0", path = "./starknet-core-derive", features = ["import_from_starknet"] }
-starknet-providers = { version = "0.14.0", path = "./starknet-providers" }
+starknet-providers = { version = "0.14.1", path = "./starknet-providers" }
 starknet-contract = { version = "0.14.0", path = "./starknet-contract" }
 starknet-signers = { version = "0.12.0", path = "./starknet-signers" }
 starknet-accounts = { version = "0.14.0", path = "./starknet-accounts" }
