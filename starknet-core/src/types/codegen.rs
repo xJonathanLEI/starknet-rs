@@ -3,11 +3,12 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#d1f1b94c9a0ac0084555882183554ebfb47a916d
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#febe5fff7720c71e82c9ac0a4d428f0f959c5b9b
 
 // These types are ignored from code generation. Implement them manually:
 // - `RECEIPT_BLOCK`
 // - `TXN_STATUS_RESULT`
+// - `SUBSCRIPTION_BLOCK_TAG`
 
 // Code generation requested but not implemented for these types:
 // - `BLOCK_ID`
@@ -27,6 +28,7 @@
 // - `TRANSACTION_TRACE`
 // - `TXN`
 // - `TXN_CONTENT`
+// - `TXN_OR_HASH`
 // - `TXN_RECEIPT`
 
 #![allow(missing_docs)]
@@ -78,6 +80,39 @@ pub struct BinaryNode {
     /// The hash of the right child
     #[serde_as(as = "UfeHex")]
     pub right: Felt,
+}
+
+/// Block header.
+#[serde_as]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct BlockHeader {
+    /// Block hash
+    #[serde_as(as = "UfeHex")]
+    pub block_hash: Felt,
+    /// The hash of this block's parent
+    #[serde_as(as = "UfeHex")]
+    pub parent_hash: Felt,
+    /// The block number (its height)
+    pub block_number: u64,
+    /// The new global state root
+    #[serde_as(as = "UfeHex")]
+    pub new_root: Felt,
+    /// The time in which the block was created, encoded in Unix time
+    pub timestamp: u64,
+    /// The Starknet identity of the sequencer submitting this block
+    #[serde_as(as = "UfeHex")]
+    pub sequencer_address: Felt,
+    /// The price of L1 gas in the block
+    pub l1_gas_price: ResourcePrice,
+    /// The price of L2 gas in the block
+    pub l2_gas_price: ResourcePrice,
+    /// The price of L1 data gas in the block
+    pub l1_data_gas_price: ResourcePrice,
+    /// Specifies whether the data of this block is published via blob data or calldata
+    pub l1_da_mode: L1DataAvailabilityMode,
+    /// Semver of the current Starknet protocol
+    pub starknet_version: String,
 }
 
 /// Block status.
@@ -1514,6 +1549,16 @@ pub struct MsgToL1 {
     pub payload: Vec<Felt>,
 }
 
+/// New transaction status.
+#[serde_as]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct NewTransactionStatus {
+    #[serde_as(as = "UfeHex")]
+    pub transaction_hash: Felt,
+    pub status: TransactionStatus,
+}
+
 /// Extra information on why trace is not available. Either it wasn't executed yet (received), or
 /// the transaction failed (rejected).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -1686,6 +1731,25 @@ pub enum PriceUnit {
     Wei,
     #[serde(rename = "FRI")]
     Fri,
+}
+
+/// Reorg data.
+///
+/// Data about reorganized blocks, starting and ending block number and hash.
+#[serde_as]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct ReorgData {
+    /// Hash of the first known block of the orphaned chain
+    #[serde_as(as = "UfeHex")]
+    pub starting_block_hash: Felt,
+    /// Number of the first known block of the orphaned chain
+    pub starting_block_number: u64,
+    /// The last known block of the orphaned chain
+    #[serde_as(as = "UfeHex")]
+    pub ending_block_hash: Felt,
+    /// Number of the last known block of the orphaned chain
+    pub ending_block_number: u64,
 }
 
 /// Replaced class.
@@ -1874,6 +1938,12 @@ pub enum StarknetError {
     UnexpectedError(String),
     /// No trace available for transaction
     NoTraceAvailable(NoTraceAvailableErrorData),
+    /// Invalid subscription id
+    InvalidSubscriptionId,
+    /// Too many addresses in filter sender_address filter
+    TooManyAddressesInFilter,
+    /// Cannot go back more than 1024 blocks
+    TooManyBlocksBack,
 }
 
 #[cfg(feature = "std")]
@@ -1910,11 +1980,50 @@ impl core::fmt::Display for StarknetError {
             Self::UnsupportedContractClassVersion => write!(f, "UnsupportedContractClassVersion"),
             Self::UnexpectedError(_) => write!(f, "UnexpectedError"),
             Self::NoTraceAvailable(_) => write!(f, "NoTraceAvailable"),
+            Self::InvalidSubscriptionId => write!(f, "InvalidSubscriptionId"),
+            Self::TooManyAddressesInFilter => write!(f, "TooManyAddressesInFilter"),
+            Self::TooManyBlocksBack => write!(f, "TooManyBlocksBack"),
         }
     }
 }
 
 impl StarknetError {
+    pub const fn code(&self) -> u32 {
+        match self {
+            Self::FailedToReceiveTransaction => 1,
+            Self::ContractNotFound => 20,
+            Self::EntrypointNotFound => 21,
+            Self::BlockNotFound => 24,
+            Self::InvalidTransactionIndex => 27,
+            Self::ClassHashNotFound => 28,
+            Self::TransactionHashNotFound => 29,
+            Self::PageSizeTooBig => 31,
+            Self::NoBlocks => 32,
+            Self::InvalidContinuationToken => 33,
+            Self::TooManyKeysInFilter => 34,
+            Self::ContractError(_) => 40,
+            Self::TransactionExecutionError(_) => 41,
+            Self::StorageProofNotSupported => 42,
+            Self::ClassAlreadyDeclared => 51,
+            Self::InvalidTransactionNonce => 52,
+            Self::InsufficientResourcesForValidate => 53,
+            Self::InsufficientAccountBalance => 54,
+            Self::ValidationFailure(_) => 55,
+            Self::CompilationFailed(_) => 56,
+            Self::ContractClassSizeIsTooLarge => 57,
+            Self::NonAccount => 58,
+            Self::DuplicateTx => 59,
+            Self::CompiledClassHashMismatch => 60,
+            Self::UnsupportedTxVersion => 61,
+            Self::UnsupportedContractClassVersion => 62,
+            Self::UnexpectedError(_) => 63,
+            Self::NoTraceAvailable(_) => 10,
+            Self::InvalidSubscriptionId => 66,
+            Self::TooManyAddressesInFilter => 67,
+            Self::TooManyBlocksBack => 68,
+        }
+    }
+
     pub fn message(&self) -> &'static str {
         match self {
             Self::FailedToReceiveTransaction => "Failed to write transaction",
@@ -1955,6 +2064,9 @@ impl StarknetError {
             Self::UnsupportedContractClassVersion => "the contract class version is not supported",
             Self::UnexpectedError(_) => "An unexpected error occurred",
             Self::NoTraceAvailable(_) => "No trace available for transaction",
+            Self::InvalidSubscriptionId => "Invalid subscription id",
+            Self::TooManyAddressesInFilter => "Too many addresses in filter sender_address filter",
+            Self::TooManyBlocksBack => "Cannot go back more than 1024 blocks",
         }
     }
 }
@@ -2022,6 +2134,12 @@ pub struct StorageProof {
     pub contracts_storage_proofs: Vec<IndexMap<Felt, MerkleNode, RandomState>>,
     pub global_roots: GlobalRoots,
 }
+
+/// Subscription id.
+///
+/// An identifier for this subscription stream used to associate events with this subscription.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct SubscriptionId(pub String);
 
 /// Sync status.
 ///
@@ -2480,6 +2598,131 @@ pub struct SimulateTransactionsRequestRef<'a> {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SpecVersionRequest;
 
+/// Request for method starknet_subscribeEvents
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscribeEventsRequest {
+    pub from_address: Option<Felt>,
+    pub keys: Option<Vec<Vec<Felt>>>,
+    pub block_id: Option<ConfirmedBlockId>,
+}
+
+/// Reference version of [SubscribeEventsRequest].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscribeEventsRequestRef<'a> {
+    pub from_address: &'a Option<Felt>,
+    pub keys: Option<&'a [Vec<Felt>]>,
+    pub block_id: &'a Option<ConfirmedBlockId>,
+}
+
+/// Request for method starknet_subscribeNewHeads
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscribeNewHeadsRequest {
+    pub block_id: Option<ConfirmedBlockId>,
+}
+
+/// Reference version of [SubscribeNewHeadsRequest].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscribeNewHeadsRequestRef<'a> {
+    pub block_id: &'a Option<ConfirmedBlockId>,
+}
+
+/// Request for method starknet_subscribePendingTransactions
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscribePendingTransactionsRequest {
+    pub transaction_details: Option<bool>,
+    pub sender_address: Option<Vec<Felt>>,
+}
+
+/// Reference version of [SubscribePendingTransactionsRequest].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscribePendingTransactionsRequestRef<'a> {
+    pub transaction_details: &'a Option<bool>,
+    pub sender_address: Option<&'a [Felt]>,
+}
+
+/// Request for method starknet_subscribeTransactionStatus
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscribeTransactionStatusRequest {
+    pub transaction_hash: Felt,
+}
+
+/// Reference version of [SubscribeTransactionStatusRequest].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscribeTransactionStatusRequestRef<'a> {
+    pub transaction_hash: &'a Felt,
+}
+
+/// Request for method starknet_subscriptionEvents
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscriptionEventsRequest {
+    pub subscription_id: SubscriptionId,
+    pub result: EmittedEvent,
+}
+
+/// Reference version of [SubscriptionEventsRequest].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscriptionEventsRequestRef<'a> {
+    pub subscription_id: &'a SubscriptionId,
+    pub result: &'a EmittedEvent,
+}
+
+/// Request for method starknet_subscriptionNewHeads
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscriptionNewHeadsRequest {
+    pub subscription_id: SubscriptionId,
+    pub result: BlockHeader,
+}
+
+/// Reference version of [SubscriptionNewHeadsRequest].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscriptionNewHeadsRequestRef<'a> {
+    pub subscription_id: &'a SubscriptionId,
+    pub result: &'a BlockHeader,
+}
+
+/// Request for method starknet_subscriptionPendingTransactions
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscriptionPendingTransactionsRequest {
+    pub subscription_id: SubscriptionId,
+    /// Either a tranasaction hash or full transaction details, based on subscription
+    pub result: TransactionOrHash,
+}
+
+/// Reference version of [SubscriptionPendingTransactionsRequest].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscriptionPendingTransactionsRequestRef<'a> {
+    pub subscription_id: &'a SubscriptionId,
+    pub result: &'a TransactionOrHash,
+}
+
+/// Request for method starknet_subscriptionReorg
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscriptionReorgRequest {
+    pub subscription_id: SubscriptionId,
+    pub result: ReorgData,
+}
+
+/// Reference version of [SubscriptionReorgRequest].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscriptionReorgRequestRef<'a> {
+    pub subscription_id: &'a SubscriptionId,
+    pub result: &'a ReorgData,
+}
+
+/// Request for method starknet_subscriptionTransactionStatus
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscriptionTransactionStatusRequest {
+    pub subscription_id: SubscriptionId,
+    pub result: NewTransactionStatus,
+}
+
+/// Reference version of [SubscriptionTransactionStatusRequest].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscriptionTransactionStatusRequestRef<'a> {
+    pub subscription_id: &'a SubscriptionId,
+    pub result: &'a NewTransactionStatus,
+}
+
 /// Request for method starknet_syncing
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SyncingRequest;
@@ -2507,6 +2750,18 @@ pub struct TraceTransactionRequest {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TraceTransactionRequestRef<'a> {
     pub transaction_hash: &'a Felt,
+}
+
+/// Request for method starknet_unsubscribe
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UnsubscribeRequest {
+    pub subscription_id: SubscriptionId,
+}
+
+/// Reference version of [UnsubscribeRequest].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UnsubscribeRequestRef<'a> {
+    pub subscription_id: &'a SubscriptionId,
 }
 
 impl Serialize for BroadcastedDeclareTransactionV3 {
@@ -8190,6 +8445,1080 @@ impl<'de> Deserialize<'de> for SpecVersionRequest {
     }
 }
 
+impl Serialize for SubscribeEventsRequest {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            #[serde(skip_serializing_if = "Option::is_none")]
+            from_address: Option<Field0<'a>>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            keys: Option<Field1<'a>>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            block_id: Option<Field2<'a>>,
+        }
+
+        #[serde_as]
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            #[serde_as(as = "UfeHex")]
+            pub value: &'a Felt,
+        }
+
+        #[serde_as]
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            #[serde_as(as = "[Vec<UfeHex>]")]
+            pub value: &'a [Vec<Felt>],
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field2<'a> {
+            pub value: &'a ConfirmedBlockId,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                from_address: self.from_address.as_ref().map(|f| Field0 { value: f }),
+                keys: self.keys.as_ref().map(|f| Field1 { value: f }),
+                block_id: self.block_id.as_ref().map(|f| Field2 { value: f }),
+            },
+            serializer,
+        )
+    }
+}
+
+impl Serialize for SubscribeEventsRequestRef<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            #[serde(skip_serializing_if = "Option::is_none")]
+            from_address: Option<Field0<'a>>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            keys: Option<Field1<'a>>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            block_id: Option<Field2<'a>>,
+        }
+
+        #[serde_as]
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            #[serde_as(as = "UfeHex")]
+            pub value: &'a Felt,
+        }
+
+        #[serde_as]
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            #[serde_as(as = "[Vec<UfeHex>]")]
+            pub value: &'a [Vec<Felt>],
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field2<'a> {
+            pub value: &'a ConfirmedBlockId,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                from_address: self.from_address.as_ref().map(|f| Field0 { value: f }),
+                keys: self.keys.as_ref().map(|f| Field1 { value: f }),
+                block_id: self.block_id.as_ref().map(|f| Field2 { value: f }),
+            },
+            serializer,
+        )
+    }
+}
+
+impl<'de> Deserialize<'de> for SubscribeEventsRequest {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct AsObject {
+            #[serde(skip_serializing_if = "Option::is_none")]
+            from_address: Option<Field0>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            keys: Option<Field1>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            block_id: Option<Field2>,
+        }
+
+        #[serde_as]
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field0 {
+            #[serde_as(as = "UfeHex")]
+            pub value: Felt,
+        }
+
+        #[serde_as]
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field1 {
+            #[serde_as(as = "Vec<Vec<UfeHex>>")]
+            pub value: Vec<Vec<Felt>>,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field2 {
+            pub value: ConfirmedBlockId,
+        }
+
+        let temp = serde_json::Value::deserialize(deserializer)?;
+
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let element_count = elements.len();
+
+            let field2 = if element_count > 2 {
+                Some(
+                    serde_json::from_value::<Field2>(elements.pop().unwrap()).map_err(|err| {
+                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                    })?,
+                )
+            } else {
+                None
+            };
+            let field1 = if element_count > 1 {
+                Some(
+                    serde_json::from_value::<Field1>(elements.pop().unwrap()).map_err(|err| {
+                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                    })?,
+                )
+            } else {
+                None
+            };
+            let field0 = if element_count > 0 {
+                Some(
+                    serde_json::from_value::<Field0>(elements.pop().unwrap()).map_err(|err| {
+                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                    })?,
+                )
+            } else {
+                None
+            };
+
+            Ok(Self {
+                from_address: field0.map(|f| f.value),
+                keys: field1.map(|f| f.value),
+                block_id: field2.map(|f| f.value),
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                from_address: object.from_address.map(|f| f.value),
+                keys: object.keys.map(|f| f.value),
+                block_id: object.block_id.map(|f| f.value),
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
+    }
+}
+
+impl Serialize for SubscribeNewHeadsRequest {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            #[serde(skip_serializing_if = "Option::is_none")]
+            block_id: Option<Field0<'a>>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a ConfirmedBlockId,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                block_id: self.block_id.as_ref().map(|f| Field0 { value: f }),
+            },
+            serializer,
+        )
+    }
+}
+
+impl Serialize for SubscribeNewHeadsRequestRef<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            #[serde(skip_serializing_if = "Option::is_none")]
+            block_id: Option<Field0<'a>>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a ConfirmedBlockId,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                block_id: self.block_id.as_ref().map(|f| Field0 { value: f }),
+            },
+            serializer,
+        )
+    }
+}
+
+impl<'de> Deserialize<'de> for SubscribeNewHeadsRequest {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct AsObject {
+            #[serde(skip_serializing_if = "Option::is_none")]
+            block_id: Option<Field0>,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field0 {
+            pub value: ConfirmedBlockId,
+        }
+
+        let temp = serde_json::Value::deserialize(deserializer)?;
+
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let element_count = elements.len();
+
+            let field0 = if element_count > 0 {
+                Some(
+                    serde_json::from_value::<Field0>(elements.pop().unwrap()).map_err(|err| {
+                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                    })?,
+                )
+            } else {
+                None
+            };
+
+            Ok(Self {
+                block_id: field0.map(|f| f.value),
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                block_id: object.block_id.map(|f| f.value),
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
+    }
+}
+
+impl Serialize for SubscribePendingTransactionsRequest {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            #[serde(skip_serializing_if = "Option::is_none")]
+            transaction_details: Option<Field0<'a>>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            sender_address: Option<Field1<'a>>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a bool,
+        }
+
+        #[serde_as]
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            #[serde_as(as = "[UfeHex]")]
+            pub value: &'a [Felt],
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                transaction_details: self
+                    .transaction_details
+                    .as_ref()
+                    .map(|f| Field0 { value: f }),
+                sender_address: self.sender_address.as_ref().map(|f| Field1 { value: f }),
+            },
+            serializer,
+        )
+    }
+}
+
+impl Serialize for SubscribePendingTransactionsRequestRef<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            #[serde(skip_serializing_if = "Option::is_none")]
+            transaction_details: Option<Field0<'a>>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            sender_address: Option<Field1<'a>>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a bool,
+        }
+
+        #[serde_as]
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            #[serde_as(as = "[UfeHex]")]
+            pub value: &'a [Felt],
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                transaction_details: self
+                    .transaction_details
+                    .as_ref()
+                    .map(|f| Field0 { value: f }),
+                sender_address: self.sender_address.as_ref().map(|f| Field1 { value: f }),
+            },
+            serializer,
+        )
+    }
+}
+
+impl<'de> Deserialize<'de> for SubscribePendingTransactionsRequest {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct AsObject {
+            #[serde(skip_serializing_if = "Option::is_none")]
+            transaction_details: Option<Field0>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            sender_address: Option<Field1>,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field0 {
+            pub value: bool,
+        }
+
+        #[serde_as]
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field1 {
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub value: Vec<Felt>,
+        }
+
+        let temp = serde_json::Value::deserialize(deserializer)?;
+
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let element_count = elements.len();
+
+            let field1 = if element_count > 1 {
+                Some(
+                    serde_json::from_value::<Field1>(elements.pop().unwrap()).map_err(|err| {
+                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                    })?,
+                )
+            } else {
+                None
+            };
+            let field0 = if element_count > 0 {
+                Some(
+                    serde_json::from_value::<Field0>(elements.pop().unwrap()).map_err(|err| {
+                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                    })?,
+                )
+            } else {
+                None
+            };
+
+            Ok(Self {
+                transaction_details: field0.map(|f| f.value),
+                sender_address: field1.map(|f| f.value),
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                transaction_details: object.transaction_details.map(|f| f.value),
+                sender_address: object.sender_address.map(|f| f.value),
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
+    }
+}
+
+impl Serialize for SubscribeTransactionStatusRequest {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            transaction_hash: Field0<'a>,
+        }
+
+        #[serde_as]
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            #[serde_as(as = "UfeHex")]
+            pub value: &'a Felt,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                transaction_hash: Field0 {
+                    value: &self.transaction_hash,
+                },
+            },
+            serializer,
+        )
+    }
+}
+
+impl Serialize for SubscribeTransactionStatusRequestRef<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            transaction_hash: Field0<'a>,
+        }
+
+        #[serde_as]
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            #[serde_as(as = "UfeHex")]
+            pub value: &'a Felt,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                transaction_hash: Field0 {
+                    value: self.transaction_hash,
+                },
+            },
+            serializer,
+        )
+    }
+}
+
+impl<'de> Deserialize<'de> for SubscribeTransactionStatusRequest {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct AsObject {
+            transaction_hash: Field0,
+        }
+
+        #[serde_as]
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field0 {
+            #[serde_as(as = "UfeHex")]
+            pub value: Felt,
+        }
+
+        let temp = serde_json::Value::deserialize(deserializer)?;
+
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+
+            Ok(Self {
+                transaction_hash: field0.value,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                transaction_hash: object.transaction_hash.value,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
+    }
+}
+
+impl Serialize for SubscriptionEventsRequest {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            subscription_id: Field0<'a>,
+            result: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a SubscriptionId,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            pub value: &'a EmittedEvent,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                subscription_id: Field0 {
+                    value: &self.subscription_id,
+                },
+                result: Field1 {
+                    value: &self.result,
+                },
+            },
+            serializer,
+        )
+    }
+}
+
+impl Serialize for SubscriptionEventsRequestRef<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            subscription_id: Field0<'a>,
+            result: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a SubscriptionId,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            pub value: &'a EmittedEvent,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                subscription_id: Field0 {
+                    value: self.subscription_id,
+                },
+                result: Field1 { value: self.result },
+            },
+            serializer,
+        )
+    }
+}
+
+impl<'de> Deserialize<'de> for SubscriptionEventsRequest {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct AsObject {
+            subscription_id: Field0,
+            result: Field1,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field0 {
+            pub value: SubscriptionId,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field1 {
+            pub value: EmittedEvent,
+        }
+
+        let temp = serde_json::Value::deserialize(deserializer)?;
+
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field1 = serde_json::from_value::<Field1>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+
+            Ok(Self {
+                subscription_id: field0.value,
+                result: field1.value,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                subscription_id: object.subscription_id.value,
+                result: object.result.value,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
+    }
+}
+
+impl Serialize for SubscriptionNewHeadsRequest {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            subscription_id: Field0<'a>,
+            result: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a SubscriptionId,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            pub value: &'a BlockHeader,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                subscription_id: Field0 {
+                    value: &self.subscription_id,
+                },
+                result: Field1 {
+                    value: &self.result,
+                },
+            },
+            serializer,
+        )
+    }
+}
+
+impl Serialize for SubscriptionNewHeadsRequestRef<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            subscription_id: Field0<'a>,
+            result: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a SubscriptionId,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            pub value: &'a BlockHeader,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                subscription_id: Field0 {
+                    value: self.subscription_id,
+                },
+                result: Field1 { value: self.result },
+            },
+            serializer,
+        )
+    }
+}
+
+impl<'de> Deserialize<'de> for SubscriptionNewHeadsRequest {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct AsObject {
+            subscription_id: Field0,
+            result: Field1,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field0 {
+            pub value: SubscriptionId,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field1 {
+            pub value: BlockHeader,
+        }
+
+        let temp = serde_json::Value::deserialize(deserializer)?;
+
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field1 = serde_json::from_value::<Field1>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+
+            Ok(Self {
+                subscription_id: field0.value,
+                result: field1.value,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                subscription_id: object.subscription_id.value,
+                result: object.result.value,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
+    }
+}
+
+impl Serialize for SubscriptionPendingTransactionsRequest {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            subscription_id: Field0<'a>,
+            result: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a SubscriptionId,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            pub value: &'a TransactionOrHash,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                subscription_id: Field0 {
+                    value: &self.subscription_id,
+                },
+                result: Field1 {
+                    value: &self.result,
+                },
+            },
+            serializer,
+        )
+    }
+}
+
+impl Serialize for SubscriptionPendingTransactionsRequestRef<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            subscription_id: Field0<'a>,
+            result: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a SubscriptionId,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            pub value: &'a TransactionOrHash,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                subscription_id: Field0 {
+                    value: self.subscription_id,
+                },
+                result: Field1 { value: self.result },
+            },
+            serializer,
+        )
+    }
+}
+
+impl<'de> Deserialize<'de> for SubscriptionPendingTransactionsRequest {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct AsObject {
+            subscription_id: Field0,
+            result: Field1,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field0 {
+            pub value: SubscriptionId,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field1 {
+            pub value: TransactionOrHash,
+        }
+
+        let temp = serde_json::Value::deserialize(deserializer)?;
+
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field1 = serde_json::from_value::<Field1>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+
+            Ok(Self {
+                subscription_id: field0.value,
+                result: field1.value,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                subscription_id: object.subscription_id.value,
+                result: object.result.value,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
+    }
+}
+
+impl Serialize for SubscriptionReorgRequest {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            subscription_id: Field0<'a>,
+            result: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a SubscriptionId,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            pub value: &'a ReorgData,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                subscription_id: Field0 {
+                    value: &self.subscription_id,
+                },
+                result: Field1 {
+                    value: &self.result,
+                },
+            },
+            serializer,
+        )
+    }
+}
+
+impl Serialize for SubscriptionReorgRequestRef<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            subscription_id: Field0<'a>,
+            result: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a SubscriptionId,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            pub value: &'a ReorgData,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                subscription_id: Field0 {
+                    value: self.subscription_id,
+                },
+                result: Field1 { value: self.result },
+            },
+            serializer,
+        )
+    }
+}
+
+impl<'de> Deserialize<'de> for SubscriptionReorgRequest {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct AsObject {
+            subscription_id: Field0,
+            result: Field1,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field0 {
+            pub value: SubscriptionId,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field1 {
+            pub value: ReorgData,
+        }
+
+        let temp = serde_json::Value::deserialize(deserializer)?;
+
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field1 = serde_json::from_value::<Field1>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+
+            Ok(Self {
+                subscription_id: field0.value,
+                result: field1.value,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                subscription_id: object.subscription_id.value,
+                result: object.result.value,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
+    }
+}
+
+impl Serialize for SubscriptionTransactionStatusRequest {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            subscription_id: Field0<'a>,
+            result: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a SubscriptionId,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            pub value: &'a NewTransactionStatus,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                subscription_id: Field0 {
+                    value: &self.subscription_id,
+                },
+                result: Field1 {
+                    value: &self.result,
+                },
+            },
+            serializer,
+        )
+    }
+}
+
+impl Serialize for SubscriptionTransactionStatusRequestRef<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            subscription_id: Field0<'a>,
+            result: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a SubscriptionId,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            pub value: &'a NewTransactionStatus,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                subscription_id: Field0 {
+                    value: self.subscription_id,
+                },
+                result: Field1 { value: self.result },
+            },
+            serializer,
+        )
+    }
+}
+
+impl<'de> Deserialize<'de> for SubscriptionTransactionStatusRequest {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct AsObject {
+            subscription_id: Field0,
+            result: Field1,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field0 {
+            pub value: SubscriptionId,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field1 {
+            pub value: NewTransactionStatus,
+        }
+
+        let temp = serde_json::Value::deserialize(deserializer)?;
+
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field1 = serde_json::from_value::<Field1>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+
+            Ok(Self {
+                subscription_id: field0.value,
+                result: field1.value,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                subscription_id: object.subscription_id.value,
+                result: object.result.value,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
+    }
+}
+
 impl Serialize for SyncingRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeSeq;
@@ -8376,6 +9705,90 @@ impl<'de> Deserialize<'de> for TraceTransactionRequest {
         } else if let Ok(object) = AsObject::deserialize(&temp) {
             Ok(Self {
                 transaction_hash: object.transaction_hash.value,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
+    }
+}
+
+impl Serialize for UnsubscribeRequest {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            subscription_id: Field0<'a>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a SubscriptionId,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                subscription_id: Field0 {
+                    value: &self.subscription_id,
+                },
+            },
+            serializer,
+        )
+    }
+}
+
+impl Serialize for UnsubscribeRequestRef<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            subscription_id: Field0<'a>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a SubscriptionId,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                subscription_id: Field0 {
+                    value: self.subscription_id,
+                },
+            },
+            serializer,
+        )
+    }
+}
+
+impl<'de> Deserialize<'de> for UnsubscribeRequest {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct AsObject {
+            subscription_id: Field0,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field0 {
+            pub value: SubscriptionId,
+        }
+
+        let temp = serde_json::Value::deserialize(deserializer)?;
+
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+
+            Ok(Self {
+                subscription_id: field0.value,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                subscription_id: object.subscription_id.value,
             })
         } else {
             Err(serde::de::Error::custom("invalid sequence length"))

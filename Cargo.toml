@@ -25,6 +25,7 @@ members = [
     "starknet-accounts",
     "starknet-macros",
     "starknet-curve",
+    "starknet-tokio-tungstenite",
     "examples/starknet-wasm",
     "examples/starknet-cxx/starknet-cxx",
 ]
@@ -45,6 +46,7 @@ starknet-macros = { version = "0.2.2", path = "./starknet-macros" }
 [dev-dependencies]
 serde_json = "1.0.74"
 starknet-signers = { version = "0.11.0", path = "./starknet-signers", features = ["ledger"] }
+starknet-tokio-tungstenite = { version = "0.1.0", path = "./starknet-tokio-tungstenite" }
 tokio = { version = "1.15.0", features = ["full"] }
 url = "2.2.2"
 
