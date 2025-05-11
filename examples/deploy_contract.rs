@@ -5,7 +5,7 @@ use starknet::{
     contract::ContractFactory,
     core::{
         chain_id,
-        types::{contract::legacy::LegacyContractClass, BlockId, BlockTag, Felt},
+        types::{contract::legacy::LegacyContractClass, Felt},
     },
     macros::felt,
     providers::{
@@ -31,17 +31,13 @@ async fn main() {
         Felt::from_hex("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
     ));
     let address = Felt::from_hex("YOUR_ACCOUNT_CONTRACT_ADDRESS_IN_HEX_HERE").unwrap();
-    let mut account = SingleOwnerAccount::new(
+    let account = SingleOwnerAccount::new(
         provider,
         signer,
         address,
         chain_id::SEPOLIA,
         ExecutionEncoding::New,
     );
-
-    // `SingleOwnerAccount` defaults to checking nonce and estimating fees against the latest
-    // block. Optionally change the target block to pending with the following line:
-    account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     // Wrapping in `Arc` is meaningless here. It's just showcasing it could be done as
     // `Arc<Account>` implements `Account` too.

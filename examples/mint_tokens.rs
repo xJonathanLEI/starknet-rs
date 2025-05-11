@@ -2,7 +2,7 @@ use starknet::{
     accounts::{Account, ExecutionEncoding, SingleOwnerAccount},
     core::{
         chain_id,
-        types::{BlockId, BlockTag, Call, Felt},
+        types::{Call, Felt},
         utils::get_selector_from_name,
     },
     providers::{
@@ -25,17 +25,13 @@ async fn main() {
     let tst_token_address =
         Felt::from_hex("07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10").unwrap();
 
-    let mut account = SingleOwnerAccount::new(
+    let account = SingleOwnerAccount::new(
         provider,
         signer,
         address,
         chain_id::SEPOLIA,
         ExecutionEncoding::New,
     );
-
-    // `SingleOwnerAccount` defaults to checking nonce and estimating fees against the latest
-    // block. Optionally change the target block to pending with the following line:
-    account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let result = account
         .execute_v3(vec![Call {

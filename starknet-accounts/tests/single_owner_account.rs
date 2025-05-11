@@ -2,9 +2,7 @@ use starknet_accounts::{
     Account, AccountError, ConnectedAccount, ExecutionEncoding, SingleOwnerAccount,
 };
 use starknet_core::{
-    types::{
-        contract::SierraClass, BlockId, BlockTag, Call, ContractExecutionError, Felt, StarknetError,
-    },
+    types::{contract::SierraClass, Call, ContractExecutionError, Felt, StarknetError},
     utils::get_selector_from_name,
 };
 use starknet_providers::{
@@ -114,9 +112,8 @@ async fn can_get_nonce_inner<P: Provider + Send + Sync>(provider: P, address: &s
     ));
     let address = Felt::from_hex(address).unwrap();
 
-    let mut account =
+    let account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
-    account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     assert_ne!(account.get_nonce().await.unwrap(), Felt::ZERO);
 }
@@ -129,9 +126,8 @@ async fn can_estimate_invoke_v3_fee_inner<P: Provider + Send + Sync>(provider: P
     let eth_token_address =
         Felt::from_hex("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7").unwrap();
 
-    let mut account =
+    let account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
-    account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let fee_estimate = account
         .execute_v3(vec![Call {
@@ -157,9 +153,8 @@ async fn can_parse_fee_estimation_error_inner<P: Provider + Send + Sync>(
     let eth_token_address =
         Felt::from_hex("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7").unwrap();
 
-    let mut account =
+    let account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
-    account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     match account
         .execute_v3(vec![Call {
@@ -205,9 +200,8 @@ async fn can_execute_eth_transfer_invoke_v3_inner<P: Provider + Send + Sync>(
     let eth_token_address =
         Felt::from_hex("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7").unwrap();
 
-    let mut account =
+    let account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
-    account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let result = account
         .execute_v3(vec![Call {
@@ -237,9 +231,8 @@ async fn can_execute_eth_transfer_invoke_v3_with_manual_gas_inner<P: Provider + 
     let eth_token_address =
         Felt::from_hex("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7").unwrap();
 
-    let mut account =
+    let account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
-    account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let result = account
         .execute_v3(vec![Call {
@@ -274,9 +267,8 @@ async fn can_estimate_declare_v3_fee_inner<P: Provider + Send + Sync>(provider: 
         Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
     let address = Felt::from_hex(address).unwrap();
-    let mut account =
+    let account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
-    account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let contract_artifact = serde_json::from_str::<SierraClass>(include_str!(
         "../test-data/cairo1/artifacts/abi_types_sierra.txt"
@@ -325,9 +317,8 @@ async fn can_declare_cairo1_contract_v3_inner<P: Provider + Send + Sync>(
         Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
     ));
     let address = Felt::from_hex(address).unwrap();
-    let mut account =
+    let account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
-    account.set_block_id(BlockId::Tag(BlockTag::Pending));
 
     let contract_artifact = serde_json::from_str::<SierraClass>(include_str!(
         "../test-data/cairo1/artifacts/abi_types_sierra.txt"
