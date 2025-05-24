@@ -25,7 +25,7 @@ jobs:
           echo "crate=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
           echo "version=${BASH_REMATCH[2]}" >> $GITHUB_OUTPUT
 
-  # Just in case we accidentally release something not on master.
+  # Just in case we accidentally release something not on target branch.
   commit-branch-check:
     name: "Check commit branch"
     runs-on: "ubuntu-latest"
@@ -37,13 +37,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: "Check if commit is on master"
+      - name: "Check if commit is on starknet-core/v0.12.x"
         run: |
           COMMIT_HASH=$(git log -1 --format=%H ${{ github.ref }})
-          GREP_OUTPUT=$(git log origin/master --format=%H | grep "$COMMIT_HASH")
+          GREP_OUTPUT=$(git log origin/starknet-core/v0.12.x --format=%H | grep "$COMMIT_HASH")
 
           if [ -z "$GREP_OUTPUT" ]; then
-            echo "Cannot release commits not on the master branch"
+            echo "Cannot release commits not on the starknet-core/v0.12.x branch"
             exit 1
           fi
 
