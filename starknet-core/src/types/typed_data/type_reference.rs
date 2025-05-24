@@ -125,7 +125,7 @@ pub enum ElementTypeReference {
 }
 
 /// An internal trait for working across the different type reference types defined above.
-pub(crate) trait TypeReference {
+pub trait TypeReference {
     /// Creates a common type reference representation useful for type transversal.
     fn common(&self) -> CommonTypeReference<'_>;
 
@@ -151,22 +151,40 @@ pub(crate) trait TypeReference {
 ///
 /// It's *technically* possible to still use [`FullTypeReference`] as the common repr anyway, by
 /// always using the [`FullTypeReference::Object`] variant. However, that would be far from ideal.
-pub(crate) enum CommonTypeReference<'a> {
+#[derive(Debug)]
+pub enum CommonTypeReference<'a> {
+    /// Reference to a user-defined type. With a common reference it's impossible to tell whether
+    /// the pointee is a struct or enum.
     Custom(&'a str),
+    /// Reference to an array type.
     Array(&'a ElementTypeReference),
+    /// Reference to the basic type `felt`.
     Felt,
+    /// Reference to the basic type `bool`.
     Bool,
+    /// Reference to the basic type `string`.
     String,
+    /// Reference to the basic type `selector`.
     Selector,
+    /// Reference to the basic type `merkletree`.
     MerkleTree(&'a InlineTypeReference),
+    /// Reference to the basic type `u128`.
     U128,
+    /// Reference to the basic type `i128`.
     I128,
+    /// Reference to the basic type `ContractAddress`.
     ContractAddress,
+    /// Reference to the basic type `ClassHash`.
     ClassHash,
+    /// Reference to the basic type `timestamp`.
     Timestamp,
+    /// Reference to the preset type `u256`.
     U256,
+    /// Reference to the preset type `TokenAmount`.
     TokenAmount,
+    /// Reference to the preset type `NftId`.
     NftId,
+    /// Reference to the basic type `shortstring`.
     ShortString,
 }
 
