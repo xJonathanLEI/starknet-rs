@@ -52,9 +52,16 @@ pub struct VariantDefinition {
 }
 
 /// Internal trait for working with both user-defined types and preset types at the same time.
-pub(crate) trait CompositeType {
-    fn field_iter(&self) -> impl Iterator<Item = (&str, &FullTypeReference)>;
+pub trait CompositeType {
+    /// Iterator type that yields field name and type reference pairs.
+    type FieldIterator<'a>: Iterator<Item = (&'a str, &'a FullTypeReference)>
+    where
+        Self: 'a;
 
+    /// Returns an iterator over all fields in this composite type.
+    fn field_iter(&self) -> Self::FieldIterator<'_>;
+
+    /// Returns the total number of fields in this composite type.
     fn field_len(&self) -> usize;
 }
 
@@ -276,7 +283,12 @@ impl<'de> Deserialize<'de> for FieldOrVariantDefinition {
 }
 
 impl CompositeType for StructDefinition {
-    fn field_iter(&self) -> impl Iterator<Item = (&str, &FullTypeReference)> {
+    type FieldIterator<'a> = core::iter::Map<
+        core::slice::Iter<'a, FieldDefinition>,
+        fn(&'a FieldDefinition) -> (&'a str, &'a FullTypeReference),
+    >;
+
+    fn field_iter(&self) -> Self::FieldIterator<'_> {
         self.fields
             .iter()
             .map(|field| (field.name.as_str(), &field.r#type))
@@ -288,7 +300,12 @@ impl CompositeType for StructDefinition {
 }
 
 impl CompositeType for PresetType {
-    fn field_iter(&self) -> impl Iterator<Item = (&str, &FullTypeReference)> {
+    type FieldIterator<'a>
+        = core::array::IntoIter<(&'a str, &'a FullTypeReference), 2>
+    where
+        Self: 'a;
+
+    fn field_iter(&self) -> Self::FieldIterator<'_> {
         match self {
             Self::U256 => [
                 ("low", &FullTypeReference::U128),
