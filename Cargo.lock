@@ -954,6 +954,9 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "hex-literal"
@@ -2460,11 +2463,16 @@ dependencies = [
  "crypto-bigint",
  "eth-keystore",
  "getrandom 0.2.15",
+ "hex",
  "rand 0.8.5",
+ "reqwest",
  "semver",
+ "serde",
  "starknet-core",
  "starknet-crypto",
+ "starknet-signers",
  "thiserror 1.0.63",
+ "tokio",
  "wasm-bindgen-test",
 ]
 

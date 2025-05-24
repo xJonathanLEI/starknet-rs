@@ -151,3 +151,21 @@ jobs:
           cargo build --package starknet-core \
             --target thumbv6m-none-eabi \
             --no-default-features
+
+  ledger:
+    name: Ledger tests
+    runs-on: ubuntu-latest
+    container: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install stable Rust toolchain
+        run: |
+          rustup toolchain install stable
+
+      - name: Run tests
+        run: |
+          cargo test --package starknet-signers \
+            -- --ignored

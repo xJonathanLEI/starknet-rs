@@ -33,8 +33,8 @@ pub struct LedgerSigner {
 
 /// A handle for communicating with the Ledger Starknet app.
 #[derive(Debug)]
-pub struct LedgerStarknetApp {
-    transport: Ledger,
+pub struct LedgerStarknetApp<T = Ledger> {
+    transport: T,
 }
 
 /// Errors using the Ledger hardware wallet.
@@ -133,11 +133,21 @@ impl Signer for LedgerSigner {
     }
 }
 
-impl LedgerStarknetApp {
+impl<T> LedgerStarknetApp<T> {
+    /// Creates Starknet Ledger app handle using an already-initialized transport.
+    pub fn from_transport(transport: T) -> Self {
+        Self { transport }
+    }
+}
+
+impl<T> LedgerStarknetApp<T>
+where
+    T: LedgerAsync,
+{
     /// Initializes the Starknet Ledger app. Attempts to find and connect to a Ledger device. The
     /// device must be unlocked and have the Starknet app open.
     pub async fn new() -> Result<Self, LedgerError> {
-        let transport = Ledger::init().await?;
+        let transport = T::init().await?;
 
         Ok(Self { transport })
     }
