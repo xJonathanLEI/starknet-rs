@@ -14,7 +14,7 @@ keywords = ["ethereum", "starknet", "web3"]
 exclude = ["test-data/**"]
 
 [dependencies]
-starknet-core = { version = "0.12.2", path = "../starknet-core" }
+starknet-core = { version = "0.12.3", path = "../starknet-core" }
 starknet-crypto = { version = "0.7.4", path = "../starknet-crypto" }
 starknet-providers = { version = "0.12.1", path = "../starknet-providers" }
 starknet-signers = { version = "0.10.2", path = "../starknet-signers" }

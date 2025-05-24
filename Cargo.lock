@@ -2090,7 +2090,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-core"
-version = "0.12.2"
+version = "0.12.3"
 dependencies = [
  "base64 0.21.7",
  "bincode",
