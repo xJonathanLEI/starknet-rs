@@ -5,9 +5,10 @@ use starknet_core::{
     types::Felt,
 };
 use starknet_crypto::get_public_key;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// A ECDSA signing (private) key on the STARK curve.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Zeroize, ZeroizeOnDrop)]
 pub struct SigningKey {
     secret_scalar: Felt,
 }
@@ -100,8 +101,8 @@ impl SigningKey {
     }
 
     /// Gets the secret scalar in the signing key.
-    pub const fn secret_scalar(&self) -> Felt {
-        self.secret_scalar
+    pub const fn secret_scalar(&self) -> &Felt {
+        &self.secret_scalar
     }
 
     /// Derives the verifying (public) key that corresponds to the signing key.
@@ -147,7 +148,7 @@ mod tests {
 
         let signing_key = SigningKey::from_secret_scalar(private_key);
 
-        assert_eq!(signing_key.secret_scalar(), private_key);
+        assert_eq!(*signing_key.secret_scalar(), private_key);
     }
 
     #[test]
