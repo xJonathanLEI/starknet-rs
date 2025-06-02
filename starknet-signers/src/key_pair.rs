@@ -10,7 +10,7 @@ use zeroize::{Zeroize, ZeroizeOnDrop};
 /// A ECDSA signing (private) key on the STARK curve.
 #[derive(Debug, Clone, Zeroize, ZeroizeOnDrop)]
 pub struct SigningKey {
-    secret_scalar: Felt,
+    secret_scalar: Box<Felt>,
 }
 
 /// A ECDSA verifying (public) key on the STARK curve.
@@ -51,12 +51,16 @@ impl SigningKey {
         // It's safe to unwrap here as we're 100% sure it's not out of range
         let secret_scalar = Felt::from_bytes_be_slice(&secret_scalar.to_be_bytes());
 
-        Self { secret_scalar }
+        Self {
+            secret_scalar: Box::new(secret_scalar),
+        }
     }
 
     /// Constructs [`SigningKey`] directly from a secret scalar.
-    pub const fn from_secret_scalar(secret_scalar: Felt) -> Self {
-        Self { secret_scalar }
+    pub fn from_secret_scalar(secret_scalar: Felt) -> Self {
+        Self {
+            secret_scalar: Box::new(secret_scalar),
+        }
     }
 
     /// Loads the private key from a Web3 Secret Storage Definition keystore.
@@ -248,5 +252,18 @@ mod tests {
         let verifying_key = VerifyingKey::from_scalar(public_key);
 
         assert!(!verifying_key.verify(&hash, &Signature { r, s }).unwrap());
+    }
+
+    #[test]
+    fn test_zeroize_signing_key() {
+        let private_key = Felt::from_hex_unchecked(
+            "0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79",
+        );
+        let mut signing_key = SigningKey::from_secret_scalar(private_key);
+        signing_key.zeroize();
+
+        let ptr = signing_key.secret_scalar.as_ref() as *const Felt as *const u8;
+        let after_zeroize = unsafe { std::slice::from_raw_parts(ptr, size_of::<Felt>()) };
+        assert_eq!(after_zeroize, vec![0; 32]);
     }
 }
