@@ -11,6 +11,7 @@ use starknet_providers::{
 };
 use starknet_signers::{LocalWallet, SigningKey};
 use std::sync::Arc;
+use secrecy::SecretString;
 
 /// Cairo short string encoding for `SN_SEPOLIA`.
 const CHAIN_ID: Felt = Felt::from_raw([
@@ -107,9 +108,9 @@ async fn can_declare_cairo1_contract_v3_with_jsonrpc() {
 }
 
 async fn can_get_nonce_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
-    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
-    ));
+    let signer = LocalWallet::from(SigningKey::from_secret(
+        SecretString::new("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".into()),
+    ).unwrap());
     let address = Felt::from_hex(address).unwrap();
 
     let account =
@@ -119,9 +120,9 @@ async fn can_get_nonce_inner<P: Provider + Send + Sync>(provider: P, address: &s
 }
 
 async fn can_estimate_invoke_v3_fee_inner<P: Provider + Send + Sync>(provider: P, address: &str) {
-    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
-    ));
+    let signer = LocalWallet::from(SigningKey::from_secret(
+        SecretString::new("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".into()),
+    ).unwrap());
     let address = Felt::from_hex(address).unwrap();
     let eth_token_address =
         Felt::from_hex("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7").unwrap();
@@ -146,9 +147,9 @@ async fn can_parse_fee_estimation_error_inner<P: Provider + Send + Sync>(
     provider: P,
     address: &str,
 ) {
-    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
-    ));
+    let signer = LocalWallet::from(SigningKey::from_secret(
+        SecretString::new("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".into()),
+    ).unwrap());
     let address = Felt::from_hex(address).unwrap();
     let eth_token_address =
         Felt::from_hex("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7").unwrap();
@@ -193,9 +194,9 @@ async fn can_execute_eth_transfer_invoke_v3_inner<P: Provider + Send + Sync>(
     //   - change to use a local testing network similar to Ganacha for Ethereum; or
     //   - poll the transaction hash until it's processed.
 
-    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
-    ));
+    let signer = LocalWallet::from(SigningKey::from_secret(
+        SecretString::new("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".into()),
+    ).unwrap());
     let address = Felt::from_hex(address).unwrap();
     let eth_token_address =
         Felt::from_hex("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7").unwrap();
@@ -224,9 +225,9 @@ async fn can_execute_eth_transfer_invoke_v3_with_manual_gas_inner<P: Provider + 
     // is to test that a fee estimation is _not_ performed when `gas` is specified. A fee estimation
     // performed on this call would have thrown.
 
-    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
-    ));
+    let signer = LocalWallet::from(SigningKey::from_secret(
+        SecretString::new("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".into()),
+    ).unwrap());
     let address = Felt::from_hex(address).unwrap();
     let eth_token_address =
         Felt::from_hex("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7").unwrap();
@@ -263,9 +264,9 @@ async fn can_estimate_declare_v3_fee_inner<P: Provider + Send + Sync>(provider: 
         compiled_class_hash: String,
     }
 
-    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
-    ));
+    let signer = LocalWallet::from(SigningKey::from_secret(
+        SecretString::new("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".into()),
+    ).unwrap());
     let address = Felt::from_hex(address).unwrap();
     let account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);
@@ -313,9 +314,9 @@ async fn can_declare_cairo1_contract_v3_inner<P: Provider + Send + Sync>(
         compiled_class_hash: String,
     }
 
-    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
-    ));
+    let signer = LocalWallet::from(SigningKey::from_secret(
+        SecretString::new("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".into()),
+    ).unwrap());
     let address = Felt::from_hex(address).unwrap();
     let account =
         SingleOwnerAccount::new(provider, signer, address, CHAIN_ID, ExecutionEncoding::New);

@@ -1,3 +1,4 @@
+use secrecy::SecretString;
 use starknet::{
     accounts::{AccountFactory, ArgentAccountFactory},
     core::{chain_id, types::Felt},
@@ -21,9 +22,9 @@ async fn main() {
         Url::parse("https://starknet-sepolia.public.blastapi.io/rpc/v0_8").unwrap(),
     ));
 
-    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        Felt::from_hex("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
-    ));
+    let signer = LocalWallet::from(SigningKey::from_secret(
+        SecretString::new("YOUR_PRIVATE_KEY_IN_HEX_HERE".into()),
+    ).unwrap());
 
     let factory = ArgentAccountFactory::new(class_hash, chain_id::SEPOLIA, None, signer, provider)
         .await
