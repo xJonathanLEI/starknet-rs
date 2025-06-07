@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use starknet_crypto::poseidon_hash_many;
 
 use crate::{crypto::compute_hash_on_elements, types::Felt};
@@ -34,19 +34,19 @@ const DOMAIN_TYPE_HASH_V1: Felt = Felt::from_raw([
 ]);
 
 /// SNIP-12 typed data domain separator.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Domain {
     /// Domain name.
-    #[serde(deserialize_with = "shortstring::deserialize")]
+    #[serde(with = "shortstring")]
     pub name: Felt,
     /// Domain version.
-    #[serde(deserialize_with = "shortstring::deserialize")]
+    #[serde(with = "shortstring")]
     pub version: Felt,
     /// Domain chain ID.
-    #[serde(deserialize_with = "shortstring::deserialize", rename = "chainId")]
+    #[serde(with = "shortstring", rename = "chainId")]
     pub chain_id: Felt,
     /// Domain revision.
-    #[serde(default = "default_revision")]
+    #[serde(skip_serializing_if = "Revision::is_v0", default = "default_revision")]
     pub revision: Revision,
 }
 
@@ -83,7 +83,7 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_implicit_v0_domain_deser() {
+    fn test_implicit_v0_domain_serde() {
         let raw = r###"{
   "name": "Starknet Example",
   "version": "1",
@@ -95,6 +95,12 @@ mod tests {
 
         // `shortstring` spec deviation for `starknet.js` compatibility
         assert_eq!(domain.version, Felt::ONE);
+
+        // Comparing on `Value` avoids false positives from formatting.
+        assert_eq!(
+            serde_json::to_value(domain).unwrap(),
+            serde_json::from_str::<serde_json::Value>(raw).unwrap()
+        );
     }
 
     #[test]
@@ -116,7 +122,7 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_explicit_v1_domain_deser() {
+    fn test_explicit_v1_domain_serde() {
         let raw = r###"{
   "name": "Starknet Example",
   "version": "1",
@@ -129,6 +135,12 @@ mod tests {
 
         // `shortstring` spec deviation for `starknet.js` compatibility
         assert_eq!(domain.version, Felt::ONE);
+
+        // Comparing on `Value` avoids false positives from formatting.
+        assert_eq!(
+            serde_json::to_value(domain).unwrap(),
+            serde_json::from_str::<serde_json::Value>(raw).unwrap()
+        );
     }
 
     #[test]

@@ -1,4 +1,4 @@
-use serde::{de::Visitor, Deserialize};
+use serde::{de::Visitor, Deserialize, Serialize};
 
 /// Revision of SNIP-12.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -9,11 +9,29 @@ pub enum Revision {
     V1,
 }
 
+impl Revision {
+    pub(crate) fn is_v0(&self) -> bool {
+        matches!(self, Self::V0)
+    }
+}
+
 impl core::fmt::Display for Revision {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::V0 => write!(f, "0"),
             Self::V1 => write!(f, "1"),
+        }
+    }
+}
+
+impl Serialize for Revision {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            Self::V0 => serializer.serialize_str("0"),
+            Self::V1 => serializer.serialize_str("1"),
         }
     }
 }

@@ -1,7 +1,7 @@
 use alloc::{borrow::ToOwned, format, string::*};
 use core::str::FromStr;
 
-use serde::{de::Visitor, Deserialize};
+use serde::{de::Visitor, Deserialize, Serialize};
 
 use super::error::TypedDataError;
 
@@ -220,6 +220,38 @@ impl FullTypeReference {
                 return Err(TypedDataError::InvalidTypeName(type_name.to_owned()));
             }
         })
+    }
+}
+
+impl Serialize for FullTypeReference {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        #[derive(Serialize)]
+        struct Parts<'a> {
+            r#type: &'a str,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            contains: Option<&'a str>,
+        }
+
+        match self {
+            Self::Enum(type_name) => Parts {
+                r#type: "enum",
+                contains: Some(type_name),
+            }
+            .serialize(serializer),
+            Self::MerkleTree(item) => Parts {
+                r#type: "merkletree",
+                contains: Some(&item.signature_ref_repr()),
+            }
+            .serialize(serializer),
+            _ => Parts {
+                r#type: &self.signature_ref_repr(),
+                contains: None,
+            }
+            .serialize(serializer),
+        }
     }
 }
 
