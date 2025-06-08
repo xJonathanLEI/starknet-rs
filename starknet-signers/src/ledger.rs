@@ -26,8 +26,8 @@ const SIGNATURE_SIZE: usize = 65;
 
 /// Ledger app wrapper that implements the [`Signer`] trait.
 #[derive(Debug)]
-pub struct LedgerSigner {
-    app: LedgerStarknetApp,
+pub struct LedgerSigner<T = Ledger> {
+    app: LedgerStarknetApp<T>,
     derivation_path: DerivationPath,
 }
 
@@ -113,8 +113,45 @@ impl LedgerSigner {
     }
 }
 
+impl<T> LedgerSigner<T> {
+    /// Creates a Starknet Ledger signer with an already initialized Ledger app.
+    ///
+    /// The `derivation_path` passed in _must_ follow EIP-2645, i.e. having `2645'` as its "purpose"
+    /// level as per BIP-44, as the Ledger app does not allow other paths to be used.
+    ///
+    /// The path _must_ also be 6-level in length. An example path for Starknet would be:
+    ///
+    /// `m/2645'/1195502025'/1470455285'/0'/0'/0`
+    ///
+    /// where:
+    ///
+    /// - `2645'` is the EIP-2645 prefix
+    /// - `1195502025'`, decimal for `0x4741e9c9`, is the 31 lowest bits for `sha256(starknet)`
+    /// - `1470455285'`, decimal for `0x57a55df5`, is the 31 lowest bits for `sha256(starkli)`
+    ///
+    /// Currently, the Ledger app only enforces the length and the first level of the path.
+    pub fn new_with_app(
+        derivation_path: DerivationPath,
+        app: LedgerStarknetApp<T>,
+    ) -> Result<Self, LedgerError> {
+        if !matches!(derivation_path.iter().next(), Some(&EIP_2645_PURPOSE))
+            || derivation_path.len() != EIP_2645_PATH_LENGTH
+        {
+            return Err(LedgerError::InvalidDerivationPath);
+        }
+
+        Ok(Self {
+            app,
+            derivation_path,
+        })
+    }
+}
+
 #[async_trait]
-impl Signer for LedgerSigner {
+impl<T> Signer for LedgerSigner<T>
+where
+    T: LedgerAsync + Sync,
+{
     type GetPublicKeyError = LedgerError;
     type SignError = LedgerError;
 

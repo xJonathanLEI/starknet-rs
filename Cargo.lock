@@ -2285,9 +2285,9 @@ dependencies = [
 
 [[package]]
 name = "speculos-client"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8716f5006802a0c8555925b0af0777939f84f7e640d5258520ee998ee28fc999"
+checksum = "aab48e66d675276b5970b3243e9638053a9ff8d693d4a0f9c2514e83dbbc8cab"
 dependencies = [
  "hex",
  "reqwest",
@@ -2334,8 +2334,10 @@ version = "0.14.0"
 dependencies = [
  "async-trait",
  "auto_impl",
+ "coins-ledger",
  "serde",
  "serde_json",
+ "speculos-client",
  "starknet-core",
  "starknet-crypto",
  "starknet-providers",
