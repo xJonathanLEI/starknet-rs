@@ -31,10 +31,8 @@ eth-keystore = { version = "0.5.0", default-features = false }
 getrandom = { version = "0.2.9", features = ["js"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+speculos-client = "0.1.1"
 starknet-signers = { path = ".", features = ["ledger"] }
-hex = { version = "0.4.3", default-features = false, features = ["alloc", "serde"] }
-serde = { version = "1.0.160", features = ["derive"] }
-reqwest = { version = "0.12.15", default-features = false, features = ["json"] }
 tokio = { version = "1.27.0", features = ["full"] }
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
