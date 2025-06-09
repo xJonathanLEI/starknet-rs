@@ -1,6 +1,6 @@
 #![cfg(not(target_arch = "wasm32"))]
 
-use std::{sync::Arc, time::Duration};
+use std::{borrow::Cow, sync::Arc};
 
 use async_trait::async_trait;
 use coins_ledger::{transports::LedgerAsync, APDUAnswer, APDUCommand, LedgerError};
@@ -37,106 +37,115 @@ fn setup_app(port: u16) -> (Arc<SpeculosClient>, LedgerStarknetApp<SpeculosTrans
     (client, app)
 }
 
-#[tokio::test]
-#[ignore = "requires Speculos installation"]
-async fn test_get_app_version() {
-    let (_, app) = setup_app(5001);
-    let version = app.get_version().await.unwrap();
+/// Module for easy test filtering.
+mod ledger {
+    use super::*;
 
-    assert_eq!(version, Version::new(2, 3, 1));
+    #[tokio::test]
+    #[ignore = "requires Speculos installation"]
+    async fn test_get_app_version() {
+        let (_, app) = setup_app(5001);
+        let version = app.get_version().await.unwrap();
+
+        assert_eq!(version, Version::new(2, 3, 1));
+    }
+
+    #[tokio::test]
+    #[ignore = "requires Speculos installation"]
+    async fn test_get_public_key_headless() {
+        let (_, app) = setup_app(5002);
+        let public_key = app
+            .get_public_key(TEST_PATH.parse().unwrap(), false)
+            .await
+            .unwrap();
+
+        assert_eq!(
+            public_key.scalar(),
+            Felt::from_hex_unchecked(
+                "0x07427aa749c4fc98a5bf76f037eb3c61e7b4793b576a72d45a4b52c5ded997f2"
+            )
+        );
+    }
+
+    #[tokio::test]
+    #[ignore = "requires Speculos installation"]
+    async fn test_get_public_key_with_confirmation() {
+        let (client, app) = setup_app(5003);
+
+        // Automatically approve
+        client
+            .automation(&[automation::APPROVE_PUBLIC_KEY])
+            .await
+            .unwrap();
+
+        let public_key = app
+            .get_public_key(TEST_PATH.parse().unwrap(), true)
+            .await
+            .unwrap();
+
+        assert_eq!(
+            public_key.scalar(),
+            Felt::from_hex_unchecked(
+                "0x07427aa749c4fc98a5bf76f037eb3c61e7b4793b576a72d45a4b52c5ded997f2"
+            )
+        );
+    }
 }
 
-#[tokio::test]
-#[ignore = "requires Speculos installation"]
-async fn test_get_public_key_headless() {
-    let (_, app) = setup_app(5002);
-    let public_key = app
-        .get_public_key(TEST_PATH.parse().unwrap(), false)
-        .await
-        .unwrap();
+mod automation {
+    use super::*;
 
-    assert_eq!(
-        public_key.scalar(),
-        Felt::from_hex_unchecked(
-            "0x07427aa749c4fc98a5bf76f037eb3c61e7b4793b576a72d45a4b52c5ded997f2"
-        )
-    );
-}
-
-#[tokio::test]
-#[ignore = "requires Speculos installation"]
-async fn test_get_public_key_with_confirmation() {
-    let (client, app) = setup_app(5003);
-
-    tokio::time::sleep(Duration::from_secs(1)).await;
-
-    // Automatically approve
-    client
-        .automation(&[AutomationRule {
-            text: Some("Confirm Public Key".into()),
-            regexp: None,
-            x: None,
-            y: None,
-            conditions: &[],
-            actions: &[
-                // Press right
-                AutomationAction::Button {
-                    button: Button::Right,
-                    pressed: true,
-                },
-                AutomationAction::Button {
-                    button: Button::Right,
-                    pressed: false,
-                },
-                // Press right
-                AutomationAction::Button {
-                    button: Button::Right,
-                    pressed: true,
-                },
-                AutomationAction::Button {
-                    button: Button::Right,
-                    pressed: false,
-                },
-                // Press right
-                AutomationAction::Button {
-                    button: Button::Right,
-                    pressed: true,
-                },
-                AutomationAction::Button {
-                    button: Button::Right,
-                    pressed: false,
-                },
-                // Press both
-                AutomationAction::Button {
-                    button: Button::Left,
-                    pressed: true,
-                },
-                AutomationAction::Button {
-                    button: Button::Right,
-                    pressed: true,
-                },
-                AutomationAction::Button {
-                    button: Button::Left,
-                    pressed: false,
-                },
-                AutomationAction::Button {
-                    button: Button::Right,
-                    pressed: false,
-                },
-            ],
-        }])
-        .await
-        .unwrap();
-
-    let public_key = app
-        .get_public_key(TEST_PATH.parse().unwrap(), true)
-        .await
-        .unwrap();
-
-    assert_eq!(
-        public_key.scalar(),
-        Felt::from_hex_unchecked(
-            "0x07427aa749c4fc98a5bf76f037eb3c61e7b4793b576a72d45a4b52c5ded997f2"
-        )
-    );
+    pub const APPROVE_PUBLIC_KEY: AutomationRule<'static> = AutomationRule {
+        text: Some(Cow::Borrowed("Confirm Public Key")),
+        regexp: None,
+        x: None,
+        y: None,
+        conditions: &[],
+        actions: &[
+            // Press right
+            AutomationAction::Button {
+                button: Button::Right,
+                pressed: true,
+            },
+            AutomationAction::Button {
+                button: Button::Right,
+                pressed: false,
+            },
+            // Press right
+            AutomationAction::Button {
+                button: Button::Right,
+                pressed: true,
+            },
+            AutomationAction::Button {
+                button: Button::Right,
+                pressed: false,
+            },
+            // Press right
+            AutomationAction::Button {
+                button: Button::Right,
+                pressed: true,
+            },
+            AutomationAction::Button {
+                button: Button::Right,
+                pressed: false,
+            },
+            // Press both
+            AutomationAction::Button {
+                button: Button::Left,
+                pressed: true,
+            },
+            AutomationAction::Button {
+                button: Button::Right,
+                pressed: true,
+            },
+            AutomationAction::Button {
+                button: Button::Left,
+                pressed: false,
+            },
+            AutomationAction::Button {
+                button: Button::Right,
+                pressed: false,
+            },
+        ],
+    };
 }
