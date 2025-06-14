@@ -726,7 +726,7 @@ where
             .map_err(AccountFactoryError::Provider)
     }
 
-    async fn get_deploy_request(
+    pub async fn get_deploy_request(
         &self,
         query_only: bool,
         skip_signature: bool,
