@@ -726,6 +726,7 @@ where
             .map_err(AccountFactoryError::Provider)
     }
 
+    /// Get the broadcasted deploy account transaction request.
     pub async fn get_deploy_request(
         &self,
         query_only: bool,

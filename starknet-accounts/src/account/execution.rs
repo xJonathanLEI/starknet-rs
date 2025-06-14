@@ -568,6 +568,7 @@ where
     // The `simulate` function is temporarily removed until it's supported in [Provider]
     // TODO: add `simulate` back once transaction simulation in supported
 
+    /// Get the broadcasted invoke transaction request.
     pub async fn get_invoke_request(
         &self,
         query_only: bool,

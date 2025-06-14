@@ -549,6 +549,7 @@ where
             .map_err(AccountError::Provider)
     }
 
+    /// Get the broadcasted declare transaction request.
     pub async fn get_declare_request(
         &self,
         query_only: bool,
