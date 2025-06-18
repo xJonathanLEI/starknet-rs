@@ -2495,6 +2495,7 @@ name = "starknet-tokio-tungstenite"
 version = "0.1.0"
 dependencies = [
  "futures-util",
+ "log",
  "rand 0.8.5",
  "serde",
  "serde_json",
