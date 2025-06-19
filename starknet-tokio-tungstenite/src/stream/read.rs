@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Duration};
 
 use futures_util::{stream::SplitStream, StreamExt};
 use starknet_core::types::SubscriptionId;
@@ -9,10 +9,13 @@ use tokio::{
         mpsc::{UnboundedReceiver, UnboundedSender},
         oneshot::Sender as OneshotSender,
     },
+    time::Instant,
 };
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 use tokio_util::sync::CancellationToken;
 use tungstenite::Message;
+
+use crate::stream::write::MetaAction;
 
 use super::{StreamUpdateOrResponse, SubscriptionIdOrBool, SubscriptionResult, UnsubscribeResult};
 
@@ -21,6 +24,9 @@ pub(crate) struct StreamReadDriver {
     pub registry: HashMap<SubscriptionId, UnboundedSender<StreamUpdateData>>,
     pub pending_subscriptions: HashMap<u64, PendingSubscription>,
     pub pending_unsubscriptions: HashMap<u64, PendingUnsubscription>,
+    pub meta_queue: UnboundedSender<MetaAction>,
+    pub ping_deadline: Instant,
+    pub keepalive_interval: Duration,
     pub stream: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
     pub read_queue: UnboundedReceiver<ReadAction>,
     pub disconnection: CancellationToken,
@@ -99,6 +105,12 @@ impl StreamReadDriver {
                             break
                         }
                     }
+                }
+                _ = tokio::time::sleep_until(self.ping_deadline) => {
+                    self.ping_deadline += self.keepalive_interval;
+                    let _ = self.meta_queue.send(MetaAction::Ping {
+                        payload: b"Hello".as_slice().into(),
+                    });
                 }
             }
         }
@@ -180,13 +192,13 @@ impl StreamReadDriver {
                                     // unsubscribing. However, there could be a race condition where
                                     // an update arrives before that. This is normal but probably
                                     // still worth flagging.
-                                    println!("WARNING: unable to dump updates");
+                                    log::warn!("WARNING: unable to dump updates");
                                 }
                             }
                             None => {
                                 // Unsolicited subscription update. This is probably not worth
                                 // panicking over.
-                                println!("WARNING: unsolicited subscription update");
+                                log::warn!("WARNING: unsolicited subscription update");
                             }
                         }
                     }
@@ -217,7 +229,7 @@ impl StreamReadDriver {
                                     None => {
                                         // Unsolicited subscription result. This is probably not
                                         // worth panicking over.
-                                        println!("WARNING: unsolicited subscription result");
+                                        log::warn!("WARNING: unsolicited subscription result");
                                     }
                                 }
                             }
@@ -238,7 +250,7 @@ impl StreamReadDriver {
                                     None => {
                                         // Unsolicited unsubscribe result. This is probably not
                                         // worth panicking over.
-                                        println!("WARNING: unsolicited unsubscribe result");
+                                        log::warn!("WARNING: unsolicited unsubscribe result");
                                     }
                                 }
                             }
@@ -259,11 +271,22 @@ impl StreamReadDriver {
                                 let _ = result.send(UnsubscribeResult::JsonRpcError(error));
                             }
                         } else {
-                            println!("WARNING: unsolicited error");
+                            log::warn!("WARNING: unsolicited error");
                         }
                     }
                 }
 
+                HandleMessageResult::Success
+            }
+            Message::Ping(payload) => {
+                // The server is explicitly requesting a heartbeat.
+                log::trace!("Received Ping message from WebSocket server");
+                let _ = self.meta_queue.send(MetaAction::Pong { payload });
+                HandleMessageResult::Success
+            }
+            Message::Pong(_) => {
+                // This is most likely just the server responding to our `Ping`. Nothing to do here.
+                log::trace!("Received Pong message from WebSocket server");
                 HandleMessageResult::Success
             }
             Message::Close(_) => HandleMessageResult::StreamEnded,

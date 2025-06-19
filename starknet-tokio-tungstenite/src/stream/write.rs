@@ -19,7 +19,7 @@ use tokio::{
 };
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 use tokio_util::sync::CancellationToken;
-use tungstenite::Message;
+use tungstenite::{Bytes, Message};
 
 use crate::subscription::EventSubscriptionOptions;
 
@@ -32,6 +32,7 @@ use super::{
 pub(crate) struct StreamWriteDriver {
     pub timeout: Duration,
     pub write_queue: UnboundedReceiver<WriteAction>,
+    pub meta_queue: UnboundedReceiver<MetaAction>,
     pub sink: SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>,
     pub read_queue: UnboundedSender<ReadAction>,
     pub disconnection: CancellationToken,
@@ -53,6 +54,20 @@ pub(crate) enum WriteAction {
     },
 }
 
+/// WebSocket protocol meta actions.
+///
+/// [`WriteAction`] and [`MetaAction`] are separated because [`StreamWriteDriver`] relies on all
+/// senders of actual application messages to drop to detect that the stream should be closed.
+///
+/// At the same time, [`StreamReadDriver`] requires access to request meta actions. If all actions
+/// were put under [`WriteAction`], then the reader would always hold a sender, resulting in the
+/// writer failing to detect the dropping of all active users.
+#[derive(Debug)]
+pub(crate) enum MetaAction {
+    Ping { payload: Bytes },
+    Pong { payload: Bytes },
+}
+
 #[derive(Debug)]
 pub(crate) enum SubscribeWriteData {
     NewHeads {
@@ -70,6 +85,13 @@ pub(crate) enum SubscribeWriteData {
     },
 }
 
+enum HandleActionResult {
+    /// An action was received and processed successfully.
+    Success,
+    /// The action queue has been closed and all existing actions have been processed.
+    QueueEnded,
+}
+
 #[derive(Debug)]
 enum SendError {
     Timeout,
@@ -83,194 +105,258 @@ impl StreamWriteDriver {
 
     async fn run(mut self) {
         let mut close_sent = false;
+        let mut meta_dropped = false;
 
         loop {
-            let action = self.write_queue.recv().await;
-            match action {
-                Some(WriteAction::Subscribe {
-                    data,
-                    result,
-                    stream,
-                }) => {
-                    let (ack_tx, ack_rx) = tokio::sync::oneshot::channel::<ReadAcknowledgement>();
-
-                    let req_id = thread_rng().next_u32() as u64;
-                    if self
-                        .read_queue
-                        .send(ReadAction::Subscribe {
-                            request_id: req_id,
-                            result: result.clone(),
-                            stream,
-                            ack: ack_tx,
-                        })
-                        .is_err()
-                    {
-                        // This failing means the read handler is dropped. There's no point in
-                        // retrying anymore.
-                        self.write_queue.close();
-                        let _ = result.send(SubscriptionResult::TransportError(
-                            tungstenite::Error::ConnectionClosed,
-                        ));
-                        continue;
-                    }
-
-                    // Prevent race condition.
-                    //
-                    // The read thread does not block action processing on IO and never panics. The
-                    // awaiting here should almost always resolve very quickly. It's unnecessary to
-                    // apply timeout guard here only to add to overhead and code complexity.
-                    if !matches!(ack_rx.await, Ok(ReadAcknowledgement::Acknowledged)) {
-                        // This failing means the read handler is dropped. There's no point in
-                        // retrying anymore.
-                        self.write_queue.close();
-                        let _ = result.send(SubscriptionResult::TransportError(
-                            tungstenite::Error::ConnectionClosed,
-                        ));
-                        continue;
-                    }
-
-                    if let Err(err) = self
-                        .send_request(
-                            req_id,
-                            match data {
-                                SubscribeWriteData::NewHeads { block_id } => {
-                                    ProviderRequestData::SubscribeNewHeads(
-                                        SubscribeNewHeadsRequest {
-                                            block_id: Some(block_id),
-                                        },
-                                    )
-                                }
-                                SubscribeWriteData::Events { options } => {
-                                    ProviderRequestData::SubscribeEvents(SubscribeEventsRequest {
-                                        from_address: options.from_address,
-                                        keys: options.keys,
-                                        block_id: Some(options.block_id),
-                                    })
-                                }
-                                SubscribeWriteData::TransactionStatus { transaction_hash } => {
-                                    ProviderRequestData::SubscribeTransactionStatus(
-                                        SubscribeTransactionStatusRequest { transaction_hash },
-                                    )
-                                }
-                                SubscribeWriteData::PendindTransactions {
-                                    transaction_details,
-                                    sender_address,
-                                } => ProviderRequestData::SubscribePendingTransactions(
-                                    SubscribePendingTransactionsRequest {
-                                        transaction_details: Some(transaction_details),
-                                        sender_address,
-                                    },
-                                ),
-                            },
-                        )
-                        .await
-                    {
-                        let _ = result.send(err.into());
-                    }
-                }
-                Some(WriteAction::Unsubscribe {
-                    subscription_id,
-                    result,
-                }) => {
-                    let (ack_tx, ack_rx) = tokio::sync::oneshot::channel::<ReadAcknowledgement>();
-
-                    let req_id = thread_rng().next_u32() as u64;
-                    if self
-                        .read_queue
-                        .send(ReadAction::Unsubscribe {
-                            request_id: req_id,
-                            subscription_id: subscription_id.clone(),
-                            result: result.clone(),
-                            ack: ack_tx,
-                        })
-                        .is_err()
-                    {
-                        // This failing means the read handler is dropped. There's no point in
-                        // retrying anymore.
-                        self.write_queue.close();
-                        if let Some(result) = result {
-                            let _ = result.send(UnsubscribeResult::TransportError(
-                                tungstenite::Error::ConnectionClosed,
-                            ));
-                        }
-                        continue;
-                    }
-
-                    // Prevent race condition.
-                    //
-                    // The read thread does not block action processing on IO and never panics. The
-                    // awaiting here should almost always resolve very quickly. It's unnecessary to
-                    // apply timeout guard here only to add to overhead and code complexity.
-                    if !matches!(ack_rx.await, Ok(ReadAcknowledgement::Acknowledged)) {
-                        // This failing means the read handler is dropped. There's no point in
-                        // retrying anymore.
-                        self.write_queue.close();
-                        continue;
-                    }
-
-                    if let Err(err) = self
-                        .send_request(
-                            req_id,
-                            ProviderRequestData::Unsubscribe(UnsubscribeRequest {
-                                subscription_id,
-                            }),
-                        )
-                        .await
-                    {
-                        if let Some(result) = result {
-                            let _ = result.send(err.into());
-                        }
-                    }
-                }
-                Some(WriteAction::Close { result }) => {
-                    if close_sent {
-                        self.disconnection.cancelled().await;
-                        let _ = result.send(CloseResult::Success);
-                        continue;
-                    }
-
-                    tokio::select! {
-                        send_result = self.sink.send(Message::Close(None)) => {
-                            if let Err(err) = send_result {
-                                let _ = result.send(CloseResult::TransportError(err));
-                                continue;
-                            }
-                        }
-                        _ = tokio::time::sleep(self.timeout) => {
-                            let _ = result.send(CloseResult::TimeoutError);
-                            continue;
-                        }
-                    };
-
-                    close_sent = true;
-                    self.disconnection.cancelled().await;
-                    let _ = result.send(CloseResult::Success);
-                    self.write_queue.close();
-                }
-                None => {
-                    // Write requests are no longer accepted and all existing write requests have
-                    // been drained.
-                    //
-                    // This can happen either when the connection is deemed closed, or when the
-                    // stream handle and all subscriptions have been dropped.
-
-                    // Send a connection close request on a best-effort basis, but it's fine if it
-                    // doesn't work, as all the handles have been closed anyway.
-                    if !close_sent {
-                        tokio::select! {
-                            _ = self.sink.send(Message::Close(None)) => {},
-                            _ = tokio::time::sleep(self.timeout) => {},
-                        };
-                    }
-
-                    // There's no need to explicitly notify the stream reader to quit (if hasn't
-                    // already), as dropping the queue sender already serves that purpose.
+            if meta_dropped {
+                let write_action = self.write_queue.recv().await;
+                if matches!(
+                    self.handle_write_action(write_action, &mut close_sent)
+                        .await,
+                    HandleActionResult::QueueEnded
+                ) {
+                    // This path is entered only when the stream and all subscriptions have been
+                    // dropped, so it's safe to just drop the writer. No messages are lost.
                     break;
+                }
+            } else {
+                tokio::select! {
+                    write_action = self.write_queue.recv() => {
+                        if matches!(
+                            self.handle_write_action(write_action, &mut close_sent).await,
+                            HandleActionResult::QueueEnded
+                        ) {
+                            // This path is entered only when the stream and all subscriptions have
+                            // been dropped, so it's safe to just drop the writer. No messages are
+                            // lost.
+                            break;
+                        }
+                    }
+                    meta_action = self.meta_queue.recv() => {
+                        if matches!(
+                            self.handle_meta_action(meta_action).await,
+                            HandleActionResult::QueueEnded
+                        ) {
+                            meta_dropped = true;
+                        }
+                    }
                 }
             }
         }
     }
 
+    async fn handle_write_action(
+        &mut self,
+        action: Option<WriteAction>,
+        close_sent: &mut bool,
+    ) -> HandleActionResult {
+        match action {
+            Some(WriteAction::Subscribe {
+                data,
+                result,
+                stream,
+            }) => {
+                let (ack_tx, ack_rx) = tokio::sync::oneshot::channel::<ReadAcknowledgement>();
+
+                let req_id = thread_rng().next_u32() as u64;
+                if self
+                    .read_queue
+                    .send(ReadAction::Subscribe {
+                        request_id: req_id,
+                        result: result.clone(),
+                        stream,
+                        ack: ack_tx,
+                    })
+                    .is_err()
+                {
+                    // This failing means the read handler is dropped. There's no point in
+                    // retrying anymore.
+                    self.write_queue.close();
+                    let _ = result.send(SubscriptionResult::TransportError(
+                        tungstenite::Error::ConnectionClosed,
+                    ));
+                    return HandleActionResult::Success;
+                }
+
+                // Prevent race condition.
+                //
+                // The read thread does not block action processing on IO and never panics. The
+                // awaiting here should almost always resolve very quickly. It's unnecessary to
+                // apply timeout guard here only to add to overhead and code complexity.
+                if !matches!(ack_rx.await, Ok(ReadAcknowledgement::Acknowledged)) {
+                    // This failing means the read handler is dropped. There's no point in
+                    // retrying anymore.
+                    self.write_queue.close();
+                    let _ = result.send(SubscriptionResult::TransportError(
+                        tungstenite::Error::ConnectionClosed,
+                    ));
+                    return HandleActionResult::Success;
+                }
+
+                if let Err(err) = self
+                    .send_request(
+                        req_id,
+                        match data {
+                            SubscribeWriteData::NewHeads { block_id } => {
+                                ProviderRequestData::SubscribeNewHeads(SubscribeNewHeadsRequest {
+                                    block_id: Some(block_id),
+                                })
+                            }
+                            SubscribeWriteData::Events { options } => {
+                                ProviderRequestData::SubscribeEvents(SubscribeEventsRequest {
+                                    from_address: options.from_address,
+                                    keys: options.keys,
+                                    block_id: Some(options.block_id),
+                                })
+                            }
+                            SubscribeWriteData::TransactionStatus { transaction_hash } => {
+                                ProviderRequestData::SubscribeTransactionStatus(
+                                    SubscribeTransactionStatusRequest { transaction_hash },
+                                )
+                            }
+                            SubscribeWriteData::PendindTransactions {
+                                transaction_details,
+                                sender_address,
+                            } => ProviderRequestData::SubscribePendingTransactions(
+                                SubscribePendingTransactionsRequest {
+                                    transaction_details: Some(transaction_details),
+                                    sender_address,
+                                },
+                            ),
+                        },
+                    )
+                    .await
+                {
+                    let _ = result.send(err.into());
+                }
+
+                HandleActionResult::Success
+            }
+            Some(WriteAction::Unsubscribe {
+                subscription_id,
+                result,
+            }) => {
+                let (ack_tx, ack_rx) = tokio::sync::oneshot::channel::<ReadAcknowledgement>();
+
+                let req_id = thread_rng().next_u32() as u64;
+                if self
+                    .read_queue
+                    .send(ReadAction::Unsubscribe {
+                        request_id: req_id,
+                        subscription_id: subscription_id.clone(),
+                        result: result.clone(),
+                        ack: ack_tx,
+                    })
+                    .is_err()
+                {
+                    // This failing means the read handler is dropped. There's no point in
+                    // retrying anymore.
+                    self.write_queue.close();
+                    if let Some(result) = result {
+                        let _ = result.send(UnsubscribeResult::TransportError(
+                            tungstenite::Error::ConnectionClosed,
+                        ));
+                    }
+                    return HandleActionResult::Success;
+                }
+
+                // Prevent race condition.
+                //
+                // The read thread does not block action processing on IO and never panics. The
+                // awaiting here should almost always resolve very quickly. It's unnecessary to
+                // apply timeout guard here only to add to overhead and code complexity.
+                if !matches!(ack_rx.await, Ok(ReadAcknowledgement::Acknowledged)) {
+                    // This failing means the read handler is dropped. There's no point in
+                    // retrying anymore.
+                    self.write_queue.close();
+                    return HandleActionResult::Success;
+                }
+
+                if let Err(err) = self
+                    .send_request(
+                        req_id,
+                        ProviderRequestData::Unsubscribe(UnsubscribeRequest { subscription_id }),
+                    )
+                    .await
+                {
+                    if let Some(result) = result {
+                        let _ = result.send(err.into());
+                    }
+                }
+
+                HandleActionResult::Success
+            }
+            Some(WriteAction::Close { result }) => {
+                if *close_sent {
+                    self.disconnection.cancelled().await;
+                    let _ = result.send(CloseResult::Success);
+                    return HandleActionResult::Success;
+                }
+
+                tokio::select! {
+                    send_result = self.sink.send(Message::Close(None)) => {
+                        if let Err(err) = send_result {
+                            let _ = result.send(CloseResult::TransportError(err));
+                            return HandleActionResult::Success;
+                        }
+                    }
+                    _ = tokio::time::sleep(self.timeout) => {
+                        let _ = result.send(CloseResult::TimeoutError);
+                        return HandleActionResult::Success;
+                    }
+                };
+
+                *close_sent = true;
+                self.disconnection.cancelled().await;
+                let _ = result.send(CloseResult::Success);
+                self.write_queue.close();
+
+                HandleActionResult::Success
+            }
+            None => {
+                // Write requests are no longer accepted and all existing write requests have
+                // been drained.
+                //
+                // This can happen either when the connection is deemed closed, or when the
+                // stream handle and all subscriptions have been dropped.
+
+                // Send a connection close request on a best-effort basis, but it's fine if it
+                // doesn't work, as all the handles have been closed anyway.
+                if !*close_sent {
+                    tokio::select! {
+                        _ = self.sink.send(Message::Close(None)) => {},
+                        _ = tokio::time::sleep(self.timeout) => {},
+                    };
+                }
+
+                // There's no need to explicitly notify the stream reader to quit (if hasn't
+                // already), as dropping the queue sender already serves that purpose.
+                HandleActionResult::QueueEnded
+            }
+        }
+    }
+
+    async fn handle_meta_action(&mut self, action: Option<MetaAction>) -> HandleActionResult {
+        match action {
+            Some(MetaAction::Ping { payload }) => {
+                tokio::select! {
+                    _ = self.sink.send(Message::Ping(payload)) => {},
+                    _ = tokio::time::sleep(self.timeout) => {},
+                };
+
+                HandleActionResult::Success
+            }
+            Some(MetaAction::Pong { payload }) => {
+                tokio::select! {
+                    _ = self.sink.send(Message::Pong(payload)) => {},
+                    _ = tokio::time::sleep(self.timeout) => {},
+                };
+
+                HandleActionResult::Success
+            }
+            None => HandleActionResult::QueueEnded,
+        }
+    }
     async fn send_request(
         &mut self,
         id: u64,
