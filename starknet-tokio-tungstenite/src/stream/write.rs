@@ -16,10 +16,11 @@ use tokio::{
         mpsc::{UnboundedReceiver, UnboundedSender},
         oneshot::Sender as OneshotSender,
     },
+    time::Instant,
 };
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 use tokio_util::sync::CancellationToken;
-use tungstenite::{Bytes, Message};
+use tungstenite::Message;
 
 use crate::subscription::EventSubscriptionOptions;
 
@@ -31,8 +32,9 @@ use super::{
 /// An internal type for running the write direction of the WebSocket stream in the background.
 pub(crate) struct StreamWriteDriver {
     pub timeout: Duration,
+    pub keepalive_interval: Duration,
+    pub ping_deadline: Instant,
     pub write_queue: UnboundedReceiver<WriteAction>,
-    pub meta_queue: UnboundedReceiver<MetaAction>,
     pub sink: SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>,
     pub read_queue: UnboundedSender<ReadAction>,
     pub disconnection: CancellationToken,
@@ -52,20 +54,6 @@ pub(crate) enum WriteAction {
     Close {
         result: OneshotSender<CloseResult>,
     },
-}
-
-/// WebSocket protocol meta actions.
-///
-/// [`WriteAction`] and [`MetaAction`] are separated because [`StreamWriteDriver`] relies on all
-/// senders of actual application messages to drop to detect that the stream should be closed.
-///
-/// At the same time, [`StreamReadDriver`] requires access to request meta actions. If all actions
-/// were put under [`WriteAction`], then the reader would always hold a sender, resulting in the
-/// writer failing to detect the dropping of all active users.
-#[derive(Debug)]
-pub(crate) enum MetaAction {
-    Ping { payload: Bytes },
-    Pong { payload: Bytes },
 }
 
 #[derive(Debug)]
@@ -105,41 +93,25 @@ impl StreamWriteDriver {
 
     async fn run(mut self) {
         let mut close_sent = false;
-        let mut meta_dropped = false;
 
         loop {
-            if meta_dropped {
-                let write_action = self.write_queue.recv().await;
-                if matches!(
-                    self.handle_write_action(write_action, &mut close_sent)
-                        .await,
-                    HandleActionResult::QueueEnded
-                ) {
-                    // This path is entered only when the stream and all subscriptions have been
-                    // dropped, so it's safe to just drop the writer. No messages are lost.
-                    break;
+            tokio::select! {
+                write_action = self.write_queue.recv() => {
+                    if matches!(
+                        self.handle_write_action(write_action, &mut close_sent).await,
+                        HandleActionResult::QueueEnded
+                    ) {
+                        // This path is entered only when the stream and all subscriptions have been
+                        // dropped, so it's safe to just drop the writer. No messages are lost.
+                        break;
+                    }
                 }
-            } else {
-                tokio::select! {
-                    write_action = self.write_queue.recv() => {
-                        if matches!(
-                            self.handle_write_action(write_action, &mut close_sent).await,
-                            HandleActionResult::QueueEnded
-                        ) {
-                            // This path is entered only when the stream and all subscriptions have
-                            // been dropped, so it's safe to just drop the writer. No messages are
-                            // lost.
-                            break;
-                        }
-                    }
-                    meta_action = self.meta_queue.recv() => {
-                        if matches!(
-                            self.handle_meta_action(meta_action).await,
-                            HandleActionResult::QueueEnded
-                        ) {
-                            meta_dropped = true;
-                        }
-                    }
+                _ = tokio::time::sleep_until(self.ping_deadline) => {
+                    self.ping_deadline += self.keepalive_interval;
+                    tokio::select! {
+                        _ = self.sink.send(Message::Ping(b"Hello".as_slice().into())) => {},
+                        _ = tokio::time::sleep(self.timeout) => {},
+                    };
                 }
             }
         }
@@ -336,27 +308,6 @@ impl StreamWriteDriver {
         }
     }
 
-    async fn handle_meta_action(&mut self, action: Option<MetaAction>) -> HandleActionResult {
-        match action {
-            Some(MetaAction::Ping { payload }) => {
-                tokio::select! {
-                    _ = self.sink.send(Message::Ping(payload)) => {},
-                    _ = tokio::time::sleep(self.timeout) => {},
-                };
-
-                HandleActionResult::Success
-            }
-            Some(MetaAction::Pong { payload }) => {
-                tokio::select! {
-                    _ = self.sink.send(Message::Pong(payload)) => {},
-                    _ = tokio::time::sleep(self.timeout) => {},
-                };
-
-                HandleActionResult::Success
-            }
-            None => HandleActionResult::QueueEnded,
-        }
-    }
     async fn send_request(
         &mut self,
         id: u64,

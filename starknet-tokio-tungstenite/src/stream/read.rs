@@ -1,4 +1,4 @@
-use std::{collections::HashMap, time::Duration};
+use std::collections::HashMap;
 
 use futures_util::{stream::SplitStream, StreamExt};
 use starknet_core::types::SubscriptionId;
@@ -9,13 +9,10 @@ use tokio::{
         mpsc::{UnboundedReceiver, UnboundedSender},
         oneshot::Sender as OneshotSender,
     },
-    time::Instant,
 };
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 use tokio_util::sync::CancellationToken;
 use tungstenite::Message;
-
-use crate::stream::write::MetaAction;
 
 use super::{StreamUpdateOrResponse, SubscriptionIdOrBool, SubscriptionResult, UnsubscribeResult};
 
@@ -24,9 +21,6 @@ pub(crate) struct StreamReadDriver {
     pub registry: HashMap<SubscriptionId, UnboundedSender<StreamUpdateData>>,
     pub pending_subscriptions: HashMap<u64, PendingSubscription>,
     pub pending_unsubscriptions: HashMap<u64, PendingUnsubscription>,
-    pub meta_queue: UnboundedSender<MetaAction>,
-    pub ping_deadline: Instant,
-    pub keepalive_interval: Duration,
     pub stream: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
     pub read_queue: UnboundedReceiver<ReadAction>,
     pub disconnection: CancellationToken,
@@ -105,12 +99,6 @@ impl StreamReadDriver {
                             break
                         }
                     }
-                }
-                _ = tokio::time::sleep_until(self.ping_deadline) => {
-                    self.ping_deadline += self.keepalive_interval;
-                    let _ = self.meta_queue.send(MetaAction::Ping {
-                        payload: b"Hello".as_slice().into(),
-                    });
                 }
             }
         }
@@ -278,10 +266,10 @@ impl StreamReadDriver {
 
                 HandleMessageResult::Success
             }
-            Message::Ping(payload) => {
-                // The server is explicitly requesting a heartbeat.
+            Message::Ping(_) => {
+                // Nothing to do here as `tungstenite` handles `Ping` by internally queuing a `Pong`
+                // response and it will get flushed automatically on the next read.
                 log::trace!("Received Ping message from WebSocket server");
-                let _ = self.meta_queue.send(MetaAction::Pong { payload });
                 HandleMessageResult::Success
             }
             Message::Pong(_) => {

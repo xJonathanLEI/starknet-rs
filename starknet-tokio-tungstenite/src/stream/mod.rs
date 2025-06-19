@@ -21,7 +21,6 @@ use write::{StreamWriteDriver, SubscribeWriteData};
 
 use crate::{
     error::{CloseError, ConnectError, SubscribeError},
-    stream::write::MetaAction,
     subscription::{
         EventSubscriptionOptions, EventsSubscription, NewHeadsSubscription,
         PendingTransactionDetailsSubscription, PendingTransactionHashesSubscription, Subscription,
@@ -296,7 +295,6 @@ impl TungsteniteStream {
         // Using unbounded channel allows for sync queuing
         let (write_queue_tx, write_queue_rx) =
             tokio::sync::mpsc::unbounded_channel::<WriteAction>();
-        let (meta_tx, meta_rx) = tokio::sync::mpsc::unbounded_channel::<MetaAction>();
         let (registration_tx, registration_rx) =
             tokio::sync::mpsc::unbounded_channel::<ReadAction>();
 
@@ -305,8 +303,9 @@ impl TungsteniteStream {
 
         StreamWriteDriver {
             timeout,
+            keepalive_interval,
+            ping_deadline: Instant::now() + keepalive_interval,
             write_queue: write_queue_rx,
-            meta_queue: meta_rx,
             read_queue: registration_tx,
             sink: write,
             disconnection: disconnection_token.clone(),
@@ -317,9 +316,6 @@ impl TungsteniteStream {
             registry: Default::default(),
             pending_subscriptions: Default::default(),
             pending_unsubscriptions: Default::default(),
-            meta_queue: meta_tx,
-            ping_deadline: Instant::now() + keepalive_interval,
-            keepalive_interval,
             stream: read,
             read_queue: registration_rx,
             disconnection: disconnection_token,
