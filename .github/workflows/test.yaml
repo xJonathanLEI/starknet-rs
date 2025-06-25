@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup toolchain
         uses: actions-rs/toolchain@v1
@@ -47,7 +47,7 @@ jobs:
 
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup toolchain
         uses: actions-rs/toolchain@v1
@@ -75,7 +75,7 @@ jobs:
 
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup toolchain
         uses: actions-rs/toolchain@v1
@@ -122,7 +122,7 @@ jobs:
 
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup toolchain
         uses: actions-rs/toolchain@v1
