@@ -122,6 +122,14 @@ impl core::ops::RemAssign<Self> for U256 {
     }
 }
 
+impl core::ops::BitXor for U256 {
+    type Output = Self;
+
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        Self(self.0.bitxor(&rhs.0))
+    }
+}
+
 impl Display for U256 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         if self.0.is_zero().into() {
@@ -386,5 +394,11 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_u256_rem() {
         assert_eq!(U256::from(100u32) % U256::from(3u32), U256::from(1u32));
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_u256_xor() {
+        assert_eq!(U256::from(100u32) ^ U256::from(3u32), U256::from(103u32));
     }
 }
