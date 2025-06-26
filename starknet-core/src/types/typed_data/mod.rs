@@ -491,6 +491,59 @@ mod tests {
         );
     }
 
+    #[cfg(test)]
+    mod message_hash {
+        use super::*;
+
+        #[test]
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+        fn should_hash_message_when_contains_selector() {
+            // Given
+            let typed_data: TypedData = serde_json::from_str(
+                r#"
+{
+  "types": {
+    "StarknetDomain": [
+      { "name": "name", "type": "shortstring" },
+      { "name": "version", "type": "shortstring" },
+      { "name": "chainId", "type": "shortstring" },
+      { "name": "revision", "type": "shortstring" }
+    ],
+    "OutsideExecution": [
+        { "name": "Selector", "type": "selector" }
+    ]
+  },
+  "primaryType": "OutsideExecution",
+  "domain": {
+    "name": "Account.execute_from_outside",
+    "version": "2",
+    "chainId": "SN_SEPOLIA",
+    "revision": "1"
+  },
+  "message": {
+    "Selector": "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e"
+  }
+}"#,
+            )
+                .unwrap();
+
+            // When
+            let result = typed_data
+                .message_hash(Felt::from_hex_unchecked(
+                    "0x05ad30aacd2ef41f64c1c00fb9da8d81f3062069148387af0f34a1cc22319908",
+                ))
+                .unwrap();
+
+            // Then
+            assert_eq!(
+                result,
+                Felt::from_hex("0x696102b3a3a42524c212610910173b84a56a7a25ec8851bcd4bcc31b0d24aa6")
+                    .unwrap()
+            );
+        }
+    }
+    
+
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_message_hash_v1_with_enum_nested() {
