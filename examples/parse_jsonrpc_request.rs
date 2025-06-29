@@ -14,7 +14,7 @@ fn main() {
     let parsed_request =
         serde_json::from_str::<JsonRpcRequest>(raw_request).expect("unable to parse request");
 
-    println!("Request received: {:#?}", parsed_request);
+    println!("Request received: {parsed_request:#?}");
 
     match parsed_request.data {
         ProviderRequestData::GetBlockTransactionCount(req) => {

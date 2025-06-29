@@ -308,8 +308,7 @@ impl<'de> Deserialize<'de> for FieldOrVariantDefinition {
                         // `,` so it seems that whitespaces are allowed.
                         InlineTypeReference::from_str(raw_type.trim()).map_err(|err| {
                             serde::de::Error::custom(format!(
-                                "invalid inline type reference: {}",
-                                err
+                                "invalid inline type reference: {err}"
                             ))
                         })
                     })
@@ -325,7 +324,7 @@ impl<'de> Deserialize<'de> for FieldOrVariantDefinition {
             Ok(Self::Field(FieldDefinition {
                 name: raw.name,
                 r#type: FullTypeReference::from_parts(raw.r#type, raw.contains).map_err(|err| {
-                    serde::de::Error::custom(format!("invalid full type reference: {}", err))
+                    serde::de::Error::custom(format!("invalid full type reference: {err}"))
                 })?,
             }))
         }

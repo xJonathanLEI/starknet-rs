@@ -30,7 +30,7 @@ async fn main() {
                     );
                 }
                 Err(err) => {
-                    eprintln!("Failed to receieve update: {}", err);
+                    eprintln!("Failed to receieve update: {err}");
                 }
             }
         }

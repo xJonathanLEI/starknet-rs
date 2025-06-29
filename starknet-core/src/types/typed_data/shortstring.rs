@@ -88,10 +88,10 @@ where
             }) {
                 serializer.serialize_str(&decoded)
             } else {
-                serializer.serialize_str(&format!("{}", value))
+                serializer.serialize_str(&format!("{value}"))
             }
         }
-        Err(_) => serializer.serialize_str(&format!("{}", value)),
+        Err(_) => serializer.serialize_str(&format!("{value}")),
     }
 }
 

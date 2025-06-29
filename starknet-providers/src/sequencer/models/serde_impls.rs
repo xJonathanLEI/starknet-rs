@@ -7,7 +7,7 @@ pub(crate) mod u64_hex {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&format!("{:#x}", v))
+        serializer.serialize_str(&format!("{v:#x}"))
     }
 
     pub fn deserialize<'de, D>(deserializer: D) -> Result<u64, D::Error>
@@ -43,7 +43,7 @@ pub(crate) mod u128_hex {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&format!("{:#x}", v))
+        serializer.serialize_str(&format!("{v:#x}"))
     }
 
     pub fn deserialize<'de, D>(deserializer: D) -> Result<u128, D::Error>
@@ -80,7 +80,7 @@ pub(crate) mod u64_hex_opt {
         S: serde::Serializer,
     {
         match v {
-            Some(v) => serializer.serialize_str(&format!("{:#x}", v)),
+            Some(v) => serializer.serialize_str(&format!("{v:#x}")),
             None => serializer.serialize_none(),
         }
     }

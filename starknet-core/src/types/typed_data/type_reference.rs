@@ -476,7 +476,7 @@ impl Visitor<'_> for InlineTypeReferenceVisitor {
         E: serde::de::Error,
     {
         InlineTypeReference::from_str(v).map_err(|err| {
-            serde::de::Error::custom(format!("invalid inline type reference: {}", err))
+            serde::de::Error::custom(format!("invalid inline type reference: {err}"))
         })
     }
 }

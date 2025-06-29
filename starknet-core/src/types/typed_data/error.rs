@@ -93,26 +93,25 @@ impl Display for TypedDataError {
             Self::InconsistentRevision { types, domain } => {
                 write!(
                     f,
-                    "`types` implies revision {} but `domain` uses revision {}",
-                    types, domain
+                    "`types` implies revision {types} but `domain` uses revision {domain}"
                 )
             }
-            Self::InvalidTypeName(type_name) => write!(f, "invalid type name: {}", type_name),
+            Self::InvalidTypeName(type_name) => write!(f, "invalid type name: {type_name}"),
             Self::UnexpectedContainsField => {
                 write!(f, "unexpected presence of the `contains` field")
             }
             Self::CustomTypeNotFound(type_name) => {
-                write!(f, "type `{}` not defined", type_name)
+                write!(f, "type `{type_name}` not defined")
             }
             Self::FieldNotFound(field_name) => {
-                write!(f, "field `{}` not found in value", field_name)
+                write!(f, "field `{field_name}` not found in value")
             }
             Self::UnexpectedValueType { expected, actual } => {
-                write!(f, "unexpected value type {}, expecting", actual)?;
+                write!(f, "unexpected value type {actual}, expecting")?;
 
                 let mut kind_iter = expected.iter().peekable();
                 while let Some(kind) = kind_iter.next() {
-                    write!(f, " {}", kind)?;
+                    write!(f, " {kind}")?;
                     if kind_iter.peek().is_some() {
                         write!(f, ",")?;
                     }
@@ -120,39 +119,34 @@ impl Display for TypedDataError {
                 Ok(())
             }
             Self::StructFieldCountMismatch { expected, actual } => {
-                write!(
-                    f,
-                    "expected {} fields in struct but found {}",
-                    expected, actual
-                )
+                write!(f, "expected {expected} fields in struct but found {actual}")
             }
             Self::EnumElementCountMismatch { expected, actual } => {
                 write!(
                     f,
-                    "expected {} elements in enum variant but found {}",
-                    expected, actual
+                    "expected {expected} elements in enum variant but found {actual}"
                 )
             }
             Self::InvalidEnumFieldCount => {
                 write!(f, "enum values must have 1 and only 1 field")
             }
             Self::EnumVariantNotFound(variant_name) => {
-                write!(f, "enum variant `{}` not defined", variant_name)
+                write!(f, "enum variant `{variant_name}` not defined")
             }
             Self::UnexpectedStruct(type_name) => {
-                write!(f, "expected type `{}` to be enum but is struct", type_name)
+                write!(f, "expected type `{type_name}` to be enum but is struct")
             }
             Self::UnexpectedEnum(type_name) => {
-                write!(f, "expected type `{}` to be struct but is enum", type_name)
+                write!(f, "expected type `{type_name}` to be struct but is enum")
             }
             Self::InvalidShortString(short_string) => {
-                write!(f, "\"{}\" is not a valid Cairo short string", short_string)
+                write!(f, "\"{short_string}\" is not a valid Cairo short string")
             }
             Self::InvalidSelector(selector) => {
-                write!(f, "\"{}\" is not a valid function selector", selector)
+                write!(f, "\"{selector}\" is not a valid function selector")
             }
             Self::InvalidNumber(string_repr) => {
-                write!(f, "\"{}\" is not a valid number", string_repr)
+                write!(f, "\"{string_repr}\" is not a valid number")
             }
             Self::EmptyMerkleTree => {
                 write!(f, "`merkletree` values must not be empty")
