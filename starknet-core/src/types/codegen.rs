@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#8cc23b8c0e8ae0a4c6c5ba50a20d274bc0fc9c2a
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#13fea8831fd93c9e31459de7eeb6aeed10ad80a0
 
 // These types are ignored from code generation. Implement them manually:
 // - `RECEIPT_BLOCK`
@@ -5786,7 +5786,7 @@ impl<'de> Deserialize<'de> for AddDeclareTransactionRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 declare_transaction: field0.value,
@@ -5870,7 +5870,7 @@ impl<'de> Deserialize<'de> for AddDeployAccountTransactionRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 deploy_account_transaction: field0.value,
@@ -5954,7 +5954,7 @@ impl<'de> Deserialize<'de> for AddInvokeTransactionRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 invoke_transaction: field0.value,
@@ -6103,13 +6103,13 @@ impl<'de> Deserialize<'de> for CallRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field0 = serde_json::from_value::<Field0>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 request: field0.value,
@@ -6268,19 +6268,19 @@ impl<'de> Deserialize<'de> for EstimateFeeRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field1 = serde_json::from_value::<Field1>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field0 = serde_json::from_value::<Field0>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 request: field0.value,
@@ -6395,13 +6395,13 @@ impl<'de> Deserialize<'de> for EstimateMessageFeeRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field0 = serde_json::from_value::<Field0>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 message: field0.value,
@@ -6487,7 +6487,7 @@ impl<'de> Deserialize<'de> for GetBlockTransactionCountRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 block_id: field0.value,
@@ -6571,7 +6571,7 @@ impl<'de> Deserialize<'de> for GetBlockWithReceiptsRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 block_id: field0.value,
@@ -6655,7 +6655,7 @@ impl<'de> Deserialize<'de> for GetBlockWithTxHashesRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 block_id: field0.value,
@@ -6739,7 +6739,7 @@ impl<'de> Deserialize<'de> for GetBlockWithTxsRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 block_id: field0.value,
@@ -6856,13 +6856,13 @@ impl<'de> Deserialize<'de> for GetClassAtRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field0 = serde_json::from_value::<Field0>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 block_id: field0.value,
@@ -6981,13 +6981,13 @@ impl<'de> Deserialize<'de> for GetClassHashAtRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field0 = serde_json::from_value::<Field0>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 block_id: field0.value,
@@ -7106,13 +7106,13 @@ impl<'de> Deserialize<'de> for GetClassRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field0 = serde_json::from_value::<Field0>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 block_id: field0.value,
@@ -7196,7 +7196,7 @@ impl<'de> Deserialize<'de> for GetEventsRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 filter: field0.value,
@@ -7280,7 +7280,7 @@ impl<'de> Deserialize<'de> for GetMessagesStatusRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 transaction_hash: field0.value,
@@ -7397,13 +7397,13 @@ impl<'de> Deserialize<'de> for GetNonceRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field0 = serde_json::from_value::<Field0>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 block_id: field0.value,
@@ -7489,7 +7489,7 @@ impl<'de> Deserialize<'de> for GetStateUpdateRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 block_id: field0.value,
@@ -7635,19 +7635,19 @@ impl<'de> Deserialize<'de> for GetStorageAtRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field1 = serde_json::from_value::<Field1>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field0 = serde_json::from_value::<Field0>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 contract_address: field0.value,
@@ -7837,7 +7837,7 @@ impl<'de> Deserialize<'de> for GetStorageProofRequest {
             let field3 = if element_count > 3 {
                 Some(
                     serde_json::from_value::<Field3>(elements.pop().unwrap()).map_err(|err| {
-                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                        serde::de::Error::custom(format!("failed to parse element: {err}"))
                     })?,
                 )
             } else {
@@ -7846,7 +7846,7 @@ impl<'de> Deserialize<'de> for GetStorageProofRequest {
             let field2 = if element_count > 2 {
                 Some(
                     serde_json::from_value::<Field2>(elements.pop().unwrap()).map_err(|err| {
-                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                        serde::de::Error::custom(format!("failed to parse element: {err}"))
                     })?,
                 )
             } else {
@@ -7855,7 +7855,7 @@ impl<'de> Deserialize<'de> for GetStorageProofRequest {
             let field1 = if element_count > 1 {
                 Some(
                     serde_json::from_value::<Field1>(elements.pop().unwrap()).map_err(|err| {
-                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                        serde::de::Error::custom(format!("failed to parse element: {err}"))
                     })?,
                 )
             } else {
@@ -7866,7 +7866,7 @@ impl<'de> Deserialize<'de> for GetStorageProofRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 block_id: field0.value,
@@ -7979,13 +7979,13 @@ impl<'de> Deserialize<'de> for GetTransactionByBlockIdAndIndexRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field0 = serde_json::from_value::<Field0>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 block_id: field0.value,
@@ -8077,7 +8077,7 @@ impl<'de> Deserialize<'de> for GetTransactionByHashRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 transaction_hash: field0.value,
@@ -8167,7 +8167,7 @@ impl<'de> Deserialize<'de> for GetTransactionReceiptRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 transaction_hash: field0.value,
@@ -8257,7 +8257,7 @@ impl<'de> Deserialize<'de> for GetTransactionStatusRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 transaction_hash: field0.value,
@@ -8395,19 +8395,19 @@ impl<'de> Deserialize<'de> for SimulateTransactionsRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field1 = serde_json::from_value::<Field1>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field0 = serde_json::from_value::<Field0>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 block_id: field0.value,
@@ -8577,7 +8577,7 @@ impl<'de> Deserialize<'de> for SubscribeEventsRequest {
             let field2 = if element_count > 2 {
                 Some(
                     serde_json::from_value::<Field2>(elements.pop().unwrap()).map_err(|err| {
-                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                        serde::de::Error::custom(format!("failed to parse element: {err}"))
                     })?,
                 )
             } else {
@@ -8586,7 +8586,7 @@ impl<'de> Deserialize<'de> for SubscribeEventsRequest {
             let field1 = if element_count > 1 {
                 Some(
                     serde_json::from_value::<Field1>(elements.pop().unwrap()).map_err(|err| {
-                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                        serde::de::Error::custom(format!("failed to parse element: {err}"))
                     })?,
                 )
             } else {
@@ -8595,7 +8595,7 @@ impl<'de> Deserialize<'de> for SubscribeEventsRequest {
             let field0 = if element_count > 0 {
                 Some(
                     serde_json::from_value::<Field0>(elements.pop().unwrap()).map_err(|err| {
-                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                        serde::de::Error::custom(format!("failed to parse element: {err}"))
                     })?,
                 )
             } else {
@@ -8687,7 +8687,7 @@ impl<'de> Deserialize<'de> for SubscribeNewHeadsRequest {
             let field0 = if element_count > 0 {
                 Some(
                     serde_json::from_value::<Field0>(elements.pop().unwrap()).map_err(|err| {
-                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                        serde::de::Error::custom(format!("failed to parse element: {err}"))
                     })?,
                 )
             } else {
@@ -8813,7 +8813,7 @@ impl<'de> Deserialize<'de> for SubscribePendingTransactionsRequest {
             let field1 = if element_count > 1 {
                 Some(
                     serde_json::from_value::<Field1>(elements.pop().unwrap()).map_err(|err| {
-                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                        serde::de::Error::custom(format!("failed to parse element: {err}"))
                     })?,
                 )
             } else {
@@ -8822,7 +8822,7 @@ impl<'de> Deserialize<'de> for SubscribePendingTransactionsRequest {
             let field0 = if element_count > 0 {
                 Some(
                     serde_json::from_value::<Field0>(elements.pop().unwrap()).map_err(|err| {
-                        serde::de::Error::custom(format!("failed to parse element: {}", err))
+                        serde::de::Error::custom(format!("failed to parse element: {err}"))
                     })?,
                 )
             } else {
@@ -8919,7 +8919,7 @@ impl<'de> Deserialize<'de> for SubscribeTransactionStatusRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 transaction_hash: field0.value,
@@ -9028,13 +9028,13 @@ impl<'de> Deserialize<'de> for SubscriptionEventsRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field0 = serde_json::from_value::<Field0>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 subscription_id: field0.value,
@@ -9145,13 +9145,13 @@ impl<'de> Deserialize<'de> for SubscriptionNewHeadsRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field0 = serde_json::from_value::<Field0>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 subscription_id: field0.value,
@@ -9262,13 +9262,13 @@ impl<'de> Deserialize<'de> for SubscriptionPendingTransactionsRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field0 = serde_json::from_value::<Field0>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 subscription_id: field0.value,
@@ -9379,13 +9379,13 @@ impl<'de> Deserialize<'de> for SubscriptionReorgRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field0 = serde_json::from_value::<Field0>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 subscription_id: field0.value,
@@ -9496,13 +9496,13 @@ impl<'de> Deserialize<'de> for SubscriptionTransactionStatusRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
             let field0 = serde_json::from_value::<Field0>(
                 elements
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 subscription_id: field0.value,
@@ -9607,7 +9607,7 @@ impl<'de> Deserialize<'de> for TraceBlockTransactionsRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 block_id: field0.value,
@@ -9697,7 +9697,7 @@ impl<'de> Deserialize<'de> for TraceTransactionRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 transaction_hash: field0.value,
@@ -9781,7 +9781,7 @@ impl<'de> Deserialize<'de> for UnsubscribeRequest {
                     .pop()
                     .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
             )
-            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {}", err)))?;
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
 
             Ok(Self {
                 subscription_id: field0.value,

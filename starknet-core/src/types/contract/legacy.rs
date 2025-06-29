@@ -611,7 +611,7 @@ impl LegacyContractClass {
         })
         .map_err(|err| {
             ComputeClassHashError::Json(JsonError {
-                message: format!("{}", err),
+                message: format!("{err}"),
             })
         })?;
 
@@ -673,7 +673,7 @@ impl LegacyProgram {
         })
         .map_err(|err| {
             CompressProgramError::Json(JsonError {
-                message: format!("{}", err),
+                message: format!("{err}"),
             })
         })?;
 

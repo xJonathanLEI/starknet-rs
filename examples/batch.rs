@@ -28,8 +28,8 @@ async fn main() {
             ProviderResponseData::BlockNumber(block_number),
             ProviderResponseData::GetBlockTransactionCount(count),
         ) => {
-            println!("The latest block is #{}", block_number);
-            println!("Block #100 has {} transactions", count);
+            println!("The latest block is #{block_number}");
+            println!("Block #100 has {count} transactions");
         }
         _ => panic!("unexpected response type"),
     }
