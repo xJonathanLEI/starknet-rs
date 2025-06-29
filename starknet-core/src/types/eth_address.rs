@@ -129,7 +129,7 @@ impl Visitor<'_> for EthAddressVisitor {
         E: serde::de::Error,
     {
         v.parse()
-            .map_err(|err| serde::de::Error::custom(format!("{}", err)))
+            .map_err(|err| serde::de::Error::custom(format!("{err}")))
     }
 }
 

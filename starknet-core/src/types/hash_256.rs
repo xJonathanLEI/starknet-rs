@@ -120,7 +120,7 @@ impl Visitor<'_> for Hash256Visitor {
         E: serde::de::Error,
     {
         v.parse()
-            .map_err(|err| serde::de::Error::custom(format!("{}", err)))
+            .map_err(|err| serde::de::Error::custom(format!("{err}")))
     }
 
     fn visit_bytes<E: serde::de::Error>(self, v: &[u8]) -> Result<Self::Value, E> {

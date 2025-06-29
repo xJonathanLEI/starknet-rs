@@ -1172,7 +1172,7 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
         }
 
         let error_mapper =
-            |err| serde::de::Error::custom(format!("unable to decode params: {}", err));
+            |err| serde::de::Error::custom(format!("unable to decode params: {err}"));
 
         let raw_request = RawRequest::deserialize(deserializer)?;
         let request_data = match raw_request.method {
@@ -1389,7 +1389,7 @@ impl<'de> Deserialize<'de> for JsonRpcStreamUpdate {
         }
 
         let error_mapper =
-            |err| serde::de::Error::custom(format!("unable to decode params: {}", err));
+            |err| serde::de::Error::custom(format!("unable to decode params: {err}"));
 
         let raw_request = RawRequest::deserialize(deserializer)?;
         let request_data = match raw_request.method {

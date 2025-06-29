@@ -474,10 +474,10 @@ mod errors {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
             match self {
                 Self::InvalidBuiltinName => write!(f, "invalid builtin name"),
-                Self::BytecodeSegmentLengthMismatch(inner) => write!(f, "{}", inner),
-                Self::InvalidBytecodeSegment(inner) => write!(f, "{}", inner),
-                Self::PcOutOfRange(inner) => write!(f, "{}", inner),
-                Self::Json(inner) => write!(f, "json serialization error: {}", inner),
+                Self::BytecodeSegmentLengthMismatch(inner) => write!(f, "{inner}"),
+                Self::InvalidBytecodeSegment(inner) => write!(f, "{inner}"),
+                Self::PcOutOfRange(inner) => write!(f, "{inner}"),
+                Self::Json(inner) => write!(f, "json serialization error: {inner}"),
             }
         }
     }
@@ -489,8 +489,8 @@ mod errors {
     impl Display for CompressProgramError {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
             match self {
-                Self::Json(inner) => write!(f, "json serialization error: {}", inner),
-                Self::Io(inner) => write!(f, "compression io error: {}", inner),
+                Self::Json(inner) => write!(f, "json serialization error: {inner}"),
+                Self::Io(inner) => write!(f, "compression io error: {inner}"),
             }
         }
     }
@@ -557,7 +557,7 @@ impl SierraClass {
         // TODO: add an `AbiFormatter` trait and let users choose which one to use.
         let abi_str = to_string_pythonic(&self.abi).map_err(|err| {
             ComputeClassHashError::Json(JsonError {
-                message: format!("{}", err),
+                message: format!("{err}"),
             })
         })?;
 
@@ -600,7 +600,7 @@ impl SierraClass {
     /// implementations where the Pythoic style one presented here would merely be one of them.
     pub fn flatten(self) -> Result<FlattenedSierraClass, JsonError> {
         let abi = to_string_pythonic(&self.abi).map_err(|err| JsonError {
-            message: format!("{}", err),
+            message: format!("{err}"),
         })?;
 
         Ok(FlattenedSierraClass {

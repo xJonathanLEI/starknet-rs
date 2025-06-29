@@ -478,7 +478,7 @@ impl Error {
     /// expected value.
     pub fn length_mismatch(expected: usize, actual: usize) -> Self {
         Self {
-            repr: format!("expecting length `{}` but got `{}`", expected, actual).into_boxed_str(),
+            repr: format!("expecting length `{expected}` but got `{actual}`").into_boxed_str(),
         }
     }
 
@@ -488,7 +488,7 @@ impl Error {
         V: Display,
     {
         Self {
-            repr: format!("value `{}` is out of range for type `{}`", value, type_name)
+            repr: format!("value `{value}` is out of range for type `{type_name}`")
                 .into_boxed_str(),
         }
     }
@@ -499,8 +499,7 @@ impl Error {
         V: Display,
     {
         Self {
-            repr: format!("enum tag `{}` is unknown for type `{}`", tag, type_name)
-                .into_boxed_str(),
+            repr: format!("enum tag `{tag}` is unknown for type `{type_name}`").into_boxed_str(),
         }
     }
 

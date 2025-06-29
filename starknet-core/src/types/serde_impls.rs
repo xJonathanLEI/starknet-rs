@@ -86,8 +86,7 @@ impl Visitor<'_> for NumAsHexVisitorU64 {
         match v.try_into() {
             Ok(value) => self.visit_u64(value),
             Err(_) => Err(serde::de::Error::custom(format!(
-                "value cannot be negative: {}",
-                v
+                "value cannot be negative: {v}"
             ))),
         }
     }
