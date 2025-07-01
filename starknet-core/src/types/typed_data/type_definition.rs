@@ -43,11 +43,8 @@ pub struct FieldDefinition {
 
 impl FieldDefinition {
     /// Initializes a new field definition.
-    pub fn new(name: &str, r#type: FullTypeReference) -> Self {
-        Self {
-            name: name.to_string(),
-            r#type,
-        }
+    pub fn new(name: String, r#type: FullTypeReference) -> Self {
+        Self { name, r#type }
     }
 }
 
