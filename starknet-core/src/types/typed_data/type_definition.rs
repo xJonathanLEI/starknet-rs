@@ -41,6 +41,13 @@ pub struct FieldDefinition {
     pub r#type: FullTypeReference,
 }
 
+impl FieldDefinition {
+    /// Initializes a new field definition.
+    pub fn new(name: String, r#type: FullTypeReference) -> Self {
+        Self { name, r#type }
+    }
+}
+
 /// Definition of a custom SNIP-12 enum type.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(transparent)]
