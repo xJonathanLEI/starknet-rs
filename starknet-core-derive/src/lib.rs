@@ -128,7 +128,7 @@ pub fn derive_encode(input: TokenStream) -> TokenStream {
                                 let names = fields_unnamed.unnamed.iter().enumerate().map(
                                     |(ind_field, _)| {
                                         syn::Ident::new(
-                                            &format!("field_{}", ind_field),
+                                            &format!("field_{ind_field}"),
                                             Span::call_site(),
                                         )
                                     },
@@ -137,7 +137,7 @@ pub fn derive_encode(input: TokenStream) -> TokenStream {
                                 let field_impls = fields_unnamed.unnamed.iter().enumerate().map(
                                     |(ind_field, field)| {
                                         let field_ident = syn::Ident::new(
-                                            &format!("field_{}", ind_field),
+                                            &format!("field_{ind_field}"),
                                             Span::call_site(),
                                         );
                                         let field_type = &field.ty;

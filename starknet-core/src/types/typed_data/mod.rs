@@ -162,7 +162,7 @@ impl<'de> Deserialize<'de> for TypedData {
 
         let raw = Raw::deserialize(deserializer)?;
         Self::new(raw.types, raw.domain, raw.primary_type, raw.message)
-            .map_err(|err| serde::de::Error::custom(format!("{}", err)))
+            .map_err(|err| serde::de::Error::custom(format!("{err}")))
     }
 }
 

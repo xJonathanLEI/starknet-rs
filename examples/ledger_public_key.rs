@@ -13,6 +13,6 @@ async fn main() {
         .await
         .expect("failed to get public key");
 
-    println!("Path: {}", path);
+    println!("Path: {path}");
     println!("Public key: {:#064x}", public_key.scalar());
 }
