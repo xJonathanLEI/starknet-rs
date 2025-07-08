@@ -259,7 +259,10 @@ pub enum TransactionStatus {
     /// Transaction received and awaiting processing.
     Received,
     /// Transaction rejected due to validation or other reasons.
-    Rejected,
+    Rejected {
+        /// The reason for the transaction to be rejected.
+        reason: String,
+    },
     /// Transaction accepted on Layer 2 with a specific execution status.
     AcceptedOnL2(ExecutionResult),
     /// Transaction accepted on Layer 1 with a specific execution status.
@@ -274,7 +277,7 @@ impl TransactionStatus {
 
     /// Returns `true` if the transaction status is `Rejected`.
     pub const fn is_rejected(&self) -> bool {
-        matches!(self, Self::Rejected)
+        matches!(self, Self::Rejected { .. })
     }
 
     /// Returns `true` if the transaction status is `AcceptedOnL2`.
@@ -636,7 +639,7 @@ impl TransactionStatus {
     pub const fn finality_status(&self) -> SequencerTransactionStatus {
         match self {
             Self::Received => SequencerTransactionStatus::Received,
-            Self::Rejected => SequencerTransactionStatus::Rejected,
+            Self::Rejected { .. } => SequencerTransactionStatus::Rejected,
             Self::AcceptedOnL2(_) => SequencerTransactionStatus::AcceptedOnL2,
             Self::AcceptedOnL1(_) => SequencerTransactionStatus::AcceptedOnL1,
         }

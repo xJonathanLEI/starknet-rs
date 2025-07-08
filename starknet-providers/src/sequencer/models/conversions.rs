@@ -760,7 +760,12 @@ impl TryFrom<TransactionStatusInfo> for core::TransactionStatus {
 
     fn try_from(value: TransactionStatusInfo) -> Result<Self, Self::Error> {
         if value.status.is_rejected() {
-            return Ok(Self::Rejected);
+            return Ok(Self::Rejected {
+                reason: value
+                    .transaction_failure_reason
+                    .map(|reason| reason.error_message.unwrap_or_default())
+                    .unwrap_or_default(),
+            });
         }
 
         let exec_status = match value.execution_status.ok_or(ConversionError)? {
