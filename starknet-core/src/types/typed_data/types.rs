@@ -43,6 +43,14 @@ enum SignatureGenerator<'a> {
 }
 
 impl Types {
+    /// Initializes a new instance of `Types`.
+    pub fn new(revision: Revision, types: IndexMap<String, TypeDefinition, RandomState>) -> Self {
+        Self {
+            revision,
+            user_defined_types: types,
+        }
+    }
+
     /// Gets the revision implied from the definition of the domain type.
     ///
     /// Returns [`Revision::V0`] if and only if only `StarkNetDomain` is defined.
