@@ -125,9 +125,6 @@ async fn jsonrpc_get_storage_at() {
     assert!(eth_balance > Felt::ZERO);
 }
 
-// Test case `jsonrpc_get_transaction_status_rejected` was removed as there is no `REJECTED`
-// transaction on the Sepolia network.
-
 #[tokio::test]
 async fn jsonrpc_get_messages_status_accepted() {
     let rpc_client = create_jsonrpc_client();
@@ -176,6 +173,26 @@ async fn jsonrpc_get_transaction_status_reverted() {
 
     match status {
         TransactionStatus::AcceptedOnL1(ExecutionResult::Reverted { reason }) => {
+            assert!(!reason.is_empty());
+        }
+        _ => panic!("unexpected transaction status"),
+    }
+}
+
+#[tokio::test]
+async fn jsonrpc_get_transaction_status_rejected() {
+    let rpc_client = create_jsonrpc_client();
+
+    let status = rpc_client
+        .get_transaction_status(
+            Felt::from_hex("06db06382db740aefc4a58c1629f919f4e147d6fd1e218aa84151eccbc661596")
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    match status {
+        TransactionStatus::Rejected { reason } => {
             assert!(!reason.is_empty());
         }
         _ => panic!("unexpected transaction status"),

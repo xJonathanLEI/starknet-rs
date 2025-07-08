@@ -403,10 +403,10 @@ mod transaction_status {
                     execution_status: None,
                     failure_reason: None,
                 },
-                Self::Rejected => RawRef {
+                Self::Rejected { reason } => RawRef {
                     finality_status: SequencerTransactionStatus::Rejected,
                     execution_status: None,
-                    failure_reason: None,
+                    failure_reason: Some(reason),
                 },
                 Self::AcceptedOnL2(exe) => RawRef {
                     finality_status: SequencerTransactionStatus::AcceptedOnL2,
@@ -443,7 +443,9 @@ mod transaction_status {
                 raw.failure_reason,
             ) {
                 (SequencerTransactionStatus::Received, None, None) => Ok(Self::Received),
-                (SequencerTransactionStatus::Rejected, None, None) => Ok(Self::Rejected),
+                (SequencerTransactionStatus::Rejected, None, Some(reason)) => {
+                    Ok(Self::Rejected { reason })
+                }
                 (SequencerTransactionStatus::AcceptedOnL2, Some(exe), reason) => {
                     Ok(Self::AcceptedOnL2(parse_exe::<D>(exe, reason)?))
                 }
