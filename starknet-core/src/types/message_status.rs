@@ -3,34 +3,22 @@ use alloc::string::*;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
-use crate::types::{Felt, SequencerTransactionStatus, UfeHex};
+use crate::types::{
+    ExecutionResult, Felt, TransactionExecutionStatus, TransactionFinalityStatus, UfeHex,
+};
 
 /// Handler transaction hash and status of an L1->L2 message.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct MessageWithStatus {
+pub struct MessageStatus {
     /// Transaction hash of the `L1_HANDLER` transaction hash on Starknet.
     pub transaction_hash: Felt,
     /// Message finality status.
-    pub status: MessageStatus,
+    pub finality_status: TransactionFinalityStatus,
+    /// Message handler execution result.
+    pub execution_result: ExecutionResult,
 }
 
-/// Finality status of an L1->L2 message.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum MessageStatus {
-    /// The `L1_HANDLER` transaction has `RECEIVED` status.
-    Received,
-    /// The `L1_HANDLER` transaction has `REJECTED` status.
-    Rejected {
-        /// The reason that the message was rejected.
-        reason: String,
-    },
-    /// The `L1_HANDLER` transaction has `ACCEPTED_ON_L2` status.
-    AcceptedOnL2,
-    /// The `L1_HANDLER` transaction has `ACCEPTED_ON_L1` status.
-    AcceptedOnL1,
-}
-
-impl Serialize for MessageWithStatus {
+impl Serialize for MessageStatus {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -40,31 +28,24 @@ impl Serialize for MessageWithStatus {
         struct Raw<'a> {
             #[serde_as(as = "UfeHex")]
             transaction_hash: &'a Felt,
-            finality_status: SequencerTransactionStatus,
+            finality_status: TransactionFinalityStatus,
+            execution_status: TransactionExecutionStatus,
             #[serde(skip_serializing_if = "Option::is_none")]
             failure_reason: Option<&'a str>,
         }
 
-        let raw = match &self.status {
-            MessageStatus::Received => Raw {
+        let raw = match &self.execution_result {
+            ExecutionResult::Succeeded => Raw {
                 transaction_hash: &self.transaction_hash,
-                finality_status: SequencerTransactionStatus::Received,
+                finality_status: self.finality_status,
+                execution_status: TransactionExecutionStatus::Succeeded,
                 failure_reason: None,
             },
-            MessageStatus::Rejected { reason } => Raw {
+            ExecutionResult::Reverted { reason } => Raw {
                 transaction_hash: &self.transaction_hash,
-                finality_status: SequencerTransactionStatus::Rejected,
+                finality_status: self.finality_status,
+                execution_status: TransactionExecutionStatus::Reverted,
                 failure_reason: Some(reason),
-            },
-            MessageStatus::AcceptedOnL2 => Raw {
-                transaction_hash: &self.transaction_hash,
-                finality_status: SequencerTransactionStatus::AcceptedOnL2,
-                failure_reason: None,
-            },
-            MessageStatus::AcceptedOnL1 => Raw {
-                transaction_hash: &self.transaction_hash,
-                finality_status: SequencerTransactionStatus::AcceptedOnL1,
-                failure_reason: None,
             },
         };
 
@@ -72,7 +53,7 @@ impl Serialize for MessageWithStatus {
     }
 }
 
-impl<'de> Deserialize<'de> for MessageWithStatus {
+impl<'de> Deserialize<'de> for MessageStatus {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -83,38 +64,34 @@ impl<'de> Deserialize<'de> for MessageWithStatus {
         struct Raw {
             #[serde_as(as = "UfeHex")]
             transaction_hash: Felt,
-            finality_status: SequencerTransactionStatus,
+            finality_status: TransactionFinalityStatus,
+            execution_status: TransactionExecutionStatus,
             failure_reason: Option<String>,
         }
 
         let raw = Raw::deserialize(deserializer)?;
 
-        let status =
-            match (raw.finality_status, raw.failure_reason) {
-                (SequencerTransactionStatus::Received, None) => MessageStatus::Received,
-                (SequencerTransactionStatus::Rejected, Some(reason)) => {
-                    MessageStatus::Rejected { reason }
-                }
-                (SequencerTransactionStatus::AcceptedOnL2, None) => MessageStatus::AcceptedOnL2,
-                (SequencerTransactionStatus::AcceptedOnL1, None) => MessageStatus::AcceptedOnL1,
-                (
-                    SequencerTransactionStatus::Received
-                    | SequencerTransactionStatus::AcceptedOnL2
-                    | SequencerTransactionStatus::AcceptedOnL1,
-                    Some(_),
-                ) => return Err(serde::de::Error::custom(
-                    "field `failure_reason` must not exist unless `finality_status` is `REJECTED`",
-                )),
-                (SequencerTransactionStatus::Rejected, None) => {
-                    return Err(serde::de::Error::custom(
-                        "field `failure_reason` must exist when `finality_status` is `REJECTED`",
-                    ))
-                }
-            };
+        let execution_result = match (raw.execution_status, raw.failure_reason) {
+            (TransactionExecutionStatus::Succeeded, None) => ExecutionResult::Succeeded,
+            (TransactionExecutionStatus::Reverted, Some(reason)) => {
+                ExecutionResult::Reverted { reason }
+            }
+            (TransactionExecutionStatus::Succeeded, Some(_)) => {
+                return Err(serde::de::Error::custom(
+                    "field `failure_reason` must not exist unless `execution_status` is `REVERTED`",
+                ))
+            }
+            (TransactionExecutionStatus::Reverted, None) => {
+                return Err(serde::de::Error::custom(
+                    "field `failure_reason` must exist when `execution_status` is `REVERTED`",
+                ))
+            }
+        };
 
         Ok(Self {
             transaction_hash: raw.transaction_hash,
-            status,
+            finality_status: raw.finality_status,
+            execution_result,
         })
     }
 }

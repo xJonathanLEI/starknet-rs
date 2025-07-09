@@ -27,7 +27,7 @@ use std::time::Duration;
 #[tokio::main]
 async fn main() {
     // Connect to a Starknet node with WebSocket support
-    let stream = TungsteniteStream::connect("ws://localhost:9545/rpc/v0_8", Duration::from_secs(5))
+    let stream = TungsteniteStream::connect("ws://localhost:9545/rpc/v0_9", Duration::from_secs(5))
         .await
         .unwrap();
 

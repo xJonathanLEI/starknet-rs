@@ -9,8 +9,8 @@ use starknet_core::types::{
     ConfirmedBlockId, ContractClass, ContractStorageKeys, DeclareTransactionResult,
     DeployAccountTransactionResult, EventFilter, EventsPage, FeeEstimate, Felt, FunctionCall,
     Hash256, InvokeTransactionResult, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
-    MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageWithStatus, MsgFromL1,
-    SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, StarknetError,
+    MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageFeeEstimate, MessageStatus,
+    MsgFromL1, SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, StarknetError,
     StorageProof, SyncStatusType, Transaction, TransactionReceiptWithBlockInfo, TransactionStatus,
     TransactionTrace, TransactionTraceWithHash,
 };
@@ -105,7 +105,7 @@ impl Provider for SequencerGatewayProvider {
     async fn get_messages_status(
         &self,
         transaction_hash: Hash256,
-    ) -> Result<Vec<MessageWithStatus>, ProviderError> {
+    ) -> Result<Vec<MessageStatus>, ProviderError> {
         Err(ProviderError::Other(Box::new(
             GatewayClientError::MethodNotSupported,
         )))
@@ -268,7 +268,7 @@ impl Provider for SequencerGatewayProvider {
         &self,
         message: M,
         block_id: B,
-    ) -> Result<FeeEstimate, ProviderError>
+    ) -> Result<MessageFeeEstimate, ProviderError>
     where
         M: AsRef<MsgFromL1> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
@@ -435,7 +435,7 @@ impl Provider for SequencerGatewayProvider {
         block_id: B,
     ) -> Result<Vec<TransactionTraceWithHash>, ProviderError>
     where
-        B: AsRef<BlockId> + Send + Sync,
+        B: AsRef<ConfirmedBlockId> + Send + Sync,
     {
         // With JSON-RPC v0.5.0 it's no longer possible to convert feeder traces to JSON-RPC traces. So we simply pretend that it's not supported here.
         //
