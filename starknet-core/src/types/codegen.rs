@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#13fea8831fd93c9e31459de7eeb6aeed10ad80a0
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#0acfcf0c9a3eb76fa71e6785a78ab7167f93c669
 
 // These types are ignored from code generation. Implement them manually:
 // - `RECEIPT_BLOCK`
@@ -120,8 +120,8 @@ pub struct BlockHeader {
 /// The status of the block.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BlockStatus {
-    #[serde(rename = "PENDING")]
-    Pending,
+    #[serde(rename = "PRE_CONFIRMED")]
+    PreConfirmed,
     #[serde(rename = "ACCEPTED_ON_L2")]
     AcceptedOnL2,
     #[serde(rename = "ACCEPTED_ON_L1")]
@@ -137,8 +137,8 @@ pub enum BlockStatus {
 pub enum BlockTag {
     #[serde(rename = "latest")]
     Latest,
-    #[serde(rename = "pending")]
-    Pending,
+    #[serde(rename = "pre_confirmed")]
+    PreConfirmed,
 }
 
 /// Block with transactions and receipts.
@@ -664,8 +664,7 @@ pub struct DeployAccountTransactionReceipt {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeployAccountTransactionTrace {
     pub validate_invocation: Option<FunctionInvocation>,
-    /// The trace of the __execute__ call or constructor call, depending on the transaction type
-    /// (none for declare transactions)
+    /// The trace of the constructor call
     pub constructor_invocation: FunctionInvocation,
     pub fee_transfer_invocation: Option<FunctionInvocation>,
     /// The state diffs induced by the transaction
@@ -839,8 +838,8 @@ pub struct DeployedContractItem {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct EdgeNode {
-    /// An integer whose binary representation represents the path from the current node to its
-    /// highest non-zero descendant (bounded by 2^251)
+    /// An unsigned integer whose binary representation represents the path from the current node to
+    /// its highest non-zero descendant (bounded by 2^251)
     #[serde_as(as = "UfeHex")]
     pub path: Felt,
     /// The length of the path (bounded by 251)
@@ -983,39 +982,28 @@ pub struct ExecutionResources {
 }
 
 /// Fee estimation.
-#[serde_as]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FeeEstimate {
     /// The Ethereum gas consumption of the transaction, charged for L1->L2 messages and, depending
     /// on the block's da_mode, state diffs
-    #[serde_as(as = "NumAsHex")]
     pub l1_gas_consumed: u64,
     /// The gas price (in wei or fri, depending on the tx version) that was used in the cost
     /// estimation
-    #[serde_as(as = "NumAsHex")]
     pub l1_gas_price: u128,
     /// The L2 gas consumption of the transaction
-    #[serde_as(as = "NumAsHex")]
     pub l2_gas_consumed: u64,
     /// The L2 gas price (in wei or fri, depending on the tx version) that was used in the cost
     /// estimation
-    #[serde_as(as = "NumAsHex")]
     pub l2_gas_price: u128,
     /// The Ethereum data gas consumption of the transaction
-    #[serde_as(as = "NumAsHex")]
     pub l1_data_gas_consumed: u64,
     /// The data gas price (in wei or fri, depending on the tx version) that was used in the cost
     /// estimation
-    #[serde_as(as = "NumAsHex")]
     pub l1_data_gas_price: u128,
     /// The estimated fee for the transaction (in wei or fri, depending on the tx version), equals
     /// to l1_gas_consumed*l1_gas_price + l1_data_gas_consumed*l1_data_gas_price +
     /// l2_gas_consumed*l2_gas_price
-    #[serde_as(as = "NumAsHex")]
     pub overall_fee: u128,
-    /// Units in which the fee is given
-    pub unit: PriceUnit,
 }
 
 /// Fee payment.
@@ -1385,9 +1373,8 @@ pub struct L1HandlerTransactionReceipt {
 /// The execution trace of an L1 handler transaction.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct L1HandlerTransactionTrace {
-    /// The trace of the __execute__ call or constructor call, depending on the transaction type
-    /// (none for declare transactions)
-    pub function_invocation: FunctionInvocation,
+    /// The trace of the L1 handler call
+    pub function_invocation: ExecuteInvocation,
     /// The state diffs induced by the transaction
     pub state_diff: Option<StateDiff>,
     /// The resources consumed by the transaction, includes both computation and data
@@ -1515,6 +1502,31 @@ pub struct LegacyTypedParameter {
     pub r#type: String,
 }
 
+/// Message fee estimation.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MessageFeeEstimate {
+    /// The Ethereum gas consumption of the transaction, charged for L1->L2 messages and, depending
+    /// on the block's da_mode, state diffs
+    pub l1_gas_consumed: u64,
+    /// The gas price (in wei or fri, depending on the tx version) that was used in the cost
+    /// estimation
+    pub l1_gas_price: u128,
+    /// The L2 gas consumption of the transaction
+    pub l2_gas_consumed: u64,
+    /// The L2 gas price (in wei or fri, depending on the tx version) that was used in the cost
+    /// estimation
+    pub l2_gas_price: u128,
+    /// The Ethereum data gas consumption of the transaction
+    pub l1_data_gas_consumed: u64,
+    /// The data gas price (in wei or fri, depending on the tx version) that was used in the cost
+    /// estimation
+    pub l1_data_gas_price: u128,
+    /// The estimated fee for the transaction (in wei or fri, depending on the tx version), equals
+    /// to l1_gas_consumed*l1_gas_price + l1_data_gas_consumed*l1_data_gas_price +
+    /// l2_gas_consumed*l2_gas_price
+    pub overall_fee: u128,
+}
+
 /// Message from L1.
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -1619,19 +1631,19 @@ pub struct OrderedMessage {
     pub payload: Vec<Felt>,
 }
 
-/// Pending block with transactions and receipts.
+/// Pre-confirmed block with transactions and receipts.
 ///
 /// The dynamic block being constructed by the sequencer. Note that this object will be deprecated
 /// upon decentralization.
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct PendingBlockWithReceipts {
+pub struct PreConfirmedBlockWithReceipts {
     /// The transactions in this block
     pub transactions: Vec<TransactionWithReceipt>,
-    /// The hash of this block's parent
-    #[serde_as(as = "UfeHex")]
-    pub parent_hash: Felt,
+    /// The block number of the block that the proposer is currently building. Note that this is a
+    /// local view of the node, whose accuracy depends on its polling interval length.
+    pub block_number: u64,
     /// The time in which the block was created, encoded in Unix time
     pub timestamp: u64,
     /// The Starknet identity of the sequencer submitting this block
@@ -1649,20 +1661,20 @@ pub struct PendingBlockWithReceipts {
     pub starknet_version: String,
 }
 
-/// Pending block with transaction hashes.
+/// Pre-confirmed block with transaction hashes.
 ///
 /// The dynamic block being constructed by the sequencer. Note that this object will be deprecated
 /// upon decentralization.
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct PendingBlockWithTxHashes {
+pub struct PreConfirmedBlockWithTxHashes {
     /// The hashes of the transactions included in this block
     #[serde_as(as = "Vec<UfeHex>")]
     pub transactions: Vec<Felt>,
-    /// The hash of this block's parent
-    #[serde_as(as = "UfeHex")]
-    pub parent_hash: Felt,
+    /// The block number of the block that the proposer is currently building. Note that this is a
+    /// local view of the node, whose accuracy depends on its polling interval length.
+    pub block_number: u64,
     /// The time in which the block was created, encoded in Unix time
     pub timestamp: u64,
     /// The Starknet identity of the sequencer submitting this block
@@ -1680,19 +1692,19 @@ pub struct PendingBlockWithTxHashes {
     pub starknet_version: String,
 }
 
-/// Pending block with transactions.
+/// Pre-confirmed block with transactions.
 ///
 /// The dynamic block being constructed by the sequencer. Note that this object will be deprecated
 /// upon decentralization.
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct PendingBlockWithTxs {
+pub struct PreConfirmedBlockWithTxs {
     /// The transactions in this block
     pub transactions: Vec<Transaction>,
-    /// The hash of this block's parent
-    #[serde_as(as = "UfeHex")]
-    pub parent_hash: Felt,
+    /// The block number of the block that the proposer is currently building. Note that this is a
+    /// local view of the node, whose accuracy depends on its polling interval length.
+    pub block_number: u64,
     /// The time in which the block was created, encoded in Unix time
     pub timestamp: u64,
     /// The Starknet identity of the sequencer submitting this block
@@ -1710,13 +1722,13 @@ pub struct PendingBlockWithTxs {
     pub starknet_version: String,
 }
 
-/// Pending state update.
+/// Pre-confirmed state update.
 ///
-/// Pending state update.
+/// Pre-confirmed state update.
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
-pub struct PendingStateUpdate {
+pub struct PreConfirmedStateUpdate {
     /// The previous global state root
     #[serde_as(as = "UfeHex")]
     pub old_root: Felt,
@@ -1725,12 +1737,28 @@ pub struct PendingStateUpdate {
 }
 
 /// Price unit.
+///
+/// Units in which the fee is given.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PriceUnit {
     #[serde(rename = "WEI")]
     Wei,
     #[serde(rename = "FRI")]
     Fri,
+}
+
+/// Price unit fri.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum PriceUnitFri {
+    #[serde(rename = "FRI")]
+    Fri,
+}
+
+/// Price unit wei.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum PriceUnitWei {
+    #[serde(rename = "WEI")]
+    Wei,
 }
 
 /// Reorg data.
@@ -1817,7 +1845,7 @@ pub struct ResultPageRequest {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
 pub struct RevertedInvocation {
-    /// The revert reason for the failed execution
+    /// The revert reason for the failed invocation
     pub revert_reason: String,
 }
 
@@ -1829,8 +1857,10 @@ pub struct RevertedInvocation {
 pub enum SequencerTransactionStatus {
     #[serde(rename = "RECEIVED")]
     Received,
-    #[serde(rename = "REJECTED")]
-    Rejected,
+    #[serde(rename = "CANDIDATE")]
+    Candidate,
+    #[serde(rename = "PRE_CONFIRMED")]
+    PreConfirmed,
     #[serde(rename = "ACCEPTED_ON_L2")]
     AcceptedOnL2,
     #[serde(rename = "ACCEPTED_ON_L1")]
@@ -1912,7 +1942,7 @@ pub enum StarknetError {
     /// Class already declared
     ClassAlreadyDeclared,
     /// Invalid transaction nonce
-    InvalidTransactionNonce,
+    InvalidTransactionNonce(String),
     /// The transaction's resources don't cover validation or the minimal transaction fee
     InsufficientResourcesForValidate,
     /// Account balance is smaller than the transaction's maximal fee (calculated as the sum of each
@@ -1922,9 +1952,9 @@ pub enum StarknetError {
     ValidationFailure(String),
     /// Compilation failed
     CompilationFailed(String),
-    /// Contract class size it too large
+    /// Contract class size is too large
     ContractClassSizeIsTooLarge,
-    /// Sender address in not an account contract
+    /// Sender address is not an account contract
     NonAccount,
     /// A transaction with the same hash already exists in the mempool
     DuplicateTx,
@@ -1936,6 +1966,10 @@ pub enum StarknetError {
     UnsupportedContractClassVersion,
     /// An unexpected error occurred
     UnexpectedError(String),
+    /// Replacement transaction is underpriced
+    ReplacementTransactionUnderpriced,
+    /// Transaction fee below minimum
+    FeeBelowMinimum,
     /// No trace available for transaction
     NoTraceAvailable(NoTraceAvailableErrorData),
     /// Invalid subscription id
@@ -1967,7 +2001,7 @@ impl core::fmt::Display for StarknetError {
             Self::TransactionExecutionError(e) => write!(f, "TransactionExecutionError: {e:?}"),
             Self::StorageProofNotSupported => write!(f, "StorageProofNotSupported"),
             Self::ClassAlreadyDeclared => write!(f, "ClassAlreadyDeclared"),
-            Self::InvalidTransactionNonce => write!(f, "InvalidTransactionNonce"),
+            Self::InvalidTransactionNonce(e) => write!(f, "InvalidTransactionNonce: {e:?}"),
             Self::InsufficientResourcesForValidate => write!(f, "InsufficientResourcesForValidate"),
             Self::InsufficientAccountBalance => write!(f, "InsufficientAccountBalance"),
             Self::ValidationFailure(e) => write!(f, "ValidationFailure: {e:?}"),
@@ -1979,6 +2013,10 @@ impl core::fmt::Display for StarknetError {
             Self::UnsupportedTxVersion => write!(f, "UnsupportedTxVersion"),
             Self::UnsupportedContractClassVersion => write!(f, "UnsupportedContractClassVersion"),
             Self::UnexpectedError(e) => write!(f, "UnexpectedError: {e:?}"),
+            Self::ReplacementTransactionUnderpriced => {
+                write!(f, "ReplacementTransactionUnderpriced")
+            }
+            Self::FeeBelowMinimum => write!(f, "FeeBelowMinimum"),
             Self::NoTraceAvailable(e) => write!(f, "NoTraceAvailable: {e:?}"),
             Self::InvalidSubscriptionId => write!(f, "InvalidSubscriptionId"),
             Self::TooManyAddressesInFilter => write!(f, "TooManyAddressesInFilter"),
@@ -2005,7 +2043,7 @@ impl StarknetError {
             Self::TransactionExecutionError(_) => 41,
             Self::StorageProofNotSupported => 42,
             Self::ClassAlreadyDeclared => 51,
-            Self::InvalidTransactionNonce => 52,
+            Self::InvalidTransactionNonce(_) => 52,
             Self::InsufficientResourcesForValidate => 53,
             Self::InsufficientAccountBalance => 54,
             Self::ValidationFailure(_) => 55,
@@ -2017,6 +2055,8 @@ impl StarknetError {
             Self::UnsupportedTxVersion => 61,
             Self::UnsupportedContractClassVersion => 62,
             Self::UnexpectedError(_) => 63,
+            Self::ReplacementTransactionUnderpriced => 64,
+            Self::FeeBelowMinimum => 65,
             Self::NoTraceAvailable(_) => 10,
             Self::InvalidSubscriptionId => 66,
             Self::TooManyAddressesInFilter => 67,
@@ -2045,7 +2085,7 @@ impl StarknetError {
                 "the node doesn't support storage proofs for blocks that are too far in the past"
             }
             Self::ClassAlreadyDeclared => "Class already declared",
-            Self::InvalidTransactionNonce => "Invalid transaction nonce",
+            Self::InvalidTransactionNonce(_) => "Invalid transaction nonce",
             Self::InsufficientResourcesForValidate => {
                 "The transaction's resources don't cover validation or the minimal transaction fee"
             }
@@ -2054,8 +2094,8 @@ impl StarknetError {
             }
             Self::ValidationFailure(_) => "Account validation failed",
             Self::CompilationFailed(_) => "Compilation failed",
-            Self::ContractClassSizeIsTooLarge => "Contract class size it too large",
-            Self::NonAccount => "Sender address in not an account contract",
+            Self::ContractClassSizeIsTooLarge => "Contract class size is too large",
+            Self::NonAccount => "Sender address is not an account contract",
             Self::DuplicateTx => "A transaction with the same hash already exists in the mempool",
             Self::CompiledClassHashMismatch => {
                 "the compiled class hash did not match the one supplied in the transaction"
@@ -2063,6 +2103,8 @@ impl StarknetError {
             Self::UnsupportedTxVersion => "the transaction version is not supported",
             Self::UnsupportedContractClassVersion => "the contract class version is not supported",
             Self::UnexpectedError(_) => "An unexpected error occurred",
+            Self::ReplacementTransactionUnderpriced => "Replacement transaction is underpriced",
+            Self::FeeBelowMinimum => "Transaction fee below minimum",
             Self::NoTraceAvailable(_) => "No trace available for transaction",
             Self::InvalidSubscriptionId => "Invalid subscription id",
             Self::TooManyAddressesInFilter => "Too many addresses in filter sender_address filter",
@@ -2191,6 +2233,8 @@ pub enum TransactionExecutionStatus {
 /// The finality status of the transaction.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TransactionFinalityStatus {
+    #[serde(rename = "PRE_CONFIRMED")]
+    PreConfirmed,
     #[serde(rename = "ACCEPTED_ON_L2")]
     AcceptedOnL2,
     #[serde(rename = "ACCEPTED_ON_L1")]
@@ -2731,13 +2775,13 @@ pub struct SyncingRequest;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TraceBlockTransactionsRequest {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
-    pub block_id: BlockId,
+    pub block_id: ConfirmedBlockId,
 }
 
 /// Reference version of [TraceBlockTransactionsRequest].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TraceBlockTransactionsRequestRef<'a> {
-    pub block_id: &'a BlockId,
+    pub block_id: &'a ConfirmedBlockId,
 }
 
 /// Request for method starknet_traceTransaction
@@ -4745,6 +4789,88 @@ impl<'de> Deserialize<'de> for DeployTransactionReceipt {
     }
 }
 
+impl Serialize for FeeEstimate {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct Tagged<'a> {
+            #[serde_as(as = "NumAsHex")]
+            pub l1_gas_consumed: &'a u64,
+            #[serde_as(as = "NumAsHex")]
+            pub l1_gas_price: &'a u128,
+            #[serde_as(as = "NumAsHex")]
+            pub l2_gas_consumed: &'a u64,
+            #[serde_as(as = "NumAsHex")]
+            pub l2_gas_price: &'a u128,
+            #[serde_as(as = "NumAsHex")]
+            pub l1_data_gas_consumed: &'a u64,
+            #[serde_as(as = "NumAsHex")]
+            pub l1_data_gas_price: &'a u128,
+            #[serde_as(as = "NumAsHex")]
+            pub overall_fee: &'a u128,
+            pub unit: &'a PriceUnitFri,
+        }
+
+        let unit = &PriceUnitFri::Fri;
+
+        let tagged = Tagged {
+            l1_gas_consumed: &self.l1_gas_consumed,
+            l1_gas_price: &self.l1_gas_price,
+            l2_gas_consumed: &self.l2_gas_consumed,
+            l2_gas_price: &self.l2_gas_price,
+            l1_data_gas_consumed: &self.l1_data_gas_consumed,
+            l1_data_gas_price: &self.l1_data_gas_price,
+            overall_fee: &self.overall_fee,
+            unit,
+        };
+
+        Tagged::serialize(&tagged, serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for FeeEstimate {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+        struct Tagged {
+            #[serde_as(as = "NumAsHex")]
+            pub l1_gas_consumed: u64,
+            #[serde_as(as = "NumAsHex")]
+            pub l1_gas_price: u128,
+            #[serde_as(as = "NumAsHex")]
+            pub l2_gas_consumed: u64,
+            #[serde_as(as = "NumAsHex")]
+            pub l2_gas_price: u128,
+            #[serde_as(as = "NumAsHex")]
+            pub l1_data_gas_consumed: u64,
+            #[serde_as(as = "NumAsHex")]
+            pub l1_data_gas_price: u128,
+            #[serde_as(as = "NumAsHex")]
+            pub overall_fee: u128,
+            pub unit: Option<PriceUnitFri>,
+        }
+
+        let tagged = Tagged::deserialize(deserializer)?;
+
+        if let Some(tag_field) = &tagged.unit {
+            if tag_field != &PriceUnitFri::Fri {
+                return Err(serde::de::Error::custom("invalid `unit` value"));
+            }
+        }
+
+        Ok(Self {
+            l1_gas_consumed: tagged.l1_gas_consumed,
+            l1_gas_price: tagged.l1_gas_price,
+            l2_gas_consumed: tagged.l2_gas_consumed,
+            l2_gas_price: tagged.l2_gas_price,
+            l1_data_gas_consumed: tagged.l1_data_gas_consumed,
+            l1_data_gas_price: tagged.l1_data_gas_price,
+            overall_fee: tagged.overall_fee,
+        })
+    }
+}
+
 impl Serialize for InvokeTransactionReceipt {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[serde_as]
@@ -5669,7 +5795,7 @@ impl Serialize for L1HandlerTransactionTrace {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         struct Tagged<'a> {
-            pub function_invocation: &'a FunctionInvocation,
+            pub function_invocation: &'a ExecuteInvocation,
             #[serde(skip_serializing_if = "Option::is_none")]
             pub state_diff: &'a Option<StateDiff>,
             pub execution_resources: &'a ExecutionResources,
@@ -5694,7 +5820,7 @@ impl<'de> Deserialize<'de> for L1HandlerTransactionTrace {
         #[derive(Deserialize)]
         #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
         struct Tagged {
-            pub function_invocation: FunctionInvocation,
+            pub function_invocation: ExecuteInvocation,
             #[serde(skip_serializing_if = "Option::is_none")]
             pub state_diff: Option<StateDiff>,
             pub execution_resources: ExecutionResources,
@@ -5713,6 +5839,88 @@ impl<'de> Deserialize<'de> for L1HandlerTransactionTrace {
             function_invocation: tagged.function_invocation,
             state_diff: tagged.state_diff,
             execution_resources: tagged.execution_resources,
+        })
+    }
+}
+
+impl Serialize for MessageFeeEstimate {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[serde_as]
+        #[derive(Serialize)]
+        struct Tagged<'a> {
+            #[serde_as(as = "NumAsHex")]
+            pub l1_gas_consumed: &'a u64,
+            #[serde_as(as = "NumAsHex")]
+            pub l1_gas_price: &'a u128,
+            #[serde_as(as = "NumAsHex")]
+            pub l2_gas_consumed: &'a u64,
+            #[serde_as(as = "NumAsHex")]
+            pub l2_gas_price: &'a u128,
+            #[serde_as(as = "NumAsHex")]
+            pub l1_data_gas_consumed: &'a u64,
+            #[serde_as(as = "NumAsHex")]
+            pub l1_data_gas_price: &'a u128,
+            #[serde_as(as = "NumAsHex")]
+            pub overall_fee: &'a u128,
+            pub unit: &'a PriceUnitWei,
+        }
+
+        let unit = &PriceUnitWei::Wei;
+
+        let tagged = Tagged {
+            l1_gas_consumed: &self.l1_gas_consumed,
+            l1_gas_price: &self.l1_gas_price,
+            l2_gas_consumed: &self.l2_gas_consumed,
+            l2_gas_price: &self.l2_gas_price,
+            l1_data_gas_consumed: &self.l1_data_gas_consumed,
+            l1_data_gas_price: &self.l1_data_gas_price,
+            overall_fee: &self.overall_fee,
+            unit,
+        };
+
+        Tagged::serialize(&tagged, serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for MessageFeeEstimate {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[serde_as]
+        #[derive(Deserialize)]
+        #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+        struct Tagged {
+            #[serde_as(as = "NumAsHex")]
+            pub l1_gas_consumed: u64,
+            #[serde_as(as = "NumAsHex")]
+            pub l1_gas_price: u128,
+            #[serde_as(as = "NumAsHex")]
+            pub l2_gas_consumed: u64,
+            #[serde_as(as = "NumAsHex")]
+            pub l2_gas_price: u128,
+            #[serde_as(as = "NumAsHex")]
+            pub l1_data_gas_consumed: u64,
+            #[serde_as(as = "NumAsHex")]
+            pub l1_data_gas_price: u128,
+            #[serde_as(as = "NumAsHex")]
+            pub overall_fee: u128,
+            pub unit: Option<PriceUnitWei>,
+        }
+
+        let tagged = Tagged::deserialize(deserializer)?;
+
+        if let Some(tag_field) = &tagged.unit {
+            if tag_field != &PriceUnitWei::Wei {
+                return Err(serde::de::Error::custom("invalid `unit` value"));
+            }
+        }
+
+        Ok(Self {
+            l1_gas_consumed: tagged.l1_gas_consumed,
+            l1_gas_price: tagged.l1_gas_price,
+            l2_gas_consumed: tagged.l2_gas_consumed,
+            l2_gas_price: tagged.l2_gas_price,
+            l1_data_gas_consumed: tagged.l1_data_gas_consumed,
+            l1_data_gas_price: tagged.l1_data_gas_price,
+            overall_fee: tagged.overall_fee,
         })
     }
 }
@@ -9548,7 +9756,7 @@ impl Serialize for TraceBlockTransactionsRequest {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub value: &'a BlockId,
+            pub value: &'a ConfirmedBlockId,
         }
 
         AsObject::serialize(
@@ -9572,7 +9780,7 @@ impl Serialize for TraceBlockTransactionsRequestRef<'_> {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub value: &'a BlockId,
+            pub value: &'a ConfirmedBlockId,
         }
 
         AsObject::serialize(
@@ -9596,7 +9804,7 @@ impl<'de> Deserialize<'de> for TraceBlockTransactionsRequest {
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
-            pub value: BlockId,
+            pub value: ConfirmedBlockId,
         }
 
         let temp = serde_json::Value::deserialize(deserializer)?;

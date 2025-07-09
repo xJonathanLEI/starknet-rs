@@ -5,7 +5,7 @@ use starknet_tokio_tungstenite::{NewHeadsUpdate, TungsteniteStream};
 
 #[tokio::main]
 async fn main() {
-    let stream = TungsteniteStream::connect("ws://localhost:9545/rpc/v0_8", Duration::from_secs(5))
+    let stream = TungsteniteStream::connect("ws://localhost:9545/rpc/v0_9", Duration::from_secs(5))
         .await
         .expect("WebSocket connection failed");
 

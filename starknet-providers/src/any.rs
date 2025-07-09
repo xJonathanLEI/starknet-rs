@@ -5,8 +5,8 @@ use starknet_core::types::{
     ConfirmedBlockId, ContractClass, ContractStorageKeys, DeclareTransactionResult,
     DeployAccountTransactionResult, EventFilter, EventsPage, FeeEstimate, Felt, FunctionCall,
     Hash256, InvokeTransactionResult, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
-    MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageWithStatus, MsgFromL1,
-    SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, StorageProof,
+    MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageFeeEstimate, MessageStatus,
+    MsgFromL1, SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, StorageProof,
     SyncStatusType, Transaction, TransactionReceiptWithBlockInfo, TransactionStatus,
     TransactionTrace, TransactionTraceWithHash,
 };
@@ -158,7 +158,7 @@ impl Provider for AnyProvider {
     async fn get_messages_status(
         &self,
         transaction_hash: Hash256,
-    ) -> Result<Vec<MessageWithStatus>, ProviderError> {
+    ) -> Result<Vec<MessageStatus>, ProviderError> {
         match self {
             Self::JsonRpcHttp(inner) => {
                 <JsonRpcClient<HttpTransport> as Provider>::get_messages_status(
@@ -421,7 +421,7 @@ impl Provider for AnyProvider {
         &self,
         message: M,
         block_id: B,
-    ) -> Result<FeeEstimate, ProviderError>
+    ) -> Result<MessageFeeEstimate, ProviderError>
     where
         M: AsRef<MsgFromL1> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
@@ -707,7 +707,7 @@ impl Provider for AnyProvider {
         block_id: B,
     ) -> Result<Vec<TransactionTraceWithHash>, ProviderError>
     where
-        B: AsRef<BlockId> + Send + Sync,
+        B: AsRef<ConfirmedBlockId> + Send + Sync,
     {
         match self {
             Self::JsonRpcHttp(inner) => {

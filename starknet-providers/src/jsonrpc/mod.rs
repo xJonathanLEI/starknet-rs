@@ -12,11 +12,12 @@ use starknet_core::{
         DeclareTransactionResult, DeployAccountTransactionResult, EventFilter, EventFilterWithPage,
         EventsPage, FeeEstimate, Felt as FeltPrimitive, FunctionCall, Hash256,
         InvokeTransactionResult, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
-        MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageWithStatus, MsgFromL1,
-        NoTraceAvailableErrorData, ResultPageRequest, SimulatedTransaction, SimulationFlag,
-        SimulationFlagForEstimateFee, StarknetError, StorageProof, SubscriptionId, SyncStatusType,
-        Transaction, TransactionExecutionErrorData, TransactionReceiptWithBlockInfo,
-        TransactionStatus, TransactionTrace, TransactionTraceWithHash,
+        MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageFeeEstimate, MessageStatus,
+        MsgFromL1, NoTraceAvailableErrorData, ResultPageRequest, SimulatedTransaction,
+        SimulationFlag, SimulationFlagForEstimateFee, StarknetError, StorageProof, SubscriptionId,
+        SyncStatusType, Transaction, TransactionExecutionErrorData,
+        TransactionReceiptWithBlockInfo, TransactionStatus, TransactionTrace,
+        TransactionTraceWithHash,
     },
 };
 
@@ -344,7 +345,7 @@ where
                         ),
                         ProviderRequestData::GetMessagesStatus(_) => {
                             ProviderResponseData::GetMessagesStatus(
-                                Vec::<MessageWithStatus>::deserialize(result)
+                                Vec::<MessageStatus>::deserialize(result)
                                     .map_err(JsonRpcClientError::<T::Error>::JsonError)?,
                             )
                         }
@@ -634,7 +635,7 @@ where
     async fn get_messages_status(
         &self,
         transaction_hash: Hash256,
-    ) -> Result<Vec<MessageWithStatus>, ProviderError> {
+    ) -> Result<Vec<MessageStatus>, ProviderError> {
         self.send_request(
             JsonRpcMethod::GetMessagesStatus,
             GetMessagesStatusRequestRef {
@@ -837,7 +838,7 @@ where
         &self,
         message: M,
         block_id: B,
-    ) -> Result<FeeEstimate, ProviderError>
+    ) -> Result<MessageFeeEstimate, ProviderError>
     where
         M: AsRef<MsgFromL1> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
@@ -1053,7 +1054,7 @@ where
         block_id: B,
     ) -> Result<Vec<TransactionTraceWithHash>, ProviderError>
     where
-        B: AsRef<BlockId> + Send + Sync,
+        B: AsRef<ConfirmedBlockId> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::TraceBlockTransactions,
@@ -1529,7 +1530,16 @@ impl TryFrom<&JsonRpcError> for StarknetError {
                 Ok(Self::TransactionExecutionError(data))
             }
             51 => Ok(Self::ClassAlreadyDeclared),
-            52 => Ok(Self::InvalidTransactionNonce),
+            52 => {
+                let data = String::deserialize(
+                    value
+                        .data
+                        .as_ref()
+                        .ok_or(JsonRpcErrorConversionError::MissingData)?,
+                )
+                .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
+                Ok(Self::InvalidTransactionNonce(data))
+            }
             53 => Ok(Self::InsufficientResourcesForValidate),
             54 => Ok(Self::InsufficientAccountBalance),
             55 => {
@@ -1568,6 +1578,8 @@ impl TryFrom<&JsonRpcError> for StarknetError {
                 .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
                 Ok(Self::UnexpectedError(data))
             }
+            64 => Ok(Self::ReplacementTransactionUnderpriced),
+            65 => Ok(Self::FeeBelowMinimum),
             66 => Ok(Self::InvalidSubscriptionId),
             67 => Ok(Self::TooManyAddressesInFilter),
             68 => Ok(Self::TooManyBlocksBack),

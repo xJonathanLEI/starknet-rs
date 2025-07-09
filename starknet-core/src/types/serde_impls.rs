@@ -51,6 +51,15 @@ impl SerializeAs<u128> for NumAsHex {
     }
 }
 
+impl SerializeAs<&u128> for NumAsHex {
+    fn serialize_as<S>(value: &&u128, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&format!("{value:#x}"))
+    }
+}
+
 impl<'de> DeserializeAs<'de, u128> for NumAsHex {
     fn deserialize_as<D>(deserializer: D) -> Result<u128, D::Error>
     where
@@ -353,9 +362,9 @@ mod block_id {
                 BlockIdDe::Hash(hash) => Self::Hash(hash.block_hash),
                 BlockIdDe::Number(number) => Self::Number(number.block_number),
                 BlockIdDe::Tag(BlockTag::Latest) => Self::Latest,
-                BlockIdDe::Tag(BlockTag::Pending) => {
+                BlockIdDe::Tag(BlockTag::PreConfirmed) => {
                     return Err(serde::de::Error::custom(
-                        "confirmed block id must not be `pending`",
+                        "confirmed block id must not be `pre_confirmed`",
                     ))
                 }
             })
@@ -403,10 +412,18 @@ mod transaction_status {
                     execution_status: None,
                     failure_reason: None,
                 },
-                Self::Rejected { reason } => RawRef {
-                    finality_status: SequencerTransactionStatus::Rejected,
+                Self::Candidate => RawRef {
+                    finality_status: SequencerTransactionStatus::Candidate,
                     execution_status: None,
-                    failure_reason: Some(reason),
+                    failure_reason: None,
+                },
+                Self::PreConfirmed(exe) => RawRef {
+                    finality_status: SequencerTransactionStatus::PreConfirmed,
+                    execution_status: Some(exe.status()),
+                    failure_reason: match &exe {
+                        ExecutionResult::Succeeded => None,
+                        ExecutionResult::Reverted { reason } => Some(reason),
+                    },
                 },
                 Self::AcceptedOnL2(exe) => RawRef {
                     finality_status: SequencerTransactionStatus::AcceptedOnL2,
@@ -443,8 +460,9 @@ mod transaction_status {
                 raw.failure_reason,
             ) {
                 (SequencerTransactionStatus::Received, None, None) => Ok(Self::Received),
-                (SequencerTransactionStatus::Rejected, None, Some(reason)) => {
-                    Ok(Self::Rejected { reason })
+                (SequencerTransactionStatus::Candidate, None, None) => Ok(Self::Candidate),
+                (SequencerTransactionStatus::PreConfirmed, Some(exe), reason) => {
+                    Ok(Self::PreConfirmed(parse_exe::<D>(exe, reason)?))
                 }
                 (SequencerTransactionStatus::AcceptedOnL2, Some(exe), reason) => {
                     Ok(Self::AcceptedOnL2(parse_exe::<D>(exe, reason)?))
@@ -631,7 +649,7 @@ mod tests {
             ),
             (BlockId::Number(1234), "{\"block_number\":1234}"),
             (BlockId::Tag(BlockTag::Latest), "\"latest\""),
-            (BlockId::Tag(BlockTag::Pending), "\"pending\""),
+            (BlockId::Tag(BlockTag::PreConfirmed), "\"pre_confirmed\""),
         ] {
             assert_eq!(serde_json::to_string(&block_id).unwrap(), json);
             assert_eq!(serde_json::from_str::<BlockId>(json).unwrap(), block_id);

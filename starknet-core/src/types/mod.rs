@@ -40,13 +40,14 @@ pub use codegen::{
     L1HandlerTransactionContent, L1HandlerTransactionReceipt, L1HandlerTransactionTrace,
     LegacyContractEntryPoint, LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType,
     LegacyFunctionAbiEntry, LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType,
-    LegacyStructMember, LegacyTypedParameter, MsgFromL1, MsgToL1, NewTransactionStatus,
-    NoTraceAvailableErrorData, NonceUpdate, OrderedEvent, OrderedMessage, PendingBlockWithReceipts,
-    PendingBlockWithTxHashes, PendingBlockWithTxs, PendingStateUpdate, PriceUnit, ReorgData,
-    ReplacedClassItem, ResourceBounds, ResourceBoundsMapping, ResourcePrice, ResultPageRequest,
-    RevertedInvocation, SequencerTransactionStatus, SierraEntryPoint, SimulatedTransaction,
-    SimulationFlag, SimulationFlagForEstimateFee, StarknetError, StateDiff, StateUpdate,
-    StorageEntry, StorageProof, SubscriptionId, SyncStatus, TransactionExecutionErrorData,
+    LegacyStructMember, LegacyTypedParameter, MessageFeeEstimate, MsgFromL1, MsgToL1,
+    NewTransactionStatus, NoTraceAvailableErrorData, NonceUpdate, OrderedEvent, OrderedMessage,
+    PreConfirmedBlockWithReceipts, PreConfirmedBlockWithTxHashes, PreConfirmedBlockWithTxs,
+    PreConfirmedStateUpdate, PriceUnit, ReorgData, ReplacedClassItem, ResourceBounds,
+    ResourceBoundsMapping, ResourcePrice, ResultPageRequest, RevertedInvocation,
+    SequencerTransactionStatus, SierraEntryPoint, SimulatedTransaction, SimulationFlag,
+    SimulationFlagForEstimateFee, StarknetError, StateDiff, StateUpdate, StorageEntry,
+    StorageProof, SubscriptionId, SyncStatus, TransactionExecutionErrorData,
     TransactionExecutionStatus, TransactionFinalityStatus, TransactionReceiptWithBlockInfo,
     TransactionTraceWithHash, TransactionWithReceipt,
 };
@@ -67,7 +68,7 @@ mod execution_result;
 pub use execution_result::ExecutionResult;
 
 mod message_status;
-pub use message_status::{MessageStatus, MessageWithStatus};
+pub use message_status::MessageStatus;
 
 mod receipt_block;
 pub use receipt_block::ReceiptBlock;
@@ -98,7 +99,7 @@ pub enum MaybePendingBlockWithTxHashes {
     /// A confirmed, non-pending block.
     Block(BlockWithTxHashes),
     /// A pending block.
-    PendingBlock(PendingBlockWithTxHashes),
+    PreConfirmedBlock(PreConfirmedBlockWithTxHashes),
 }
 
 /// A block with full transactions that may or may not be pending.
@@ -110,7 +111,7 @@ pub enum MaybePendingBlockWithTxs {
     /// A confirmed, non-pending block.
     Block(BlockWithTxs),
     /// A pending block.
-    PendingBlock(PendingBlockWithTxs),
+    PreConfirmedBlock(PreConfirmedBlockWithTxs),
 }
 
 /// A block with full transactions and receipts that may or may not be pending.
@@ -122,7 +123,7 @@ pub enum MaybePendingBlockWithReceipts {
     /// A confirmed, non-pending block.
     Block(BlockWithReceipts),
     /// A pending block.
-    PendingBlock(PendingBlockWithReceipts),
+    PreConfirmedBlock(PreConfirmedBlockWithReceipts),
 }
 
 /// State update of a block that may or may not be pending.
@@ -135,7 +136,7 @@ pub enum MaybePendingStateUpdate {
     /// The state update is for a confirmed, non-pending block.
     Update(StateUpdate),
     /// The state update is for a pending block.
-    PendingUpdate(PendingStateUpdate),
+    PreConfirmedUpdate(PreConfirmedStateUpdate),
 }
 
 /// The hash and number (height) for a block.
@@ -256,13 +257,12 @@ pub enum ContractClass {
 /// Represents the status of a transaction.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TransactionStatus {
-    /// Transaction received and awaiting processing.
+    /// Transaction received by sequencer and awaiting processing.
     Received,
-    /// Transaction rejected due to validation or other reasons.
-    Rejected {
-        /// The reason for the transaction to be rejected.
-        reason: String,
-    },
+    /// Transaction is scheduled to be executed by sequencer.
+    Candidate,
+    /// Transaction pre-confirmed by sequencer but is not guaranteed to be included in a block.
+    PreConfirmed(ExecutionResult),
     /// Transaction accepted on Layer 2 with a specific execution status.
     AcceptedOnL2(ExecutionResult),
     /// Transaction accepted on Layer 1 with a specific execution status.
@@ -275,9 +275,14 @@ impl TransactionStatus {
         matches!(self, Self::Received)
     }
 
-    /// Returns `true` if the transaction status is `Rejected`.
-    pub const fn is_rejected(&self) -> bool {
-        matches!(self, Self::Rejected { .. })
+    /// Returns `true` if the transaction status is `Candidate`.
+    pub const fn is_candidate(&self) -> bool {
+        matches!(self, Self::Candidate)
+    }
+
+    /// Returns `true` if the transaction status is `PreConfirmed`.
+    pub const fn is_pre_confirmed(&self) -> bool {
+        matches!(self, Self::PreConfirmed(_))
     }
 
     /// Returns `true` if the transaction status is `AcceptedOnL2`.
@@ -569,7 +574,7 @@ impl MaybePendingBlockWithTxHashes {
     pub fn transactions(&self) -> &[Felt] {
         match self {
             Self::Block(block) => &block.transactions,
-            Self::PendingBlock(block) => &block.transactions,
+            Self::PreConfirmedBlock(block) => &block.transactions,
         }
     }
 
@@ -577,7 +582,7 @@ impl MaybePendingBlockWithTxHashes {
     pub const fn l1_gas_price(&self) -> &ResourcePrice {
         match self {
             Self::Block(block) => &block.l1_gas_price,
-            Self::PendingBlock(block) => &block.l1_gas_price,
+            Self::PreConfirmedBlock(block) => &block.l1_gas_price,
         }
     }
 
@@ -585,7 +590,7 @@ impl MaybePendingBlockWithTxHashes {
     pub const fn l2_gas_price(&self) -> &ResourcePrice {
         match self {
             Self::Block(block) => &block.l2_gas_price,
-            Self::PendingBlock(block) => &block.l2_gas_price,
+            Self::PreConfirmedBlock(block) => &block.l2_gas_price,
         }
     }
 
@@ -593,7 +598,7 @@ impl MaybePendingBlockWithTxHashes {
     pub const fn l1_data_gas_price(&self) -> &ResourcePrice {
         match self {
             Self::Block(block) => &block.l1_data_gas_price,
-            Self::PendingBlock(block) => &block.l1_data_gas_price,
+            Self::PreConfirmedBlock(block) => &block.l1_data_gas_price,
         }
     }
 }
@@ -603,7 +608,7 @@ impl MaybePendingBlockWithTxs {
     pub fn transactions(&self) -> &[Transaction] {
         match self {
             Self::Block(block) => &block.transactions,
-            Self::PendingBlock(block) => &block.transactions,
+            Self::PreConfirmedBlock(block) => &block.transactions,
         }
     }
 
@@ -611,7 +616,7 @@ impl MaybePendingBlockWithTxs {
     pub const fn l1_gas_price(&self) -> &ResourcePrice {
         match self {
             Self::Block(block) => &block.l1_gas_price,
-            Self::PendingBlock(block) => &block.l1_gas_price,
+            Self::PreConfirmedBlock(block) => &block.l1_gas_price,
         }
     }
 }
@@ -621,7 +626,7 @@ impl MaybePendingBlockWithReceipts {
     pub fn transactions(&self) -> &[TransactionWithReceipt] {
         match self {
             Self::Block(block) => &block.transactions,
-            Self::PendingBlock(block) => &block.transactions,
+            Self::PreConfirmedBlock(block) => &block.transactions,
         }
     }
 
@@ -629,7 +634,7 @@ impl MaybePendingBlockWithReceipts {
     pub const fn l1_gas_price(&self) -> &ResourcePrice {
         match self {
             Self::Block(block) => &block.l1_gas_price,
-            Self::PendingBlock(block) => &block.l1_gas_price,
+            Self::PreConfirmedBlock(block) => &block.l1_gas_price,
         }
     }
 }
@@ -639,7 +644,8 @@ impl TransactionStatus {
     pub const fn finality_status(&self) -> SequencerTransactionStatus {
         match self {
             Self::Received => SequencerTransactionStatus::Received,
-            Self::Rejected { .. } => SequencerTransactionStatus::Rejected,
+            Self::Candidate => SequencerTransactionStatus::Candidate,
+            Self::PreConfirmed(_) => SequencerTransactionStatus::PreConfirmed,
             Self::AcceptedOnL2(_) => SequencerTransactionStatus::AcceptedOnL2,
             Self::AcceptedOnL1(_) => SequencerTransactionStatus::AcceptedOnL1,
         }

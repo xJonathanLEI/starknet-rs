@@ -7,8 +7,8 @@ use starknet_core::types::{
     ConfirmedBlockId, ContractClass, ContractStorageKeys, DeclareTransactionResult,
     DeployAccountTransactionResult, EventFilter, EventsPage, FeeEstimate, Felt, FunctionCall,
     Hash256, InvokeTransactionResult, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
-    MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageWithStatus, MsgFromL1,
-    SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, StarknetError,
+    MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageFeeEstimate, MessageStatus,
+    MsgFromL1, SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, StarknetError,
     StorageProof, SubscriptionId, SyncStatusType, Transaction, TransactionReceiptWithBlockInfo,
     TransactionStatus, TransactionTrace, TransactionTraceWithHash,
 };
@@ -80,7 +80,7 @@ pub trait Provider {
     async fn get_messages_status(
         &self,
         transaction_hash: Hash256,
-    ) -> Result<Vec<MessageWithStatus>, ProviderError>;
+    ) -> Result<Vec<MessageStatus>, ProviderError>;
 
     /// Gets the transaction status (possibly reflecting that the tx is still in the mempool, or
     /// dropped from it).
@@ -175,7 +175,7 @@ pub trait Provider {
         &self,
         message: M,
         block_id: B,
-    ) -> Result<FeeEstimate, ProviderError>
+    ) -> Result<MessageFeeEstimate, ProviderError>
     where
         M: AsRef<MsgFromL1> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync;
@@ -283,7 +283,7 @@ pub trait Provider {
         block_id: B,
     ) -> Result<Vec<TransactionTraceWithHash>, ProviderError>
     where
-        B: AsRef<BlockId> + Send + Sync;
+        B: AsRef<ConfirmedBlockId> + Send + Sync;
 
     /// Sends multiple requests in parallel. The function call fails if any of the requests fails.
     /// Implementations must guarantee that responses follow the exact order as the requests.
@@ -480,7 +480,7 @@ pub enum ProviderResponseData {
     /// Response data for `starknet_getStorageAt`.
     GetStorageAt(Felt),
     /// Response data for `starknet_getMessagesStatus`.
-    GetMessagesStatus(Vec<MessageWithStatus>),
+    GetMessagesStatus(Vec<MessageStatus>),
     /// Response data for `starknet_getTransactionStatus`.
     GetTransactionStatus(TransactionStatus),
     /// Response data for `starknet_getTransactionByHash`.

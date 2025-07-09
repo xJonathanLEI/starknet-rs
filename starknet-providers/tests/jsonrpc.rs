@@ -6,8 +6,9 @@ use starknet_core::{
         DeployAccountTransaction, EthAddress, EventFilter, ExecuteInvocation, ExecutionResult,
         Felt, FunctionCall, Hash256, InvokeTransaction, MaybePendingBlockWithReceipts,
         MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-        MessageStatus, MsgFromL1, ResourceBounds, ResourceBoundsMapping, StarknetError,
-        SyncStatusType, Transaction, TransactionReceipt, TransactionStatus, TransactionTrace,
+        MsgFromL1, ResourceBounds, ResourceBoundsMapping, StarknetError, SyncStatusType,
+        Transaction, TransactionFinalityStatus, TransactionReceipt, TransactionStatus,
+        TransactionTrace,
     },
     utils::{get_selector_from_name, get_storage_var_address},
 };
@@ -19,7 +20,7 @@ use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     let rpc_url = std::env::var("STARKNET_RPC")
-        .unwrap_or_else(|_| "https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_8".into());
+        .unwrap_or_else(|_| "https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_9".into());
     JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()))
 }
 
@@ -29,7 +30,7 @@ async fn jsonrpc_spec_version() {
 
     let version = rpc_client.spec_version().await.unwrap();
 
-    assert_eq!(version, "0.8.1");
+    assert_eq!(version, "0.9.0-rc.2");
 }
 
 #[tokio::test]
@@ -138,7 +139,14 @@ async fn jsonrpc_get_messages_status_accepted() {
         .unwrap();
 
     assert_eq!(status.len(), 1);
-    assert!(matches!(status[0].status, MessageStatus::AcceptedOnL1));
+    assert!(matches!(
+        status[0].finality_status,
+        TransactionFinalityStatus::AcceptedOnL1
+    ));
+    assert!(matches!(
+        status[0].execution_result,
+        ExecutionResult::Succeeded
+    ));
 }
 
 #[tokio::test]
@@ -173,26 +181,6 @@ async fn jsonrpc_get_transaction_status_reverted() {
 
     match status {
         TransactionStatus::AcceptedOnL1(ExecutionResult::Reverted { reason }) => {
-            assert!(!reason.is_empty());
-        }
-        _ => panic!("unexpected transaction status"),
-    }
-}
-
-#[tokio::test]
-async fn jsonrpc_get_transaction_status_rejected() {
-    let rpc_client = create_jsonrpc_client();
-
-    let status = rpc_client
-        .get_transaction_status(
-            Felt::from_hex("06db06382db740aefc4a58c1629f919f4e147d6fd1e218aa84151eccbc661596")
-                .unwrap(),
-        )
-        .await
-        .unwrap();
-
-    match status {
-        TransactionStatus::Rejected { reason } => {
             assert!(!reason.is_empty());
         }
         _ => panic!("unexpected transaction status"),
