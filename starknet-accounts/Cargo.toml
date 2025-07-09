@@ -1,6 +1,6 @@
 [package]
 name = "starknet-accounts"
-version = "0.14.0"
+version = "0.15.0"
 authors = ["Jonathan LEI <me@xjonathan.dev>"]
 license = "MIT OR Apache-2.0"
 edition = "2021"
@@ -14,10 +14,10 @@ keywords = ["ethereum", "starknet", "web3"]
 exclude = ["test-data/**"]
 
 [dependencies]
-starknet-core = { version = "0.14.0", path = "../starknet-core" }
+starknet-core = { version = "0.15.0", path = "../starknet-core" }
 starknet-crypto = { version = "0.7.4", path = "../starknet-crypto" }
-starknet-providers = { version = "0.14.1", path = "../starknet-providers" }
-starknet-signers = { version = "0.12.0", path = "../starknet-signers" }
+starknet-providers = { version = "0.15.0", path = "../starknet-providers" }
+starknet-signers = { version = "0.13.0", path = "../starknet-signers" }
 async-trait = "0.1.68"
 auto_impl = "1.0.1"
 thiserror = "1.0.40"
@@ -31,7 +31,7 @@ url = "2.3.1"
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 coins-ledger = { version = "0.12.0", default-features = false }
 speculos-client = "0.1.2"
-starknet-signers = { version = "0.12.0", path = "../starknet-signers", features = ["ledger"] }
+starknet-signers = { version = "0.13.0", path = "../starknet-signers", features = ["ledger"] }
 
 [lints]
 workspace = true
