@@ -20,7 +20,7 @@ To use the crate from [crates.io](https://crates.io/crates/starknet), add the fo
 
 ```toml
 [dependencies]
-starknet = "0.16.0"
+starknet = "0.17.0-rc.0"
 ```
 
 Note that the [crates.io version](https://crates.io/crates/starknet) might be outdated. You may want to use the library directly from GitHub for all the latest features and fixes:
