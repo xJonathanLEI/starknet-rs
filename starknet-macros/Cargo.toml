@@ -1,6 +1,6 @@
 [package]
 name = "starknet-macros"
-version = "0.2.3"
+version = "0.2.4"
 authors = ["Jonathan LEI <me@xjonathan.dev>"]
 license = "MIT OR Apache-2.0"
 edition = "2021"

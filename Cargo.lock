@@ -2440,7 +2440,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-macros"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "starknet-core",
  "syn 2.0.87",
