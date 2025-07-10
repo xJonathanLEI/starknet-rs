@@ -95,7 +95,7 @@ pub use contract::ContractArtifact;
 /// A pending block lacks certain information on the block header compared to a non-pending block.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum MaybePendingBlockWithTxHashes {
+pub enum MaybePreConfirmedBlockWithTxHashes {
     /// A confirmed, non-pending block.
     Block(BlockWithTxHashes),
     /// A pending block.
@@ -107,7 +107,7 @@ pub enum MaybePendingBlockWithTxHashes {
 /// A pending block lacks certain information on the block header compared to a non-pending block.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum MaybePendingBlockWithTxs {
+pub enum MaybePreConfirmedBlockWithTxs {
     /// A confirmed, non-pending block.
     Block(BlockWithTxs),
     /// A pending block.
@@ -119,7 +119,7 @@ pub enum MaybePendingBlockWithTxs {
 /// A pending block lacks certain information on the block header compared to a non-pending block.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum MaybePendingBlockWithReceipts {
+pub enum MaybePreConfirmedBlockWithReceipts {
     /// A confirmed, non-pending block.
     Block(BlockWithReceipts),
     /// A pending block.
@@ -132,7 +132,7 @@ pub enum MaybePendingBlockWithReceipts {
 /// block.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum MaybePendingStateUpdate {
+pub enum MaybePreConfirmedStateUpdate {
     /// The state update is for a confirmed, non-pending block.
     Update(StateUpdate),
     /// The state update is for a pending block.
@@ -569,7 +569,7 @@ mod errors {
 }
 pub use errors::ParseMsgToL2Error;
 
-impl MaybePendingBlockWithTxHashes {
+impl MaybePreConfirmedBlockWithTxHashes {
     /// Gets a reference to the list of transaction hashes.
     pub fn transactions(&self) -> &[Felt] {
         match self {
@@ -603,7 +603,7 @@ impl MaybePendingBlockWithTxHashes {
     }
 }
 
-impl MaybePendingBlockWithTxs {
+impl MaybePreConfirmedBlockWithTxs {
     /// Gets a reference to the list of transactions.
     pub fn transactions(&self) -> &[Transaction] {
         match self {
@@ -621,7 +621,7 @@ impl MaybePendingBlockWithTxs {
     }
 }
 
-impl MaybePendingBlockWithReceipts {
+impl MaybePreConfirmedBlockWithReceipts {
     /// Gets a reference to the list of transactions with receipts.
     pub fn transactions(&self) -> &[TransactionWithReceipt] {
         match self {

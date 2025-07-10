@@ -4,11 +4,11 @@ use starknet_core::{
         BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedTransaction, ConfirmedBlockId,
         ContractClass, ContractStorageKeys, DataAvailabilityMode, DeclareTransaction,
         DeployAccountTransaction, EthAddress, EventFilter, ExecuteInvocation, ExecutionResult,
-        Felt, FunctionCall, Hash256, InvokeTransaction, MaybePendingBlockWithReceipts,
-        MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-        MsgFromL1, ResourceBounds, ResourceBoundsMapping, StarknetError, SyncStatusType,
-        Transaction, TransactionFinalityStatus, TransactionReceipt, TransactionStatus,
-        TransactionTrace,
+        Felt, FunctionCall, Hash256, InvokeTransaction, MaybePreConfirmedBlockWithReceipts,
+        MaybePreConfirmedBlockWithTxHashes, MaybePreConfirmedBlockWithTxs,
+        MaybePreConfirmedStateUpdate, MsgFromL1, ResourceBounds, ResourceBoundsMapping,
+        StarknetError, SyncStatusType, Transaction, TransactionFinalityStatus, TransactionReceipt,
+        TransactionStatus, TransactionTrace,
     },
     utils::{get_selector_from_name, get_storage_var_address},
 };
@@ -43,7 +43,7 @@ async fn jsonrpc_get_block_with_tx_hashes() {
         .unwrap();
 
     let block = match block {
-        MaybePendingBlockWithTxHashes::Block(block) => block,
+        MaybePreConfirmedBlockWithTxHashes::Block(block) => block,
         _ => panic!("unexpected block response type"),
     };
 
@@ -60,7 +60,7 @@ async fn jsonrpc_get_block_with_txs() {
         .unwrap();
 
     let block = match block {
-        MaybePendingBlockWithTxs::Block(block) => block,
+        MaybePreConfirmedBlockWithTxs::Block(block) => block,
         _ => panic!("unexpected block response type"),
     };
 
@@ -77,7 +77,7 @@ async fn jsonrpc_get_block_with_receipts() {
         .unwrap();
 
     let block = match block {
-        MaybePendingBlockWithReceipts::Block(block) => block,
+        MaybePreConfirmedBlockWithReceipts::Block(block) => block,
         _ => panic!("unexpected block response type"),
     };
 
@@ -94,7 +94,7 @@ async fn jsonrpc_get_state_update() {
         .unwrap();
 
     let state_update = match state_update {
-        MaybePendingStateUpdate::Update(value) => value,
+        MaybePreConfirmedStateUpdate::Update(value) => value,
         _ => panic!("unexpected data type"),
     };
 

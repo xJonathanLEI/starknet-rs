@@ -29,7 +29,7 @@ impl From<core::BlockId> for BlockId {
     }
 }
 
-impl TryFrom<Block> for core::MaybePendingBlockWithTxHashes {
+impl TryFrom<Block> for core::MaybePreConfirmedBlockWithTxHashes {
     type Error = ConversionError;
 
     fn try_from(value: Block) -> Result<Self, Self::Error> {
@@ -71,7 +71,7 @@ impl TryFrom<Block> for core::MaybePendingBlockWithTxHashes {
     }
 }
 
-impl TryFrom<Block> for core::MaybePendingBlockWithTxs {
+impl TryFrom<Block> for core::MaybePreConfirmedBlockWithTxs {
     type Error = ConversionError;
 
     fn try_from(value: Block) -> Result<Self, Self::Error> {
@@ -113,7 +113,7 @@ impl TryFrom<Block> for core::MaybePendingBlockWithTxs {
     }
 }
 
-impl TryFrom<Block> for core::MaybePendingBlockWithReceipts {
+impl TryFrom<Block> for core::MaybePreConfirmedBlockWithReceipts {
     type Error = ConversionError;
 
     fn try_from(value: Block) -> Result<Self, Self::Error> {
@@ -451,7 +451,7 @@ impl From<core::DataAvailabilityMode> for DataAvailabilityMode {
     }
 }
 
-impl TryFrom<StateUpdate> for core::MaybePendingStateUpdate {
+impl TryFrom<StateUpdate> for core::MaybePreConfirmedStateUpdate {
     type Error = ConversionError;
 
     fn try_from(value: StateUpdate) -> Result<Self, Self::Error> {
