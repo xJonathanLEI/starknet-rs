@@ -90,52 +90,55 @@ pub mod requests;
 pub mod contract;
 pub use contract::ContractArtifact;
 
-/// A block with transaction hashes that may or may not be pending.
+/// A block with transaction hashes that may or may not be confirmed.
 ///
-/// A pending block lacks certain information on the block header compared to a non-pending block.
+/// A pre-confirmed block lacks certain information on the block header compared to a confirmed
+/// block.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePreConfirmedBlockWithTxHashes {
-    /// A confirmed, non-pending block.
+    /// A confirmed block.
     Block(BlockWithTxHashes),
-    /// A pending block.
+    /// A pre-confirmed block.
     PreConfirmedBlock(PreConfirmedBlockWithTxHashes),
 }
 
-/// A block with full transactions that may or may not be pending.
+/// A block with full transactions that may or may not be confirmed.
 ///
-/// A pending block lacks certain information on the block header compared to a non-pending block.
+/// A pre-confirmed block lacks certain information on the block header compared to a confirmed
+/// block.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePreConfirmedBlockWithTxs {
-    /// A confirmed, non-pending block.
+    /// A confirmed block.
     Block(BlockWithTxs),
-    /// A pending block.
+    /// A pre-confirmed block.
     PreConfirmedBlock(PreConfirmedBlockWithTxs),
 }
 
-/// A block with full transactions and receipts that may or may not be pending.
+/// A block with full transactions and receipts that may or may not be confirmed.
 ///
-/// A pending block lacks certain information on the block header compared to a non-pending block.
+/// A pre-confirmed block lacks certain information on the block header compared to a confirmed
+/// block.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePreConfirmedBlockWithReceipts {
-    /// A confirmed, non-pending block.
+    /// A confirmed block.
     Block(BlockWithReceipts),
-    /// A pending block.
+    /// A pre-confirmed block.
     PreConfirmedBlock(PreConfirmedBlockWithReceipts),
 }
 
-/// State update of a block that may or may not be pending.
+/// State update of a block that may or may not be confirmed.
 ///
-/// State update for a pending block lacks certain information compared to that of a non-pending
+/// State update for a pre-confirmed block lacks certain information compared to that of a confirmed
 /// block.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePreConfirmedStateUpdate {
-    /// The state update is for a confirmed, non-pending block.
+    /// The state update is for a confirmed block.
     Update(StateUpdate),
-    /// The state update is for a pending block.
+    /// The state update is for a pre-confirmed block.
     PreConfirmedUpdate(PreConfirmedStateUpdate),
 }
 
