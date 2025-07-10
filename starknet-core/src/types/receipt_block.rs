@@ -9,7 +9,7 @@ use starknet_types_core::felt::Felt;
 ///
 /// Instead of directly exposing the `block_hash` and `block_number` fields as [`Option<Felt>`],
 /// this struct captures the fact that these fields are always [`Some`](Option::Some) or
-/// [`None`](Option::None) toggether, allowing idiomatic access without unnecessary unwraps.
+/// [`None`](Option::None) together, allowing idiomatic access without unnecessary unwraps.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReceiptBlock {
     /// The receipt is attached to a pre-confirmed block.
