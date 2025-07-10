@@ -6,9 +6,10 @@ use starknet_core::types::{
     BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
     ConfirmedBlockId, ContractClass, ContractStorageKeys, DeclareTransactionResult,
     DeployAccountTransactionResult, EventFilter, EventsPage, FeeEstimate, Felt, FunctionCall,
-    Hash256, InvokeTransactionResult, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
-    MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageFeeEstimate, MessageStatus,
-    MsgFromL1, SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, StarknetError,
+    Hash256, InvokeTransactionResult, MaybePreConfirmedBlockWithReceipts,
+    MaybePreConfirmedBlockWithTxHashes, MaybePreConfirmedBlockWithTxs,
+    MaybePreConfirmedStateUpdate, MessageFeeEstimate, MessageStatus, MsgFromL1,
+    SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, StarknetError,
     StorageProof, SubscriptionId, SyncStatusType, Transaction, TransactionReceiptWithBlockInfo,
     TransactionStatus, TransactionTrace, TransactionTraceWithHash,
 };
@@ -35,7 +36,7 @@ pub trait Provider {
     async fn get_block_with_tx_hashes<B>(
         &self,
         block_id: B,
-    ) -> Result<MaybePendingBlockWithTxHashes, ProviderError>
+    ) -> Result<MaybePreConfirmedBlockWithTxHashes, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync;
 
@@ -43,7 +44,7 @@ pub trait Provider {
     async fn get_block_with_txs<B>(
         &self,
         block_id: B,
-    ) -> Result<MaybePendingBlockWithTxs, ProviderError>
+    ) -> Result<MaybePreConfirmedBlockWithTxs, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync;
 
@@ -51,7 +52,7 @@ pub trait Provider {
     async fn get_block_with_receipts<B>(
         &self,
         block_id: B,
-    ) -> Result<MaybePendingBlockWithReceipts, ProviderError>
+    ) -> Result<MaybePreConfirmedBlockWithReceipts, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync;
 
@@ -59,7 +60,7 @@ pub trait Provider {
     async fn get_state_update<B>(
         &self,
         block_id: B,
-    ) -> Result<MaybePendingStateUpdate, ProviderError>
+    ) -> Result<MaybePreConfirmedStateUpdate, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync;
 
@@ -470,13 +471,13 @@ pub enum ProviderResponseData {
     /// Response data for `starknet_specVersion`.
     SpecVersion(String),
     /// Response data for `starknet_getBlockWithTxHashes`.
-    GetBlockWithTxHashes(MaybePendingBlockWithTxHashes),
+    GetBlockWithTxHashes(MaybePreConfirmedBlockWithTxHashes),
     /// Response data for `starknet_getBlockWithTxs`.
-    GetBlockWithTxs(MaybePendingBlockWithTxs),
+    GetBlockWithTxs(MaybePreConfirmedBlockWithTxs),
     /// Response data for `starknet_getBlockWithReceipts`.
-    GetBlockWithReceipts(MaybePendingBlockWithReceipts),
+    GetBlockWithReceipts(MaybePreConfirmedBlockWithReceipts),
     /// Response data for `starknet_getStateUpdate`.
-    GetStateUpdate(MaybePendingStateUpdate),
+    GetStateUpdate(MaybePreConfirmedStateUpdate),
     /// Response data for `starknet_getStorageAt`.
     GetStorageAt(Felt),
     /// Response data for `starknet_getMessagesStatus`.

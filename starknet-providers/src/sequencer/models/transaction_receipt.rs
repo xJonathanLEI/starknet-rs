@@ -38,13 +38,13 @@ pub enum TransactionStatus {
     NotReceived,
     /// Transaction was received by the sequenced
     Received,
-    /// Transaction passed teh validation and entered the pending block
+    /// Transaction passed the validation and entered the pending block
     Pending,
     /// The transaction failed validation and was skipped (applies both to a
     /// pending and actual created block)
     Rejected,
     Reverted,
-    /// Transaction passed teh validation and entered a created block
+    /// Transaction passed the validation and entered a created block
     AcceptedOnL2,
     /// Transaction was accepted on-chain
     AcceptedOnL1,
