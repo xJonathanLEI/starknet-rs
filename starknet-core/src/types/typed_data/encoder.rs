@@ -342,8 +342,12 @@ impl Encoder {
                     }
                 };
 
-                get_selector_from_name(str_value)
-                    .map_err(|_| TypedDataError::InvalidSelector(str_value.to_owned()))?
+                match str_value.strip_prefix("0x") {
+                    Some(str_value) => Felt::from_hex(str_value)
+                        .map_err(|_| TypedDataError::InvalidSelector(str_value.to_owned()))?,
+                    None => get_selector_from_name(str_value)
+                        .map_err(|_| TypedDataError::InvalidSelector(str_value.to_owned()))?,
+                }
             }
             CommonTypeReference::MerkleTree(leaf) => {
                 let arr_value = match value {
