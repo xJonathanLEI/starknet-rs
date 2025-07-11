@@ -25,5 +25,8 @@ tokio-tungstenite = { version = "0.26.2", features = ["rustls-tls-native-roots"]
 tokio-util = "0.7.15"
 tungstenite = { version = "0.26.2", features = ["url"] }
 
+[dev-dependencies]
+starknet-providers = { version = "0.16.0-rc.1", path = "../starknet-providers", features = ["no_unknown_fields"] }
+
 [lints]
 workspace = true
