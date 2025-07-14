@@ -273,7 +273,7 @@ where
     async fn send_request<P, R>(&self, method: JsonRpcMethod, params: P) -> Result<R, ProviderError>
     where
         P: Serialize + Send + Sync,
-        R: DeserializeOwned,
+        R: DeserializeOwned + Send,
     {
         match self
             .transport

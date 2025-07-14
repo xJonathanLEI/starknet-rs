@@ -33,7 +33,7 @@ pub trait JsonRpcTransport {
     ) -> Result<JsonRpcResponse<R>, Self::Error>
     where
         P: Serialize + Send + Sync,
-        R: DeserializeOwned;
+        R: DeserializeOwned + Send;
 
     /// Sends multiple JSON-RPC requests in parallel.
     async fn send_requests<R>(
