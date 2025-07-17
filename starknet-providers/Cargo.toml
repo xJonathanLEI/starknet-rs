@@ -1,6 +1,6 @@
 [package]
 name = "starknet-providers"
-version = "0.14.1"
+version = "0.16.0-rc.1"
 authors = ["Jonathan LEI <me@xjonathan.dev>"]
 license = "MIT OR Apache-2.0"
 edition = "2021"
@@ -14,7 +14,7 @@ keywords = ["ethereum", "starknet", "web3"]
 exclude = ["test-data/**"]
 
 [dependencies]
-starknet-core = { version = "0.14.0", path = "../starknet-core" }
+starknet-core = { version = "0.16.0-rc.1", path = "../starknet-core" }
 async-trait = "0.1.68"
 auto_impl = "1.0.1"
 ethereum-types = "0.14.1"

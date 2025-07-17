@@ -9,9 +9,14 @@
 //! bug here by conditionally encoding as Cairo short string only when the source string is not a
 //! valid integer or decimal/hexadecimal repr.
 
+use alloc::format;
+
 use serde::de::Visitor;
 
-use crate::{types::Felt, utils::cairo_short_string_to_felt};
+use crate::{
+    types::Felt,
+    utils::{cairo_short_string_to_felt, parse_cairo_short_string},
+};
 
 struct ShortStringVisitor;
 
@@ -67,6 +72,26 @@ impl Visitor<'_> for ShortStringVisitor {
         E: serde::de::Error,
     {
         Ok(v.into())
+    }
+}
+
+pub fn serialize<S>(value: &Felt, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    // This is not sound. A encoding of digits would be parsed as raw `Felt` value, failing the
+    // round trip test. Unfortunately, we have to do this to reimplement the `starknet.js` bug.
+    match parse_cairo_short_string(value) {
+        Ok(decoded) => {
+            if decoded.chars().all(|c| {
+                c.is_ascii_alphanumeric() || c.is_ascii_whitespace() || c.is_ascii_punctuation()
+            }) {
+                serializer.serialize_str(&decoded)
+            } else {
+                serializer.serialize_str(&format!("{value}"))
+            }
+        }
+        Err(_) => serializer.serialize_str(&format!("{value}")),
     }
 }
 

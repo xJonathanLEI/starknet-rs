@@ -11,8 +11,9 @@ use starknet_core::{
         ConfirmedBlockId, ContractClass, ContractErrorData, ContractStorageKeys,
         DeclareTransactionResult, DeployAccountTransactionResult, EventFilter, EventFilterWithPage,
         EventsPage, FeeEstimate, Felt as FeltPrimitive, FunctionCall, Hash256,
-        InvokeTransactionResult, MaybePendingBlockWithReceipts, MaybePendingBlockWithTxHashes,
-        MaybePendingBlockWithTxs, MaybePendingStateUpdate, MessageWithStatus, MsgFromL1,
+        InvokeTransactionResult, MaybePreConfirmedBlockWithReceipts,
+        MaybePreConfirmedBlockWithTxHashes, MaybePreConfirmedBlockWithTxs,
+        MaybePreConfirmedStateUpdate, MessageFeeEstimate, MessageStatus, MsgFromL1,
         NoTraceAvailableErrorData, ResultPageRequest, SimulatedTransaction, SimulationFlag,
         SimulationFlagForEstimateFee, StarknetError, StorageProof, SubscriptionId, SyncStatusType,
         Transaction, TransactionExecutionErrorData, TransactionReceiptWithBlockInfo,
@@ -315,25 +316,25 @@ where
                         ),
                         ProviderRequestData::GetBlockWithTxHashes(_) => {
                             ProviderResponseData::GetBlockWithTxHashes(
-                                MaybePendingBlockWithTxHashes::deserialize(result)
+                                MaybePreConfirmedBlockWithTxHashes::deserialize(result)
                                     .map_err(JsonRpcClientError::<T::Error>::JsonError)?,
                             )
                         }
                         ProviderRequestData::GetBlockWithTxs(_) => {
                             ProviderResponseData::GetBlockWithTxs(
-                                MaybePendingBlockWithTxs::deserialize(result)
+                                MaybePreConfirmedBlockWithTxs::deserialize(result)
                                     .map_err(JsonRpcClientError::<T::Error>::JsonError)?,
                             )
                         }
                         ProviderRequestData::GetBlockWithReceipts(_) => {
                             ProviderResponseData::GetBlockWithReceipts(
-                                MaybePendingBlockWithReceipts::deserialize(result)
+                                MaybePreConfirmedBlockWithReceipts::deserialize(result)
                                     .map_err(JsonRpcClientError::<T::Error>::JsonError)?,
                             )
                         }
                         ProviderRequestData::GetStateUpdate(_) => {
                             ProviderResponseData::GetStateUpdate(
-                                MaybePendingStateUpdate::deserialize(result)
+                                MaybePreConfirmedStateUpdate::deserialize(result)
                                     .map_err(JsonRpcClientError::<T::Error>::JsonError)?,
                             )
                         }
@@ -344,7 +345,7 @@ where
                         ),
                         ProviderRequestData::GetMessagesStatus(_) => {
                             ProviderResponseData::GetMessagesStatus(
-                                Vec::<MessageWithStatus>::deserialize(result)
+                                Vec::<MessageStatus>::deserialize(result)
                                     .map_err(JsonRpcClientError::<T::Error>::JsonError)?,
                             )
                         }
@@ -540,7 +541,7 @@ where
     async fn get_block_with_tx_hashes<B>(
         &self,
         block_id: B,
-    ) -> Result<MaybePendingBlockWithTxHashes, ProviderError>
+    ) -> Result<MaybePreConfirmedBlockWithTxHashes, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
@@ -557,7 +558,7 @@ where
     async fn get_block_with_txs<B>(
         &self,
         block_id: B,
-    ) -> Result<MaybePendingBlockWithTxs, ProviderError>
+    ) -> Result<MaybePreConfirmedBlockWithTxs, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
@@ -574,7 +575,7 @@ where
     async fn get_block_with_receipts<B>(
         &self,
         block_id: B,
-    ) -> Result<MaybePendingBlockWithReceipts, ProviderError>
+    ) -> Result<MaybePreConfirmedBlockWithReceipts, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
@@ -591,7 +592,7 @@ where
     async fn get_state_update<B>(
         &self,
         block_id: B,
-    ) -> Result<MaybePendingStateUpdate, ProviderError>
+    ) -> Result<MaybePreConfirmedStateUpdate, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
@@ -634,7 +635,7 @@ where
     async fn get_messages_status(
         &self,
         transaction_hash: Hash256,
-    ) -> Result<Vec<MessageWithStatus>, ProviderError> {
+    ) -> Result<Vec<MessageStatus>, ProviderError> {
         self.send_request(
             JsonRpcMethod::GetMessagesStatus,
             GetMessagesStatusRequestRef {
@@ -837,7 +838,7 @@ where
         &self,
         message: M,
         block_id: B,
-    ) -> Result<FeeEstimate, ProviderError>
+    ) -> Result<MessageFeeEstimate, ProviderError>
     where
         M: AsRef<MsgFromL1> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync,
@@ -1053,7 +1054,7 @@ where
         block_id: B,
     ) -> Result<Vec<TransactionTraceWithHash>, ProviderError>
     where
-        B: AsRef<BlockId> + Send + Sync,
+        B: AsRef<ConfirmedBlockId> + Send + Sync,
     {
         self.send_request(
             JsonRpcMethod::TraceBlockTransactions,
@@ -1172,7 +1173,7 @@ impl<'de> Deserialize<'de> for JsonRpcRequest {
         }
 
         let error_mapper =
-            |err| serde::de::Error::custom(format!("unable to decode params: {}", err));
+            |err| serde::de::Error::custom(format!("unable to decode params: {err}"));
 
         let raw_request = RawRequest::deserialize(deserializer)?;
         let request_data = match raw_request.method {
@@ -1389,7 +1390,7 @@ impl<'de> Deserialize<'de> for JsonRpcStreamUpdate {
         }
 
         let error_mapper =
-            |err| serde::de::Error::custom(format!("unable to decode params: {}", err));
+            |err| serde::de::Error::custom(format!("unable to decode params: {err}"));
 
         let raw_request = RawRequest::deserialize(deserializer)?;
         let request_data = match raw_request.method {
@@ -1529,7 +1530,16 @@ impl TryFrom<&JsonRpcError> for StarknetError {
                 Ok(Self::TransactionExecutionError(data))
             }
             51 => Ok(Self::ClassAlreadyDeclared),
-            52 => Ok(Self::InvalidTransactionNonce),
+            52 => {
+                let data = String::deserialize(
+                    value
+                        .data
+                        .as_ref()
+                        .ok_or(JsonRpcErrorConversionError::MissingData)?,
+                )
+                .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
+                Ok(Self::InvalidTransactionNonce(data))
+            }
             53 => Ok(Self::InsufficientResourcesForValidate),
             54 => Ok(Self::InsufficientAccountBalance),
             55 => {
@@ -1568,6 +1578,8 @@ impl TryFrom<&JsonRpcError> for StarknetError {
                 .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
                 Ok(Self::UnexpectedError(data))
             }
+            64 => Ok(Self::ReplacementTransactionUnderpriced),
+            65 => Ok(Self::FeeBelowMinimum),
             66 => Ok(Self::InvalidSubscriptionId),
             67 => Ok(Self::TooManyAddressesInFilter),
             68 => Ok(Self::TooManyBlocksBack),

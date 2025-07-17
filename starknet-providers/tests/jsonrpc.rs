@@ -4,10 +4,11 @@ use starknet_core::{
         BlockId, BlockTag, BroadcastedInvokeTransaction, BroadcastedTransaction, ConfirmedBlockId,
         ContractClass, ContractStorageKeys, DataAvailabilityMode, DeclareTransaction,
         DeployAccountTransaction, EthAddress, EventFilter, ExecuteInvocation, ExecutionResult,
-        Felt, FunctionCall, Hash256, InvokeTransaction, MaybePendingBlockWithReceipts,
-        MaybePendingBlockWithTxHashes, MaybePendingBlockWithTxs, MaybePendingStateUpdate,
-        MessageStatus, MsgFromL1, ResourceBounds, ResourceBoundsMapping, StarknetError,
-        SyncStatusType, Transaction, TransactionReceipt, TransactionStatus, TransactionTrace,
+        Felt, FunctionCall, Hash256, InvokeTransaction, MaybePreConfirmedBlockWithReceipts,
+        MaybePreConfirmedBlockWithTxHashes, MaybePreConfirmedBlockWithTxs,
+        MaybePreConfirmedStateUpdate, MsgFromL1, ResourceBounds, ResourceBoundsMapping,
+        StarknetError, SyncStatusType, Transaction, TransactionFinalityStatus, TransactionReceipt,
+        TransactionStatus, TransactionTrace,
     },
     utils::{get_selector_from_name, get_storage_var_address},
 };
@@ -19,7 +20,7 @@ use url::Url;
 
 fn create_jsonrpc_client() -> JsonRpcClient<HttpTransport> {
     let rpc_url = std::env::var("STARKNET_RPC")
-        .unwrap_or_else(|_| "https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_8".into());
+        .unwrap_or_else(|_| "https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_9".into());
     JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()))
 }
 
@@ -29,7 +30,7 @@ async fn jsonrpc_spec_version() {
 
     let version = rpc_client.spec_version().await.unwrap();
 
-    assert_eq!(version, "0.8.1");
+    assert_eq!(version, "0.9.0-rc.2");
 }
 
 #[tokio::test]
@@ -42,7 +43,7 @@ async fn jsonrpc_get_block_with_tx_hashes() {
         .unwrap();
 
     let block = match block {
-        MaybePendingBlockWithTxHashes::Block(block) => block,
+        MaybePreConfirmedBlockWithTxHashes::Block(block) => block,
         _ => panic!("unexpected block response type"),
     };
 
@@ -59,7 +60,7 @@ async fn jsonrpc_get_block_with_txs() {
         .unwrap();
 
     let block = match block {
-        MaybePendingBlockWithTxs::Block(block) => block,
+        MaybePreConfirmedBlockWithTxs::Block(block) => block,
         _ => panic!("unexpected block response type"),
     };
 
@@ -76,7 +77,7 @@ async fn jsonrpc_get_block_with_receipts() {
         .unwrap();
 
     let block = match block {
-        MaybePendingBlockWithReceipts::Block(block) => block,
+        MaybePreConfirmedBlockWithReceipts::Block(block) => block,
         _ => panic!("unexpected block response type"),
     };
 
@@ -93,7 +94,7 @@ async fn jsonrpc_get_state_update() {
         .unwrap();
 
     let state_update = match state_update {
-        MaybePendingStateUpdate::Update(value) => value,
+        MaybePreConfirmedStateUpdate::Update(value) => value,
         _ => panic!("unexpected data type"),
     };
 
@@ -125,9 +126,6 @@ async fn jsonrpc_get_storage_at() {
     assert!(eth_balance > Felt::ZERO);
 }
 
-// Test case `jsonrpc_get_transaction_status_rejected` was removed as there is no `REJECTED`
-// transaction on the Sepolia network.
-
 #[tokio::test]
 async fn jsonrpc_get_messages_status_accepted() {
     let rpc_client = create_jsonrpc_client();
@@ -141,7 +139,14 @@ async fn jsonrpc_get_messages_status_accepted() {
         .unwrap();
 
     assert_eq!(status.len(), 1);
-    assert!(matches!(status[0].status, MessageStatus::AcceptedOnL1));
+    assert!(matches!(
+        status[0].finality_status,
+        TransactionFinalityStatus::AcceptedOnL1
+    ));
+    assert!(matches!(
+        status[0].execution_result,
+        ExecutionResult::Succeeded
+    ));
 }
 
 #[tokio::test]

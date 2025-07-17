@@ -1,6 +1,6 @@
 use alloc::format;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use starknet_crypto::{PedersenHasher, PoseidonHasher};
 
 use crate::types::Felt;
@@ -122,6 +122,30 @@ impl TypedData {
     }
 }
 
+impl Serialize for TypedData {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        #[derive(Serialize)]
+        struct Raw<'a> {
+            types: &'a Types,
+            domain: &'a Domain,
+            #[serde(rename = "primaryType")]
+            primary_type: &'a str,
+            message: &'a Value,
+        }
+
+        Raw {
+            types: self.encoder.types(),
+            domain: &self.encoder.domain(),
+            primary_type: &self.primary_type.signature_ref_repr(),
+            message: &self.message,
+        }
+        .serialize(serializer)
+    }
+}
+
 impl<'de> Deserialize<'de> for TypedData {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -138,7 +162,7 @@ impl<'de> Deserialize<'de> for TypedData {
 
         let raw = Raw::deserialize(deserializer)?;
         Self::new(raw.types, raw.domain, raw.primary_type, raw.message)
-            .map_err(|err| serde::de::Error::custom(format!("{}", err)))
+            .map_err(|err| serde::de::Error::custom(format!("{err}")))
     }
 }
 
@@ -216,14 +240,26 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_successful_deser_v0() {
-        serde_json::from_str::<TypedData>(VALID_V0_DATA).unwrap();
+    fn test_successful_serde_v0() {
+        let data = serde_json::from_str::<TypedData>(VALID_V0_DATA).unwrap();
+
+        // Comparing on `Value` avoids false positives from formatting.
+        assert_eq!(
+            serde_json::to_value(&data).unwrap(),
+            serde_json::from_str::<serde_json::Value>(VALID_V0_DATA).unwrap()
+        );
     }
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_successful_deser_v1() {
-        serde_json::from_str::<TypedData>(VALID_V1_DATA).unwrap();
+    fn test_successful_serde_v1() {
+        let data = serde_json::from_str::<TypedData>(VALID_V1_DATA).unwrap();
+
+        // Comparing on `Value` avoids false positives from formatting.
+        assert_eq!(
+            serde_json::to_value(&data).unwrap(),
+            serde_json::from_str::<serde_json::Value>(VALID_V1_DATA).unwrap()
+        );
     }
 
     #[test]

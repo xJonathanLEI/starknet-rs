@@ -1,9 +1,12 @@
-use alloc::{format, string::*, vec::*};
+use alloc::{format, string::*, vec, vec::*};
 use core::str::FromStr;
 
-use serde::{de::Unexpected, Deserialize};
+use serde::{de::Unexpected, Deserialize, Serialize};
 
-use crate::{types::Felt, utils::starknet_keccak};
+use crate::{
+    types::{typed_data::TypeReference, Felt},
+    utils::starknet_keccak,
+};
 
 use super::{
     revision::Revision,
@@ -11,7 +14,8 @@ use super::{
 };
 
 /// Custom SNIP-12 type definition, typically used in the `types` field.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(untagged)]
 pub enum TypeDefinition {
     /// Struct type definition.
     Struct(StructDefinition),
@@ -20,34 +24,45 @@ pub enum TypeDefinition {
 }
 
 /// Definition of a custom SNIP-12 struct type.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(transparent)]
 pub struct StructDefinition {
     /// Struct fields.
     pub fields: Vec<FieldDefinition>,
 }
 
 /// Definition of a custom SNIP-12 struct field.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct FieldDefinition {
     /// Name of the field.
     pub name: String,
     /// Type of the field.
+    #[serde(flatten)]
     pub r#type: FullTypeReference,
 }
 
+impl FieldDefinition {
+    /// Initializes a new field definition.
+    pub fn new(name: String, r#type: FullTypeReference) -> Self {
+        Self { name, r#type }
+    }
+}
+
 /// Definition of a custom SNIP-12 enum type.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(transparent)]
 pub struct EnumDefinition {
     /// Enum variants.
     pub variants: Vec<VariantDefinition>,
 }
 
 /// Definition of a custom SNIP-12 enum type variant.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct VariantDefinition {
     /// Name of the variant.
     pub name: String,
     /// Types of the elements of the variant's list of data.
+    #[serde(rename = "type", serialize_with = "serialize_enum_variant_type")]
     pub tuple_types: Vec<InlineTypeReference>,
 }
 
@@ -79,6 +94,25 @@ enum FieldOrVariantDefinition {
 }
 
 impl TypeDefinition {
+    pub(crate) fn v0_domain() -> Self {
+        Self::Struct(StructDefinition {
+            fields: vec![
+                FieldDefinition {
+                    name: "name".into(),
+                    r#type: FullTypeReference::Felt,
+                },
+                FieldDefinition {
+                    name: "version".into(),
+                    r#type: FullTypeReference::Felt,
+                },
+                FieldDefinition {
+                    name: "chainId".into(),
+                    r#type: FullTypeReference::Felt,
+                },
+            ],
+        })
+    }
+
     pub(crate) fn is_v0_domain(&self) -> bool {
         match self {
             Self::Struct(def) => {
@@ -92,6 +126,29 @@ impl TypeDefinition {
             }
             Self::Enum(_) => false,
         }
+    }
+
+    pub(crate) fn v1_domain() -> Self {
+        Self::Struct(StructDefinition {
+            fields: vec![
+                FieldDefinition {
+                    name: "name".into(),
+                    r#type: FullTypeReference::ShortString,
+                },
+                FieldDefinition {
+                    name: "version".into(),
+                    r#type: FullTypeReference::ShortString,
+                },
+                FieldDefinition {
+                    name: "chainId".into(),
+                    r#type: FullTypeReference::ShortString,
+                },
+                FieldDefinition {
+                    name: "revision".into(),
+                    r#type: FullTypeReference::ShortString,
+                },
+            ],
+        })
     }
 
     pub(crate) fn is_v1_domain(&self) -> bool {
@@ -258,8 +315,7 @@ impl<'de> Deserialize<'de> for FieldOrVariantDefinition {
                         // `,` so it seems that whitespaces are allowed.
                         InlineTypeReference::from_str(raw_type.trim()).map_err(|err| {
                             serde::de::Error::custom(format!(
-                                "invalid inline type reference: {}",
-                                err
+                                "invalid inline type reference: {err}"
                             ))
                         })
                     })
@@ -275,7 +331,7 @@ impl<'de> Deserialize<'de> for FieldOrVariantDefinition {
             Ok(Self::Field(FieldDefinition {
                 name: raw.name,
                 r#type: FullTypeReference::from_parts(raw.r#type, raw.contains).map_err(|err| {
-                    serde::de::Error::custom(format!("invalid full type reference: {}", err))
+                    serde::de::Error::custom(format!("invalid full type reference: {err}"))
                 })?,
             }))
         }
@@ -330,6 +386,23 @@ impl CompositeType for PresetType {
     }
 }
 
+fn serialize_enum_variant_type<S>(
+    value: &[InlineTypeReference],
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    serializer.serialize_str(&format!(
+        "({})",
+        value
+            .iter()
+            .map(|field| field.signature_ref_repr())
+            .collect::<Vec<_>>()
+            .join(",")
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::super::type_reference::ElementTypeReference;
@@ -337,7 +410,7 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_struct_def_deser() {
+    fn test_struct_def_serde() {
         let raw = r###"[
   { "name": "Name", "type": "string" },
   { "name": "Some Array", "type": "u128*" },
@@ -346,7 +419,7 @@ mod tests {
 ]"###;
 
         let def = serde_json::from_str::<TypeDefinition>(raw).unwrap();
-        match def {
+        match &def {
             TypeDefinition::Struct(struct_def) => {
                 assert_eq!(struct_def.fields.len(), 4);
                 assert_eq!(struct_def.fields[0].r#type, FullTypeReference::String);
@@ -365,19 +438,25 @@ mod tests {
             }
             _ => panic!("unexpected definition type"),
         }
+
+        // Comparing on `Value` avoids false positives from formatting.
+        assert_eq!(
+            serde_json::to_value(&def).unwrap(),
+            serde_json::from_str::<serde_json::Value>(raw).unwrap()
+        );
     }
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_enum_def_deser() {
+    fn test_enum_def_serde() {
         let raw = r###"[
   { "name": "Variant 1", "type": "()" },
-  { "name": "Variant 2", "type": "(u128, u128*)" },
+  { "name": "Variant 2", "type": "(u128,u128*)" },
   { "name": "Variant N", "type": "(u128)" }
 ]"###;
 
         let def = serde_json::from_str::<TypeDefinition>(raw).unwrap();
-        match def {
+        match &def {
             TypeDefinition::Enum(enum_def) => {
                 assert_eq!(enum_def.variants.len(), 3);
                 assert_eq!(enum_def.variants[0].tuple_types, vec![]);
@@ -395,5 +474,11 @@ mod tests {
             }
             _ => panic!("unexpected definition type"),
         }
+
+        // Comparing on `Value` avoids false positives from formatting.
+        assert_eq!(
+            serde_json::to_value(&def).unwrap(),
+            serde_json::from_str::<serde_json::Value>(raw).unwrap()
+        );
     }
 }

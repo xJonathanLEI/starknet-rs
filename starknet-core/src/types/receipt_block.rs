@@ -9,12 +9,12 @@ use starknet_types_core::felt::Felt;
 ///
 /// Instead of directly exposing the `block_hash` and `block_number` fields as [`Option<Felt>`],
 /// this struct captures the fact that these fields are always [`Some`](Option::Some) or
-/// [`None`](Option::None) toggether, allowing idiomatic access without unnecessary unwraps.
+/// [`None`](Option::None) together, allowing idiomatic access without unnecessary unwraps.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReceiptBlock {
-    /// The receipt is attached to a pending block.
-    Pending,
-    /// The receipt is attached to a confirmed, non-pending block.
+    /// The receipt is attached to a pre-confirmed block.
+    PreConfirmed,
+    /// The receipt is attached to a confirmed block.
     Block {
         /// Block hash.
         block_hash: Felt,
@@ -24,10 +24,10 @@ pub enum ReceiptBlock {
 }
 
 impl ReceiptBlock {
-    /// Returns `true` if and only if it's the `Pending` variant.
-    pub const fn is_pending(&self) -> bool {
+    /// Returns `true` if and only if it's the `PreConfirmed` variant.
+    pub const fn is_pre_confirmed(&self) -> bool {
         match self {
-            Self::Pending => true,
+            Self::PreConfirmed => true,
             Self::Block { .. } => false,
         }
     }
@@ -35,7 +35,7 @@ impl ReceiptBlock {
     /// Returns `true` if and only if it's the `Block` variant.
     pub const fn is_block(&self) -> bool {
         match self {
-            Self::Pending => false,
+            Self::PreConfirmed => false,
             Self::Block { .. } => true,
         }
     }
@@ -45,7 +45,7 @@ impl ReceiptBlock {
     /// A more idiomatic way of accessing the block hash is to match the `Block` enum variant.
     pub const fn block_hash(&self) -> Option<Felt> {
         match self {
-            Self::Pending => None,
+            Self::PreConfirmed => None,
             Self::Block { block_hash, .. } => Some(*block_hash),
         }
     }
@@ -55,7 +55,7 @@ impl ReceiptBlock {
     /// A more idiomatic way of accessing the block number is to match the `Block` enum variant.
     pub const fn block_number(&self) -> Option<u64> {
         match self {
-            Self::Pending => None,
+            Self::PreConfirmed => None,
             Self::Block { block_number, .. } => Some(*block_number),
         }
     }
@@ -78,7 +78,7 @@ impl Serialize for ReceiptBlock {
         S: serde::Serializer,
     {
         let raw = match self {
-            Self::Pending => Raw {
+            Self::PreConfirmed => Raw {
                 block_hash: None,
                 block_number: None,
             },
@@ -107,7 +107,7 @@ impl<'de> Deserialize<'de> for ReceiptBlock {
                 block_hash,
                 block_number,
             }),
-            (None, None) => Ok(Self::Pending),
+            (None, None) => Ok(Self::PreConfirmed),
             (Some(_), None) => Err(serde::de::Error::custom(
                 "field `block_hash` must not exist when `block_number` is missing",
             )),

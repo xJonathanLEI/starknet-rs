@@ -40,5 +40,10 @@ fn main() {
     println!("SNIP-12 revision: {}", typed_data.revision());
 
     let message_hash = typed_data.message_hash(felt!("0x1234")).unwrap();
-    println!("SNIP-12 hash: {:#064x}", message_hash);
+    println!("SNIP-12 hash: {message_hash:#064x}");
+
+    println!(
+        "Serialized typed message:\n{}",
+        serde_json::to_string_pretty(&typed_data).unwrap()
+    );
 }

@@ -180,13 +180,13 @@ impl StreamReadDriver {
                                     // unsubscribing. However, there could be a race condition where
                                     // an update arrives before that. This is normal but probably
                                     // still worth flagging.
-                                    println!("WARNING: unable to dump updates");
+                                    log::warn!("WARNING: unable to dump updates");
                                 }
                             }
                             None => {
                                 // Unsolicited subscription update. This is probably not worth
                                 // panicking over.
-                                println!("WARNING: unsolicited subscription update");
+                                log::warn!("WARNING: unsolicited subscription update");
                             }
                         }
                     }
@@ -217,7 +217,7 @@ impl StreamReadDriver {
                                     None => {
                                         // Unsolicited subscription result. This is probably not
                                         // worth panicking over.
-                                        println!("WARNING: unsolicited subscription result");
+                                        log::warn!("WARNING: unsolicited subscription result");
                                     }
                                 }
                             }
@@ -238,7 +238,7 @@ impl StreamReadDriver {
                                     None => {
                                         // Unsolicited unsubscribe result. This is probably not
                                         // worth panicking over.
-                                        println!("WARNING: unsolicited unsubscribe result");
+                                        log::warn!("WARNING: unsolicited unsubscribe result");
                                     }
                                 }
                             }
@@ -259,11 +259,22 @@ impl StreamReadDriver {
                                 let _ = result.send(UnsubscribeResult::JsonRpcError(error));
                             }
                         } else {
-                            println!("WARNING: unsolicited error");
+                            log::warn!("WARNING: unsolicited error");
                         }
                     }
                 }
 
+                HandleMessageResult::Success
+            }
+            Message::Ping(_) => {
+                // Nothing to do here as `tungstenite` handles `Ping` by internally queuing a `Pong`
+                // response and it will get flushed automatically on the next read.
+                log::trace!("Received Ping message from WebSocket server");
+                HandleMessageResult::Success
+            }
+            Message::Pong(_) => {
+                // This is most likely just the server responding to our `Ping`. Nothing to do here.
+                log::trace!("Received Pong message from WebSocket server");
                 HandleMessageResult::Success
             }
             Message::Close(_) => HandleMessageResult::StreamEnded,

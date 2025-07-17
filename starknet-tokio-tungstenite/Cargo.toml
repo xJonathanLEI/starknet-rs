@@ -1,6 +1,6 @@
 [package]
 name = "starknet-tokio-tungstenite"
-version = "0.1.0"
+version = "0.3.0-rc.1"
 authors = ["Jonathan LEI <me@xjonathan.dev>"]
 license = "MIT OR Apache-2.0"
 edition = "2021"
@@ -13,9 +13,10 @@ Starknet JSON-RPC WebSocket client implementation with tokio-tungstenite
 keywords = ["ethereum", "starknet", "web3"]
 
 [dependencies]
-starknet-core = { version = "0.14.0", path = "../starknet-core", default-features = false }
-starknet-providers = { version = "0.14.1", path = "../starknet-providers" }
+starknet-core = { version = "0.16.0-rc.1", path = "../starknet-core", default-features = false }
+starknet-providers = { version = "0.16.0-rc.1", path = "../starknet-providers" }
 futures-util = "0.3.31"
+log = "0.4.19"
 rand = { version = "0.8.5", features = ["std_rng"] }
 serde = { version = "1.0.160", features = ["derive"] }
 serde_json = "1.0.74"
@@ -23,6 +24,9 @@ tokio = { version = "1.15.0", default-features = false, features = ["macros", "t
 tokio-tungstenite = { version = "0.26.2", features = ["rustls-tls-native-roots"] }
 tokio-util = "0.7.15"
 tungstenite = { version = "0.26.2", features = ["url"] }
+
+[dev-dependencies]
+starknet-providers = { version = "0.16.0-rc.1", path = "../starknet-providers", features = ["no_unknown_fields"] }
 
 [lints]
 workspace = true

@@ -7,7 +7,7 @@ mod error;
 pub use error::*;
 
 mod stream;
-pub use stream::{StreamUpdateType, TungsteniteStream};
+pub use stream::{StreamUpdateType, TungsteniteStream, TungsteniteStreamBuilder};
 
 mod subscription;
 pub use subscription::*;

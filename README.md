@@ -5,8 +5,8 @@
 
 **Complete Starknet library in Rust[™](https://www.reddit.com/r/rust/comments/12e7tdb/rust_trademark_policy_feedback_form/)**
 
-![starknet-version-v0.13.4](https://img.shields.io/badge/Starknet_Version-v0.13.4-2ea44f?logo=ethereum)
-[![jsonrpc-spec-v0.8.1](https://img.shields.io/badge/JSON--RPC-v0.7.1-2ea44f?logo=ethereum)](https://github.com/starkware-libs/starknet-specs/tree/v0.8.1)
+![starknet-version-v0.14.0](https://img.shields.io/badge/Starknet_Version-v0.14.0-2ea44f?logo=ethereum)
+[![jsonrpc-spec-v0.9.0](https://img.shields.io/badge/JSON--RPC-v0.9.0-2ea44f?logo=ethereum)](https://github.com/starkware-libs/starknet-specs/tree/release/v0.9.0-rc.2)
 [![linting-badge](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml/badge.svg?branch=master)](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml)
 [![crates-badge](https://img.shields.io/crates/v/starknet.svg)](https://crates.io/crates/starknet)
 
@@ -20,7 +20,7 @@ To use the crate from [crates.io](https://crates.io/crates/starknet), add the fo
 
 ```toml
 [dependencies]
-starknet = "0.15.1"
+starknet = "0.17.0-rc.1"
 ```
 
 Note that the [crates.io version](https://crates.io/crates/starknet) might be outdated. You may want to use the library directly from GitHub for all the latest features and fixes:

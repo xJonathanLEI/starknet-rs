@@ -24,12 +24,12 @@ impl From<core::BlockId> for BlockId {
             core::BlockId::Hash(hash) => Self::Hash(hash),
             core::BlockId::Number(num) => Self::Number(num),
             core::BlockId::Tag(core::BlockTag::Latest) => Self::Latest,
-            core::BlockId::Tag(core::BlockTag::Pending) => Self::Pending,
+            core::BlockId::Tag(core::BlockTag::PreConfirmed) => Self::Pending,
         }
     }
 }
 
-impl TryFrom<Block> for core::MaybePendingBlockWithTxHashes {
+impl TryFrom<Block> for core::MaybePreConfirmedBlockWithTxHashes {
     type Error = ConversionError;
 
     fn try_from(value: Block) -> Result<Self, Self::Error> {
@@ -57,28 +57,21 @@ impl TryFrom<Block> for core::MaybePendingBlockWithTxHashes {
                 }))
             }
             // Pending block
-            (None, None, None) => Ok(Self::PendingBlock(core::PendingBlockWithTxHashes {
-                transactions: value
-                    .transactions
-                    .iter()
-                    .map(|tx| tx.transaction_hash())
-                    .collect(),
-                timestamp: value.timestamp,
-                sequencer_address: value.sequencer_address.unwrap_or_default(),
-                parent_hash: value.parent_block_hash,
-                l1_gas_price: value.l1_gas_price,
-                l2_gas_price: value.l2_gas_price,
-                l1_data_gas_price: value.l1_data_gas_price,
-                l1_da_mode: value.l1_da_mode,
-                starknet_version: value.starknet_version.ok_or(ConversionError)?,
-            })),
+            (None, None, None) => {
+                // We're almost able to map this into a pre-confirmed block, but can't do it as
+                // pending blocks from the sequencer doesn't contain block number.
+                //
+                // Technically the block number can be found by looking up the parent block, but we
+                // don't have a choice but to error here.
+                Err(ConversionError)
+            }
             // Unknown combination
             _ => Err(ConversionError),
         }
     }
 }
 
-impl TryFrom<Block> for core::MaybePendingBlockWithTxs {
+impl TryFrom<Block> for core::MaybePreConfirmedBlockWithTxs {
     type Error = ConversionError;
 
     fn try_from(value: Block) -> Result<Self, Self::Error> {
@@ -106,28 +99,21 @@ impl TryFrom<Block> for core::MaybePendingBlockWithTxs {
                 }))
             }
             // Pending block
-            (None, None, None) => Ok(Self::PendingBlock(core::PendingBlockWithTxs {
-                transactions: value
-                    .transactions
-                    .into_iter()
-                    .map(|tx| tx.try_into())
-                    .collect::<Result<_, _>>()?,
-                timestamp: value.timestamp,
-                sequencer_address: value.sequencer_address.unwrap_or_default(),
-                parent_hash: value.parent_block_hash,
-                l1_gas_price: value.l1_gas_price,
-                l2_gas_price: value.l2_gas_price,
-                l1_data_gas_price: value.l1_data_gas_price,
-                l1_da_mode: value.l1_da_mode,
-                starknet_version: value.starknet_version.ok_or(ConversionError)?,
-            })),
+            (None, None, None) => {
+                // We're almost able to map this into a pre-confirmed block, but can't do it as
+                // pending blocks from the sequencer doesn't contain block number.
+                //
+                // Technically the block number can be found by looking up the parent block, but we
+                // don't have a choice but to error here.
+                Err(ConversionError)
+            }
             // Unknown combination
             _ => Err(ConversionError),
         }
     }
 }
 
-impl TryFrom<Block> for core::MaybePendingBlockWithReceipts {
+impl TryFrom<Block> for core::MaybePreConfirmedBlockWithReceipts {
     type Error = ConversionError;
 
     fn try_from(value: Block) -> Result<Self, Self::Error> {
@@ -176,17 +162,14 @@ impl TryFrom<Block> for core::MaybePendingBlockWithReceipts {
                 }))
             }
             // Pending block
-            (None, None, None) => Ok(Self::PendingBlock(core::PendingBlockWithReceipts {
-                transactions,
-                timestamp: value.timestamp,
-                sequencer_address: value.sequencer_address.unwrap_or_default(),
-                parent_hash: value.parent_block_hash,
-                l1_gas_price: value.l1_gas_price,
-                l2_gas_price: value.l2_gas_price,
-                l1_data_gas_price: value.l1_data_gas_price,
-                l1_da_mode: value.l1_da_mode,
-                starknet_version: value.starknet_version.ok_or(ConversionError)?,
-            })),
+            (None, None, None) => {
+                // We're almost able to map this into a pre-confirmed block, but can't do it as
+                // pending blocks from the sequencer doesn't contain block number.
+                //
+                // Technically the block number can be found by looking up the parent block, but we
+                // don't have a choice but to error here.
+                Err(ConversionError)
+            }
             // Unknown combination
             _ => Err(ConversionError),
         }
@@ -198,7 +181,7 @@ impl TryFrom<BlockStatus> for core::BlockStatus {
 
     fn try_from(value: BlockStatus) -> Result<Self, Self::Error> {
         match value {
-            BlockStatus::Pending => Ok(Self::Pending),
+            BlockStatus::Pending => Ok(Self::PreConfirmed),
             BlockStatus::Aborted => Err(ConversionError),
             BlockStatus::Reverted => Ok(Self::Rejected),
             BlockStatus::AcceptedOnL2 => Ok(Self::AcceptedOnL2),
@@ -468,7 +451,7 @@ impl From<core::DataAvailabilityMode> for DataAvailabilityMode {
     }
 }
 
-impl TryFrom<StateUpdate> for core::MaybePendingStateUpdate {
+impl TryFrom<StateUpdate> for core::MaybePreConfirmedStateUpdate {
     type Error = ConversionError;
 
     fn try_from(value: StateUpdate) -> Result<Self, Self::Error> {
@@ -479,7 +462,7 @@ impl TryFrom<StateUpdate> for core::MaybePendingStateUpdate {
                 old_root: value.old_root,
                 state_diff: value.state_diff.into(),
             })),
-            (None, None) => Ok(Self::PendingUpdate(core::PendingStateUpdate {
+            (None, None) => Ok(Self::PreConfirmedUpdate(core::PreConfirmedStateUpdate {
                 old_root: value.old_root,
                 state_diff: value.state_diff.into(),
             })),
@@ -760,7 +743,8 @@ impl TryFrom<TransactionStatusInfo> for core::TransactionStatus {
 
     fn try_from(value: TransactionStatusInfo) -> Result<Self, Self::Error> {
         if value.status.is_rejected() {
-            return Ok(Self::Rejected);
+            // Since Starknet v0.14.0 it's no longer possible to express rejected transactions.
+            return Err(ConversionError);
         }
 
         let exec_status = match value.execution_status.ok_or(ConversionError)? {

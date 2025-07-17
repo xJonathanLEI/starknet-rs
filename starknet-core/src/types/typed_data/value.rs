@@ -1,7 +1,7 @@
 use alloc::{borrow::ToOwned, string::*, vec::*};
 
 use indexmap::IndexMap;
-use serde::{de::Visitor, Deserialize};
+use serde::{de::Visitor, Deserialize, Serialize};
 
 #[cfg(feature = "std")]
 type RandomState = std::hash::RandomState;
@@ -11,7 +11,8 @@ type RandomState = foldhash::fast::RandomState;
 const DEFAULT_INDEXMAP_CAPACITY: usize = 5;
 
 /// The primitive representation of the SNIP-12 message value.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(untagged)]
 pub enum Value {
     /// String value.
     String(String),
@@ -28,14 +29,16 @@ pub enum Value {
 }
 
 /// A map/object value for SNIP-12 message representation.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(transparent)]
 pub struct ObjectValue {
     /// Fields of the object.
     pub fields: IndexMap<String, Value, RandomState>,
 }
 
 /// A sequence/array value for SNIP-12 message representation.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(transparent)]
 pub struct ArrayValue {
     /// Elements of the array.
     pub elements: Vec<Value>,
@@ -175,7 +178,7 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_value_deser() {
+    fn test_value_serde() {
         let raw = r###"{
   "Name": "some name",
   "Some Array": [1, 2, 3, 4],
@@ -187,7 +190,7 @@ mod tests {
 
         let value = serde_json::from_str::<Value>(raw).unwrap();
 
-        match value {
+        match &value {
             Value::Object(value) => {
                 assert_eq!(value.fields.len(), 3);
                 assert_eq!(
@@ -225,5 +228,11 @@ mod tests {
             }
             _ => panic!("unexpected value type"),
         }
+
+        // Comparing on `Value` avoids false positives from formatting.
+        assert_eq!(
+            serde_json::to_value(&value).unwrap(),
+            serde_json::from_str::<serde_json::Value>(raw).unwrap()
+        );
     }
 }

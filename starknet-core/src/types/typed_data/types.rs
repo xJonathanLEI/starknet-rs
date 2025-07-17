@@ -1,7 +1,11 @@
-use alloc::{borrow::ToOwned, collections::BTreeMap, string::*};
+use alloc::{
+    borrow::{Cow, ToOwned},
+    collections::BTreeMap,
+    string::*,
+};
 
 use indexmap::IndexMap;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     types::{typed_data::CommonTypeReference, Felt},
@@ -39,6 +43,14 @@ enum SignatureGenerator<'a> {
 }
 
 impl Types {
+    /// Initializes a new instance of `Types`.
+    pub fn new(revision: Revision, types: IndexMap<String, TypeDefinition, RandomState>) -> Self {
+        Self {
+            revision,
+            user_defined_types: types,
+        }
+    }
+
     /// Gets the revision implied from the definition of the domain type.
     ///
     /// Returns [`Revision::V0`] if and only if only `StarkNetDomain` is defined.
@@ -266,6 +278,34 @@ impl SignatureGenerator<'_> {
     }
 }
 
+impl Serialize for Types {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut types =
+            IndexMap::<&str, Cow<'_, TypeDefinition>, RandomState>::with_capacity_and_hasher(
+                self.user_defined_types.len() + 1,
+                RandomState::default(),
+            );
+
+        match self.revision {
+            Revision::V0 => {
+                types.insert(DOMAIN_TYPE_NAME_V0, Cow::Owned(TypeDefinition::v0_domain()));
+            }
+            Revision::V1 => {
+                types.insert(DOMAIN_TYPE_NAME_V1, Cow::Owned(TypeDefinition::v1_domain()));
+            }
+        }
+
+        for (name, user_type) in &self.user_defined_types {
+            types.insert(name, Cow::Borrowed(user_type));
+        }
+
+        types.serialize(serializer)
+    }
+}
+
 impl<'de> Deserialize<'de> for Types {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -329,7 +369,7 @@ mod tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_revision_0_deser() {
+    fn test_revision_0_serde() {
         let raw = r###"{
   "StarkNetDomain": [
     { "name": "name", "type": "felt" },
@@ -350,14 +390,26 @@ mod tests {
         let types = serde_json::from_str::<Types>(raw).unwrap();
         assert_eq!(types.revision, Revision::V0);
         assert_eq!(types.user_defined_types.len(), 2);
+
+        // Comparing on `Value` avoids false positives from formatting.
+        assert_eq!(
+            serde_json::to_value(&types).unwrap(),
+            serde_json::from_str::<serde_json::Value>(raw).unwrap()
+        );
     }
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn test_revision_1_deser() {
+    fn test_revision_1_serde() {
         let types = serde_json::from_str::<Types>(VALID_V1_DATA).unwrap();
         assert_eq!(types.revision, Revision::V1);
         assert_eq!(types.user_defined_types.len(), 2);
+
+        // Comparing on `Value` avoids false positives from formatting.
+        assert_eq!(
+            serde_json::to_value(&types).unwrap(),
+            serde_json::from_str::<serde_json::Value>(VALID_V1_DATA).unwrap()
+        );
     }
 
     #[test]

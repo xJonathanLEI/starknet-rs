@@ -75,7 +75,7 @@ impl std::fmt::Display for ConnectError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Timeout => write!(f, "operation timeout"),
-            Self::Transport(err) => write!(f, "tungstenite transport error: {}", err),
+            Self::Transport(err) => write!(f, "tungstenite transport error: {err}"),
         }
     }
 }
@@ -98,10 +98,10 @@ impl std::fmt::Display for SubscribeError {
             Self::TooManyAddressesInFilter => write!(f, "too many addresses in filter"),
             Self::TooManyKeysInFilter => write!(f, "too many keys in filter"),
             Self::UnexpectedError(json_rpc_error) => {
-                write!(f, "unexpected JSON-RPC error: {:?}", json_rpc_error)
+                write!(f, "unexpected JSON-RPC error: {json_rpc_error:?}")
             }
             Self::Timeout => write!(f, "operation timeout"),
-            Self::Transport(err) => write!(f, "tungstenite transport error: {}", err),
+            Self::Transport(err) => write!(f, "tungstenite transport error: {err}"),
         }
     }
 }
@@ -117,15 +117,14 @@ impl std::fmt::Display for SubscriptionReceiveError {
             Self::UnexpectedType { expecting, actual } => {
                 write!(
                     f,
-                    "unexpected subscription update type: {}; expecting ",
-                    actual
+                    "unexpected subscription update type: {actual}; expecting "
                 )?;
 
                 for (ind, item) in expecting.iter().enumerate() {
                     if ind == expecting.len() - 1 {
-                        write!(f, "{}", item)?
+                        write!(f, "{item}")?
                     } else {
-                        write!(f, "{}, ", item)?
+                        write!(f, "{item}, ")?
                     }
                 }
 
@@ -153,10 +152,10 @@ impl std::fmt::Display for UnsubscribeError {
                 write!(f, "invalid subscription ID")
             }
             Self::UnexpectedError(err) => {
-                write!(f, "unexpected JSON-RPC error: {}", err)
+                write!(f, "unexpected JSON-RPC error: {err}")
             }
             Self::Timeout => write!(f, "operation timeout"),
-            Self::Transport(err) => write!(f, "tungstenite transport error: {}", err),
+            Self::Transport(err) => write!(f, "tungstenite transport error: {err}"),
         }
     }
 }
@@ -167,7 +166,7 @@ impl std::fmt::Display for CloseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Timeout => write!(f, "operation timeout"),
-            Self::Transport(err) => write!(f, "tungstenite transport error: {}", err),
+            Self::Transport(err) => write!(f, "tungstenite transport error: {err}"),
         }
     }
 }

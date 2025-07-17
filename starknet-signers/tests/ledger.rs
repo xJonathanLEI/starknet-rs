@@ -1,121 +1,151 @@
 #![cfg(not(target_arch = "wasm32"))]
 
-use std::{
-    process::{Child, Command},
-    time::Duration,
-};
+use std::{borrow::Cow, sync::Arc};
 
 use async_trait::async_trait;
 use coins_ledger::{transports::LedgerAsync, APDUAnswer, APDUCommand, LedgerError};
-use reqwest::{Client, ClientBuilder};
 use semver::Version;
-use serde::{Deserialize, Serialize};
+use speculos_client::{AutomationAction, AutomationRule, Button, DeviceModel, SpeculosClient};
 use starknet_core::types::Felt;
 use starknet_signers::ledger::LedgerStarknetApp;
 
 const TEST_PATH: &str = "m/2645'/1195502025'/1470455285'/0'/0'/0";
+const APP_PATH: &str = "./test-data/ledger-app/nanox_2.4.2_2.3.1_sdk_v22.10.0";
 
 #[derive(Debug)]
-struct SpeculosTransport {
-    process: Child,
-    port: u16,
-    client: Client,
-}
-
-#[derive(Serialize, Deserialize)]
-struct ApduData {
-    #[serde(with = "hex")]
-    data: Vec<u8>,
-}
-
-impl SpeculosTransport {
-    async fn new(port: u16) -> Self {
-        let mut cmd = Command::new("speculos");
-        let process = cmd
-            .args([
-                "--api-port",
-                &port.to_string(),
-                "--apdu-port",
-                "0",
-                "-m",
-                "nanox",
-                "--display",
-                "headless",
-                "./test-data/ledger-app/nanox_2.4.2_2.3.1_sdk_v22.10.0",
-            ])
-            .spawn()
-            .expect("Unable to spawn speculos process");
-
-        // Wait for process to be ready (flaky)
-        tokio::time::sleep(Duration::from_secs(1)).await;
-
-        Self {
-            process,
-            port,
-            client: ClientBuilder::new()
-                .timeout(Duration::from_secs(10))
-                .build()
-                .unwrap(),
-        }
-    }
-
-    async fn send(&self, packet: &APDUCommand) -> Result<APDUAnswer, LedgerError> {
-        let response = self
-            .client
-            .post(format!("http://localhost:{}/apdu", self.port))
-            .json(&ApduData {
-                data: packet.serialize(),
-            })
-            .send()
-            .await
-            .unwrap();
-
-        let body = response.json::<ApduData>().await.unwrap();
-        APDUAnswer::from_answer(body.data)
-    }
-}
+struct SpeculosTransport(Arc<SpeculosClient>);
 
 #[async_trait]
 impl LedgerAsync for SpeculosTransport {
     async fn init() -> Result<Self, LedgerError> {
-        Ok(Self::new(5001).await)
+        Ok(Self(Arc::new(
+            SpeculosClient::new(DeviceModel::Nanox, 5001, APP_PATH).unwrap(),
+        )))
     }
 
     async fn exchange(&self, packet: &APDUCommand) -> Result<APDUAnswer, LedgerError> {
-        self.send(packet).await
+        let raw_asnwer = self.0.apdu(&packet.serialize()).await.unwrap();
+        Ok(APDUAnswer::from_answer(raw_asnwer).unwrap())
     }
 
     fn close(self) {}
 }
 
-impl Drop for SpeculosTransport {
-    fn drop(&mut self) {
-        let _ = self.process.kill();
+fn setup_app(port: u16) -> (Arc<SpeculosClient>, LedgerStarknetApp<SpeculosTransport>) {
+    let client = Arc::new(SpeculosClient::new(DeviceModel::Nanox, port, APP_PATH).unwrap());
+    let app = LedgerStarknetApp::from_transport(SpeculosTransport(client.clone()));
+    (client, app)
+}
+
+/// Module for easy test filtering.
+mod ledger {
+    use super::*;
+
+    #[tokio::test]
+    #[ignore = "requires Speculos installation"]
+    async fn test_get_app_version() {
+        let (_, app) = setup_app(5001);
+        let version = app.get_version().await.unwrap();
+
+        assert_eq!(version, Version::new(2, 3, 1));
+    }
+
+    #[tokio::test]
+    #[ignore = "requires Speculos installation"]
+    async fn test_get_public_key_headless() {
+        let (_, app) = setup_app(5002);
+        let public_key = app
+            .get_public_key(TEST_PATH.parse().unwrap(), false)
+            .await
+            .unwrap();
+
+        assert_eq!(
+            public_key.scalar(),
+            Felt::from_hex_unchecked(
+                "0x07427aa749c4fc98a5bf76f037eb3c61e7b4793b576a72d45a4b52c5ded997f2"
+            )
+        );
+    }
+
+    #[tokio::test]
+    #[ignore = "requires Speculos installation"]
+    async fn test_get_public_key_with_confirmation() {
+        let (client, app) = setup_app(5003);
+
+        // Automatically approve
+        client
+            .automation(&[automation::APPROVE_PUBLIC_KEY])
+            .await
+            .unwrap();
+
+        let public_key = app
+            .get_public_key(TEST_PATH.parse().unwrap(), true)
+            .await
+            .unwrap();
+
+        assert_eq!(
+            public_key.scalar(),
+            Felt::from_hex_unchecked(
+                "0x07427aa749c4fc98a5bf76f037eb3c61e7b4793b576a72d45a4b52c5ded997f2"
+            )
+        );
     }
 }
 
-#[tokio::test]
-#[ignore = "requires Speculos installation"]
-async fn test_get_app_version() {
-    let app = LedgerStarknetApp::from_transport(SpeculosTransport::new(5001).await);
-    let version = app.get_version().await.unwrap();
+mod automation {
+    use super::*;
 
-    assert_eq!(version, Version::new(2, 3, 1));
-}
-
-#[tokio::test]
-#[ignore = "requires Speculos installation"]
-async fn test_get_public_key_headless() {
-    let app = LedgerStarknetApp::from_transport(SpeculosTransport::new(5002).await);
-    let public_key = app
-        .get_public_key(TEST_PATH.parse().unwrap(), false)
-        .await
-        .unwrap();
-
-    assert_eq!(
-        public_key.scalar(),
-        Felt::from_hex_unchecked(
-            "0x07427aa749c4fc98a5bf76f037eb3c61e7b4793b576a72d45a4b52c5ded997f2"
-        )
-    );
+    pub const APPROVE_PUBLIC_KEY: AutomationRule<'static> = AutomationRule {
+        text: Some(Cow::Borrowed("Confirm Public Key")),
+        regexp: None,
+        x: None,
+        y: None,
+        conditions: &[],
+        actions: &[
+            // Press right
+            AutomationAction::Button {
+                button: Button::Right,
+                pressed: true,
+            },
+            AutomationAction::Button {
+                button: Button::Right,
+                pressed: false,
+            },
+            // Press right
+            AutomationAction::Button {
+                button: Button::Right,
+                pressed: true,
+            },
+            AutomationAction::Button {
+                button: Button::Right,
+                pressed: false,
+            },
+            // Press right
+            AutomationAction::Button {
+                button: Button::Right,
+                pressed: true,
+            },
+            AutomationAction::Button {
+                button: Button::Right,
+                pressed: false,
+            },
+            // Press both
+            AutomationAction::Button {
+                button: Button::Left,
+                pressed: true,
+            },
+            AutomationAction::Button {
+                button: Button::Right,
+                pressed: true,
+            },
+            AutomationAction::Button {
+                button: Button::Left,
+                pressed: false,
+            },
+            AutomationAction::Button {
+                button: Button::Right,
+                pressed: false,
+            },
+        ],
+    };
 }

@@ -10,7 +10,7 @@ use starknet_core::types::{
 #[tokio::main]
 async fn main() {
     let provider = JsonRpcClient::new(HttpTransport::new(
-        Url::parse("https://starknet-sepolia.public.blastapi.io/rpc/v0_8").unwrap(),
+        Url::parse("https://starknet-sepolia.public.blastapi.io/rpc/v0_9").unwrap(),
     ));
 
     let responses = provider
@@ -28,8 +28,8 @@ async fn main() {
             ProviderResponseData::BlockNumber(block_number),
             ProviderResponseData::GetBlockTransactionCount(count),
         ) => {
-            println!("The latest block is #{}", block_number);
-            println!("Block #100 has {} transactions", count);
+            println!("The latest block is #{block_number}");
+            println!("Block #100 has {count} transactions");
         }
         _ => panic!("unexpected response type"),
     }

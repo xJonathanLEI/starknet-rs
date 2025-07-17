@@ -7,7 +7,7 @@ use starknet_providers::{
     jsonrpc::{JsonRpcError, JsonRpcResponse, JsonRpcStreamUpdate},
     StreamUpdateData,
 };
-use tokio::sync::mpsc::UnboundedSender;
+use tokio::{sync::mpsc::UnboundedSender, time::Instant};
 use tokio_tungstenite::connect_async;
 use tokio_util::sync::CancellationToken;
 use tungstenite::{client::IntoClientRequest, Error as TungsteniteError};
@@ -27,6 +27,13 @@ use crate::{
         TransactionStatusSubscription,
     },
 };
+
+/// Helper type for configuring [`TungsteniteStream`].
+#[derive(Debug, Default, Clone)]
+pub struct TungsteniteStreamBuilder {
+    timeout: Duration,
+    keepalive_interval: Duration,
+}
 
 /// WebSocket stream client powered by `tokio-tungstenite`.
 ///
@@ -96,6 +103,54 @@ enum SubscriptionIdOrBool {
     Bool(bool),
 }
 
+impl TungsteniteStreamBuilder {
+    /// Creates a new [`TungsteniteStreamBuilder`] with default options.
+    pub const fn new() -> Self {
+        Self {
+            timeout: Duration::from_secs(10),
+            keepalive_interval: Duration::from_secs(10),
+        }
+    }
+
+    /// Gets the current timeout value.
+    ///
+    /// The timeout is applied to connection establishment and sending messages.
+    pub const fn get_timeout(&self) -> Duration {
+        self.timeout
+    }
+
+    /// Sets a new timeout value.
+    ///
+    /// The timeout is applied to connection establishment and sending messages.
+    pub const fn timeout(mut self, timeout: Duration) -> Self {
+        self.timeout = timeout;
+        self
+    }
+
+    /// Gets the current keep-alive interval value.
+    ///
+    /// The stream sends out heartbeat messages at the rate defined by this interval.
+    pub const fn get_keepalive_interval(&self) -> Duration {
+        self.keepalive_interval
+    }
+
+    /// Sets a new keep-alive interval value.
+    ///
+    /// The stream sends out heartbeat messages at the rate defined by this interval.
+    pub const fn keepalive_interval(mut self, keepalive_interval: Duration) -> Self {
+        self.keepalive_interval = keepalive_interval;
+        self
+    }
+
+    /// Connects to the server to create a [`TungsteniteStream`].
+    pub async fn connect<R>(self, request: R) -> Result<TungsteniteStream, ConnectError>
+    where
+        R: IntoClientRequest,
+    {
+        TungsteniteStream::connect_opts(request, self.timeout, self.keepalive_interval).await
+    }
+}
+
 impl TungsteniteStream {
     /// Establishes a connection to a WebSocket server specified by the request.
     ///
@@ -112,45 +167,7 @@ impl TungsteniteStream {
     where
         R: IntoClientRequest,
     {
-        let connect = connect_async(request.into_client_request()?);
-        let (stream, _) = tokio::select! {
-            result = connect => result?,
-            _ = tokio::time::sleep(timeout) => {
-                return Err(ConnectError::Timeout);
-            }
-        };
-
-        // Using unbounded channel allows for sync queuing
-        let (write_queue_tx, write_queue_rx) =
-            tokio::sync::mpsc::unbounded_channel::<WriteAction>();
-        let (registration_tx, registration_rx) =
-            tokio::sync::mpsc::unbounded_channel::<ReadAction>();
-
-        let (write, read) = stream.split();
-        let disconnection_token = CancellationToken::new();
-
-        StreamWriteDriver {
-            timeout,
-            write_queue: write_queue_rx,
-            read_queue: registration_tx,
-            sink: write,
-            disconnection: disconnection_token.clone(),
-        }
-        .drive();
-
-        StreamReadDriver {
-            registry: Default::default(),
-            pending_subscriptions: Default::default(),
-            pending_unsubscriptions: Default::default(),
-            stream: read,
-            read_queue: registration_rx,
-            disconnection: disconnection_token,
-        }
-        .drive();
-
-        Ok(Self {
-            write_queue: write_queue_tx,
-        })
+        Self::connect_opts(request, timeout, Duration::from_secs(10)).await
     }
 
     /// Subscribes for new chain heads.
@@ -257,6 +274,57 @@ impl TungsteniteStream {
                 Ok(())
             }
         }
+    }
+
+    async fn connect_opts<R>(
+        request: R,
+        timeout: Duration,
+        keepalive_interval: Duration,
+    ) -> Result<Self, ConnectError>
+    where
+        R: IntoClientRequest,
+    {
+        let connect = connect_async(request.into_client_request()?);
+        let (stream, _) = tokio::select! {
+            result = connect => result?,
+            _ = tokio::time::sleep(timeout) => {
+                return Err(ConnectError::Timeout);
+            }
+        };
+
+        // Using unbounded channel allows for sync queuing
+        let (write_queue_tx, write_queue_rx) =
+            tokio::sync::mpsc::unbounded_channel::<WriteAction>();
+        let (registration_tx, registration_rx) =
+            tokio::sync::mpsc::unbounded_channel::<ReadAction>();
+
+        let (write, read) = stream.split();
+        let disconnection_token = CancellationToken::new();
+
+        StreamWriteDriver {
+            timeout,
+            keepalive_interval,
+            ping_deadline: Instant::now() + keepalive_interval,
+            write_queue: write_queue_rx,
+            read_queue: registration_tx,
+            sink: write,
+            disconnection: disconnection_token.clone(),
+        }
+        .drive();
+
+        StreamReadDriver {
+            registry: Default::default(),
+            pending_subscriptions: Default::default(),
+            pending_unsubscriptions: Default::default(),
+            stream: read,
+            read_queue: registration_rx,
+            disconnection: disconnection_token,
+        }
+        .drive();
+
+        Ok(Self {
+            write_queue: write_queue_tx,
+        })
     }
 
     async fn subscribe(&self, data: SubscribeWriteData) -> Result<Subscription, SubscribeError> {
