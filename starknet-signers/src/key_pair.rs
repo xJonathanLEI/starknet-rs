@@ -1,15 +1,19 @@
 use crypto_bigint::{Encoding, NonZero, U256};
+use hex;
 use rand::{rngs::StdRng, Rng, SeedableRng};
+use secrecy::{ExposeSecret, SecretString};
+use starknet_core::types::FromStrError;
 use starknet_core::{
     crypto::{ecdsa_sign, ecdsa_verify, EcdsaSignError, EcdsaVerifyError, Signature},
     types::Felt,
 };
 use starknet_crypto::get_public_key;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// A ECDSA signing (private) key on the STARK curve.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Zeroize, ZeroizeOnDrop)]
 pub struct SigningKey {
-    secret_scalar: Felt,
+    secret_scalar: Box<Felt>,
 }
 
 /// A ECDSA verifying (public) key on the STARK curve.
@@ -48,14 +52,22 @@ impl SigningKey {
         let secret_scalar = random_u256.rem(&PRIME);
 
         // It's safe to unwrap here as we're 100% sure it's not out of range
-        let secret_scalar = Felt::from_bytes_be_slice(&secret_scalar.to_be_bytes());
+        let mut secret_scalar = Felt::from_bytes_be_slice(&secret_scalar.to_be_bytes());
 
-        Self { secret_scalar }
+        let result = Self {
+            secret_scalar: Box::new(secret_scalar),
+        };
+
+        secret_scalar.zeroize();
+
+        result
     }
 
     /// Constructs [`SigningKey`] directly from a secret scalar.
-    pub const fn from_secret_scalar(secret_scalar: Felt) -> Self {
-        Self { secret_scalar }
+    pub fn from_secret(secret_value: SecretString) -> Result<Self, FromStrError> {
+        Ok(Self {
+            secret_scalar: Box::new(Felt::from_hex(secret_value.expose_secret())?),
+        })
     }
 
     /// Loads the private key from a Web3 Secret Storage Definition keystore.
@@ -65,8 +77,9 @@ impl SigningKey {
         P: AsRef<std::path::Path>,
     {
         let key = eth_keystore::decrypt_key(path, password).map_err(KeystoreError::Inner)?;
-        let secret_scalar = Felt::from_bytes_be_slice(&key);
-        Ok(Self::from_secret_scalar(secret_scalar))
+
+        Ok(Self::from_secret(SecretString::from(hex::encode(key)))
+            .map_err(|_| KeystoreError::InvalidScalar)?)
     }
 
     /// Encrypts and saves the private key to a Web3 Secret Storage Definition JSON file.
@@ -100,8 +113,8 @@ impl SigningKey {
     }
 
     /// Gets the secret scalar in the signing key.
-    pub const fn secret_scalar(&self) -> Felt {
-        self.secret_scalar
+    pub const fn secret_scalar(&self) -> &Felt {
+        &self.secret_scalar
     }
 
     /// Derives the verifying (public) key that corresponds to the signing key.
@@ -136,32 +149,34 @@ impl VerifyingKey {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tempdir::TempDir;
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_secret_scalar() {
         // Generated with `cairo-lang`
-        let private_key =
-            Felt::from_hex("0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79")
-                .unwrap();
+        let private_key = "0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79";
 
-        let signing_key = SigningKey::from_secret_scalar(private_key);
+        let signing_key = SigningKey::from_secret(SecretString::from(private_key)).unwrap();
 
-        assert_eq!(signing_key.secret_scalar(), private_key);
+        assert_eq!(
+            *signing_key.secret_scalar(),
+            Felt::from_hex_unchecked(private_key)
+        );
     }
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_get_verifying_key() {
         // Generated with `cairo-lang`
-        let private_key =
-            Felt::from_hex("0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79")
-                .unwrap();
+        let private_key = SecretString::new(
+            "0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79".into(),
+        );
         let expected_public_key =
             Felt::from_hex("02c5dbad71c92a45cc4b40573ae661f8147869a91d57b8d9b8f48c8af7f83159")
                 .unwrap();
 
-        let signing_key = SigningKey::from_secret_scalar(private_key);
+        let signing_key = SigningKey::from_secret(private_key).unwrap();
         let verifying_key = signing_key.verifying_key();
 
         assert_eq!(verifying_key.scalar(), expected_public_key);
@@ -171,9 +186,9 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_sign() {
         // Generated with `cairo-lang`
-        let private_key =
-            Felt::from_hex("0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79")
-                .unwrap();
+        let private_key = SecretString::new(
+            "0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79".into(),
+        );
         let hash =
             Felt::from_hex("06fea80189363a786037ed3e7ba546dad0ef7de49fccae0e31eb658b7dd4ea76")
                 .unwrap();
@@ -184,7 +199,7 @@ mod tests {
             Felt::from_hex("04e44e759cea02c23568bb4d8a09929bbca8768ab68270d50c18d214166ccd9a")
                 .unwrap();
 
-        let signing_key = SigningKey::from_secret_scalar(private_key);
+        let signing_key = SigningKey::from_secret(private_key).unwrap();
         let signature = signing_key.sign(&hash).unwrap();
 
         assert_eq!(signature.r, expected_r);
@@ -194,14 +209,14 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_hash_out_of_range() {
-        let private_key =
-            Felt::from_hex("0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79")
-                .unwrap();
+        let private_key = SecretString::new(
+            "0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79".into(),
+        );
         let hash =
             Felt::from_hex("0800000000000000000000000000000000000000000000000000000000000000")
                 .unwrap();
 
-        let signing_key = SigningKey::from_secret_scalar(private_key);
+        let signing_key = SigningKey::from_secret(private_key).unwrap();
 
         match signing_key.sign(&hash) {
             Err(EcdsaSignError::MessageHashOutOfRange) => {}
@@ -247,5 +262,44 @@ mod tests {
         let verifying_key = VerifyingKey::from_scalar(public_key);
 
         assert!(!verifying_key.verify(&hash, &Signature { r, s }).unwrap());
+    }
+
+    #[test]
+    fn test_zeroize_signing_key() {
+        let private_key = SecretString::new(
+            "0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79".into(),
+        );
+        let mut signing_key = SigningKey::from_secret(private_key).unwrap();
+        signing_key.zeroize();
+
+        let ptr = signing_key.secret_scalar.as_ref() as *const Felt as *const u8;
+        let after_zeroize = unsafe { std::slice::from_raw_parts(ptr, size_of::<Felt>()) };
+        assert_eq!(after_zeroize, vec![0; 32]);
+    }
+
+    #[test]
+    fn test_keystore() {
+        let signing_key = SigningKey::from_secret(SecretString::new(
+            "0139fe4d6f02e666e86a6f58e65060f115cd3c185bd9e98bd829636931458f79".into(),
+        ))
+        .unwrap();
+
+        let temp_dir = TempDir::new("temp_folder").unwrap();
+        let mut keystore_path = temp_dir.into_path();
+
+        keystore_path.push("keystore");
+
+        let password = "1234";
+        signing_key
+            .save_as_keystore(&keystore_path, password)
+            .unwrap();
+
+        let signing_key_from_keystore =
+            SigningKey::from_keystore(&keystore_path, password).unwrap();
+
+        assert_eq!(
+            signing_key.secret_scalar,
+            signing_key_from_keystore.secret_scalar
+        );
     }
 }

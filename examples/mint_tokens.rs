@@ -1,3 +1,4 @@
+use secrecy::SecretString;
 use starknet::{
     accounts::{Account, ExecutionEncoding, SingleOwnerAccount},
     core::{
@@ -18,9 +19,9 @@ async fn main() {
         Url::parse("https://starknet-sepolia.public.blastapi.io/rpc/v0_9").unwrap(),
     ));
 
-    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        Felt::from_hex("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
-    ));
+    let signer = LocalWallet::from(SigningKey::from_secret(
+        SecretString::new("YOUR_PRIVATE_KEY_IN_HEX_HERE".into()),
+    ).unwrap());
     let address = Felt::from_hex("YOUR_ACCOUNT_CONTRACT_ADDRESS_IN_HEX_HERE").unwrap();
     let tst_token_address =
         Felt::from_hex("07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10").unwrap();

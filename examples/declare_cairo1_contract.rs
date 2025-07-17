@@ -1,5 +1,5 @@
 use std::sync::Arc;
-
+use secrecy::SecretString;
 use starknet::{
     accounts::{Account, ExecutionEncoding, SingleOwnerAccount},
     core::{
@@ -27,9 +27,9 @@ async fn main() {
         Url::parse("https://starknet-sepolia.public.blastapi.io/rpc/v0_9").unwrap(),
     ));
 
-    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        Felt::from_hex("YOUR_PRIVATE_KEY_IN_HEX_HERE").unwrap(),
-    ));
+    let signer = LocalWallet::from(SigningKey::from_secret(
+        SecretString::new("YOUR_PRIVATE_KEY_IN_HEX_HERE".into()),
+    ).unwrap());
     let address = Felt::from_hex("YOUR_ACCOUNT_CONTRACT_ADDRESS_IN_HEX_HERE").unwrap();
 
     let account = SingleOwnerAccount::new(

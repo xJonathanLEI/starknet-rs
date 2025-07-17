@@ -1,4 +1,5 @@
 use rand::{rngs::StdRng, RngCore, SeedableRng};
+use secrecy::SecretString;
 use starknet_accounts::{ExecutionEncoding, SingleOwnerAccount};
 use starknet_contract::ContractFactory;
 use starknet_core::types::{contract::legacy::LegacyContractClass, Felt};
@@ -19,9 +20,12 @@ async fn can_deploy_contract_to_alpha_sepolia_with_invoke_v3() {
     let rpc_url = std::env::var("STARKNET_RPC")
         .unwrap_or_else(|_| "https://pathfinder.rpc.sepolia.starknet.rs/rpc/v0_9".into());
     let provider = JsonRpcClient::new(HttpTransport::new(Url::parse(&rpc_url).unwrap()));
-    let signer = LocalWallet::from(SigningKey::from_secret_scalar(
-        Felt::from_hex("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap(),
-    ));
+    let signer = LocalWallet::from(
+        SigningKey::from_secret(SecretString::new(
+            "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".into(),
+        ))
+        .unwrap(),
+    );
     let address =
         Felt::from_hex("0x034dd51aa591d174b60d1cb45e46dfcae47946fae1c5e62933bbf48effedde4d")
             .unwrap();
