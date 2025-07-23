@@ -34,7 +34,7 @@ async fn jsonrpc_spec_version() {
 }
 
 #[tokio::test]
-async fn jsonrpc_get_block_with_tx_hashes() {
+async fn jsonrpc_get_block_with_tx_hashes_with_latest() {
     let rpc_client = create_jsonrpc_client();
 
     let block = rpc_client
@@ -51,7 +51,24 @@ async fn jsonrpc_get_block_with_tx_hashes() {
 }
 
 #[tokio::test]
-async fn jsonrpc_get_block_with_txs() {
+async fn jsonrpc_get_block_with_tx_hashes_with_l1_accepted() {
+    let rpc_client = create_jsonrpc_client();
+
+    let block = rpc_client
+        .get_block_with_tx_hashes(BlockId::Tag(BlockTag::L1Accepted))
+        .await
+        .unwrap();
+
+    let block = match block {
+        MaybePreConfirmedBlockWithTxHashes::Block(block) => block,
+        _ => panic!("unexpected block response type"),
+    };
+
+    assert!(block.block_number > 0);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_block_with_txs_with_latest() {
     let rpc_client = create_jsonrpc_client();
 
     let block = rpc_client
@@ -68,7 +85,24 @@ async fn jsonrpc_get_block_with_txs() {
 }
 
 #[tokio::test]
-async fn jsonrpc_get_block_with_receipts() {
+async fn jsonrpc_get_block_with_txs_with_l1_accepted() {
+    let rpc_client = create_jsonrpc_client();
+
+    let block = rpc_client
+        .get_block_with_txs(BlockId::Tag(BlockTag::L1Accepted))
+        .await
+        .unwrap();
+
+    let block = match block {
+        MaybePreConfirmedBlockWithTxs::Block(block) => block,
+        _ => panic!("unexpected block response type"),
+    };
+
+    assert!(block.block_number > 0);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_block_with_receipts_with_latest() {
     let rpc_client = create_jsonrpc_client();
 
     let block = rpc_client
@@ -85,11 +119,44 @@ async fn jsonrpc_get_block_with_receipts() {
 }
 
 #[tokio::test]
-async fn jsonrpc_get_state_update() {
+async fn jsonrpc_get_block_with_receipts_with_l1_accepted() {
+    let rpc_client = create_jsonrpc_client();
+
+    let block = rpc_client
+        .get_block_with_receipts(BlockId::Tag(BlockTag::L1Accepted))
+        .await
+        .unwrap();
+
+    let block = match block {
+        MaybePreConfirmedBlockWithReceipts::Block(block) => block,
+        _ => panic!("unexpected block response type"),
+    };
+
+    assert!(block.block_number > 0);
+}
+
+#[tokio::test]
+async fn jsonrpc_get_state_update_with_latest() {
     let rpc_client = create_jsonrpc_client();
 
     let state_update = rpc_client
         .get_state_update(BlockId::Tag(BlockTag::Latest))
+        .await
+        .unwrap();
+
+    let state_update = match state_update {
+        MaybePreConfirmedStateUpdate::Update(value) => value,
+        _ => panic!("unexpected data type"),
+    };
+
+    assert!(state_update.new_root > Felt::ZERO);
+}
+#[tokio::test]
+async fn jsonrpc_get_state_update_with_l1_accepted() {
+    let rpc_client = create_jsonrpc_client();
+
+    let state_update = rpc_client
+        .get_state_update(BlockId::Tag(BlockTag::L1Accepted))
         .await
         .unwrap();
 
