@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#0acfcf0c9a3eb76fa71e6785a78ab7167f93c669
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#920c6d5c446d28d835c2955ba79918428ba30004
 
 // These types are ignored from code generation. Implement them manually:
 // - `RECEIPT_BLOCK`
@@ -126,15 +126,19 @@ pub enum BlockStatus {
     AcceptedOnL2,
     #[serde(rename = "ACCEPTED_ON_L1")]
     AcceptedOnL1,
-    #[serde(rename = "REJECTED")]
-    Rejected,
 }
 
 /// Block tag.
 ///
-/// A tag specifying a dynamic reference to a block.
+/// A tag specifying a dynamic reference to a block. Tag `l1_accepted` refers to the latest Starknet
+/// block which was included in a state update on L1 and finalized by the consensus on L1. Tag
+/// `latest` refers to the latest Starknet block finalized by the consensus on L2. Tag
+/// `pre_confirmed` refers to the block which is currently being built by the block proposer in
+/// height `latest` + 1.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BlockTag {
+    #[serde(rename = "l1_accepted")]
+    L1Accepted,
     #[serde(rename = "latest")]
     Latest,
     #[serde(rename = "pre_confirmed")]

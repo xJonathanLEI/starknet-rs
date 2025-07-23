@@ -244,6 +244,9 @@ pub enum ConfirmedBlockId {
     Number(u64),
     /// The latest confirmed block.
     Latest,
+    /// The latest Starknet block which was included in a state update on L1 and finalized by the
+    /// consensus on L1st,
+    L1Accepted,
 }
 
 /// A "processed" contract class representation that's circulated in the network. This is different

@@ -40,7 +40,7 @@ impl Provider for SequencerGatewayProvider {
         B: AsRef<BlockId> + Send + Sync,
     {
         Ok(self
-            .get_block(block_id.as_ref().to_owned().into())
+            .get_block(block_id.as_ref().to_owned().try_into()?)
             .await?
             .try_into()?)
     }
@@ -53,7 +53,7 @@ impl Provider for SequencerGatewayProvider {
         B: AsRef<BlockId> + Send + Sync,
     {
         Ok(self
-            .get_block(block_id.as_ref().to_owned().into())
+            .get_block(block_id.as_ref().to_owned().try_into()?)
             .await?
             .try_into()?)
     }
@@ -66,7 +66,7 @@ impl Provider for SequencerGatewayProvider {
         B: AsRef<BlockId> + Send + Sync,
     {
         Ok(self
-            .get_block(block_id.as_ref().to_owned().into())
+            .get_block(block_id.as_ref().to_owned().try_into()?)
             .await?
             .try_into()?)
     }
@@ -79,7 +79,7 @@ impl Provider for SequencerGatewayProvider {
         B: AsRef<BlockId> + Send + Sync,
     {
         Ok(self
-            .get_state_update(block_id.as_ref().to_owned().into())
+            .get_state_update(block_id.as_ref().to_owned().try_into()?)
             .await?
             .try_into()?)
     }
@@ -159,7 +159,9 @@ impl Provider for SequencerGatewayProvider {
     where
         B: AsRef<BlockId> + Send + Sync,
     {
-        let mut block = self.get_block(block_id.as_ref().to_owned().into()).await?;
+        let mut block = self
+            .get_block(block_id.as_ref().to_owned().try_into()?)
+            .await?;
 
         let index = index as usize;
         if index < block.transactions.len() {
@@ -194,7 +196,10 @@ impl Provider for SequencerGatewayProvider {
         H: AsRef<Felt> + Send + Sync,
     {
         Ok(self
-            .get_class_by_hash(*class_hash.as_ref(), block_id.as_ref().to_owned().into())
+            .get_class_by_hash(
+                *class_hash.as_ref(),
+                block_id.as_ref().to_owned().try_into()?,
+            )
             .await?
             .try_into()?)
     }
@@ -233,7 +238,9 @@ impl Provider for SequencerGatewayProvider {
     where
         B: AsRef<BlockId> + Send + Sync,
     {
-        let block = self.get_block(block_id.as_ref().to_owned().into()).await?;
+        let block = self
+            .get_block(block_id.as_ref().to_owned().try_into()?)
+            .await?;
         Ok(block.transactions.len() as u64)
     }
 

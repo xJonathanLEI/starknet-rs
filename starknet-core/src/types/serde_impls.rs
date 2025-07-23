@@ -349,6 +349,7 @@ mod block_id {
                     serializer,
                 ),
                 Self::Latest => BlockTag::serialize(&BlockTag::Latest, serializer),
+                Self::L1Accepted => BlockTag::serialize(&BlockTag::L1Accepted, serializer),
             }
         }
     }
@@ -362,6 +363,7 @@ mod block_id {
                 BlockIdDe::Hash(hash) => Self::Hash(hash.block_hash),
                 BlockIdDe::Number(number) => Self::Number(number.block_number),
                 BlockIdDe::Tag(BlockTag::Latest) => Self::Latest,
+                BlockIdDe::Tag(BlockTag::L1Accepted) => Self::L1Accepted,
                 BlockIdDe::Tag(BlockTag::PreConfirmed) => {
                     return Err(serde::de::Error::custom(
                         "confirmed block id must not be `pre_confirmed`",
@@ -650,6 +652,7 @@ mod tests {
             (BlockId::Number(1234), "{\"block_number\":1234}"),
             (BlockId::Tag(BlockTag::Latest), "\"latest\""),
             (BlockId::Tag(BlockTag::PreConfirmed), "\"pre_confirmed\""),
+            (BlockId::Tag(BlockTag::L1Accepted), "\"l1_accepted\""),
         ] {
             assert_eq!(serde_json::to_string(&block_id).unwrap(), json);
             assert_eq!(serde_json::from_str::<BlockId>(json).unwrap(), block_id);

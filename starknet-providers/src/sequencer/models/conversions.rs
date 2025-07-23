@@ -18,13 +18,16 @@ pub(crate) struct ConfirmedReceiptWithContext {
     pub finality: BlockStatus,
 }
 
-impl From<core::BlockId> for BlockId {
-    fn from(value: core::BlockId) -> Self {
+impl TryFrom<core::BlockId> for BlockId {
+    type Error = ConversionError;
+
+    fn try_from(value: core::BlockId) -> Result<Self, Self::Error> {
         match value {
-            core::BlockId::Hash(hash) => Self::Hash(hash),
-            core::BlockId::Number(num) => Self::Number(num),
-            core::BlockId::Tag(core::BlockTag::Latest) => Self::Latest,
-            core::BlockId::Tag(core::BlockTag::PreConfirmed) => Self::Pending,
+            core::BlockId::Hash(hash) => Ok(Self::Hash(hash)),
+            core::BlockId::Number(num) => Ok(Self::Number(num)),
+            core::BlockId::Tag(core::BlockTag::Latest) => Ok(Self::Latest),
+            core::BlockId::Tag(core::BlockTag::PreConfirmed) => Ok(Self::Pending),
+            core::BlockId::Tag(core::BlockTag::L1Accepted) => Err(ConversionError),
         }
     }
 }
@@ -182,8 +185,7 @@ impl TryFrom<BlockStatus> for core::BlockStatus {
     fn try_from(value: BlockStatus) -> Result<Self, Self::Error> {
         match value {
             BlockStatus::Pending => Ok(Self::PreConfirmed),
-            BlockStatus::Aborted => Err(ConversionError),
-            BlockStatus::Reverted => Ok(Self::Rejected),
+            BlockStatus::Aborted | BlockStatus::Reverted => Err(ConversionError),
             BlockStatus::AcceptedOnL2 => Ok(Self::AcceptedOnL2),
             BlockStatus::AcceptedOnL1 => Ok(Self::AcceptedOnL1),
         }
