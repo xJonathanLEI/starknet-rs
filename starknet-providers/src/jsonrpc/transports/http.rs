@@ -86,7 +86,7 @@ impl JsonRpcTransport for HttpTransport {
     ) -> Result<JsonRpcResponse<R>, Self::Error>
     where
         P: Serialize + Send,
-        R: DeserializeOwned,
+        R: DeserializeOwned + Send,
     {
         let request_body = JsonRpcRequest {
             id: 1,
