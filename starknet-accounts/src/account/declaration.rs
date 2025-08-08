@@ -52,6 +52,7 @@ impl<'a, A> DeclarationV3<'a, A> {
             l1_data_gas_price: None,
             gas_estimate_multiplier: 1.5,
             gas_price_estimate_multiplier: 1.5,
+            tip: None,
         }
     }
 
@@ -131,6 +132,14 @@ impl<'a, A> DeclarationV3<'a, A> {
         }
     }
 
+    /// Returns a new [`DeclarationV3`] with the `tip`.
+    pub fn tip(self, tip: u64) -> Self {
+        Self {
+            tip: Some(tip),
+            ..self
+        }
+    }
+
     /// Calling this function after manually specifying all optional fields turns [`DeclarationV3`]
     /// into [`PreparedDeclarationV3`]. Returns `Err` if any field is `None`.
     pub fn prepared(self) -> Result<PreparedDeclarationV3<'a, A>, NotPreparedError> {
@@ -154,6 +163,7 @@ impl<'a, A> DeclarationV3<'a, A> {
                 l2_gas_price,
                 l1_data_gas,
                 l1_data_gas_price,
+                tip: self.tip.unwrap_or_default(),
             },
         })
     }
@@ -312,6 +322,7 @@ where
                 l2_gas_price,
                 l1_data_gas,
                 l1_data_gas_price,
+                tip: self.tip.unwrap_or_default(),
             },
         })
     }
@@ -336,6 +347,7 @@ where
                 l2_gas_price: 0,
                 l1_data_gas: 0,
                 l1_data_gas_price: 0,
+                tip: self.tip.unwrap_or_default(),
             },
         };
         let declare = prepared.get_declare_request(true, skip_signature).await?;
@@ -388,6 +400,7 @@ where
                 l2_gas_price: self.l2_gas_price.unwrap_or_default(),
                 l1_data_gas: self.l1_data_gas.unwrap_or_default(),
                 l1_data_gas_price: self.l1_data_gas_price.unwrap_or_default(),
+                tip: self.tip.unwrap_or_default(),
             },
         };
         let declare = prepared.get_declare_request(true, skip_signature).await?;
@@ -429,8 +442,7 @@ impl RawDeclarationV3 {
         hasher.update({
             let mut fee_hasher = PoseidonHasher::new();
 
-            // Tip: fee market has not been been activated yet so it's hard-coded to be 0
-            fee_hasher.update(Felt::ZERO);
+            fee_hasher.update(self.tip.into());
 
             let mut resource_buffer = [
                 0, 0, b'L', b'1', b'_', b'G', b'A', b'S', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -581,8 +593,7 @@ where
                     max_price_per_unit: self.inner.l2_gas_price,
                 },
             },
-            // Fee market has not been been activated yet so it's hard-coded to be 0
-            tip: 0,
+            tip: self.inner.tip,
             // Hard-coded empty `paymaster_data`
             paymaster_data: vec![],
             // Hard-coded empty `account_deployment_data`
