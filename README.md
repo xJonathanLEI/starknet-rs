@@ -6,7 +6,7 @@
 **Complete Starknet library in Rust[™](https://www.reddit.com/r/rust/comments/12e7tdb/rust_trademark_policy_feedback_form/)**
 
 ![starknet-version-v0.14.0](https://img.shields.io/badge/Starknet_Version-v0.14.0-2ea44f?logo=ethereum)
-[![jsonrpc-spec-v0.9.0](https://img.shields.io/badge/JSON--RPC-v0.9.0-2ea44f?logo=ethereum)](https://github.com/starkware-libs/starknet-specs/releases/tag/v0.9.0-rc.2)
+[![jsonrpc-spec-v0.9.0](https://img.shields.io/badge/JSON--RPC-v0.9.0-2ea44f?logo=ethereum)](https://github.com/starkware-libs/starknet-specs/releases/tag/v0.9.0-rc.3)
 [![linting-badge](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml/badge.svg?branch=master)](https://github.com/xJonathanLEI/starknet-rs/actions/workflows/lint.yaml)
 [![crates-badge](https://img.shields.io/crates/v/starknet.svg)](https://crates.io/crates/starknet)
 

@@ -3,7 +3,7 @@
 //     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen
 
 // Code generated with version:
-//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#920c6d5c446d28d835c2955ba79918428ba30004
+//     https://github.com/xJonathanLEI/starknet-jsonrpc-codegen#a8e2da3746497b437d551b1982b2ed8a05f43d99
 
 // These types are ignored from code generation. Implement them manually:
 // - `RECEIPT_BLOCK`
@@ -28,7 +28,6 @@
 // - `TRANSACTION_TRACE`
 // - `TXN`
 // - `TXN_CONTENT`
-// - `TXN_OR_HASH`
 // - `TXN_RECEIPT`
 
 #![allow(missing_docs)]
@@ -882,6 +881,15 @@ pub struct EmittedEvent {
     pub transaction_hash: Felt,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
+pub struct EmittedEventWithFinality {
+    #[serde(flatten)]
+    pub emitted_event: EmittedEvent,
+    /// Finality status of the transaction
+    pub finality_status: TransactionFinalityStatus,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum EntryPointType {
     #[serde(rename = "EXTERNAL")]
@@ -1383,6 +1391,33 @@ pub struct L1HandlerTransactionTrace {
     pub state_diff: Option<StateDiff>,
     /// The resources consumed by the transaction, includes both computation and data
     pub execution_resources: ExecutionResources,
+}
+
+/// Layer-2 finality status.
+///
+/// The layer-2-only finality status of the transaction.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum L2TransactionFinalityStatus {
+    #[serde(rename = "PRE_CONFIRMED")]
+    PreConfirmed,
+    #[serde(rename = "ACCEPTED_ON_L2")]
+    AcceptedOnL2,
+}
+
+/// Layer-2 transaction status.
+///
+/// The layer-2-only finality status of the transaction, including the case the txn is still in the
+/// mempool or failed validation during the block construction phase.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum L2TransactionStatus {
+    #[serde(rename = "RECEIVED")]
+    Received,
+    #[serde(rename = "CANDIDATE")]
+    Candidate,
+    #[serde(rename = "PRE_CONFIRMED")]
+    PreConfirmed,
+    #[serde(rename = "ACCEPTED_ON_L2")]
+    AcceptedOnL2,
 }
 
 /// Deprecated cairo entry point.
@@ -2264,6 +2299,15 @@ pub struct TransactionTraceWithHash {
     pub trace_root: TransactionTrace,
 }
 
+/// Either a tranasaction hash or full transaction details, based on subscription.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TransactionWithL2Status {
+    #[serde(flatten)]
+    pub txn: Transaction,
+    /// Finality status of the transaction
+    pub finality_status: L2TransactionStatus,
+}
+
 /// Transaction and receipt.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "no_unknown_fields", serde(deny_unknown_fields))]
@@ -2652,6 +2696,7 @@ pub struct SubscribeEventsRequest {
     pub from_address: Option<Felt>,
     pub keys: Option<Vec<Vec<Felt>>>,
     pub block_id: Option<ConfirmedBlockId>,
+    pub finality_status: Option<L2TransactionFinalityStatus>,
 }
 
 /// Reference version of [SubscribeEventsRequest].
@@ -2660,6 +2705,7 @@ pub struct SubscribeEventsRequestRef<'a> {
     pub from_address: &'a Option<Felt>,
     pub keys: Option<&'a [Vec<Felt>]>,
     pub block_id: &'a Option<ConfirmedBlockId>,
+    pub finality_status: &'a Option<L2TransactionFinalityStatus>,
 }
 
 /// Request for method starknet_subscribeNewHeads
@@ -2674,17 +2720,31 @@ pub struct SubscribeNewHeadsRequestRef<'a> {
     pub block_id: &'a Option<ConfirmedBlockId>,
 }
 
-/// Request for method starknet_subscribePendingTransactions
+/// Request for method starknet_subscribeNewTransactionReceipts
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct SubscribePendingTransactionsRequest {
-    pub transaction_details: Option<bool>,
+pub struct SubscribeNewTransactionReceiptsRequest {
+    pub finality_status: Option<Vec<L2TransactionFinalityStatus>>,
     pub sender_address: Option<Vec<Felt>>,
 }
 
-/// Reference version of [SubscribePendingTransactionsRequest].
+/// Reference version of [SubscribeNewTransactionReceiptsRequest].
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct SubscribePendingTransactionsRequestRef<'a> {
-    pub transaction_details: &'a Option<bool>,
+pub struct SubscribeNewTransactionReceiptsRequestRef<'a> {
+    pub finality_status: Option<&'a [L2TransactionFinalityStatus]>,
+    pub sender_address: Option<&'a [Felt]>,
+}
+
+/// Request for method starknet_subscribeNewTransactions
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscribeNewTransactionsRequest {
+    pub finality_status: Option<Vec<L2TransactionStatus>>,
+    pub sender_address: Option<Vec<Felt>>,
+}
+
+/// Reference version of [SubscribeNewTransactionsRequest].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscribeNewTransactionsRequestRef<'a> {
+    pub finality_status: Option<&'a [L2TransactionStatus]>,
     pub sender_address: Option<&'a [Felt]>,
 }
 
@@ -2704,14 +2764,14 @@ pub struct SubscribeTransactionStatusRequestRef<'a> {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SubscriptionEventsRequest {
     pub subscription_id: SubscriptionId,
-    pub result: EmittedEvent,
+    pub result: EmittedEventWithFinality,
 }
 
 /// Reference version of [SubscriptionEventsRequest].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SubscriptionEventsRequestRef<'a> {
     pub subscription_id: &'a SubscriptionId,
-    pub result: &'a EmittedEvent,
+    pub result: &'a EmittedEventWithFinality,
 }
 
 /// Request for method starknet_subscriptionNewHeads
@@ -2728,19 +2788,34 @@ pub struct SubscriptionNewHeadsRequestRef<'a> {
     pub result: &'a BlockHeader,
 }
 
-/// Request for method starknet_subscriptionPendingTransactions
+/// Request for method starknet_subscriptionNewTransactionReceipts
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct SubscriptionPendingTransactionsRequest {
+pub struct SubscriptionNewTransactionReceiptsRequest {
     pub subscription_id: SubscriptionId,
-    /// Either a tranasaction hash or full transaction details, based on subscription
-    pub result: TransactionOrHash,
+    /// A transaction receipt
+    pub result: TransactionReceiptWithBlockInfo,
 }
 
-/// Reference version of [SubscriptionPendingTransactionsRequest].
+/// Reference version of [SubscriptionNewTransactionReceiptsRequest].
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct SubscriptionPendingTransactionsRequestRef<'a> {
+pub struct SubscriptionNewTransactionReceiptsRequestRef<'a> {
     pub subscription_id: &'a SubscriptionId,
-    pub result: &'a TransactionOrHash,
+    pub result: &'a TransactionReceiptWithBlockInfo,
+}
+
+/// Request for method starknet_subscriptionNewTransaction
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscriptionNewTransactionRequest {
+    pub subscription_id: SubscriptionId,
+    /// A transaction and its current finality status
+    pub result: TransactionWithL2Status,
+}
+
+/// Reference version of [SubscriptionNewTransactionRequest].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubscriptionNewTransactionRequestRef<'a> {
+    pub subscription_id: &'a SubscriptionId,
+    pub result: &'a TransactionWithL2Status,
 }
 
 /// Request for method starknet_subscriptionReorg
@@ -8667,6 +8742,8 @@ impl Serialize for SubscribeEventsRequest {
             keys: Option<Field1<'a>>,
             #[serde(skip_serializing_if = "Option::is_none")]
             block_id: Option<Field2<'a>>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            finality_status: Option<Field3<'a>>,
         }
 
         #[serde_as]
@@ -8691,11 +8768,18 @@ impl Serialize for SubscribeEventsRequest {
             pub value: &'a ConfirmedBlockId,
         }
 
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field3<'a> {
+            pub value: &'a L2TransactionFinalityStatus,
+        }
+
         AsObject::serialize(
             &AsObject {
                 from_address: self.from_address.as_ref().map(|f| Field0 { value: f }),
                 keys: self.keys.as_ref().map(|f| Field1 { value: f }),
                 block_id: self.block_id.as_ref().map(|f| Field2 { value: f }),
+                finality_status: self.finality_status.as_ref().map(|f| Field3 { value: f }),
             },
             serializer,
         )
@@ -8712,6 +8796,8 @@ impl Serialize for SubscribeEventsRequestRef<'_> {
             keys: Option<Field1<'a>>,
             #[serde(skip_serializing_if = "Option::is_none")]
             block_id: Option<Field2<'a>>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            finality_status: Option<Field3<'a>>,
         }
 
         #[serde_as]
@@ -8736,11 +8822,18 @@ impl Serialize for SubscribeEventsRequestRef<'_> {
             pub value: &'a ConfirmedBlockId,
         }
 
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field3<'a> {
+            pub value: &'a L2TransactionFinalityStatus,
+        }
+
         AsObject::serialize(
             &AsObject {
                 from_address: self.from_address.as_ref().map(|f| Field0 { value: f }),
                 keys: self.keys.as_ref().map(|f| Field1 { value: f }),
                 block_id: self.block_id.as_ref().map(|f| Field2 { value: f }),
+                finality_status: self.finality_status.as_ref().map(|f| Field3 { value: f }),
             },
             serializer,
         )
@@ -8757,6 +8850,8 @@ impl<'de> Deserialize<'de> for SubscribeEventsRequest {
             keys: Option<Field1>,
             #[serde(skip_serializing_if = "Option::is_none")]
             block_id: Option<Field2>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            finality_status: Option<Field3>,
         }
 
         #[serde_as]
@@ -8781,11 +8876,26 @@ impl<'de> Deserialize<'de> for SubscribeEventsRequest {
             pub value: ConfirmedBlockId,
         }
 
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field3 {
+            pub value: L2TransactionFinalityStatus,
+        }
+
         let temp = serde_json::Value::deserialize(deserializer)?;
 
         if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
             let element_count = elements.len();
 
+            let field3 = if element_count > 3 {
+                Some(
+                    serde_json::from_value::<Field3>(elements.pop().unwrap()).map_err(|err| {
+                        serde::de::Error::custom(format!("failed to parse element: {err}"))
+                    })?,
+                )
+            } else {
+                None
+            };
             let field2 = if element_count > 2 {
                 Some(
                     serde_json::from_value::<Field2>(elements.pop().unwrap()).map_err(|err| {
@@ -8818,12 +8928,14 @@ impl<'de> Deserialize<'de> for SubscribeEventsRequest {
                 from_address: field0.map(|f| f.value),
                 keys: field1.map(|f| f.value),
                 block_id: field2.map(|f| f.value),
+                finality_status: field3.map(|f| f.value),
             })
         } else if let Ok(object) = AsObject::deserialize(&temp) {
             Ok(Self {
                 from_address: object.from_address.map(|f| f.value),
                 keys: object.keys.map(|f| f.value),
                 block_id: object.block_id.map(|f| f.value),
+                finality_status: object.finality_status.map(|f| f.value),
             })
         } else {
             Err(serde::de::Error::custom("invalid sequence length"))
@@ -8919,12 +9031,12 @@ impl<'de> Deserialize<'de> for SubscribeNewHeadsRequest {
     }
 }
 
-impl Serialize for SubscribePendingTransactionsRequest {
+impl Serialize for SubscribeNewTransactionReceiptsRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         struct AsObject<'a> {
             #[serde(skip_serializing_if = "Option::is_none")]
-            transaction_details: Option<Field0<'a>>,
+            finality_status: Option<Field0<'a>>,
             #[serde(skip_serializing_if = "Option::is_none")]
             sender_address: Option<Field1<'a>>,
         }
@@ -8932,7 +9044,7 @@ impl Serialize for SubscribePendingTransactionsRequest {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub value: &'a bool,
+            pub value: &'a [L2TransactionFinalityStatus],
         }
 
         #[serde_as]
@@ -8945,10 +9057,7 @@ impl Serialize for SubscribePendingTransactionsRequest {
 
         AsObject::serialize(
             &AsObject {
-                transaction_details: self
-                    .transaction_details
-                    .as_ref()
-                    .map(|f| Field0 { value: f }),
+                finality_status: self.finality_status.as_ref().map(|f| Field0 { value: f }),
                 sender_address: self.sender_address.as_ref().map(|f| Field1 { value: f }),
             },
             serializer,
@@ -8956,12 +9065,12 @@ impl Serialize for SubscribePendingTransactionsRequest {
     }
 }
 
-impl Serialize for SubscribePendingTransactionsRequestRef<'_> {
+impl Serialize for SubscribeNewTransactionReceiptsRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         struct AsObject<'a> {
             #[serde(skip_serializing_if = "Option::is_none")]
-            transaction_details: Option<Field0<'a>>,
+            finality_status: Option<Field0<'a>>,
             #[serde(skip_serializing_if = "Option::is_none")]
             sender_address: Option<Field1<'a>>,
         }
@@ -8969,7 +9078,7 @@ impl Serialize for SubscribePendingTransactionsRequestRef<'_> {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field0<'a> {
-            pub value: &'a bool,
+            pub value: &'a [L2TransactionFinalityStatus],
         }
 
         #[serde_as]
@@ -8982,10 +9091,7 @@ impl Serialize for SubscribePendingTransactionsRequestRef<'_> {
 
         AsObject::serialize(
             &AsObject {
-                transaction_details: self
-                    .transaction_details
-                    .as_ref()
-                    .map(|f| Field0 { value: f }),
+                finality_status: self.finality_status.as_ref().map(|f| Field0 { value: f }),
                 sender_address: self.sender_address.as_ref().map(|f| Field1 { value: f }),
             },
             serializer,
@@ -8993,12 +9099,12 @@ impl Serialize for SubscribePendingTransactionsRequestRef<'_> {
     }
 }
 
-impl<'de> Deserialize<'de> for SubscribePendingTransactionsRequest {
+impl<'de> Deserialize<'de> for SubscribeNewTransactionReceiptsRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[derive(Deserialize)]
         struct AsObject {
             #[serde(skip_serializing_if = "Option::is_none")]
-            transaction_details: Option<Field0>,
+            finality_status: Option<Field0>,
             #[serde(skip_serializing_if = "Option::is_none")]
             sender_address: Option<Field1>,
         }
@@ -9006,7 +9112,7 @@ impl<'de> Deserialize<'de> for SubscribePendingTransactionsRequest {
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field0 {
-            pub value: bool,
+            pub value: Vec<L2TransactionFinalityStatus>,
         }
 
         #[serde_as]
@@ -9042,12 +9148,143 @@ impl<'de> Deserialize<'de> for SubscribePendingTransactionsRequest {
             };
 
             Ok(Self {
-                transaction_details: field0.map(|f| f.value),
+                finality_status: field0.map(|f| f.value),
                 sender_address: field1.map(|f| f.value),
             })
         } else if let Ok(object) = AsObject::deserialize(&temp) {
             Ok(Self {
-                transaction_details: object.transaction_details.map(|f| f.value),
+                finality_status: object.finality_status.map(|f| f.value),
+                sender_address: object.sender_address.map(|f| f.value),
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
+    }
+}
+
+impl Serialize for SubscribeNewTransactionsRequest {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            #[serde(skip_serializing_if = "Option::is_none")]
+            finality_status: Option<Field0<'a>>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            sender_address: Option<Field1<'a>>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a [L2TransactionStatus],
+        }
+
+        #[serde_as]
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            #[serde_as(as = "[UfeHex]")]
+            pub value: &'a [Felt],
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                finality_status: self.finality_status.as_ref().map(|f| Field0 { value: f }),
+                sender_address: self.sender_address.as_ref().map(|f| Field1 { value: f }),
+            },
+            serializer,
+        )
+    }
+}
+
+impl Serialize for SubscribeNewTransactionsRequestRef<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            #[serde(skip_serializing_if = "Option::is_none")]
+            finality_status: Option<Field0<'a>>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            sender_address: Option<Field1<'a>>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a [L2TransactionStatus],
+        }
+
+        #[serde_as]
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            #[serde_as(as = "[UfeHex]")]
+            pub value: &'a [Felt],
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                finality_status: self.finality_status.as_ref().map(|f| Field0 { value: f }),
+                sender_address: self.sender_address.as_ref().map(|f| Field1 { value: f }),
+            },
+            serializer,
+        )
+    }
+}
+
+impl<'de> Deserialize<'de> for SubscribeNewTransactionsRequest {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct AsObject {
+            #[serde(skip_serializing_if = "Option::is_none")]
+            finality_status: Option<Field0>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            sender_address: Option<Field1>,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field0 {
+            pub value: Vec<L2TransactionStatus>,
+        }
+
+        #[serde_as]
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field1 {
+            #[serde_as(as = "Vec<UfeHex>")]
+            pub value: Vec<Felt>,
+        }
+
+        let temp = serde_json::Value::deserialize(deserializer)?;
+
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let element_count = elements.len();
+
+            let field1 = if element_count > 1 {
+                Some(
+                    serde_json::from_value::<Field1>(elements.pop().unwrap()).map_err(|err| {
+                        serde::de::Error::custom(format!("failed to parse element: {err}"))
+                    })?,
+                )
+            } else {
+                None
+            };
+            let field0 = if element_count > 0 {
+                Some(
+                    serde_json::from_value::<Field0>(elements.pop().unwrap()).map_err(|err| {
+                        serde::de::Error::custom(format!("failed to parse element: {err}"))
+                    })?,
+                )
+            } else {
+                None
+            };
+
+            Ok(Self {
+                finality_status: field0.map(|f| f.value),
+                sender_address: field1.map(|f| f.value),
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                finality_status: object.finality_status.map(|f| f.value),
                 sender_address: object.sender_address.map(|f| f.value),
             })
         } else {
@@ -9163,7 +9400,7 @@ impl Serialize for SubscriptionEventsRequest {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
-            pub value: &'a EmittedEvent,
+            pub value: &'a EmittedEventWithFinality,
         }
 
         AsObject::serialize(
@@ -9197,7 +9434,7 @@ impl Serialize for SubscriptionEventsRequestRef<'_> {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
-            pub value: &'a EmittedEvent,
+            pub value: &'a EmittedEventWithFinality,
         }
 
         AsObject::serialize(
@@ -9229,7 +9466,7 @@ impl<'de> Deserialize<'de> for SubscriptionEventsRequest {
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field1 {
-            pub value: EmittedEvent,
+            pub value: EmittedEventWithFinality,
         }
 
         let temp = serde_json::Value::deserialize(deserializer)?;
@@ -9380,7 +9617,7 @@ impl<'de> Deserialize<'de> for SubscriptionNewHeadsRequest {
     }
 }
 
-impl Serialize for SubscriptionPendingTransactionsRequest {
+impl Serialize for SubscriptionNewTransactionReceiptsRequest {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         struct AsObject<'a> {
@@ -9397,7 +9634,7 @@ impl Serialize for SubscriptionPendingTransactionsRequest {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
-            pub value: &'a TransactionOrHash,
+            pub value: &'a TransactionReceiptWithBlockInfo,
         }
 
         AsObject::serialize(
@@ -9414,7 +9651,7 @@ impl Serialize for SubscriptionPendingTransactionsRequest {
     }
 }
 
-impl Serialize for SubscriptionPendingTransactionsRequestRef<'_> {
+impl Serialize for SubscriptionNewTransactionReceiptsRequestRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         struct AsObject<'a> {
@@ -9431,7 +9668,7 @@ impl Serialize for SubscriptionPendingTransactionsRequestRef<'_> {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Field1<'a> {
-            pub value: &'a TransactionOrHash,
+            pub value: &'a TransactionReceiptWithBlockInfo,
         }
 
         AsObject::serialize(
@@ -9446,7 +9683,7 @@ impl Serialize for SubscriptionPendingTransactionsRequestRef<'_> {
     }
 }
 
-impl<'de> Deserialize<'de> for SubscriptionPendingTransactionsRequest {
+impl<'de> Deserialize<'de> for SubscriptionNewTransactionReceiptsRequest {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[derive(Deserialize)]
         struct AsObject {
@@ -9463,7 +9700,124 @@ impl<'de> Deserialize<'de> for SubscriptionPendingTransactionsRequest {
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Field1 {
-            pub value: TransactionOrHash,
+            pub value: TransactionReceiptWithBlockInfo,
+        }
+
+        let temp = serde_json::Value::deserialize(deserializer)?;
+
+        if let Ok(mut elements) = Vec::<serde_json::Value>::deserialize(&temp) {
+            let field1 = serde_json::from_value::<Field1>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
+            let field0 = serde_json::from_value::<Field0>(
+                elements
+                    .pop()
+                    .ok_or_else(|| serde::de::Error::custom("invalid sequence length"))?,
+            )
+            .map_err(|err| serde::de::Error::custom(format!("failed to parse element: {err}")))?;
+
+            Ok(Self {
+                subscription_id: field0.value,
+                result: field1.value,
+            })
+        } else if let Ok(object) = AsObject::deserialize(&temp) {
+            Ok(Self {
+                subscription_id: object.subscription_id.value,
+                result: object.result.value,
+            })
+        } else {
+            Err(serde::de::Error::custom("invalid sequence length"))
+        }
+    }
+}
+
+impl Serialize for SubscriptionNewTransactionRequest {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            subscription_id: Field0<'a>,
+            result: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a SubscriptionId,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            pub value: &'a TransactionWithL2Status,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                subscription_id: Field0 {
+                    value: &self.subscription_id,
+                },
+                result: Field1 {
+                    value: &self.result,
+                },
+            },
+            serializer,
+        )
+    }
+}
+
+impl Serialize for SubscriptionNewTransactionRequestRef<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        struct AsObject<'a> {
+            subscription_id: Field0<'a>,
+            result: Field1<'a>,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field0<'a> {
+            pub value: &'a SubscriptionId,
+        }
+
+        #[derive(Serialize)]
+        #[serde(transparent)]
+        struct Field1<'a> {
+            pub value: &'a TransactionWithL2Status,
+        }
+
+        AsObject::serialize(
+            &AsObject {
+                subscription_id: Field0 {
+                    value: self.subscription_id,
+                },
+                result: Field1 { value: self.result },
+            },
+            serializer,
+        )
+    }
+}
+
+impl<'de> Deserialize<'de> for SubscriptionNewTransactionRequest {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct AsObject {
+            subscription_id: Field0,
+            result: Field1,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field0 {
+            pub value: SubscriptionId,
+        }
+
+        #[derive(Deserialize)]
+        #[serde(transparent)]
+        struct Field1 {
+            pub value: TransactionWithL2Status,
         }
 
         let temp = serde_json::Value::deserialize(deserializer)?;

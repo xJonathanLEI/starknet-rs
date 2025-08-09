@@ -43,8 +43,6 @@ pub enum SubscriptionReceiveError {
         /// The actual update type received.
         actual: StreamUpdateType,
     },
-    /// Expected transaction details, but received only the transaction hash.
-    TransactionDetailsMising,
 }
 
 /// Error type for unsubscription failures.
@@ -129,12 +127,6 @@ impl std::fmt::Display for SubscriptionReceiveError {
                 }
 
                 Ok(())
-            }
-            Self::TransactionDetailsMising => {
-                write!(
-                    f,
-                    "subscribed for full transaction details but received hash only"
-                )
             }
         }
     }
