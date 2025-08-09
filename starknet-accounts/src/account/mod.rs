@@ -12,7 +12,7 @@ mod execution;
 
 /// The standard Starknet account contract interface. It makes no assumption about the underlying
 /// signer or provider. Account implementations that come with an active connection to the network
-/// should also implement [ConnectedAccount] for useful functionalities like estimating fees and
+/// should also implement [`ConnectedAccount`] for useful functionalities like estimating fees and
 /// sending transactions.
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
