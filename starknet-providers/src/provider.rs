@@ -76,7 +76,7 @@ pub trait Provider {
         K: AsRef<Felt> + Send + Sync,
         B: AsRef<BlockId> + Send + Sync;
 
-    /// Given an l1 tx hash, returns the associated l1_handler tx hashes and statuses for all L1 ->
+    /// Given an l1 tx hash, returns the associated `l1_handler` tx hashes and statuses for all L1 ->
     /// L2 messages sent by the l1 transaction, ordered by the l1 tx sending order
     async fn get_messages_status(
         &self,

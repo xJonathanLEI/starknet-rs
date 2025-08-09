@@ -630,7 +630,7 @@ where
             .0)
     }
 
-    /// Given an l1 tx hash, returns the associated l1_handler tx hashes and statuses for all L1 ->
+    /// Given an l1 tx hash, returns the associated `l1_handler` tx hashes and statuses for all L1 ->
     /// L2 messages sent by the l1 transaction, ordered by the l1 tx sending order
     async fn get_messages_status(
         &self,
@@ -1023,9 +1023,9 @@ where
     /// Simulate a given sequence of transactions on the requested state, and generate the execution
     /// traces. Note that some of the transactions may revert, in which case no error is thrown, but
     /// revert details can be seen on the returned trace object. . Note that some of the
-    /// transactions may revert, this will be reflected by the revert_error property in the trace.
+    /// transactions may revert, this will be reflected by the `revert_error` property in the trace.
     /// Other types of failures (e.g. unexpected error or failure in the validation phase) will
-    /// result in TRANSACTION_EXECUTION_ERROR.
+    /// result in `TRANSACTION_EXECUTION_ERROR`.
     async fn simulate_transactions<B, TX, S>(
         &self,
         block_id: B,
