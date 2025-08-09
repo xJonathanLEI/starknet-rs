@@ -4,10 +4,10 @@ use futures_util::{stream::SplitSink, SinkExt};
 use rand::{thread_rng, RngCore};
 use starknet_core::types::{
     requests::{
-        SubscribeEventsRequest, SubscribeNewHeadsRequest, SubscribePendingTransactionsRequest,
-        SubscribeTransactionStatusRequest, UnsubscribeRequest,
+        SubscribeEventsRequest, SubscribeNewHeadsRequest, SubscribeNewTransactionReceiptsRequest,
+        SubscribeNewTransactionsRequest, SubscribeTransactionStatusRequest, UnsubscribeRequest,
     },
-    ConfirmedBlockId, Felt, SubscriptionId,
+    ConfirmedBlockId, Felt, L2TransactionFinalityStatus, L2TransactionStatus, SubscriptionId,
 };
 use starknet_providers::{jsonrpc::JsonRpcRequest, ProviderRequestData, StreamUpdateData};
 use tokio::{
@@ -67,8 +67,12 @@ pub(crate) enum SubscribeWriteData {
     TransactionStatus {
         transaction_hash: Felt,
     },
-    PendindTransactions {
-        transaction_details: bool,
+    NewTransactionReceipts {
+        finality_status: Option<Vec<L2TransactionFinalityStatus>>,
+        sender_address: Option<Vec<Felt>>,
+    },
+    NewTransactions {
+        finality_status: Option<Vec<L2TransactionStatus>>,
         sender_address: Option<Vec<Felt>>,
     },
 }
@@ -179,6 +183,7 @@ impl StreamWriteDriver {
                                     from_address: options.from_address,
                                     keys: options.keys,
                                     block_id: Some(options.block_id),
+                                    finality_status: Some(options.finality_status),
                                 })
                             }
                             SubscribeWriteData::TransactionStatus { transaction_hash } => {
@@ -186,12 +191,21 @@ impl StreamWriteDriver {
                                     SubscribeTransactionStatusRequest { transaction_hash },
                                 )
                             }
-                            SubscribeWriteData::PendindTransactions {
-                                transaction_details,
+                            SubscribeWriteData::NewTransactionReceipts {
+                                finality_status,
                                 sender_address,
-                            } => ProviderRequestData::SubscribePendingTransactions(
-                                SubscribePendingTransactionsRequest {
-                                    transaction_details: Some(transaction_details),
+                            } => ProviderRequestData::SubscribeNewTransactionReceipts(
+                                SubscribeNewTransactionReceiptsRequest {
+                                    finality_status,
+                                    sender_address,
+                                },
+                            ),
+                            SubscribeWriteData::NewTransactions {
+                                finality_status,
+                                sender_address,
+                            } => ProviderRequestData::SubscribeNewTransactions(
+                                SubscribeNewTransactionsRequest {
+                                    finality_status,
                                     sender_address,
                                 },
                             ),

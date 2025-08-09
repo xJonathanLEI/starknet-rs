@@ -2,7 +2,10 @@ use std::time::Duration;
 
 use futures_util::StreamExt;
 use serde::Deserialize;
-use starknet_core::types::{ConfirmedBlockId, Felt, StarknetError, SubscriptionId};
+use starknet_core::types::{
+    ConfirmedBlockId, Felt, L2TransactionFinalityStatus, L2TransactionStatus, StarknetError,
+    SubscriptionId,
+};
 use starknet_providers::{
     jsonrpc::{JsonRpcError, JsonRpcResponse, JsonRpcStreamUpdate},
     StreamUpdateData,
@@ -23,7 +26,7 @@ use crate::{
     error::{CloseError, ConnectError, SubscribeError},
     subscription::{
         EventSubscriptionOptions, EventsSubscription, NewHeadsSubscription,
-        PendingTransactionDetailsSubscription, PendingTransactionHashesSubscription, Subscription,
+        NewTransactionReceiptsSubscription, NewTransactionsSubscription, Subscription,
         TransactionStatusSubscription,
     },
 };
@@ -56,8 +59,10 @@ pub enum StreamUpdateType {
     Events,
     /// Initial or changes to a transaction's status.
     TransactionStatus,
-    /// New pending transaction.
-    PendingTransactions,
+    /// New transaction receipts.
+    NewTransactionReceipts,
+    /// New transaction.
+    NewTransaction,
     /// Chain reorganization.
     Reorg,
 }
@@ -212,34 +217,36 @@ impl TungsteniteStream {
         })
     }
 
-    /// Subscribes for new pending transaction hashes.
+    /// Subscribes for new transaction receipts.
     ///
-    /// Sends a `starknet_subscribePendingTransactions` request to the server.
-    pub async fn subscribe_pending_transaction_hashes(
+    /// Sends a `starknet_subscribeNewTransactionReceipts` request to the server.
+    pub async fn subscribe_new_transaction_receipts(
         &self,
+        finality_status: Option<Vec<L2TransactionFinalityStatus>>,
         sender_address: Option<Vec<Felt>>,
-    ) -> Result<PendingTransactionHashesSubscription, SubscribeError> {
-        Ok(PendingTransactionHashesSubscription {
+    ) -> Result<NewTransactionReceiptsSubscription, SubscribeError> {
+        Ok(NewTransactionReceiptsSubscription {
             inner: self
-                .subscribe(SubscribeWriteData::PendindTransactions {
-                    transaction_details: false,
+                .subscribe(SubscribeWriteData::NewTransactionReceipts {
+                    finality_status,
                     sender_address,
                 })
                 .await?,
         })
     }
 
-    /// Subscribes for new pending transaction with details.
+    /// Subscribes for new transactions.
     ///
-    /// Sends a `starknet_subscribePendingTransactions` request to the server.
-    pub async fn subscribe_pending_transaction_details(
+    /// Sends a `starknet_subscribeNewTransactions` request to the server.
+    pub async fn subscribe_new_transactions(
         &self,
+        finality_status: Option<Vec<L2TransactionStatus>>,
         sender_address: Option<Vec<Felt>>,
-    ) -> Result<PendingTransactionDetailsSubscription, SubscribeError> {
-        Ok(PendingTransactionDetailsSubscription {
+    ) -> Result<NewTransactionsSubscription, SubscribeError> {
+        Ok(NewTransactionsSubscription {
             inner: self
-                .subscribe(SubscribeWriteData::PendindTransactions {
-                    transaction_details: true,
+                .subscribe(SubscribeWriteData::NewTransactions {
+                    finality_status,
                     sender_address,
                 })
                 .await?,
@@ -374,7 +381,8 @@ impl std::fmt::Display for StreamUpdateType {
             Self::NewHeads => write!(f, "NewHeads"),
             Self::Events => write!(f, "Events"),
             Self::TransactionStatus => write!(f, "TransactionStatus"),
-            Self::PendingTransactions => write!(f, "PendingTransactions"),
+            Self::NewTransactionReceipts => write!(f, "NewTransactionReceipts"),
+            Self::NewTransaction => write!(f, "NewTransaction"),
             Self::Reorg => write!(f, "Reorg"),
         }
     }

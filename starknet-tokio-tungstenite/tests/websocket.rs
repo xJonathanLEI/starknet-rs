@@ -100,37 +100,34 @@ async fn websocket_transaction_status_subscription() {
 }
 
 #[tokio::test]
-async fn websocket_pending_transaction_hashes_subscription() {
+async fn websocket_new_transaction_receipts_subscription() {
     let stream = create_stream().await;
 
     let mut subscription = stream
-        .subscribe_pending_transaction_hashes(None)
+        .subscribe_new_transaction_receipts(None, None)
         .await
         .unwrap();
 
     // There should be at least one transaction in 20 seconds
-    let tx_hash = tokio::time::timeout(Duration::from_secs(5), subscription.recv())
+    let receipt = tokio::time::timeout(Duration::from_secs(20), subscription.recv())
         .await
         .unwrap()
         .unwrap();
 
-    assert_ne!(tx_hash, Felt::ZERO);
+    assert_ne!(receipt.receipt.transaction_hash(), &Felt::ZERO);
 }
 
 #[tokio::test]
-async fn websocket_pending_transaction_details_subscription() {
+async fn websocket_new_transactions_subscription() {
     let stream = create_stream().await;
 
-    let mut subscription = stream
-        .subscribe_pending_transaction_details(None)
-        .await
-        .unwrap();
+    let mut subscription = stream.subscribe_new_transactions(None, None).await.unwrap();
 
     // There should be at least one transaction in 20 seconds
-    let tx = tokio::time::timeout(Duration::from_secs(5), subscription.recv())
+    let tx = tokio::time::timeout(Duration::from_secs(20), subscription.recv())
         .await
         .unwrap()
         .unwrap();
 
-    assert_ne!(tx.transaction_hash(), &Felt::ZERO);
+    assert_ne!(tx.txn.transaction_hash(), &Felt::ZERO);
 }

@@ -458,8 +458,10 @@ pub enum ProviderRequestData {
     SubscribeEvents(SubscribeEventsRequest),
     /// Request data for `starknet_subscribeTransactionStatus`.
     SubscribeTransactionStatus(SubscribeTransactionStatusRequest),
-    /// Request data for `starknet_subscribePendingTransactions`.
-    SubscribePendingTransactions(SubscribePendingTransactionsRequest),
+    /// Request data for `starknet_subscribeNewTransactionReceipts`.
+    SubscribeNewTransactionReceipts(SubscribeNewTransactionReceiptsRequest),
+    /// Request data for `starknet_subscribeNewTransactions`.
+    SubscribeNewTransactions(SubscribeNewTransactionsRequest),
     /// Request data for `starknet_unsubscribe`.
     Unsubscribe(UnsubscribeRequest),
 }
@@ -536,8 +538,10 @@ pub enum ProviderResponseData {
     SubscribeEvents(SubscriptionId),
     /// Response data for `starknet_subscribeTransactionStatus`.
     SubscribeTransactionStatus(SubscriptionId),
-    /// Response data for `starknet_subscribePendingTransactions`.
-    SubscribePendingTransactions(SubscriptionId),
+    /// Response data for `starknet_subscribeNewTransactionReceipts`.
+    SubscribeNewTransactionReceipts(SubscriptionId),
+    /// Response data for `starknet_subscribeNewTransactions`.
+    SubscribeNewTransactions(SubscriptionId),
     /// Response data for `starknet_unsubscribe`.
     Unsubscribe(bool),
 }
@@ -553,8 +557,10 @@ pub enum StreamUpdateData {
     SubscriptionEvents(SubscriptionEventsRequest),
     /// Stream data for `starknet_subscriptionTransactionStatus`.
     SubscriptionTransactionStatus(SubscriptionTransactionStatusRequest),
-    /// Stream data for `starknet_subscriptionPendingTransactions`.
-    SubscriptionPendingTransactions(SubscriptionPendingTransactionsRequest),
+    /// Stream data for `starknet_subscriptionNewTransactionReceipts`.
+    SubscriptionNewTransactionReceipts(SubscriptionNewTransactionReceiptsRequest),
+    /// Stream data for `starknet_subscriptionNewTransaction`.
+    SubscriptionNewTransaction(SubscriptionNewTransactionRequest),
     /// Stream data for `starknet_subscriptionReorg`.
     SubscriptionReorg(SubscriptionReorgRequest),
 }
@@ -566,7 +572,8 @@ impl StreamUpdateData {
             Self::SubscriptionNewHeads(update) => &update.subscription_id,
             Self::SubscriptionEvents(update) => &update.subscription_id,
             Self::SubscriptionTransactionStatus(update) => &update.subscription_id,
-            Self::SubscriptionPendingTransactions(update) => &update.subscription_id,
+            Self::SubscriptionNewTransactionReceipts(update) => &update.subscription_id,
+            Self::SubscriptionNewTransaction(update) => &update.subscription_id,
             Self::SubscriptionReorg(update) => &update.subscription_id,
         }
     }
