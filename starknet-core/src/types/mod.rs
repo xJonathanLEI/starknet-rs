@@ -662,7 +662,7 @@ impl MaybePreConfirmedBlockWithTxs {
         } else {
             tips.sort_unstable();
             let len = tips.len();
-            if len % 2 == 0 {
+            if len.is_multiple_of(2) {
                 // Even number of tips: average of two middle values
                 (tips[len / 2 - 1] + tips[len / 2]) / 2
             } else {
