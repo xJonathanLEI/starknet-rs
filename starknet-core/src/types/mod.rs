@@ -626,6 +626,51 @@ impl MaybePreConfirmedBlockWithTxs {
             Self::PreConfirmedBlock(block) => &block.l1_gas_price,
         }
     }
+
+    /// Gets a reference to the L2 gas price.
+    pub const fn l2_gas_price(&self) -> &ResourcePrice {
+        match self {
+            Self::Block(block) => &block.l2_gas_price,
+            Self::PreConfirmedBlock(block) => &block.l2_gas_price,
+        }
+    }
+
+    /// Gets a reference to the L1 data gas price.
+    pub const fn l1_data_gas_price(&self) -> &ResourcePrice {
+        match self {
+            Self::Block(block) => &block.l1_data_gas_price,
+            Self::PreConfirmedBlock(block) => &block.l1_data_gas_price,
+        }
+    }
+
+    /// Calculates the median tip amount paid by transactions that support tips.
+    ///
+    /// Note that the calculation *excludes* transaction types and versions that simply do not
+    /// support tips.
+    ///
+    /// Returns `0` if the block contains no eligible transactions.
+    pub fn median_tip(&self) -> u64 {
+        let mut tips: Vec<u64> = self
+            .transactions()
+            .iter()
+            .filter_map(|tx| tx.tip())
+            .collect();
+
+        if tips.is_empty() {
+            // If no transactions have tips, use 0
+            0
+        } else {
+            tips.sort_unstable();
+            let len = tips.len();
+            if len.is_multiple_of(2) {
+                // Even number of tips: average of two middle values
+                (tips[len / 2 - 1] + tips[len / 2]) / 2
+            } else {
+                // Odd number of tips: middle value
+                tips[len / 2]
+            }
+        }
+    }
 }
 
 impl MaybePreConfirmedBlockWithReceipts {
@@ -668,6 +713,26 @@ impl Transaction {
             Self::Declare(tx) => tx.transaction_hash(),
             Self::Deploy(tx) => &tx.transaction_hash,
             Self::DeployAccount(tx) => tx.transaction_hash(),
+        }
+    }
+
+    /// Gets the transaction's tip amount.
+    ///
+    /// Returns `None` if the transaction's type or version does not support tips.
+    pub const fn tip(&self) -> Option<u64> {
+        match self {
+            Self::Invoke(InvokeTransaction::V3(tx)) => Some(tx.tip),
+            Self::Declare(DeclareTransaction::V3(tx)) => Some(tx.tip),
+            Self::DeployAccount(DeployAccountTransaction::V3(tx)) => Some(tx.tip),
+            // Exhaust all variants to force a compilation error upon adding new variants
+            Self::Invoke(InvokeTransaction::V0(_))
+            | Self::Invoke(InvokeTransaction::V1(_))
+            | Self::L1Handler(_)
+            | Self::Declare(DeclareTransaction::V0(_))
+            | Self::Declare(DeclareTransaction::V1(_))
+            | Self::Declare(DeclareTransaction::V2(_))
+            | Self::Deploy(_)
+            | Self::DeployAccount(DeployAccountTransaction::V1(_)) => None,
         }
     }
 }

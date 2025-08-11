@@ -172,6 +172,7 @@ pub struct ExecutionV3<'a, A> {
     l1_data_gas_price: Option<u128>,
     gas_estimate_multiplier: f64,
     gas_price_estimate_multiplier: f64,
+    tip: Option<u64>,
 }
 
 /// Abstraction over `DECLARE` transactions from accounts for invoking contracts. This struct uses
@@ -194,6 +195,7 @@ pub struct DeclarationV3<'a, A> {
     l1_data_gas_price: Option<u128>,
     gas_estimate_multiplier: f64,
     gas_price_estimate_multiplier: f64,
+    tip: Option<u64>,
 }
 
 /// [`ExecutionV3`] but with `nonce` and other transaction fee options already determined.
@@ -207,6 +209,7 @@ pub struct RawExecutionV3 {
     l2_gas_price: u128,
     l1_data_gas: u64,
     l1_data_gas_price: u128,
+    tip: u64,
 }
 
 /// [`DeclarationV3`] but with `nonce` and other transaction fee options already determined.
@@ -221,6 +224,7 @@ pub struct RawDeclarationV3 {
     l2_gas_price: u128,
     l1_data_gas: u64,
     l1_data_gas_price: u128,
+    tip: u64,
 }
 
 /// [`RawExecutionV3`] but with an account associated.
