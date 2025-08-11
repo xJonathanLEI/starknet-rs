@@ -145,6 +145,7 @@ impl<'a, A> ExecutionV3<'a, A> {
         let l2_gas_price = self.l2_gas_price.ok_or(NotPreparedError)?;
         let l1_data_gas = self.l1_data_gas.ok_or(NotPreparedError)?;
         let l1_data_gas_price = self.l1_data_gas_price.ok_or(NotPreparedError)?;
+        let tip = self.tip.ok_or(NotPreparedError)?;
 
         Ok(PreparedExecutionV3 {
             account: self.account,
@@ -157,7 +158,7 @@ impl<'a, A> ExecutionV3<'a, A> {
                 l2_gas_price,
                 l1_data_gas,
                 l1_data_gas_price,
-                tip: self.tip.unwrap_or_default(),
+                tip,
             },
         })
     }
@@ -220,7 +221,15 @@ where
         };
 
         // Resolves fee settings
-        let (l1_gas, l1_gas_price, l2_gas, l2_gas_price, l1_data_gas, l1_data_gas_price) = match (
+        let (
+            l1_gas,
+            l1_gas_price,
+            l2_gas,
+            l2_gas_price,
+            l1_data_gas,
+            l1_data_gas_price,
+            full_block,
+        ) = match (
             self.l1_gas,
             self.l1_gas_price,
             self.l2_gas,
@@ -242,6 +251,7 @@ where
                 l2_gas_price,
                 l1_data_gas,
                 l1_data_gas_price,
+                None,
             ),
             (Some(l1_gas), _, Some(l2_gas), _, Some(l1_data_gas), _) => {
                 // When all `gas` fields are specified, we only need the gas prices in FRI. By
@@ -249,16 +259,37 @@ where
                 // estimation (e.g. flaky dependencies), so it's inappropriate to call
                 // `estimate_fee` here.
 
-                // This is the lightest-weight block we can get
-                let block = self
-                    .account
-                    .provider()
-                    .get_block_with_tx_hashes(self.account.block_id())
-                    .await
-                    .map_err(AccountError::Provider)?;
-                let block_l1_gas_price = block.l1_gas_price().price_in_fri;
-                let block_l2_gas_price = block.l2_gas_price().price_in_fri;
-                let block_l1_data_gas_price = block.l1_data_gas_price().price_in_fri;
+                let (block_l1_gas_price, block_l2_gas_price, block_l1_data_gas_price, full_block) =
+                    if self.tip.is_some() {
+                        // No need to estimate tip. Just fetch the lightest-weight block we can get.
+                        let block = self
+                            .account
+                            .provider()
+                            .get_block_with_tx_hashes(self.account.block_id())
+                            .await
+                            .map_err(AccountError::Provider)?;
+                        (
+                            block.l1_gas_price().price_in_fri,
+                            block.l2_gas_price().price_in_fri,
+                            block.l1_data_gas_price().price_in_fri,
+                            None,
+                        )
+                    } else {
+                        // We only need th block header here but still fetching the full block to be used
+                        // for tip estimation below.
+                        let block = self
+                            .account
+                            .provider()
+                            .get_block_with_txs(self.account.block_id())
+                            .await
+                            .map_err(AccountError::Provider)?;
+                        (
+                            block.l1_gas_price().price_in_fri,
+                            block.l2_gas_price().price_in_fri,
+                            block.l1_data_gas_price().price_in_fri,
+                            Some(block),
+                        )
+                    };
 
                 let adjusted_l1_gas_price =
                     ((TryInto::<u64>::try_into(block_l1_gas_price)
@@ -280,6 +311,7 @@ where
                     adjusted_l2_gas_price,
                     l1_data_gas,
                     adjusted_l1_data_gas_price,
+                    full_block,
                 )
             }
             // We have to perform fee estimation as long as gas is not specified
@@ -300,7 +332,25 @@ where
                     ((TryInto::<u64>::try_into(fee_estimate.l1_data_gas_price)
                         .map_err(|_| AccountError::FeeOutOfRange)? as f64)
                         * self.gas_price_estimate_multiplier) as u128,
+                    None,
                 )
+            }
+        };
+
+        let tip = match self.tip {
+            Some(tip) => tip,
+            None => {
+                // Need to estimate tip from median. Maybe a full block has already been fetched?
+                let block = match full_block {
+                    Some(block) => block,
+                    None => self
+                        .account
+                        .provider()
+                        .get_block_with_txs(self.account.block_id())
+                        .await
+                        .map_err(AccountError::Provider)?,
+                };
+                block.median_tip()
             }
         };
 
@@ -315,7 +365,7 @@ where
                 l2_gas_price,
                 l1_data_gas,
                 l1_data_gas_price,
-                tip: self.tip.unwrap_or_default(),
+                tip,
             },
         })
     }
@@ -339,7 +389,7 @@ where
                 l2_gas_price: 0,
                 l1_data_gas: 0,
                 l1_data_gas_price: 0,
-                tip: self.tip.unwrap_or_default(),
+                tip: 0,
             },
         };
         let invoke = prepared

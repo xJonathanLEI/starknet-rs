@@ -48,6 +48,7 @@ pub struct DeploymentV3<'f, A> {
     l1_data_gas_price: Option<u128>,
     gas_estimate_multiplier: f64,
     gas_price_estimate_multiplier: f64,
+    tip: Option<u64>,
 }
 
 impl<A> ContractFactory<A> {
@@ -95,6 +96,7 @@ where
             l1_data_gas_price: None,
             gas_estimate_multiplier: 1.5,
             gas_price_estimate_multiplier: 1.5,
+            tip: None,
         }
     }
 
@@ -184,6 +186,14 @@ impl<A> DeploymentV3<'_, A> {
     pub fn gas_price_estimate_multiplier(self, gas_price_estimate_multiplier: f64) -> Self {
         Self {
             gas_price_estimate_multiplier,
+            ..self
+        }
+    }
+
+    /// Returns a new [`DeploymentV3`] with the `tip`.
+    pub fn tip(self, tip: u64) -> Self {
+        Self {
+            tip: Some(tip),
             ..self
         }
     }
@@ -296,6 +306,12 @@ impl<'f, A> From<&DeploymentV3<'f, A>> for ExecutionV3<'f, A> {
 
         let execution = if let Some(l1_data_gas_price) = value.l1_data_gas_price {
             execution.l1_data_gas_price(l1_data_gas_price)
+        } else {
+            execution
+        };
+
+        let execution = if let Some(tip) = value.tip {
+            execution.tip(tip)
         } else {
             execution
         };
