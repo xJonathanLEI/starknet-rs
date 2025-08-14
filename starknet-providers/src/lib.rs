@@ -8,7 +8,8 @@
 
 mod provider;
 pub use provider::{
-    Provider, ProviderError, ProviderRequestData, ProviderResponseData, StreamUpdateData,
+    Provider, ProviderError, ProviderImplError, ProviderRequestData, ProviderResponseData,
+    StreamUpdateData,
 };
 
 // Sequencer-related functionalities are mostly deprecated so we skip the docs.
