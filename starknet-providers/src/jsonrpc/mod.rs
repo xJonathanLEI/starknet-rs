@@ -1559,6 +1559,7 @@ impl TryFrom<&JsonRpcError> for StarknetError {
                 .map_err(|_| JsonRpcErrorConversionError::DataParsingFailure)?;
                 Ok(Self::TransactionExecutionError(data))
             }
+            42 => Ok(Self::StorageProofNotSupported),
             51 => Ok(Self::ClassAlreadyDeclared),
             52 => {
                 let data = String::deserialize(
