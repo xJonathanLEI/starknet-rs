@@ -583,6 +583,11 @@ impl RawDeclarationV3 {
     pub const fn l1_data_gas_price(&self) -> u128 {
         self.l1_data_gas_price
     }
+
+    /// Gets the `tip` of the declaration request.
+    pub const fn tip(&self) -> u64 {
+        self.tip
+    }
 }
 
 impl<A> PreparedDeclarationV3<'_, A>
