@@ -611,7 +611,8 @@ where
             .map_err(AccountError::Provider)
     }
 
-    async fn get_declare_request(
+    /// Get the broadcasted declare transaction request.
+    pub async fn get_declare_request(
         &self,
         query_only: bool,
         skip_signature: bool,
