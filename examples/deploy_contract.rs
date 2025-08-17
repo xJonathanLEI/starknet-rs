@@ -14,6 +14,7 @@ use starknet::{
     },
     signers::{LocalWallet, SigningKey},
 };
+use starknet_contract::UdcSelector;
 
 #[tokio::main]
 async fn main() {
@@ -43,7 +44,7 @@ async fn main() {
     // `Arc<Account>` implements `Account` too.
     let account = Arc::new(account);
 
-    let contract_factory = ContractFactory::new(class_hash, account);
+    let contract_factory = ContractFactory::new_with_udc(class_hash, account, UdcSelector::New);
     contract_factory
         .deploy_v3(vec![felt!("123456")], felt!("1122"), false)
         .send()

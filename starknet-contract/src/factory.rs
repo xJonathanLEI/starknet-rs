@@ -4,12 +4,20 @@ use starknet_core::{
     utils::{get_udc_deployed_address, UdcUniqueSettings, UdcUniqueness},
 };
 
-/// The default UDC address: 0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf.
-const UDC_ADDRESS: Felt = Felt::from_raw([
+/// The Cairo 0 UDC address: `0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf`.
+const LEGACY_UDC_ADDRESS: Felt = Felt::from_raw([
     121672436446604875,
     9333317513348225193,
     15685625669053253235,
     15144800532519055890,
+]);
+
+/// The Cairo 1 UDC address: `0x02ceed65a4bd731034c01113685c831b01c15d7d432f71afb1cf1634b53a2125`.
+const NEW_UDC_ADDRESS: Felt = Felt::from_raw([
+    505287751652144584,
+    6849092491656713429,
+    14735209673864872887,
+    4208494925911946768,
 ]);
 
 /// Selector for entrypoint `deployContract`.
@@ -51,20 +59,34 @@ pub struct DeploymentV3<'f, A> {
     tip: Option<u64>,
 }
 
+/// Specifies the Universal Deployer Contract to be used.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UdcSelector {
+    /// The original, now deprecated, deployer contract deployed at
+    /// `0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf`.
+    Legacy,
+    /// The latest deployer contract deployed at
+    /// `0x02ceed65a4bd731034c01113685c831b01c15d7d432f71afb1cf1634b53a2125`.
+    New,
+    /// Custom compatible deployer contract instance.
+    Custom(Felt),
+}
+
 impl<A> ContractFactory<A> {
     /// Constructs a new [`ContractFactory`] from a class hash and an account.
     ///
     /// The [`ContractFactory`] created uses the default address for the Universal Deployer
     /// Contract. To use a custom UDC deployment, use [`new_with_udc`](fn.new_with_udc) instead.
+    #[deprecated = "this method uses the legacy UDC; use `new_with_udc` instead"]
     pub const fn new(class_hash: Felt, account: A) -> Self {
-        Self::new_with_udc(class_hash, account, UDC_ADDRESS)
+        Self::new_with_udc(class_hash, account, UdcSelector::Legacy)
     }
 
-    /// Constructs a new [`ContractFactory`] with a custom Universal Deployer Contract address.
-    pub const fn new_with_udc(class_hash: Felt, account: A, udc_address: Felt) -> Self {
+    /// Constructs a new [`ContractFactory`] with a custom Universal Deployer Contract instance.
+    pub const fn new_with_udc(class_hash: Felt, account: A, udc: UdcSelector) -> Self {
         Self {
             class_hash,
-            udc_address,
+            udc_address: udc.address(),
             account,
         }
     }
@@ -321,6 +343,30 @@ impl<'f, A> From<&DeploymentV3<'f, A>> for ExecutionV3<'f, A> {
         execution.gas_price_estimate_multiplier(value.gas_price_estimate_multiplier)
     }
 }
+
+impl UdcSelector {
+    /// Gets the contract address of the selected Universal Deployer Contract instance.
+    pub const fn address(&self) -> Felt {
+        match self {
+            Self::Legacy => LEGACY_UDC_ADDRESS,
+            Self::New => NEW_UDC_ADDRESS,
+            Self::Custom(address) => *address,
+        }
+    }
+}
+
+impl From<UdcSelector> for Felt {
+    fn from(value: UdcSelector) -> Self {
+        value.address()
+    }
+}
+
+impl Default for UdcSelector {
+    fn default() -> Self {
+        Self::New
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use starknet_accounts::{ExecutionEncoding, SingleOwnerAccount};
