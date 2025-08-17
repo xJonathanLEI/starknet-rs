@@ -2,8 +2,8 @@ use std::time::Duration;
 
 use starknet_core::types::{ConfirmedBlockId, Felt};
 use starknet_tokio_tungstenite::{
-    EventSubscriptionOptions, EventsUpdate, NewHeadsUpdate, TransactionStatusUpdate,
-    TungsteniteStream,
+    EventSubscriptionOptions, EventsUpdate, NewHeadsUpdate, NewTransactionReceiptsUpdate,
+    NewTransactionsUpdate, TransactionStatusUpdate, TungsteniteStream,
 };
 
 async fn create_stream() -> TungsteniteStream {
@@ -109,10 +109,14 @@ async fn websocket_new_transaction_receipts_subscription() {
         .unwrap();
 
     // There should be at least one transaction in 20 seconds
-    let receipt = tokio::time::timeout(Duration::from_secs(20), subscription.recv())
-        .await
-        .unwrap()
-        .unwrap();
+    let NewTransactionReceiptsUpdate::Receipt(receipt) =
+        tokio::time::timeout(Duration::from_secs(20), subscription.recv())
+            .await
+            .unwrap()
+            .unwrap()
+    else {
+        panic!("Unexpected update type");
+    };
 
     assert_ne!(receipt.receipt.transaction_hash(), &Felt::ZERO);
 }
@@ -124,10 +128,14 @@ async fn websocket_new_transactions_subscription() {
     let mut subscription = stream.subscribe_new_transactions(None, None).await.unwrap();
 
     // There should be at least one transaction in 20 seconds
-    let tx = tokio::time::timeout(Duration::from_secs(20), subscription.recv())
-        .await
-        .unwrap()
-        .unwrap();
+    let NewTransactionsUpdate::Transaction(tx) =
+        tokio::time::timeout(Duration::from_secs(20), subscription.recv())
+            .await
+            .unwrap()
+            .unwrap()
+    else {
+        panic!("Unexpected update type");
+    };
 
     assert_ne!(tx.txn.transaction_hash(), &Felt::ZERO);
 }
