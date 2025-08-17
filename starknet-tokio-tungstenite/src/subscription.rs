@@ -111,6 +111,29 @@ pub enum TransactionStatusUpdate {
     Reorg(ReorgData),
 }
 
+/// Update from a new transaction receipts subscription.
+///
+/// Represents either a new transaction receipt or a chain reorganization.
+#[derive(Debug)]
+pub enum NewTransactionReceiptsUpdate {
+    /// A new transaction receipt has been received.
+    Receipt(TransactionReceiptWithBlockInfo),
+    /// A chain reorganization has occurred.
+    Reorg(ReorgData),
+}
+
+/// Update from a new transaction subscription.
+///
+/// Represents either a new transaction or a chain reorganization.
+#[allow(clippy::large_enum_variant)]
+#[derive(Debug)]
+pub enum NewTransactionsUpdate {
+    /// A new transaction has been received.
+    Transaction(TransactionWithL2Status),
+    /// A chain reorganization has occurred.
+    Reorg(ReorgData),
+}
+
 /// Options for subscribing to Starknet events.
 #[derive(Debug, Clone)]
 pub struct EventSubscriptionOptions {
@@ -305,39 +328,48 @@ impl NewTransactionReceiptsSubscription {
     /// Receives the next new transaction receipt from the subscription.
     ///
     /// Returns the transaction receipt.
-    pub async fn recv(
-        &mut self,
-    ) -> Result<TransactionReceiptWithBlockInfo, SubscriptionReceiveError> {
+    pub async fn recv(&mut self) -> Result<NewTransactionReceiptsUpdate, SubscriptionReceiveError> {
         match self.inner.stream.recv().await {
-            Some(StreamUpdateData::SubscriptionNewTransactionReceipts(update)) => Ok(update.result),
+            Some(StreamUpdateData::SubscriptionNewTransactionReceipts(update)) => {
+                Ok(NewTransactionReceiptsUpdate::Receipt(update.result))
+            }
+            Some(StreamUpdateData::SubscriptionReorg(update)) => {
+                Ok(NewTransactionReceiptsUpdate::Reorg(update.result))
+            }
             Some(StreamUpdateData::SubscriptionNewHeads(_)) => {
                 Err(SubscriptionReceiveError::UnexpectedType {
-                    expecting: &[StreamUpdateType::NewTransactionReceipts],
+                    expecting: &[
+                        StreamUpdateType::NewTransactionReceipts,
+                        StreamUpdateType::Reorg,
+                    ],
                     actual: StreamUpdateType::NewHeads,
                 })
             }
             Some(StreamUpdateData::SubscriptionEvents(_)) => {
                 Err(SubscriptionReceiveError::UnexpectedType {
-                    expecting: &[StreamUpdateType::NewTransactionReceipts],
+                    expecting: &[
+                        StreamUpdateType::NewTransactionReceipts,
+                        StreamUpdateType::Reorg,
+                    ],
                     actual: StreamUpdateType::Events,
                 })
             }
             Some(StreamUpdateData::SubscriptionTransactionStatus(_)) => {
                 Err(SubscriptionReceiveError::UnexpectedType {
-                    expecting: &[StreamUpdateType::NewTransactionReceipts],
+                    expecting: &[
+                        StreamUpdateType::NewTransactionReceipts,
+                        StreamUpdateType::Reorg,
+                    ],
                     actual: StreamUpdateType::TransactionStatus,
                 })
             }
             Some(StreamUpdateData::SubscriptionNewTransaction(_)) => {
                 Err(SubscriptionReceiveError::UnexpectedType {
-                    expecting: &[StreamUpdateType::NewTransactionReceipts],
+                    expecting: &[
+                        StreamUpdateType::NewTransactionReceipts,
+                        StreamUpdateType::Reorg,
+                    ],
                     actual: StreamUpdateType::NewTransaction,
-                })
-            }
-            Some(StreamUpdateData::SubscriptionReorg(_)) => {
-                Err(SubscriptionReceiveError::UnexpectedType {
-                    expecting: &[StreamUpdateType::NewTransactionReceipts],
-                    actual: StreamUpdateType::Reorg,
                 })
             }
             None => Err(SubscriptionReceiveError::StreamClosed),
@@ -356,37 +388,36 @@ impl NewTransactionsSubscription {
     /// Receives the next new transaction from the subscription.
     ///
     /// Returns the transaction alongside its layer-2 status.
-    pub async fn recv(&mut self) -> Result<TransactionWithL2Status, SubscriptionReceiveError> {
+    pub async fn recv(&mut self) -> Result<NewTransactionsUpdate, SubscriptionReceiveError> {
         match self.inner.stream.recv().await {
-            Some(StreamUpdateData::SubscriptionNewTransaction(update)) => Ok(update.result),
+            Some(StreamUpdateData::SubscriptionNewTransaction(update)) => {
+                Ok(NewTransactionsUpdate::Transaction(update.result))
+            }
+            Some(StreamUpdateData::SubscriptionReorg(update)) => {
+                Ok(NewTransactionsUpdate::Reorg(update.result))
+            }
             Some(StreamUpdateData::SubscriptionNewHeads(_)) => {
                 Err(SubscriptionReceiveError::UnexpectedType {
-                    expecting: &[StreamUpdateType::NewTransaction],
+                    expecting: &[StreamUpdateType::NewTransaction, StreamUpdateType::Reorg],
                     actual: StreamUpdateType::NewHeads,
                 })
             }
             Some(StreamUpdateData::SubscriptionEvents(_)) => {
                 Err(SubscriptionReceiveError::UnexpectedType {
-                    expecting: &[StreamUpdateType::NewTransaction],
+                    expecting: &[StreamUpdateType::NewTransaction, StreamUpdateType::Reorg],
                     actual: StreamUpdateType::Events,
                 })
             }
             Some(StreamUpdateData::SubscriptionTransactionStatus(_)) => {
                 Err(SubscriptionReceiveError::UnexpectedType {
-                    expecting: &[StreamUpdateType::NewTransaction],
+                    expecting: &[StreamUpdateType::NewTransaction, StreamUpdateType::Reorg],
                     actual: StreamUpdateType::TransactionStatus,
                 })
             }
             Some(StreamUpdateData::SubscriptionNewTransactionReceipts(_)) => {
                 Err(SubscriptionReceiveError::UnexpectedType {
-                    expecting: &[StreamUpdateType::NewTransaction],
+                    expecting: &[StreamUpdateType::NewTransaction, StreamUpdateType::Reorg],
                     actual: StreamUpdateType::NewTransactionReceipts,
-                })
-            }
-            Some(StreamUpdateData::SubscriptionReorg(_)) => {
-                Err(SubscriptionReceiveError::UnexpectedType {
-                    expecting: &[StreamUpdateType::NewTransaction],
-                    actual: StreamUpdateType::Reorg,
                 })
             }
             None => Err(SubscriptionReceiveError::StreamClosed),
