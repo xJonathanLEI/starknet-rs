@@ -679,6 +679,11 @@ impl RawAccountDeploymentV3 {
     pub const fn l1_data_gas_price(&self) -> u128 {
         self.l1_data_gas_price
     }
+
+    /// Gets the `tip` of the deployment request.
+    pub const fn tip(&self) -> u64 {
+        self.tip
+    }
 }
 
 impl<'f, F> PreparedAccountDeploymentV3<'f, F> {
