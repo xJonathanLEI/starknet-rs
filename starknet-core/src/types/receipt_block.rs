@@ -53,13 +53,10 @@ impl ReceiptBlock {
         }
     }
 
-    /// Returns `None` if block is not `Block`.
-    ///
-    /// A more idiomatic way of accessing the block number is to match the `Block` enum variant.
-    pub const fn block_number(&self) -> Option<u64> {
+    /// Returns the block number.
+    pub const fn block_number(&self) -> u64 {
         match self {
-            Self::PreConfirmed { block_number } => Some(*block_number),
-            Self::Block { block_number, .. } => Some(*block_number),
+            Self::PreConfirmed { block_number } | Self::Block { block_number, .. } => *block_number,
         }
     }
 }
@@ -71,8 +68,7 @@ struct Raw {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde_as(as = "Option<UfeHex>")]
     block_hash: Option<Felt>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    block_number: Option<u64>,
+    block_number: u64,
 }
 
 impl Serialize for ReceiptBlock {
@@ -83,14 +79,14 @@ impl Serialize for ReceiptBlock {
         let raw = match self {
             Self::PreConfirmed { block_number } => Raw {
                 block_hash: None,
-                block_number: Some(*block_number),
+                block_number: *block_number,
             },
             Self::Block {
                 block_hash,
                 block_number,
             } => Raw {
                 block_hash: Some(*block_hash),
-                block_number: Some(*block_number),
+                block_number: *block_number,
             },
         };
 
@@ -105,18 +101,14 @@ impl<'de> Deserialize<'de> for ReceiptBlock {
     {
         let raw = Raw::deserialize(deserializer)?;
 
-        match (raw.block_hash, raw.block_number) {
-            (Some(block_hash), Some(block_number)) => Ok(Self::Block {
+        match raw.block_hash {
+            Some(block_hash) => Ok(Self::Block {
                 block_hash,
-                block_number,
+                block_number: raw.block_number,
             }),
-            (None, Some(block_number)) => Ok(Self::PreConfirmed { block_number }),
-            (Some(_), None) => Err(serde::de::Error::custom(
-                "field `block_number` must exist if `block_hash` exists",
-            )),
-            (None, None) => Err(serde::de::Error::custom(
-                "at least `block_number` must exist",
-            )),
+            None => Ok(Self::PreConfirmed {
+                block_number: raw.block_number,
+            }),
         }
     }
 }
