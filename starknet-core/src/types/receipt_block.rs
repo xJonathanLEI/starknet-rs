@@ -13,7 +13,10 @@ use starknet_types_core::felt::Felt;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReceiptBlock {
     /// The receipt is attached to a pre-confirmed block.
-    PreConfirmed,
+    PreConfirmed {
+        /// Block number (height).
+        block_number: u64,
+    },
     /// The receipt is attached to a confirmed block.
     Block {
         /// Block hash.
@@ -27,7 +30,7 @@ impl ReceiptBlock {
     /// Returns `true` if and only if it's the `PreConfirmed` variant.
     pub const fn is_pre_confirmed(&self) -> bool {
         match self {
-            Self::PreConfirmed => true,
+            Self::PreConfirmed { .. } => true,
             Self::Block { .. } => false,
         }
     }
@@ -35,7 +38,7 @@ impl ReceiptBlock {
     /// Returns `true` if and only if it's the `Block` variant.
     pub const fn is_block(&self) -> bool {
         match self {
-            Self::PreConfirmed => false,
+            Self::PreConfirmed { .. } => false,
             Self::Block { .. } => true,
         }
     }
@@ -45,18 +48,15 @@ impl ReceiptBlock {
     /// A more idiomatic way of accessing the block hash is to match the `Block` enum variant.
     pub const fn block_hash(&self) -> Option<Felt> {
         match self {
-            Self::PreConfirmed => None,
+            Self::PreConfirmed { .. } => None,
             Self::Block { block_hash, .. } => Some(*block_hash),
         }
     }
 
-    /// Returns `None` if block is not `Block`.
-    ///
-    /// A more idiomatic way of accessing the block number is to match the `Block` enum variant.
-    pub const fn block_number(&self) -> Option<u64> {
+    /// Returns the block number.
+    pub const fn block_number(&self) -> u64 {
         match self {
-            Self::PreConfirmed => None,
-            Self::Block { block_number, .. } => Some(*block_number),
+            Self::PreConfirmed { block_number } | Self::Block { block_number, .. } => *block_number,
         }
     }
 }
@@ -68,8 +68,7 @@ struct Raw {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde_as(as = "Option<UfeHex>")]
     block_hash: Option<Felt>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    block_number: Option<u64>,
+    block_number: u64,
 }
 
 impl Serialize for ReceiptBlock {
@@ -78,16 +77,16 @@ impl Serialize for ReceiptBlock {
         S: serde::Serializer,
     {
         let raw = match self {
-            Self::PreConfirmed => Raw {
+            Self::PreConfirmed { block_number } => Raw {
                 block_hash: None,
-                block_number: None,
+                block_number: *block_number,
             },
             Self::Block {
                 block_hash,
                 block_number,
             } => Raw {
                 block_hash: Some(*block_hash),
-                block_number: Some(*block_number),
+                block_number: *block_number,
             },
         };
 
@@ -102,18 +101,14 @@ impl<'de> Deserialize<'de> for ReceiptBlock {
     {
         let raw = Raw::deserialize(deserializer)?;
 
-        match (raw.block_hash, raw.block_number) {
-            (Some(block_hash), Some(block_number)) => Ok(Self::Block {
+        match raw.block_hash {
+            Some(block_hash) => Ok(Self::Block {
                 block_hash,
-                block_number,
+                block_number: raw.block_number,
             }),
-            (None, None) => Ok(Self::PreConfirmed),
-            (Some(_), None) => Err(serde::de::Error::custom(
-                "field `block_hash` must not exist when `block_number` is missing",
-            )),
-            (None, Some(_)) => Err(serde::de::Error::custom(
-                "field `block_number` must not exist when `block_hash` is missing",
-            )),
+            None => Ok(Self::PreConfirmed {
+                block_number: raw.block_number,
+            }),
         }
     }
 }
