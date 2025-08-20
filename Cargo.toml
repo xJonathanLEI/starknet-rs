@@ -34,8 +34,8 @@ members = [
 all-features = true
 
 [dependencies]
-starknet-crypto = { version = "0.7.4", path = "./starknet-crypto" }
-starknet-core = { version = "0.16.0-rc.3", path = "./starknet-core", default-features = false }
+starknet-crypto = { version = "0.7.5", path = "./starknet-crypto" }
+starknet-core = { version = "0.16.0", path = "./starknet-core", default-features = false }
 starknet-core-derive = { version = "0.1.0", path = "./starknet-core-derive", features = ["import_from_starknet"] }
 starknet-providers = { version = "0.16.0-rc.3", path = "./starknet-providers" }
 starknet-contract = { version = "0.16.0-rc.3", path = "./starknet-contract" }
