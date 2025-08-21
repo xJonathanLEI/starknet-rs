@@ -2410,7 +2410,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-crypto"
-version = "0.7.4"
+version = "0.8.0"
 dependencies = [
  "criterion",
  "crypto-bigint",
@@ -2432,7 +2432,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-curve"
-version = "0.5.1"
+version = "0.6.0"
 dependencies = [
  "starknet-types-core",
 ]
