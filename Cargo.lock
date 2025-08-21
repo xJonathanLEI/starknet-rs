@@ -2321,7 +2321,7 @@ dependencies = [
 
 [[package]]
 name = "starknet"
-version = "0.17.0-rc.3"
+version = "0.17.0-rc.4"
 dependencies = [
  "serde_json",
  "starknet-accounts",
@@ -2339,7 +2339,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-accounts"
-version = "0.16.0-rc.3"
+version = "0.16.0-rc.4"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -2358,7 +2358,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-contract"
-version = "0.16.0-rc.3"
+version = "0.16.0-rc.4"
 dependencies = [
  "rand 0.8.5",
  "serde",
@@ -2375,7 +2375,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-core"
-version = "0.16.0-rc.3"
+version = "0.16.0-rc.4"
 dependencies = [
  "base64 0.21.7",
  "bincode",
@@ -2449,7 +2449,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-macros"
-version = "0.2.5-rc.3"
+version = "0.2.5-rc.4"
 dependencies = [
  "starknet-core",
  "syn 2.0.87",
@@ -2457,7 +2457,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-providers"
-version = "0.16.0-rc.3"
+version = "0.16.0-rc.4"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -2479,7 +2479,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-signers"
-version = "0.14.0-rc.3"
+version = "0.14.0-rc.4"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -2501,7 +2501,7 @@ dependencies = [
 
 [[package]]
 name = "starknet-tokio-tungstenite"
-version = "0.3.0-rc.3"
+version = "0.3.0-rc.4"
 dependencies = [
  "futures-util",
  "log",
