@@ -6,7 +6,7 @@ use starknet_types_core::{felt::Felt, hash::Poseidon};
 /// A stateful hasher for Starknet Poseidon hash.
 ///
 /// Using this hasher is the same as calling [`poseidon_hash_many`].
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct PoseidonHasher {
     state: [Felt; 3],
     buffer: Option<Felt>,
