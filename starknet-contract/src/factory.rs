@@ -60,13 +60,14 @@ pub struct DeploymentV3<'f, A> {
 }
 
 /// Specifies the Universal Deployer Contract to be used.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum UdcSelector {
     /// The original, now deprecated, deployer contract deployed at
     /// `0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf`.
     Legacy,
     /// The latest deployer contract deployed at
     /// `0x02ceed65a4bd731034c01113685c831b01c15d7d432f71afb1cf1634b53a2125`.
+    #[default]
     New,
     /// Custom compatible deployer contract instance.
     Custom(Felt),
@@ -358,12 +359,6 @@ impl UdcSelector {
 impl From<UdcSelector> for Felt {
     fn from(value: UdcSelector) -> Self {
         value.address()
-    }
-}
-
-impl Default for UdcSelector {
-    fn default() -> Self {
-        Self::New
     }
 }
 
