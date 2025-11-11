@@ -909,8 +909,8 @@ mod tests {
         assert_eq!(format!("{felt:#X}"), "0x1E240");
         assert_eq!(format!("{felt:010x}"), "000001e240");
         assert_eq!(format!("{felt:010X}"), "000001E240");
-        assert_eq!(format!("{felt:#010x}"), "0x000001e240");
-        assert_eq!(format!("{felt:#010X}"), "0x000001E240");
+        assert_eq!(format!("{felt:#010x}"), "0x0001e240");
+        assert_eq!(format!("{felt:#010X}"), "0x0001E240");
     }
 
     #[test]
