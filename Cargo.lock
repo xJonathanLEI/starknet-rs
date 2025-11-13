@@ -2099,9 +2099,9 @@ dependencies = [
 
 [[package]]
 name = "semver"
-version = "1.0.23"
+version = "1.0.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61697e0a1c7e512e84a621326239844a24d8207b4669b41bc18b32ea5cbf988b"
+checksum = "d767eb0aabc880b29956c35734170f26ed551a859dbd361d140cdbeca61ab1e2"
 
 [[package]]
 name = "serde"
@@ -2387,6 +2387,7 @@ dependencies = [
  "hex-literal",
  "indexmap 2.7.0",
  "num-traits",
+ "semver",
  "serde",
  "serde_json",
  "serde_json_pythonic",

@@ -1,4 +1,5 @@
 {
   "sierra_class_hash": "0x7585639b4e793743860f2761d81e070157ae8d0fc8e518a8cd9069eb2a40010",
-  "compiled_class_hash": "0x317d3ac2cf840e487b6d0014a75f0cf507dff0bc143c710388e323487089bfa"
+  "compiled_class_hash": "0x317d3ac2cf840e487b6d0014a75f0cf507dff0bc143c710388e323487089bfa",
+  "compiled_class_hash_blake2s": "0x6ee46561691e785d643a8296b9bf08008e432df405a1a4beb6ed784541b571c"
 }
