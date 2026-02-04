@@ -37,7 +37,7 @@ impl SigningKey {
     /// Generates a new key pair from a cryptographically secure RNG.
     pub fn from_random() -> Self {
         const PRIME: NonZero<U256> = NonZero::from_uint(U256::from_be_hex(
-            "0800000000000011000000000000000000000000000000000000000000000001",
+            "0800000000000010ffffffffffffffffb781126dcae7b2321e66a241adc64d2f",
         ));
 
         let mut rng = StdRng::from_entropy();
